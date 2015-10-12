@@ -13,27 +13,28 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <utility>
 
 #define TEST(group, name) \
 void test_method_ ## group ## name();\
 sunfish::test_adder__ __test_adder_ ## group ## name (#group, #name, test_method_ ## group ## name); \
 void test_method_ ## group ## name()
 
-#define TEST_RESULT__(reason) throw sunfish::TestError{(reason), __FILE__, __LINE__}
-
 #define ASSERT_EQ(correct, exact) do { \
   const auto correct_ = (correct); \
   const auto exact_ = (exact); \
   if (!((exact_) == (correct_))) {\
     std::ostringstream oss;\
-    oss << "\"" << (exact_) << "\" is not equal to \"" << (correct_) << "\".";\
-    TEST_RESULT__(oss.str());\
+    oss << "\"" << toString(exact_) << "\" is not equal to \"" << toString(correct_) << "\".";\
+    throw sunfish::TestError{oss.str(), __FILE__, __LINE__};\
   } \
 } while (false)
 
 #define ASSERT(b) do { \
   const auto b_ = (b);\
-  if (!b_) { TEST_RESULT__(std::string(#b) + " is not true."); } \
+  if (!b_) { \
+    throw sunfish::TestError{std::string(#b) + " is not true.", __FILE__, __LINE__}; \
+  } \
 } while (false)
 
 namespace sunfish {
@@ -184,6 +185,11 @@ public:
 };
 
 } // namespace sunfish
+
+template <class T>
+inline T toString(T&& obj) {
+  return std::forward<T>(obj);
+}
 
 #endif // !defined(NDEBUG)
 
