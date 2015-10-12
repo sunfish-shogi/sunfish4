@@ -4,7 +4,7 @@
  */
 
 #include "cui/Def.hpp"
-#include "cui/program_options/ProgramOptions.hpp"
+#include "cui/ProgramOptions.hpp"
 #include "test/Test.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>
