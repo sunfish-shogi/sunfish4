@@ -13,6 +13,7 @@ add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_test
 	main.cpp
+	core/PieceTest.cpp
 	core/SquareTest.cpp
 )
 

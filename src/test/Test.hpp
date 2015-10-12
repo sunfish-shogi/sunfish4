@@ -86,7 +86,7 @@ private:
 
   static std::string getErrorMessage(const TestError& e) {
     std::ostringstream oss;
-    oss << e.reason << " (" << e.file << ":" << e.line << ")";
+    oss << e.file << ":" << e.line << ": " << e.reason;
     return oss.str();
   }
 
@@ -119,12 +119,24 @@ public:
         tests++;
 
         try {
+          // run
           method();
+
+          // passed
           tsr.results[methodName].passed = true;
+
         } catch (TestError e) {
+          // failed
           errors++;
           tsr.results[methodName].passed = false;
-          tsr.results[methodName].error.message = getErrorMessage(e);
+
+          std::string message = getErrorMessage(e);
+          tsr.results[methodName].error.message = message;
+
+          std::ostringstream moss;
+          moss << '\n' << message;
+          Loggers::error << moss.str();
+
         }
       }
 
