@@ -130,7 +130,7 @@ public:
           errors++;
           tsr.results[methodName].passed = false;
 
-          std::string message = getErrorMessage(e);
+          auto message = getErrorMessage(e);
           tsr.results[methodName].error.message = message;
 
           std::ostringstream moss;
