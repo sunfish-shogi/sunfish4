@@ -25,7 +25,7 @@ void test_method_ ## group ## name()
   const auto exact_ = (exact); \
   if (!((exact_) == (correct_))) {\
     std::ostringstream oss;\
-    oss << "\"" << toString(exact_) << "\" is not equal to \"" << toString(correct_) << "\".";\
+    oss << "\"" << (exact_) << "\" is not equal to \"" << (correct_) << "\".";\
     throw sunfish::TestError{oss.str(), __FILE__, __LINE__};\
   } \
 } while (false)
@@ -185,11 +185,6 @@ public:
 };
 
 } // namespace sunfish
-
-template <class T>
-inline T toString(T&& obj) {
-  return std::forward<T>(obj);
-}
 
 #endif // !defined(NDEBUG)
 

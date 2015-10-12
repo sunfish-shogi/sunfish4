@@ -8,6 +8,7 @@
 
 #include "core/Def.hpp"
 #include <string>
+#include <iostream>
 #include <cstdint>
 #include <cassert>
 
@@ -52,22 +53,23 @@ inline Direction getReversedDir(Direction dir) {
   }
 }
 
-inline const char* toString(Direction dir) {
+inline std::ostream& operator<<(std::ostream& os, Direction dir) {
   switch (dir) {
-    case Direction::Up:              return "Down";
-    case Direction::Down:            return "Up";
-    case Direction::Left:            return "Right";
-    case Direction::Right:           return "Left";
-    case Direction::LeftUp:          return "RightDown";
-    case Direction::LeftDown:        return "RightUp";
-    case Direction::RightUp:         return "LeftDown";
-    case Direction::RightDown:       return "LeftUp";
-    case Direction::LeftUpKnight:    return "RightDownKnight";
-    case Direction::LeftDownKnight:  return "RightUpKnight";
-    case Direction::RightUpKnight:   return "LeftDownKnight";
-    case Direction::RightDownKnight: return "LeftUpKnight";
-    default: return "None";
+    case Direction::Up:              os << "Up";              break;
+    case Direction::Down:            os << "Down";            break;
+    case Direction::Left:            os << "Left";            break;
+    case Direction::Right:           os << "Right";           break;
+    case Direction::LeftUp:          os << "LeftUp";          break;
+    case Direction::LeftDown:        os << "LeftDown";        break;
+    case Direction::RightUp:         os << "RightUp";         break;
+    case Direction::RightDown:       os << "RightDown";       break;
+    case Direction::LeftUpKnight:    os << "LeftUpKnight";    break;
+    case Direction::LeftDownKnight:  os << "LeftDownKnight";  break;
+    case Direction::RightUpKnight:   os << "RightUpKnight";   break;
+    case Direction::RightDownKnight: os << "RightDownKnight"; break;
+    default:                         os << "None";            break;
   }
+  return os;
 }
 
 class Square {
