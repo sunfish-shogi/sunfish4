@@ -17,10 +17,17 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("silent", "s", "silent mode");
+  po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
+  // --help or -h
+  if (po.has("help")) {
+    std::cout << po.help();
+    return 0;
+  }
+
+  // NOT --silent or -s
   if (!po.has("silent")) {
-    // logger settings
     Loggers::error.addStream(std::cerr, ESC_SEQ_COLOR_RED, ESC_SEQ_COLOR_RESET);
     Loggers::warning.addStream(std::cerr, ESC_SEQ_COLOR_YELLOW, ESC_SEQ_COLOR_RESET);
     Loggers::message.addStream(std::cerr, ESC_SEQ_COLOR_GREEN, ESC_SEQ_COLOR_RESET);
@@ -30,6 +37,7 @@ int main(int argc, char** argv, char**) {
     Loggers::develop.addStream(std::cerr, ESC_SEQ_COLOR_WHITE, ESC_SEQ_COLOR_RESET);
   }
 
+  // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
     Loggers::warning << "WARNING: `" << invalidArgument.arg << "' is invalid argument: " << invalidArgument.reason;
   }
@@ -37,6 +45,7 @@ int main(int argc, char** argv, char**) {
   // execute
   bool result = TestSuite::test();
 
+  // write results to a file in xUnit format
   std::ofstream fout(TEST_OUT_FILENAME, std::ios::out);
   if (!fout) {
     Loggers::error << "open error: " << TEST_OUT_FILENAME;
@@ -45,6 +54,7 @@ int main(int argc, char** argv, char**) {
   fout << TestSuite::getXml();
   fout.close();
 
+  // show result
   if (result) {
     Loggers::message << "Test passed.";
   } else {
