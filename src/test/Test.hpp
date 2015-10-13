@@ -17,7 +17,7 @@
 
 #define TEST(group, name) \
 void test_method_ ## group ## name();\
-sunfish::test_adder__ __test_adder_ ## group ## name (#group, #name, test_method_ ## group ## name); \
+sunfish::test_inserter__ __test_inserter_ ## group ## name (#group, #name, test_method_ ## group ## name); \
 void test_method_ ## group ## name()
 
 #define ASSERT_EQ(correct, exact) do { \
@@ -189,9 +189,9 @@ public:
 
 };
 
-class test_adder__ {
+class test_inserter__ {
 public:
-  test_adder__(const char* groupName, const char* methodName, TEST_METHOD method) {
+  test_inserter__(const char* groupName, const char* methodName, TEST_METHOD method) {
     TestSuite::addTest(groupName, methodName, method);
   }
 };
