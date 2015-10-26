@@ -12,6 +12,13 @@
 #include <cstdint>
 #include <cassert>
 
+#define SQUARE_FILES 9
+#define SQUARE_RANKS 9
+#define NUMBER_OF_SQUARES (SQUARE_FILES*SQUARE_RANKS)
+
+#define SQUARE_FILE_MAX 9
+#define SQUARE_RANK_MAX 9
+
 namespace sunfish {
 
 enum {
@@ -80,14 +87,14 @@ private:
 public:
 
   static CONSTEXPR_CONST int32_t Invalid = -1;
-  static CONSTEXPR_CONST int32_t N = 81;
-  static CONSTEXPR_CONST int32_t RankN = 9;
-  static CONSTEXPR_CONST int32_t FileN = 9;
+  static CONSTEXPR_CONST int32_t N = NUMBER_OF_SQUARES;
+  static CONSTEXPR_CONST int32_t FileMax = SQUARE_FILE_MAX;
+  static CONSTEXPR_CONST int32_t RankMax = SQUARE_RANK_MAX;
   static CONSTEXPR_CONST int32_t Begin = 0;
   static CONSTEXPR_CONST int32_t End = Begin + N;
 
   static CONSTEXPR int32_t index(int file, int rank) {
-    return (9 - file) * RankN + rank - 1;
+    return (9 - file) * RankMax + rank - 1;
   }
 
   CONSTEXPR Square() : index_(Invalid) {
@@ -134,10 +141,10 @@ public:
   }
 
   CONSTEXPR int32_t getFile() const {
-    return 9 - (index_ / RankN);
+    return 9 - (index_ / RankMax);
   }
   CONSTEXPR int32_t getRank() const {
-    return index_ % RankN + 1;
+    return index_ % RankMax + 1;
   }
 
   CONSTEXPR bool isValid() const {
@@ -175,7 +182,7 @@ public:
     return N - 1 - index_;
   }
   CONSTEXPR Square sym() const {
-    return Square(FileN + 1 - getFile(), getRank());
+    return Square(FileMax + 1 - getFile(), getRank());
   }
   CONSTEXPR Square up(int32_t distance = 1) const {
     return index_ - distance;
@@ -184,10 +191,10 @@ public:
     return index_ + distance;
   }
   CONSTEXPR Square left(int32_t distance = 1) const {
-    return index_ - distance * RankN;
+    return index_ - distance * RankMax;
   }
   CONSTEXPR Square right(int32_t distance = 1) const {
-    return index_ + distance * RankN;
+    return index_ + distance * RankMax;
   }
   CONSTEXPR Square leftUp(int32_t distance = 1) const {
     return (*this).left(distance).up(distance);

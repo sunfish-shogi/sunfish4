@@ -21,7 +21,9 @@ TEST(SquareTest, test) {
     ASSERT_EQ(4, sq46.getFile());
     ASSERT_EQ(6, sq46.getRank());
   }
+}
 
+TEST(SquareTest, testIsPromotable) {
   {
     Square sq43(S43);
     ASSERT_EQ(true, sq43.isPromotable<true>());
@@ -93,13 +95,17 @@ TEST(SquareTest, test) {
     ASSERT_EQ(true, sq18.isKnightMovable<true>());
     ASSERT_EQ(false, sq18.isKnightMovable<false>());
   }
+}
 
+TEST(SquareTest, testReverse) {
   {
     Square sq34(3, 4);
     ASSERT_EQ(S76, sq34.reverse());
     ASSERT_EQ(S74, sq34.sym());
   }
+}
 
+TEST(SquareTest, testDirections) {
   {
     Square sq55(5, 5);
     ASSERT_EQ(S54, sq55.up());
@@ -174,7 +180,9 @@ TEST(SquareTest, test) {
     ASSERT(sq91.safetyRightUp().isInvalid());
     ASSERT(sq91.safetyRightDown().isValid());
   }
+}
 
+TEST(SquareTest, testNext) {
   {
     Square sq55(5, 5);
     ASSERT_EQ(S56, sq55.next());
@@ -185,7 +193,9 @@ TEST(SquareTest, test) {
     Square sq19(1, 9);
     ASSERT_EQ(Square::End, sq19.next());
   }
+}
 
+TEST(SquareTest, testDistance) {
   {
     Square sq34(3, 4);
     Square sq38(3, 8);
@@ -194,7 +204,9 @@ TEST(SquareTest, test) {
     ASSERT_EQ(4, sq34.distance(sq38));
     ASSERT_EQ(5, sq34.distance(sq89));
   }
+}
 
+TEST(SquareTest, testToString) {
   {
     ASSERT_EQ("11", Square(S11).toString());
     ASSERT_EQ("76", Square(S76).toString());

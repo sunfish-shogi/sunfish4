@@ -15,6 +15,7 @@ add_executable(sunfish_test
 	Main.cpp
 	core/PieceTest.cpp
 	core/SquareTest.cpp
+	core/BitboardTest.cpp
 )
 
 target_link_libraries(sunfish_test core)

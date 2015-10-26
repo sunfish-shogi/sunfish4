@@ -55,4 +55,12 @@
 
 #define ARRAY_SIZE(arr) ((int)(sizeof(arr) / sizeof((arr)[0])))
 
+#if !defined(USE_SSE2) && __SSE2__
+# define USE_SSE2 1
+#endif
+
+#if USE_SSE2
+# include <emmintrin.h>
+#endif
+
 #endif // SUNFISH_CORE_DEF__
