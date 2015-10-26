@@ -42,7 +42,7 @@ namespace sunfish {
 using TEST_METHOD = void (*)();
 
 /**
- * error
+ * This error is thrown when the test is failed.
  */
 struct TestError {
   std::string reason;
@@ -56,8 +56,14 @@ public:
     std::string message;
   };
 
+  enum class State {
+    PASSED,
+    ERROR,
+    FAILURE,
+  };
+
   struct Result {
-    bool passed;
+    State state;
     Error error;
   };
 
@@ -67,6 +73,7 @@ public:
     TestCaseResultMap results;
     int tests;
     int errors;
+    int failures;
   };
 
   using TestSuiteResultMap = std::map<std::string, TestSuiteResult>;
@@ -92,11 +99,19 @@ private:
 
 public:
 
+  /**
+   * add unit test method into the suite.
+   * This function is called by TEST macro.
+   * You should not call manually.
+   */
   static void addTest(const char* groupName, const char* methodName, TEST_METHOD method) {
     auto ins = getInstance();
     ins->tests_[groupName][methodName] = method;
   }
 
+  /**
+   * run all tests.
+   */
   static bool test() {
     auto ins = getInstance();
     const auto& tests = ins->tests_;
@@ -109,6 +124,7 @@ public:
       auto& methods = it->second;
       int tests = 0;
       int errors = 0;
+      int failures = 0;
 
       auto& tsr = ins->results_[groupName];
 
@@ -123,12 +139,12 @@ public:
           method();
 
           // passed
-          tsr.results[methodName].passed = true;
+          tsr.results[methodName].state = State::PASSED;
 
-        } catch (TestError e) {
-          // failed
+        } catch (const TestError& e) {
+          // error
           errors++;
-          tsr.results[methodName].passed = false;
+          tsr.results[methodName].state = State::ERROR;
 
           auto message = getErrorMessage(e);
           tsr.results[methodName].error.message = message;
@@ -137,23 +153,35 @@ public:
           moss << '\n' << message;
           Loggers::error << moss.str();
 
+        } catch (...) {
+          // failure
+          failures++;
+          tsr.results[methodName].state = State::FAILURE;
+
         }
       }
 
       tsr.tests = tests;
       tsr.errors = errors;
+      tsr.failures = failures;
 
-      totalErrors += errors;
+      totalErrors += (errors + failures);
     }
 
     return totalErrors == 0;
   }
 
+  /**
+   * get the results
+   */
   static TestSuiteResultMap getResults() {
     auto ins = getInstance();
     return ins->results_;
   }
 
+  /**
+   * get the results in XML format.
+   */
   static std::string getXml() {
     auto ins = getInstance();
     std::ostringstream oss;
@@ -166,7 +194,8 @@ public:
       oss << R"(<testsuite name=")" << suiteName << R"(" )"
              R"(tests=")" << tsr.tests << R"(" )"
              R"(errors=")" << tsr.errors << R"(" )"
-             R"(failures="0" skip="0">)" << "\n";
+             R"(failures=")" << tsr.failures << R"(" )"
+             R"(skip="0">)" << "\n";
 
       for (const auto& pair : tsr.results) {
         const auto& testName = pair.first;
@@ -174,7 +203,7 @@ public:
 
         oss << "\t" R"(<testcase name=")" << testName << R"(" )"
                     R"(time="0">)" << "\n";
-        if (!result.passed) {
+        if (result.state == State::ERROR) {
           oss << "\t\t" R"(<error message=")" << result.error.message << R"(">)" << "\n";
           oss << "\t\t" R"(</error>)" << "\n";
         }
