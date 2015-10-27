@@ -8,20 +8,20 @@
 
 #include "core/Def.hpp"
 #include <cstdint>
+#include <cassert>
 
 namespace sunfish {
 
-/**
- * set of 128 bits
- */
 template <class T, int W1, int W2>
 class Bitset128 {
-protected:
+public:
 
   static CONSTEXPR_CONST int Width1 = W1;
   static CONSTEXPR_CONST int Width2 = W2;
   static CONSTEXPR_CONST uint64_t Mask1 = (1ULL<<W1)-1;
   static CONSTEXPR_CONST uint64_t Mask2 = (1ULL<<W2)-1;
+
+protected:
 
   /**
    * 128-bit wide union type
@@ -38,35 +38,18 @@ protected:
 
     u128() {}
   };
-
   static_assert(sizeof(u128) == 16, "invalid size");
-
-  u128 bb_;
-
-  /**
-   * get mutable reference of 1st quad word
-   */
-  uint64_t& firstRef() {
-    return bb_.u64[0];
-  }
-
-  /**
-   * get mutable reference of 2nd quad word
-   */
-  uint64_t& secondRef() {
-    return bb_.u64[1];
-  }
 
 public:
 
   /**
-   * default constructor
+   * Default constructor
    */
   Bitset128() {
   }
 
   /**
-   * copy constructor
+   * Copy constructor
    */
   Bitset128(const T& src) :
 #if USE_SSE2
@@ -79,26 +62,26 @@ public:
 
 #if USE_SSE2
   /**
-   * constructor
+   * Constructor
    */
   Bitset128(const __m128i& m) : bb_(m) {}
 #endif
 
   /**
-   * constructor
+   * Constructor
    */
   explicit CONSTEXPR Bitset128(uint64_t first, uint64_t second) : bb_(first, second) {
   }
 
   /**
-   * get zero-initilized object.
+   * Get zero-initilized object.
    */
   static CONSTEXPR T zero() {
     return T(0x00LL, 0x00LL);
   }
 
   /**
-   * initialize all bits to zero
+   * Initialize all bits to zero
    */
   void init() {
 #if USE_SSE2
@@ -110,7 +93,7 @@ public:
   }
 
   /**
-   * assignment operator
+   * Assignment operator
    */
   T& operator=(const T& src) {
 #if USE_SSE2
@@ -122,7 +105,7 @@ public:
   }
 
   /**
-   * bitwise OR assignment operator
+   * Bitwise OR assignment operator
    */
   T& operator|=(const T& bb) {
 #if USE_SSE2
@@ -135,7 +118,7 @@ public:
   }
 
   /**
-   * bitwise AND assignment operator
+   * Bitwise AND assignment operator
    */
   T& operator&=(const T& bb) {
 #if USE_SSE2
@@ -148,7 +131,7 @@ public:
   }
 
   /**
-   * bitwise XOR assignment operator
+   * Bitwise XOR assignment operator
    */
   T& operator^=(const T& bb) {
 #if USE_SSE2
@@ -161,7 +144,7 @@ public:
   }
 
   /**
-   * bitwise OR operator
+   * Bitwise OR operator
    */
   T operator|(const T& bb) const {
 #if USE_SSE2
@@ -172,7 +155,7 @@ public:
   }
 
   /**
-   * bitwise AND operator
+   * Bitwise AND operator
    */
   T operator&(const T& bb) const {
 #if USE_SSE2
@@ -183,7 +166,7 @@ public:
   }
 
   /**
-   * bitwise XOR operator
+   * Bitwise XOR operator
    */
   T operator^(const T& bb) const {
 #if USE_SSE2
@@ -194,7 +177,7 @@ public:
   }
 
   /**
-   * bitwise NOT operator
+   * Bitwise NOT operator
    */
   T operator~() const{
 #if USE_SSE2
@@ -211,7 +194,7 @@ public:
   }
 
   /**
-   * bitwise AND-NOT operation
+   * Bitwise AND-NOT operation
    */
   T andNot(const T& bb) const{
 #if USE_SSE2
@@ -222,7 +205,7 @@ public:
   }
 
   /**
-   * shifts as the two unsgined 64-bit integers.
+   * Shifts as the two unsgined 64-bit integers.
    */
   void leftShift64(int n) {
 #if USE_SSE2
@@ -234,7 +217,7 @@ public:
   }
 
   /**
-   * shifts as the two unsgined 64-bit integers.
+   * Shifts as the two unsgined 64-bit integers.
    */
   void rightShift64(int n) {
 #if USE_SSE2
@@ -246,7 +229,7 @@ public:
   }
 
   /**
-   * left shift assignment operator.
+   * Left shift assignment operator.
    * This function uses <leftShift64> from the inside.
    */
   const T& operator<<=(int n) {
@@ -255,7 +238,7 @@ public:
   }
 
   /**
-   * right shift assignment operator.
+   * Right shift assignment operator.
    * This function uses <rightShift64> from the inside.
    */
   const T& operator>>=(int n) {
@@ -264,7 +247,7 @@ public:
   }
 
   /**
-   * left shift operator.
+   * Left shift operator.
    * This function uses <leftShift64> from the inside.
    */
   T operator<<(int n) const {
@@ -272,7 +255,7 @@ public:
   }
 
   /**
-   * right shift operator.
+   * Right shift operator.
    * This function uses <rightShift64> from the inside.
    */
   T operator>>(int n) const {
@@ -280,18 +263,72 @@ public:
   }
 
   /**
-   * get 1st quad word
+   * Get 1st quad word
    */
   uint64_t first() const {
     return bb_.u64[0];
   }
 
   /**
-   * get 2nd quad word
+   * Get 2nd quad word
    */
   uint64_t second() const {
     return bb_.u64[1];
   }
+
+  /**
+   * Set the specified bit.
+   */
+  void set(int offset) {
+    if (offset < Width1) {
+      firstRef() |= 1LLU << offset;
+    } else {
+      assert(offset < Width1 + Width2);
+      secondRef() |= 1LLU << (offset - Width1);
+    }
+  }
+
+  /**
+   * Unset the specified bit.
+   */
+  void unset(int offset) {
+    if (offset < Width1) {
+      firstRef() &= ~(1LLU << offset);
+    } else {
+      assert(offset < Width1 + Width2);
+      secondRef() &= ~(1LLU << (offset - Width1));
+    }
+  }
+
+  /**
+   * Check the specified bit.
+   */
+  bool check(int offset) const {
+    if (offset < Width1) {
+      return first() & (1LLU << offset);
+    } else {
+      assert(offset < Width1 + Width2);
+      return second() & (1LLU << (offset - Width1));
+    }
+  }
+
+protected:
+
+  /**
+   * Get mutable reference of 1st quad word
+   */
+  uint64_t& firstRef() {
+    return bb_.u64[0];
+  }
+
+  /**
+   * Get mutable reference of 2nd quad word
+   */
+  uint64_t& secondRef() {
+    return bb_.u64[1];
+  }
+
+  u128 bb_;
 
 };
 

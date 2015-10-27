@@ -143,3 +143,47 @@ TEST(BitboardTest, testOperators) {
     ASSERT_EQ(0x6LL, bb.second());
   }
 }
+
+TEST(BitboardTest, testSet) {
+  {
+    Bitboard bb(0x3LL, 0xcLL);
+    bb.set(3);
+    ASSERT_EQ(0xbLL, bb.first());
+    ASSERT_EQ(0xcLL, bb.second());
+  }
+
+  {
+    Bitboard bb(0x3LL, 0xcLL);
+    bb.set(46);
+    ASSERT_EQ(0x3LL, bb.first());
+    ASSERT_EQ(0xeLL, bb.second());
+  }
+
+  {
+    Bitboard bb(0x3LL, 0xcLL);
+    bb.unset(1);
+    ASSERT_EQ(0x1LL, bb.first());
+    ASSERT_EQ(0xcLL, bb.second());
+  }
+
+  {
+    Bitboard bb(0x3LL, 0xcLL);
+    bb.unset(47);
+    ASSERT_EQ(0x3LL, bb.first());
+    ASSERT_EQ(0x8LL, bb.second());
+  }
+
+  {
+    Bitboard bb(0x3LL, 0xcLL);
+    ASSERT_EQ(true, bb.check(0));
+    ASSERT_EQ(true, bb.check(1));
+    ASSERT_EQ(false, bb.check(2));
+    ASSERT_EQ(false, bb.check(3));
+    ASSERT_EQ(false, bb.check(4));
+    ASSERT_EQ(false, bb.check(44));
+    ASSERT_EQ(false, bb.check(45));
+    ASSERT_EQ(false, bb.check(46));
+    ASSERT_EQ(true, bb.check(47));
+    ASSERT_EQ(true, bb.check(48));
+  }
+}
