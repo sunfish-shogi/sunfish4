@@ -71,14 +71,14 @@ CONSTEXPR_CONST int8_t square2Direction[17][17] = {
 namespace sunfish {
 
 int32_t Square::distance(const Square& to) const {
-  int x = (int)to.index_ % RankMax - (int)index_ % RankMax + 8;
-  int y = (int)to.index_ / RankMax - (int)index_ / RankMax + 8;
+  int x = (int)to.number_ % RankMax - (int)number_ % RankMax + 8;
+  int y = (int)to.number_ / RankMax - (int)number_ / RankMax + 8;
   return square2Distance[x][y];
 }
 
 Direction Square::dir(const Square& to) const {
-  int x = (int)to.index_ % RankMax - (int)index_ % RankMax + 8;
-  int y = (int)to.index_ / RankMax - (int)index_ / RankMax + 8;
+  int x = (int)to.number_ % RankMax - (int)number_ % RankMax + 8;
+  int y = (int)to.number_ / RankMax - (int)number_ / RankMax + 8;
   return static_cast<Direction>(square2Direction[x][y]);
 }
 

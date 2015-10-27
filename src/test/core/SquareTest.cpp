@@ -100,8 +100,9 @@ TEST(SquareTest, testIsPromotable) {
 TEST(SquareTest, testReverse) {
   {
     Square sq34(3, 4);
-    ASSERT_EQ(S76, sq34.reverse());
-    ASSERT_EQ(S74, sq34.sym());
+    ASSERT_EQ(S76, sq34.dsym());
+    ASSERT_EQ(S74, sq34.hsym());
+    ASSERT_EQ(S36, sq34.vsym());
   }
 }
 
