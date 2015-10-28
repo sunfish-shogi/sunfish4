@@ -9,7 +9,7 @@
 #include "logger/Logger.hpp"
 #include <fstream>
 
-#define TEST_OUT_FILENAME "test_result.xml"
+#define DEFAULT_TEST_RESULT_FILENAME "test_result.xml"
 
 using namespace sunfish;
 
@@ -17,6 +17,7 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("silent", "s", "silent mode");
+  po.addOption("out", "o", "output file name (default: " DEFAULT_TEST_RESULT_FILENAME ")", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -26,7 +27,7 @@ int main(int argc, char** argv, char**) {
     return 0;
   }
 
-  // NOT --silent or -s
+  // if '--silent' or '-s' is NOT specified.
   if (!po.has("silent")) {
     Loggers::error.addStream(std::cerr, ESC_SEQ_COLOR_RED, ESC_SEQ_COLOR_RESET);
     Loggers::warning.addStream(std::cerr, ESC_SEQ_COLOR_YELLOW, ESC_SEQ_COLOR_RESET);
@@ -35,6 +36,12 @@ int main(int argc, char** argv, char**) {
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
     Loggers::debug.addStream(std::cerr, ESC_SEQ_COLOR_CYAN, ESC_SEQ_COLOR_RESET);
     Loggers::develop.addStream(std::cerr, ESC_SEQ_COLOR_WHITE, ESC_SEQ_COLOR_RESET);
+  }
+
+  // the name of the result file
+  std::string resultFileName = DEFAULT_TEST_RESULT_FILENAME;
+  if (po.has("out")) {
+    resultFileName = po.getValue("out");
   }
 
   // invalid arguments
@@ -46,9 +53,9 @@ int main(int argc, char** argv, char**) {
   bool result = TestSuite::test();
 
   // write results to a file in xUnit format
-  std::ofstream fout(TEST_OUT_FILENAME, std::ios::out);
+  std::ofstream fout(resultFileName, std::ios::out);
   if (!fout) {
-    Loggers::error << "open error: " << TEST_OUT_FILENAME;
+    Loggers::error << "open error: " << resultFileName;
     return 1;
   }
   fout << TestSuite::getXml();
@@ -60,7 +67,7 @@ int main(int argc, char** argv, char**) {
   } else {
     Loggers::error << "Test failed.";
   }
-  Loggers::message << "See '" << TEST_OUT_FILENAME << "'.";
+  Loggers::message << "See '" << resultFileName << "'.";
 
   // return value
   return result ? 0 : 1;

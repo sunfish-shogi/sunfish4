@@ -147,29 +147,29 @@ public:
   /**
    * EQUALS operator
    */
-  CONSTEXPR bool operator==(const Square& sq) const {
-    return number_ == sq.number_;
+  CONSTEXPR bool operator==(const Square& rhs) const {
+    return number_ == rhs.number_;
   }
 
   /**
    * NOT-EQUALS operator
    */
-  CONSTEXPR bool operator!=(const Square& sq) const {
-    return number_ != sq.number_;
+  CONSTEXPR bool operator!=(const Square& rhs) const {
+    return number_ != rhs.number_;
   }
 
   /**
    * EQUALS operator which takes an integer value as an argument.
    */
-  CONSTEXPR bool operator==(int32_t i) const {
-    return number_ == i;
+  CONSTEXPR bool operator==(int32_t rhs) const {
+    return number_ == rhs;
   }
 
   /**
    * NOT-EQUALS operator which takes an integer value as an argument.
    */
-  CONSTEXPR bool operator!=(int32_t i) const {
-    return number_ != i;
+  CONSTEXPR bool operator!=(int32_t rhs) const {
+    return number_ != rhs;
   }
 
   /**
@@ -526,12 +526,12 @@ private:
 
 #define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::Begin; (sq) != sunfish::Square::End; (sq) = (sq).next())
 
-inline bool operator==(uint8_t number, const sunfish::Square& square) {
-  return number == square.raw();
+inline bool operator==(uint8_t lhs, const sunfish::Square& rhs) {
+  return lhs == rhs.raw();
 }
 
-inline bool operator!=(uint8_t number, const sunfish::Square& square) {
-  return number != square.raw();
+inline bool operator!=(uint8_t lhs, const sunfish::Square& rhs) {
+  return lhs != rhs.raw();
 }
 
 inline std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {

@@ -11,6 +11,8 @@ BUILD_DIR:=build
 PROF:=gprof
 PROFOUT:=profile.txt
 
+HAS_SSE2:=$(shell c++ -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
+
 .PHONY: release debug learn clean
 
 help:
@@ -35,12 +37,28 @@ debug:
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 test:
+ifeq ($(HAS_SSE2),1)
+	$(MAKE) test-sse
+	$(MAKE) test-nosse
+else
+	$(MAKE) test-nosse
+endif
+
+test-sse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/test && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 ../../src/test && \
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
-	$(SHELL) -c './$(SUNFISH_TEST)'
+	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_sse.xml'
+
+test-nosse:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 ../../src/test && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
+	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
 
 clean:
 	$(RM) -r $(BUILD_DIR)

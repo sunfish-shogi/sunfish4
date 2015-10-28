@@ -110,15 +110,15 @@ public:
   /**
    * EQUALS operator.
    */
-  bool operator==(const Piece& piece) const {
-    return number_ == piece.number_;
+  bool operator==(const Piece& rhs) const {
+    return number_ == rhs.number_;
   }
 
   /**
    * NOT-EQUALS operator.
    */
-  bool operator!=(const Piece& piece) const {
-    return number_ != piece.number_;
+  bool operator!=(const Piece& rhs) const {
+    return number_ != rhs.number_;
   }
 
   /**
@@ -247,12 +247,12 @@ private:
 #define PIECE_KIND_EACH(piece)   for (sunfish::Piece (piece) = sunfish::Piece::KindBegin; (piece) != sunfish::Piece::KindEnd; (piece) = (piece).nextUnsafe())
 #define HAND_EACH(piece)         for (sunfish::Piece (piece) = sunfish::Piece::HandBegin; (piece) != sunfish::Piece::HandEnd; (piece) = (piece).nextUnsafe())
 
-inline bool operator==(uint8_t number, const sunfish::Piece& piece) {
-  return number == piece.raw();
+inline bool operator==(uint8_t lhs, const sunfish::Piece& rhs) {
+  return lhs == rhs.raw();
 }
 
-inline bool operator!=(uint8_t number, const sunfish::Piece& piece) {
-  return number != piece.raw();
+inline bool operator!=(uint8_t lhs, const sunfish::Piece& rhs) {
+  return lhs != rhs.raw();
 }
 
 inline std::ostream& operator<<(std::ostream& os, const sunfish::Piece& piece) {

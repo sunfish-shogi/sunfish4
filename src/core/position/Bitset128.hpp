@@ -108,12 +108,12 @@ public:
   /**
    * Bitwise OR assignment operator
    */
-  T& operator|=(const T& bb) {
+  T& operator|=(const T& rhs) {
 #if USE_SSE2
-    bb_.m = _mm_or_si128(bb_.m, bb.bb_.m);
+    bb_.m = _mm_or_si128(bb_.m, rhs.bb_.m);
 #else
-    firstRef() |= src.firstRef();
-    secondRef() |= src.secondRef();
+    firstRef() |= rhs.first();
+    secondRef() |= rhs.second();
 #endif
     return *(T*)this;
   }
@@ -121,12 +121,12 @@ public:
   /**
    * Bitwise AND assignment operator
    */
-  T& operator&=(const T& bb) {
+  T& operator&=(const T& rhs) {
 #if USE_SSE2
-    bb_.m = _mm_and_si128(bb_.m, bb.bb_.m);
+    bb_.m = _mm_and_si128(bb_.m, rhs.bb_.m);
 #else
-    firstRef() &= src.firstRef();
-    secondRef() &= src.secondRef();
+    firstRef() &= rhs.first();
+    secondRef() &= rhs.second();
 #endif
     return *(T*)this;
   }
@@ -134,12 +134,12 @@ public:
   /**
    * Bitwise XOR assignment operator
    */
-  T& operator^=(const T& bb) {
+  T& operator^=(const T& rhs) {
 #if USE_SSE2
-    bb_.m = _mm_xor_si128(bb_.m, bb.bb_.m);
+    bb_.m = _mm_xor_si128(bb_.m, rhs.bb_.m);
 #else
-    firstRef() ^= src.firstRef();
-    secondRef() ^= src.secondRef();
+    firstRef() ^= rhs.first();
+    secondRef() ^= rhs.second();
 #endif
     return *(T*)this;
   }
@@ -147,33 +147,33 @@ public:
   /**
    * Bitwise OR operator
    */
-  T operator|(const T& bb) const {
+  T operator|(const T& rhs) const {
 #if USE_SSE2
-    return T(_mm_or_si128(bb_.m, bb.bb_.m));
+    return T(_mm_or_si128(bb_.m, rhs.bb_.m));
 #else
-    return Bitboard(first() | bb.first(), second() | bb.second());
+    return T(first() | rhs.first(), second() | rhs.second());
 #endif
   }
 
   /**
    * Bitwise AND operator
    */
-  T operator&(const T& bb) const {
+  T operator&(const T& rhs) const {
 #if USE_SSE2
-    return T(_mm_and_si128(bb_.m, bb.bb_.m));
+    return T(_mm_and_si128(bb_.m, rhs.bb_.m));
 #else
-    return Bitboard(first() & bb.first(), second() & bb.second());
+    return T(first() & rhs.first(), second() & rhs.second());
 #endif
   }
 
   /**
    * Bitwise XOR operator
    */
-  T operator^(const T& bb) const {
+  T operator^(const T& rhs) const {
 #if USE_SSE2
-    return T(_mm_xor_si128(bb_.m, bb.bb_.m));
+    return T(_mm_xor_si128(bb_.m, rhs.bb_.m));
 #else
-    return Bitboard(first() ^ bb.first(), second() ^ bb.second());
+    return T(first() ^ rhs.first(), second() ^ rhs.second());
 #endif
   }
 
@@ -190,18 +190,18 @@ public:
 #endif
           ));
 #else
-    return Bitboard((~first()) & Mask1, (~second()) & Mask2);
+    return T((~first()) & Mask1, (~second()) & Mask2);
 #endif
   }
 
   /**
    * Bitwise AND-NOT operation
    */
-  T andNot(const T& bb) const{
+  T andNot(const T& rhs) const{
 #if USE_SSE2
-    return T(_mm_andnot_si128(bb_.m, bb.bb_.m));
+    return T(_mm_andnot_si128(bb_.m, rhs.bb_.m));
 #else
-    return Bitboard((~first()) & bb.first(), (~second()) & bb.second());
+    return T((~first()) & rhs.first(), (~second()) & rhs.second());
 #endif
   }
 
