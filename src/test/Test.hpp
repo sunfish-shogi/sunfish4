@@ -8,6 +8,7 @@
 
 #if !defined(NDEBUG)
 
+#include "common/time/Timer.hpp"
 #include "logger/Logger.hpp"
 #include <typeinfo>
 #include <sstream>
@@ -64,6 +65,7 @@ public:
 
   struct Result {
     State state;
+    float time;
     Error error;
   };
 
@@ -100,9 +102,9 @@ private:
 public:
 
   /**
-   * add unit test method into the suite.
+   * Add the specified method for unit test into the suite.
    * This function is called by TEST macro.
-   * You should not call manually.
+   * You should not call this manually.
    */
   static void addTest(const char* groupName, const char* methodName, TEST_METHOD method) {
     auto ins = getInstance();
@@ -110,7 +112,7 @@ public:
   }
 
   /**
-   * run all tests.
+   * Run all tests.
    */
   static bool test() {
     auto ins = getInstance();
@@ -134,19 +136,24 @@ public:
 
         tests++;
 
+        Timer timer;
+        timer.set();
+
         try {
           // run
           method();
 
           // passed
           tsr.results[methodName].state = State::PASSED;
+          tsr.results[methodName].time = timer.get();
 
         } catch (const TestError& e) {
+          auto message = getErrorMessage(e);
+
           // error
           errors++;
           tsr.results[methodName].state = State::ERROR;
-
-          auto message = getErrorMessage(e);
+          tsr.results[methodName].time = timer.get();
           tsr.results[methodName].error.message = message;
 
           std::ostringstream moss;
@@ -157,6 +164,7 @@ public:
           // failure
           failures++;
           tsr.results[methodName].state = State::FAILURE;
+          tsr.results[methodName].time = timer.get();
 
         }
       }
@@ -172,7 +180,7 @@ public:
   }
 
   /**
-   * get the results
+   * Get the results
    */
   static TestSuiteResultMap getResults() {
     auto ins = getInstance();
@@ -180,7 +188,7 @@ public:
   }
 
   /**
-   * get the results in XML format.
+   * Get the results in XML format.
    */
   static std::string getXml() {
     auto ins = getInstance();
@@ -202,7 +210,7 @@ public:
         const auto& result = pair.second;
 
         oss << "\t" R"(<testcase name=")" << testName << R"(" )"
-                    R"(time="0">)" << "\n";
+                    R"(time=")" << result.time << R"(">)" << "\n";
         if (result.state == State::ERROR) {
           oss << "\t\t" R"(<error message=")" << result.error.message << R"(">)" << "\n";
           oss << "\t\t" R"(</error>)" << "\n";
