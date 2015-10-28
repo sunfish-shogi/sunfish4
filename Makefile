@@ -11,7 +11,7 @@ BUILD_DIR:=build
 PROF:=gprof
 PROFOUT:=profile.txt
 
-HAS_SSE2:=$(shell c++ -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
+HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 
 .PHONY: release debug learn clean
 
