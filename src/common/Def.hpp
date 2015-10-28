@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_COMMON_DEF__
-#define SUNFISH_COMMON_DEF__
+#ifndef SUNFISH_COMMON_DEF_HPP__
+#define SUNFISH_COMMON_DEF_HPP__
 
 #if !defined(UNIX) && !defined(WIN32)
 // windows
@@ -53,4 +53,4 @@
 # endif
 #endif
 
-#endif // SUNFISH_COMMON_DEF__
+#endif // SUNFISH_COMMON_DEF_HPP__
