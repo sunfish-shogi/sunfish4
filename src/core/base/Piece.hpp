@@ -6,7 +6,7 @@
 #ifndef SUNFISH_CORE_BASE_PIECE__
 #define SUNFISH_CORE_BASE_PIECE__
 
-#include "core/Def.hpp"
+#include "common/Def.hpp"
 #include <iostream>
 #include <string>
 #include <cstdint>

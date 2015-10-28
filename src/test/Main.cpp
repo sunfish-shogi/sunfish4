@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#include "cui/Def.hpp"
-#include "cui/ProgramOptions.hpp"
+#include "common/console/Console.hpp"
+#include "common/program_options/ProgramOptions.hpp"
 #include "test/Test.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>

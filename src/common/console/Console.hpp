@@ -1,12 +1,10 @@
-/* Def.hpp
+/* Console.hpp
  * 
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_CUI_DEF_HPP_
-#define SUNFISH_CUI_DEF_HPP_
-
-#include "core/Def.hpp"
+#ifndef SUNFISH_COMMON_CONSOLE_HPP_
+#define SUNFISH_COMMON_CONSOLE_HPP_
 
 #if WIN32
 # define ENABLE_ESC_SEQ_COLOR 0
@@ -36,4 +34,4 @@
 # define ESC_SEQ_COLOR_RESET   nullptr
 #endif
 
-#endif // SUNFISH_CUI_DEF_HPP_
+#endif // SUNFISH_COMMON_CONSOLE_HPP_

@@ -1,10 +1,10 @@
-/* def.hpp
+/* Def.hpp
  *
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_CORE_DEF__
-#define SUNFISH_CORE_DEF__
+#ifndef SUNFISH_COMMON_DEF__
+#define SUNFISH_COMMON_DEF__
 
 #if !defined(UNIX) && !defined(WIN32)
 // windows
@@ -53,14 +53,4 @@
 # endif
 #endif
 
-#define ARRAY_SIZE(arr) ((int)(sizeof(arr) / sizeof((arr)[0])))
-
-#if !defined(USE_SSE2) && __SSE2__
-# define USE_SSE2 1
-#endif
-
-#if USE_SSE2
-# include <emmintrin.h>
-#endif
-
-#endif // SUNFISH_CORE_DEF__
+#endif // SUNFISH_COMMON_DEF__

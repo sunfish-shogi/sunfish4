@@ -6,7 +6,7 @@
 #ifndef SUNFISH_CORE_BASE_BITBOARD_HPP__
 #define SUNFISH_CORE_BASE_BITBOARD_HPP__
 
-#include "core/Def.hpp"
+#include "common/Def.hpp"
 #include "core/base/Square.hpp"
 #include "core/position/Bitset128.hpp"
 #include <cstdint>

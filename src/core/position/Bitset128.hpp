@@ -6,7 +6,8 @@
 #ifndef SUNFISH_CORE_BASE_BITSET128_HPP__
 #define SUNFISH_CORE_BASE_BITSET128_HPP__
 
-#include "core/Def.hpp"
+#include "common/Def.hpp"
+#include "core/Sse.hpp"
 #include <cstdint>
 #include <cassert>
 

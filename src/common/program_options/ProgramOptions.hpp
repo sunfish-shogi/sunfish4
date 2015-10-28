@@ -1,10 +1,10 @@
-/* ProgramOptions.h
+/* ProgramOptions.hpp
  *
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_CUI_PROGRAMOPTIONS_PROGRAMOPTIONS__
-#define SUNFISH_CUI_PROGRAMOPTIONS_PROGRAMOPTIONS__
+#ifndef SUNFISH_COMMON_PROGRAMOPTIONS_PROGRAMOPTIONS__
+#define SUNFISH_COMMON_PROGRAMOPTIONS_PROGRAMOPTIONS__
 
 #include <vector>
 #include <string>
@@ -169,4 +169,4 @@ public:
 
 } // namespace sunfish
 
-#endif // SUNFISH_CUI_PROGRAMOPTIONS_PROGRAMOPTIONS__
+#endif // SUNFISH_COMMON_PROGRAMOPTIONS_PROGRAMOPTIONS__
