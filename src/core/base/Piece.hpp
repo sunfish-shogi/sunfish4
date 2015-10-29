@@ -15,69 +15,71 @@ namespace sunfish {
 
 class Piece {
 public:
-  static CONSTEXPR_CONST uint8_t Promotion = 0x08;
-  static CONSTEXPR_CONST uint8_t Empty = 0x20;
-  static CONSTEXPR_CONST uint8_t White = 0x10;
+  using RawType = uint8_t;
 
-  static CONSTEXPR_CONST uint8_t HandMask = 0x27;
-  static CONSTEXPR_CONST uint8_t KindMask = 0x2f;
+  static CONSTEXPR_CONST RawType Promotion = 0x08;
+  static CONSTEXPR_CONST RawType Empty = 0x20;
+  static CONSTEXPR_CONST RawType White = 0x10;
 
-  static CONSTEXPR_CONST uint8_t Pawn = 0;
-  static CONSTEXPR_CONST uint8_t Lance = 1;
-  static CONSTEXPR_CONST uint8_t Knight = 2;
-  static CONSTEXPR_CONST uint8_t Silver = 3;
-  static CONSTEXPR_CONST uint8_t Gold = 4;
-  static CONSTEXPR_CONST uint8_t Bishop = 5;
-  static CONSTEXPR_CONST uint8_t Rook = 6;
-  static CONSTEXPR_CONST uint8_t King = 7;
-  static CONSTEXPR_CONST uint8_t Tokin = Promotion | Pawn;
-  static CONSTEXPR_CONST uint8_t ProLance = Promotion | Lance;
-  static CONSTEXPR_CONST uint8_t ProKnight = Promotion | Knight;
-  static CONSTEXPR_CONST uint8_t ProSilver = Promotion | Silver;
-  static CONSTEXPR_CONST uint8_t Horse = Promotion | Bishop;
-  static CONSTEXPR_CONST uint8_t Dragon = Promotion | Rook;
+  static CONSTEXPR_CONST RawType HandMask = 0x27;
+  static CONSTEXPR_CONST RawType KindMask = 0x2f;
 
-  static CONSTEXPR_CONST uint8_t BPawn = Pawn;
-  static CONSTEXPR_CONST uint8_t BLance = Lance;
-  static CONSTEXPR_CONST uint8_t BKnight = Knight;
-  static CONSTEXPR_CONST uint8_t BSilver = Silver;
-  static CONSTEXPR_CONST uint8_t BGold = Gold;
-  static CONSTEXPR_CONST uint8_t BBishop = Bishop;
-  static CONSTEXPR_CONST uint8_t BRook = Rook;
-  static CONSTEXPR_CONST uint8_t BKing = King;
-  static CONSTEXPR_CONST uint8_t BTokin = Tokin;
-  static CONSTEXPR_CONST uint8_t BProLance = ProLance;
-  static CONSTEXPR_CONST uint8_t BProKnight = ProKnight;
-  static CONSTEXPR_CONST uint8_t BProSilver = ProSilver;
-  static CONSTEXPR_CONST uint8_t BHorse = Horse;
-  static CONSTEXPR_CONST uint8_t BDragon = Dragon;
+  static CONSTEXPR_CONST RawType Pawn = 0;
+  static CONSTEXPR_CONST RawType Lance = 1;
+  static CONSTEXPR_CONST RawType Knight = 2;
+  static CONSTEXPR_CONST RawType Silver = 3;
+  static CONSTEXPR_CONST RawType Gold = 4;
+  static CONSTEXPR_CONST RawType Bishop = 5;
+  static CONSTEXPR_CONST RawType Rook = 6;
+  static CONSTEXPR_CONST RawType King = 7;
+  static CONSTEXPR_CONST RawType Tokin = Promotion | Pawn;
+  static CONSTEXPR_CONST RawType ProLance = Promotion | Lance;
+  static CONSTEXPR_CONST RawType ProKnight = Promotion | Knight;
+  static CONSTEXPR_CONST RawType ProSilver = Promotion | Silver;
+  static CONSTEXPR_CONST RawType Horse = Promotion | Bishop;
+  static CONSTEXPR_CONST RawType Dragon = Promotion | Rook;
 
-  static CONSTEXPR_CONST uint8_t WPawn = White | Pawn;
-  static CONSTEXPR_CONST uint8_t WLance = White | Lance;
-  static CONSTEXPR_CONST uint8_t WKnight = White | Knight;
-  static CONSTEXPR_CONST uint8_t WSilver = White | Silver;
-  static CONSTEXPR_CONST uint8_t WGold = White | Gold;
-  static CONSTEXPR_CONST uint8_t WBishop = White | Bishop;
-  static CONSTEXPR_CONST uint8_t WRook = White | Rook;
-  static CONSTEXPR_CONST uint8_t WKing = White | King;
-  static CONSTEXPR_CONST uint8_t WTokin = White | Tokin;
-  static CONSTEXPR_CONST uint8_t WProLance = White | ProLance;
-  static CONSTEXPR_CONST uint8_t WProKnight = White | ProKnight;
-  static CONSTEXPR_CONST uint8_t WProSilver = White | ProSilver;
-  static CONSTEXPR_CONST uint8_t WHorse = White | Horse;
-  static CONSTEXPR_CONST uint8_t WDragon = White | Dragon;
+  static CONSTEXPR_CONST RawType BPawn = Pawn;
+  static CONSTEXPR_CONST RawType BLance = Lance;
+  static CONSTEXPR_CONST RawType BKnight = Knight;
+  static CONSTEXPR_CONST RawType BSilver = Silver;
+  static CONSTEXPR_CONST RawType BGold = Gold;
+  static CONSTEXPR_CONST RawType BBishop = Bishop;
+  static CONSTEXPR_CONST RawType BRook = Rook;
+  static CONSTEXPR_CONST RawType BKing = King;
+  static CONSTEXPR_CONST RawType BTokin = Tokin;
+  static CONSTEXPR_CONST RawType BProLance = ProLance;
+  static CONSTEXPR_CONST RawType BProKnight = ProKnight;
+  static CONSTEXPR_CONST RawType BProSilver = ProSilver;
+  static CONSTEXPR_CONST RawType BHorse = Horse;
+  static CONSTEXPR_CONST RawType BDragon = Dragon;
 
-  static CONSTEXPR_CONST uint8_t Num = WDragon + 1;
-  static CONSTEXPR_CONST uint8_t Begin = BPawn;
-  static CONSTEXPR_CONST uint8_t End = WDragon + 1;
+  static CONSTEXPR_CONST RawType WPawn = White | Pawn;
+  static CONSTEXPR_CONST RawType WLance = White | Lance;
+  static CONSTEXPR_CONST RawType WKnight = White | Knight;
+  static CONSTEXPR_CONST RawType WSilver = White | Silver;
+  static CONSTEXPR_CONST RawType WGold = White | Gold;
+  static CONSTEXPR_CONST RawType WBishop = White | Bishop;
+  static CONSTEXPR_CONST RawType WRook = White | Rook;
+  static CONSTEXPR_CONST RawType WKing = White | King;
+  static CONSTEXPR_CONST RawType WTokin = White | Tokin;
+  static CONSTEXPR_CONST RawType WProLance = White | ProLance;
+  static CONSTEXPR_CONST RawType WProKnight = White | ProKnight;
+  static CONSTEXPR_CONST RawType WProSilver = White | ProSilver;
+  static CONSTEXPR_CONST RawType WHorse = White | Horse;
+  static CONSTEXPR_CONST RawType WDragon = White | Dragon;
 
-  static CONSTEXPR_CONST uint8_t HandNum = Rook + 1;
-  static CONSTEXPR_CONST uint8_t HandBegin = Pawn;
-  static CONSTEXPR_CONST uint8_t HandEnd = Rook + 1;
+  static CONSTEXPR_CONST RawType Num = WDragon + 1;
+  static CONSTEXPR_CONST RawType Begin = BPawn;
+  static CONSTEXPR_CONST RawType End = WDragon + 1;
 
-  static CONSTEXPR_CONST uint8_t KindNum = Dragon + 1;
-  static CONSTEXPR_CONST uint8_t KindBegin = Pawn;
-  static CONSTEXPR_CONST uint8_t KindEnd = Dragon + 1;
+  static CONSTEXPR_CONST RawType HandNum = Rook + 1;
+  static CONSTEXPR_CONST RawType HandBegin = Pawn;
+  static CONSTEXPR_CONST RawType HandEnd = Rook + 1;
+
+  static CONSTEXPR_CONST RawType KindNum = Dragon + 1;
+  static CONSTEXPR_CONST RawType KindBegin = Pawn;
+  static CONSTEXPR_CONST RawType KindEnd = Dragon + 1;
 
 public:
 
@@ -90,20 +92,20 @@ public:
   /**
    * Constructor which takes the piece number as an argument.
    */
-  CONSTEXPR Piece(uint8_t number) : number_(number) {
+  CONSTEXPR Piece(RawType number) : number_(number) {
   }
 
   /**
    * Get piece number as unsigned 8-bit integer
    */
-  explicit CONSTEXPR operator uint8_t() const {
+  explicit CONSTEXPR operator RawType() const {
     return number_;
   }
 
   /**
    * Get piece number as unsigned 8-bit integer
    */
-  CONSTEXPR uint8_t raw() const {
+  CONSTEXPR RawType raw() const {
     return number_;
   }
 
@@ -236,7 +238,7 @@ public:
 
 private:
 
-  uint8_t number_;
+  RawType number_;
 
 };
 
@@ -247,11 +249,11 @@ private:
 #define PIECE_KIND_EACH(piece)   for (sunfish::Piece (piece) = sunfish::Piece::KindBegin; (piece) != sunfish::Piece::KindEnd; (piece) = (piece).nextUnsafe())
 #define HAND_EACH(piece)         for (sunfish::Piece (piece) = sunfish::Piece::HandBegin; (piece) != sunfish::Piece::HandEnd; (piece) = (piece).nextUnsafe())
 
-inline bool operator==(uint8_t lhs, const sunfish::Piece& rhs) {
+inline bool operator==(sunfish::Piece::RawType lhs, const sunfish::Piece& rhs) {
   return lhs == rhs.raw();
 }
 
-inline bool operator!=(uint8_t lhs, const sunfish::Piece& rhs) {
+inline bool operator!=(sunfish::Piece::RawType lhs, const sunfish::Piece& rhs) {
   return lhs != rhs.raw();
 }
 

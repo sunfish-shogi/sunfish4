@@ -17,6 +17,9 @@ template <class T, int W1, int W2>
 class Bitset128 {
 public:
 
+  static_assert(W1 <= 64, "invalid bit width");
+  static_assert(W2 <= 64, "invalid bit width");
+
   static CONSTEXPR_CONST int Width1 = W1;
   static CONSTEXPR_CONST int Width2 = W2;
   static CONSTEXPR_CONST uint64_t Mask1 = (1ULL<<W1)-1;
@@ -277,6 +280,8 @@ public:
     return bb_.u64[1];
   }
 
+protected:
+
   /**
    * Set the specified bit.
    */
@@ -312,8 +317,6 @@ public:
       return second() & (1LLU << (offset - Width1));
     }
   }
-
-protected:
 
   /**
    * Get mutable reference of 1st quad word

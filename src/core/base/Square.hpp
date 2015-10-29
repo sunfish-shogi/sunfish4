@@ -21,21 +21,6 @@
 
 namespace sunfish {
 
-/**
- * Numbers corresponding to each of the squares.
- */
-enum {
-  S91 = 0, S92, S93, S94, S95, S96, S97, S98, S99,
-  S81, S82, S83, S84, S85, S86, S87, S88, S89,
-  S71, S72, S73, S74, S75, S76, S77, S78, S79,
-  S61, S62, S63, S64, S65, S66, S67, S68, S69,
-  S51, S52, S53, S54, S55, S56, S57, S58, S59,
-  S41, S42, S43, S44, S45, S46, S47, S48, S49,
-  S31, S32, S33, S34, S35, S36, S37, S38, S39,
-  S21, S22, S23, S24, S25, S26, S27, S28, S29,
-  S11, S12, S13, S14, S15, S16, S17, S18, S19,
-};
-
 enum class Direction : int32_t {
   None,
   Up, Down, Left, Right,
@@ -88,27 +73,125 @@ inline std::ostream& operator<<(std::ostream& os, Direction dir) {
   return os;
 }
 
-class Square {
+class RotatedSquare {
 public:
 
-  static CONSTEXPR_CONST int32_t Invalid = -1;
-  static CONSTEXPR_CONST int32_t N = NUMBER_OF_SQUARES;
-  static CONSTEXPR_CONST int32_t FileMax = SQUARE_FILE_MAX;
-  static CONSTEXPR_CONST int32_t RankMax = SQUARE_RANK_MAX;
-  static CONSTEXPR_CONST int32_t Begin = 0;
-  static CONSTEXPR_CONST int32_t End = Begin + N;
+  using RawType = int32_t;
 
-  /**
-   * Get square number from the file number and the rank number.
-   */
-  static CONSTEXPR int32_t number(int file, int rank) {
-    return (9 - file) * RankMax + rank - 1;
-  }
+  static CONSTEXPR_CONST RawType Invalid = -1;
 
   /**
    * Default constructor
    */
-  CONSTEXPR Square() : number_(Invalid) {
+  RotatedSquare() {
+  }
+
+  /**
+   * Copy constructor
+   */
+  CONSTEXPR RotatedSquare(const RotatedSquare&) = default;
+
+  /**
+   * Move constructor
+   */
+  CONSTEXPR RotatedSquare(RotatedSquare&&) = default;
+
+  /**
+   * Constructor which takes the square number as an argument.
+   */
+  CONSTEXPR RotatedSquare(RawType number) : number_(number) {
+  }
+
+  /**
+   * Assignment operator
+   */
+  RotatedSquare& operator=(const RotatedSquare&) = default;
+
+  /**
+   * Move assignment operator
+   */
+  RotatedSquare& operator=(RotatedSquare&&) = default;
+
+  /**
+   * EQUALS operator
+   */
+  CONSTEXPR bool operator==(const RotatedSquare& rhs) const {
+    return number_ == rhs.number_;
+  }
+
+  /**
+   * NOT-EQUALS operator
+   */
+  CONSTEXPR bool operator!=(const RotatedSquare& rhs) const {
+    return number_ != rhs.number_;
+  }
+
+  /**
+   * EQUALS operator which takes an integer value as an argument.
+   */
+  CONSTEXPR bool operator==(RawType rhs) const {
+    return number_ == rhs;
+  }
+
+  /**
+   * NOT-EQUALS operator which takes an integer value as an argument.
+   */
+  CONSTEXPR bool operator!=(RawType rhs) const {
+    return number_ != rhs;
+  }
+
+  /**
+   * Cast operator for an integer value.
+   */
+  explicit CONSTEXPR operator RawType() const {
+    return number_;
+  }
+
+  /**
+   * Get square number as an integer.
+   */
+  CONSTEXPR RawType raw() const {
+    return number_;
+  }
+
+private:
+
+  RawType number_;
+
+};
+
+class Square {
+public:
+
+  using RawType = int32_t;
+
+  /**
+   * Numbers corresponding to each of the squares.
+   */
+  enum {
+    S91 = 0,
+         S92, S93, S94, S95, S96, S97, S98, S99,
+    S81, S82, S83, S84, S85, S86, S87, S88, S89,
+    S71, S72, S73, S74, S75, S76, S77, S78, S79,
+    S61, S62, S63, S64, S65, S66, S67, S68, S69,
+    S51, S52, S53, S54, S55, S56, S57, S58, S59,
+    S41, S42, S43, S44, S45, S46, S47, S48, S49,
+    S31, S32, S33, S34, S35, S36, S37, S38, S39,
+    S21, S22, S23, S24, S25, S26, S27, S28, S29,
+    S11, S12, S13, S14, S15, S16, S17, S18, S19,
+  };
+
+  static CONSTEXPR_CONST RawType Invalid = -1;
+  static CONSTEXPR_CONST RawType N = NUMBER_OF_SQUARES;
+  static CONSTEXPR_CONST RawType FileMax = SQUARE_FILE_MAX;
+  static CONSTEXPR_CONST RawType RankMax = SQUARE_RANK_MAX;
+  static CONSTEXPR_CONST RawType Begin = 0;
+  static CONSTEXPR_CONST RawType End = Begin + N;
+
+  /**
+   * Default constructor
+   */
+  Square() {
   }
 
   /**
@@ -124,14 +207,14 @@ public:
   /**
    * Constructor which takes the square number as an argument.
    */
-  CONSTEXPR Square(int32_t number) : number_(number) {
+  CONSTEXPR Square(RawType number) : number_(number) {
   }
 
   /**
    * Constructor which takes the file number and the rank number as arguments.
    */
-  CONSTEXPR Square(int32_t file, int32_t rank) :
-    number_(number(file, rank)) {
+  CONSTEXPR Square(RawType file, RawType rank) :
+    number_((9 - file) * RankMax + rank - 1) {
   }
 
   /**
@@ -161,58 +244,42 @@ public:
   /**
    * EQUALS operator which takes an integer value as an argument.
    */
-  CONSTEXPR bool operator==(int32_t rhs) const {
+  CONSTEXPR bool operator==(RawType rhs) const {
     return number_ == rhs;
   }
 
   /**
    * NOT-EQUALS operator which takes an integer value as an argument.
    */
-  CONSTEXPR bool operator!=(int32_t rhs) const {
+  CONSTEXPR bool operator!=(RawType rhs) const {
     return number_ != rhs;
   }
 
   /**
    * Cast operator for an integer value.
    */
-  explicit CONSTEXPR operator int32_t() const {
+  explicit CONSTEXPR operator RawType() const {
     return number_;
   }
 
   /**
    * Get square number as an integer.
    */
-  CONSTEXPR int32_t raw() const {
+  CONSTEXPR RawType raw() const {
     return number_;
-  }
-
-  /**
-   * Set value with a square number.
-   */
-  Square& set(int32_t i) {
-    number_ = i;
-    return *this;
-  }
-
-  /**
-   * Set value with a file number and a rank number.
-   */
-  Square& set(int32_t file, int32_t rank) {
-    number_ = number(file, rank);
-    return *this;
   }
 
   /**
    * Get a file number.
    */
-  CONSTEXPR int32_t getFile() const {
+  CONSTEXPR RawType getFile() const {
     return 9 - (number_ / RankMax);
   }
 
   /**
    * Get a rank number.
    */
-  CONSTEXPR int32_t getRank() const {
+  CONSTEXPR RawType getRank() const {
     return number_ % RankMax + 1;
   }
 
@@ -240,14 +307,14 @@ public:
   /**
    * Check if the file number is in valid range.
    */
-  static CONSTEXPR bool isValidFile(int32_t file) {
+  static CONSTEXPR bool isValidFile(RawType file) {
     return file >= 1 && file <= 9;
   }
 
   /**
    * Check if the rank number is in valid range.
    */
-  static CONSTEXPR bool isValidRank(int32_t rank) {
+  static CONSTEXPR bool isValidRank(RawType rank) {
     return rank >= 1 && rank <= 9;
   }
 
@@ -307,56 +374,56 @@ public:
   /**
    * Get a square located over of the current square.
    */
-  CONSTEXPR Square up(int32_t distance = 1) const {
+  CONSTEXPR Square up(RawType distance = 1) const {
     return number_ - distance;
   }
 
   /**
    * Get a square located under of the current square.
    */
-  CONSTEXPR Square down(int32_t distance = 1) const {
+  CONSTEXPR Square down(RawType distance = 1) const {
     return number_ + distance;
   }
 
   /**
    * Get a square located to the left of the current square.
    */
-  CONSTEXPR Square left(int32_t distance = 1) const {
+  CONSTEXPR Square left(RawType distance = 1) const {
     return number_ - distance * RankMax;
   }
 
   /**
    * Get a square located to the right of the current square.
    */
-  CONSTEXPR Square right(int32_t distance = 1) const {
+  CONSTEXPR Square right(RawType distance = 1) const {
     return number_ + distance * RankMax;
   }
 
   /**
    * Get a square equals to "square.left(d).up(d)"
    */
-  CONSTEXPR Square leftUp(int32_t distance = 1) const {
+  CONSTEXPR Square leftUp(RawType distance = 1) const {
     return (*this).left(distance).up(distance);
   }
 
   /**
    * Get a square equals to "square.left(d).down(d)"
    */
-  CONSTEXPR Square leftDown(int32_t distance = 1) const {
+  CONSTEXPR Square leftDown(RawType distance = 1) const {
     return (*this).left(distance).down(distance);
   }
 
   /**
    * Get a square equals to "square.right(d).up(d)"
    */
-  CONSTEXPR Square rightUp(int32_t distance = 1) const {
+  CONSTEXPR Square rightUp(RawType distance = 1) const {
     return (*this).right(distance).up(distance);
   }
 
   /**
    * Get a square equals to "square.right(d).down(d)"
    */
-  CONSTEXPR Square rightDown(int32_t distance = 1) const {
+  CONSTEXPR Square rightDown(RawType distance = 1) const {
     return (*this).right(distance).down(distance);
   }
 
@@ -392,7 +459,7 @@ public:
    * Get a square located over of the current square.
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyUp(int32_t distance = 1) const {
+  CONSTEXPR Square safetyUp(RawType distance = 1) const {
     return (!isInvalid() && getRank() - distance >= 1) ?
       up(distance) : Square(Invalid);
   }
@@ -401,7 +468,7 @@ public:
    * Get a square located under of the current square.
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyDown(int32_t distance = 1) const {
+  CONSTEXPR Square safetyDown(RawType distance = 1) const {
     return (!isInvalid() && getRank() + distance <= 9) ?
       down(distance) : Square(Invalid);
   }
@@ -410,7 +477,7 @@ public:
    * Get a square located to the left of the current square.
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyLeft(int32_t distance = 1) const {
+  CONSTEXPR Square safetyLeft(RawType distance = 1) const {
     return (!isInvalid() && getFile() + distance <= 9) ?
       left(distance) : Square(Invalid);
   }
@@ -419,7 +486,7 @@ public:
    * Get a square located to the right of the current square.
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyRight(int32_t distance = 1) const {
+  CONSTEXPR Square safetyRight(RawType distance = 1) const {
     return (!isInvalid() && getFile() - distance >= 1) ?
       right(distance) : Square(Invalid);
   }
@@ -428,7 +495,7 @@ public:
    * Get a square equals to "square.left(d).up(d)"
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyLeftUp(int32_t distance = 1) const {
+  CONSTEXPR Square safetyLeftUp(RawType distance = 1) const {
     return (*this).safetyLeft(distance).safetyUp(distance);
   }
 
@@ -436,7 +503,7 @@ public:
    * Get a square equals to "square.left(d).down(d)"
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyLeftDown(int32_t distance = 1) const {
+  CONSTEXPR Square safetyLeftDown(RawType distance = 1) const {
     return (*this).safetyLeft(distance).safetyDown(distance);
   }
 
@@ -444,7 +511,7 @@ public:
    * Get a square equals to "square.right(d).up(d)"
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyRightUp(int32_t distance = 1) const {
+  CONSTEXPR Square safetyRightUp(RawType distance = 1) const {
     return (*this).safetyRight(distance).safetyUp(distance);
   }
 
@@ -452,7 +519,7 @@ public:
    * Get a square equals to "square.right(d).down(d)"
    * If the result is out of range, return Invalid.
    */
-  CONSTEXPR Square safetyRightDown(int32_t distance = 1) const {
+  CONSTEXPR Square safetyRightDown(RawType distance = 1) const {
     return (*this).safetyRight(distance).safetyDown(distance);
   }
 
@@ -499,12 +566,36 @@ public:
   /**
    * Get a distance from the current square to the specified square.
    */
-  int32_t distance(const Square& to) const;
+  RawType distance(const Square& to) const;
 
   /**
    * Get a direction from the current square to the specified square.
    */
   Direction dir(const Square& to) const;
+
+  /**
+   * Get the rotated square.
+   */
+  RotatedSquare rotate90() const {
+    assert(isStrictValid());
+    return rotate90Table[number_];
+  }
+
+  /**
+   * Get the rotated square.
+   */
+  RotatedSquare rotateRight45() const {
+    assert(isStrictValid());
+    return rotateRight45Table[number_];
+  }
+
+  /**
+   * Get the rotated square.
+   */
+  RotatedSquare rotateLeft45() const {
+    assert(isStrictValid());
+    return rotateLeft45Table[number_];
+  }
 
   /**
    * Get a square as a string type.
@@ -518,7 +609,11 @@ public:
 
 private:
 
-  int32_t number_;
+  static const uint8_t rotate90Table[81];
+  static const uint8_t rotateRight45Table[81];
+  static const uint8_t rotateLeft45Table[81];
+
+  RawType number_;
 
 };
 
