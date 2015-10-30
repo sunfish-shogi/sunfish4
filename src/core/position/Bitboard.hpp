@@ -47,7 +47,7 @@ public:
 
 };
 
-class Rotated90Bitboard : public Bitset128<Bitboard, BB_R90_SQUARES_1ST, BB_R90_SQUARES_2ND> {
+class RotatedBitboard90 : public Bitset128<Bitboard, BB_R90_SQUARES_1ST, BB_R90_SQUARES_2ND> {
 public:
 
   using Bitset128::Bitset128;
@@ -66,21 +66,33 @@ public:
 
 };
 
-class Rotated45Bitboard : public Bitset128<Bitboard, BB_R45_SQUARES_1ST, BB_R45_SQUARES_2ND> {
+class RotatedBitboard45 : public Bitset128<Bitboard, BB_R45_SQUARES_1ST, BB_R45_SQUARES_2ND> {
 public:
 
   using Bitset128::Bitset128;
 
-  void set(const RotatedSquare& square) {
-    Bitset128::set(square.raw());
+  void set1(const RotatedSquare& square) {
+    Bitset128::set1(square.raw());
   }
 
-  void unset(const RotatedSquare& square) {
-    Bitset128::unset(square.raw());
+  void unset1(const RotatedSquare& square) {
+    Bitset128::unset1(square.raw());
   }
 
-  bool check(const RotatedSquare& square) const {
-    return Bitset128::check(square.raw());
+  bool check1(const RotatedSquare& square) const {
+    return Bitset128::check1(square.raw());
+  }
+
+  void set2(const RotatedSquare& square) {
+    Bitset128::set2(square.raw());
+  }
+
+  void unset2(const RotatedSquare& square) {
+    Bitset128::unset2(square.raw());
+  }
+
+  bool check2(const RotatedSquare& square) const {
+    return Bitset128::check2(square.raw());
   }
 
 };

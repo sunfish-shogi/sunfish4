@@ -319,6 +319,54 @@ protected:
   }
 
   /**
+   * Set the specified bit of the first quad ward.
+   */
+  void set1(int offset) {
+    assert(offset < Width1);
+    firstRef() |= 1LLU << offset;
+  }
+
+  /**
+   * Unset the specified bit of the first quad ward.
+   */
+  void unset1(int offset) {
+    assert(offset < Width1);
+    firstRef() &= ~(1LLU << offset);
+  }
+
+  /**
+   * Check the specified bit of the first quad ward.
+   */
+  bool check1(int offset) const {
+    assert(offset < Width1);
+    return first() & (1LLU << offset);
+  }
+
+  /**
+   * Set the specified bit of the first quad ward.
+   */
+  void set2(int offset) {
+    assert(offset < Width2);
+    secondRef() |= 1LLU << offset;
+  }
+
+  /**
+   * Unset the specified bit of the first quad ward.
+   */
+  void unset2(int offset) {
+    assert(offset < Width2);
+    secondRef() &= ~(1LLU << offset);
+  }
+
+  /**
+   * Check the specified bit of the first quad ward.
+   */
+  bool check2(int offset) const {
+    assert(offset < Width2);
+    return second() & (1LLU << offset);
+  }
+
+  /**
    * Get mutable reference of 1st quad word
    */
   uint64_t& firstRef() {
