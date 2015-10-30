@@ -576,6 +576,14 @@ public:
   /**
    * Get the rotated square.
    */
+  RotatedSquare rotate0() const {
+    assert(isStrictValid());
+    return rotate0Table[number_];
+  }
+
+  /**
+   * Get the rotated square.
+   */
   RotatedSquare rotate90() const {
     assert(isStrictValid());
     return rotate90Table[number_];
@@ -609,6 +617,7 @@ public:
 
 private:
 
+  static const uint8_t rotate0Table[81];
   static const uint8_t rotate90Table[81];
   static const uint8_t rotateRight45Table[81];
   static const uint8_t rotateLeft45Table[81];
