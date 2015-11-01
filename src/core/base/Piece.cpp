@@ -31,31 +31,38 @@ const char* namesCsa[] = {
 
 namespace sunfish {
 
-std::string Piece::toString(bool kind_only) const {
+std::string PieceType::toString() const {
   if (number_ > sizeof(namesCsa) / sizeof(namesCsa[0])) {
     return std::to_string(number_);
-  } else if (kind_only) {
+  } else {
     return namesCsaKindOnly[number_];
+  }
+}
+
+PieceType PieceType::parse(const char* str) {
+  PIECE_TYPE_EACH(piece) {
+    if (strncmp(str, namesCsaKindOnly[piece.number_], 2) == 0) {
+      return piece;
+    }
+  }
+  return PieceType::empty();
+}
+
+std::string Piece::toString() const {
+  if (number_ > sizeof(namesCsa) / sizeof(namesCsa[0])) {
+    return std::to_string(number_);
   } else {
     return namesCsa[number_];
   }
 }
 
 Piece Piece::parse(const char* str) {
-  if (str[0] == '+' || str[0] == '-') {
-    PIECE_EACH(piece) {
-      if (strncmp(str, namesCsa[piece.number_], 3) == 0) {
-        return piece;
-      }
-    }
-  } else if (isalpha(str[0])) {
-    PIECE_KIND_EACH(piece) {
-      if (strncmp(str, namesCsaKindOnly[piece.number_], 2) == 0) {
-        return piece;
-      }
+  PIECE_EACH(piece) {
+    if (strncmp(str, namesCsa[piece.number_], 3) == 0) {
+      return piece;
     }
   }
-  return Piece::Empty;
+  return Piece::empty();
 }
 
 } // namespace sunfish

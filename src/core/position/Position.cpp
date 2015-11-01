@@ -9,23 +9,23 @@ namespace {
 
 using namespace sunfish;
 
-#define EM Piece::Empty
-#define BP Piece::BPawn
-#define BL Piece::BLance
-#define BN Piece::BKnight
-#define BS Piece::BSilver
-#define BG Piece::BGold
-#define BB Piece::BBishop
-#define BR Piece::BRook
-#define BK Piece::BKing
-#define WP Piece::WPawn
-#define WL Piece::WLance
-#define WN Piece::WKnight
-#define WS Piece::WSilver
-#define WG Piece::WGold
-#define WB Piece::WBishop
-#define WR Piece::WRook
-#define WK Piece::WKing
+#define EM Piece::empty()
+#define BP Piece::blackPawn()
+#define BL Piece::blackLance()
+#define BN Piece::blackKnight()
+#define BS Piece::blackSilver()
+#define BG Piece::blackGold()
+#define BB Piece::blackBishop()
+#define BR Piece::blackRook()
+#define BK Piece::blackKing()
+#define WP Piece::whitePawn()
+#define WL Piece::whiteLance()
+#define WN Piece::whiteKnight()
+#define WS Piece::whiteSilver()
+#define WG Piece::whiteGold()
+#define WB Piece::whiteBishop()
+#define WR Piece::whiteRook()
+#define WK Piece::whiteKing()
 
 Piece EmptyBoardArray[Square::N] = {
   EM, EM, EM, EM, EM, EM, EM, EM, EM,
@@ -92,8 +92,8 @@ void Position::initialize(Handicap handicap) {
   }
 
   if (handicap == Handicap::TwoPieces) {
-    board_[Square::S22] = Piece::Empty;
-    board_[Square::S82] = Piece::Empty;
+    board_[Square::s22().raw()] = Piece::empty();
+    board_[Square::s82().raw()] = Piece::empty();
     blackTurn_ = false;
   } else {
     blackTurn_ = true;
@@ -120,11 +120,11 @@ void Position::onBoardArrayChanged() {
     auto piece = board_[square.raw()];
     if (!piece.isEmpty()) {
 
-      if (piece == Piece::BKing) {
+      if (piece == Piece::blackKing()) {
         // black king
         blackKingSquare_ = square;
 
-      } else if (piece == Piece::WKing) {
+      } else if (piece == Piece::whiteKing()) {
         // white king
         whiteKingSquare_ = square;
 
@@ -150,32 +150,32 @@ void Position::onBoardArrayChanged() {
 
 Bitboard& Position::getBitboard(Piece piece) {
   switch (piece.raw()) {
-  case Piece::BPawn     : return bbBPawn_;
-  case Piece::BLance    : return bbBLance_;
-  case Piece::BKnight   : return bbBKnight_;
-  case Piece::BSilver   : return bbBSilver_;
-  case Piece::BGold     : return bbBGold_;
-  case Piece::BBishop   : return bbBBishop_;
-  case Piece::BRook     : return bbBRook_;
-  case Piece::BTokin    : return bbBTokin_;
-  case Piece::BProLance : return bbBProLance_;
-  case Piece::BProKnight: return bbBProKnight_;
-  case Piece::BProSilver: return bbBProSilver_;
-  case Piece::BHorse    : return bbBHorse_;
-  case Piece::BDragon   : return bbBDragon_;
-  case Piece::WPawn     : return bbWPawn_;
-  case Piece::WLance    : return bbWLance_;
-  case Piece::WKnight   : return bbWKnight_;
-  case Piece::WSilver   : return bbWSilver_;
-  case Piece::WGold     : return bbWGold_;
-  case Piece::WBishop   : return bbWBishop_;
-  case Piece::WRook     : return bbWRook_;
-  case Piece::WTokin    : return bbWTokin_;
-  case Piece::WProLance : return bbWProLance_;
-  case Piece::WProKnight: return bbWProKnight_;
-  case Piece::WProSilver: return bbWProSilver_;
-  case Piece::WHorse    : return bbWHorse_;
-  case Piece::WDragon   : return bbWDragon_;
+  case PieceNumber::BPawn     : return bbBPawn_;
+  case PieceNumber::BLance    : return bbBLance_;
+  case PieceNumber::BKnight   : return bbBKnight_;
+  case PieceNumber::BSilver   : return bbBSilver_;
+  case PieceNumber::BGold     : return bbBGold_;
+  case PieceNumber::BBishop   : return bbBBishop_;
+  case PieceNumber::BRook     : return bbBRook_;
+  case PieceNumber::BTokin    : return bbBTokin_;
+  case PieceNumber::BProLance : return bbBProLance_;
+  case PieceNumber::BProKnight: return bbBProKnight_;
+  case PieceNumber::BProSilver: return bbBProSilver_;
+  case PieceNumber::BHorse    : return bbBHorse_;
+  case PieceNumber::BDragon   : return bbBDragon_;
+  case PieceNumber::WPawn     : return bbWPawn_;
+  case PieceNumber::WLance    : return bbWLance_;
+  case PieceNumber::WKnight   : return bbWKnight_;
+  case PieceNumber::WSilver   : return bbWSilver_;
+  case PieceNumber::WGold     : return bbWGold_;
+  case PieceNumber::WBishop   : return bbWBishop_;
+  case PieceNumber::WRook     : return bbWRook_;
+  case PieceNumber::WTokin    : return bbWTokin_;
+  case PieceNumber::WProLance : return bbWProLance_;
+  case PieceNumber::WProKnight: return bbWProKnight_;
+  case PieceNumber::WProSilver: return bbWProSilver_;
+  case PieceNumber::WHorse    : return bbWHorse_;
+  case PieceNumber::WDragon   : return bbWDragon_;
   }
 
   assert(false);

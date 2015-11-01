@@ -23,11 +23,11 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0x00, pos.getRight45RotatedBitboard().raw());
     ASSERT_EQ(0x00, pos.getLeft45RotatedBitboard().raw());
 
-    ASSERT_EQ(Piece::Empty, pos.getPieceOnBoard(Square::S11));
-    ASSERT_EQ(Piece::Empty, pos.getPieceOnBoard(Square::S67));
+    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s11()));
+    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s67()));
 
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Pawn));
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Bishop));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
     ASSERT_EQ(true, pos.isBlackTurn());
     ASSERT_EQ(false, pos.isWhiteTurn());
@@ -45,15 +45,15 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0x0003221458d14227, pos.getRight45RotatedBitboard().raw());
     ASSERT_EQ(0x0003221458d14227, pos.getLeft45RotatedBitboard().raw());
 
-    ASSERT_EQ(Piece::WLance, pos.getPieceOnBoard(Square::S11));
-    ASSERT_EQ(Piece::WBishop, pos.getPieceOnBoard(Square::S22));
-    ASSERT_EQ(Piece::WRook, pos.getPieceOnBoard(Square::S82));
-    ASSERT_EQ(Piece::BPawn, pos.getPieceOnBoard(Square::S67));
-    ASSERT_EQ(Piece::BBishop, pos.getPieceOnBoard(Square::S88));
-    ASSERT_EQ(Piece::BRook, pos.getPieceOnBoard(Square::S28));
+    ASSERT_EQ(Piece::whiteLance(), pos.getPieceOnBoard(Square::s11()));
+    ASSERT_EQ(Piece::whiteBishop(), pos.getPieceOnBoard(Square::s22()));
+    ASSERT_EQ(Piece::whiteRook(), pos.getPieceOnBoard(Square::s82()));
+    ASSERT_EQ(Piece::blackPawn(), pos.getPieceOnBoard(Square::s67()));
+    ASSERT_EQ(Piece::blackBishop(), pos.getPieceOnBoard(Square::s88()));
+    ASSERT_EQ(Piece::blackRook(), pos.getPieceOnBoard(Square::s28()));
 
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Pawn));
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Bishop));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
     ASSERT_EQ(true, pos.isBlackTurn());
     ASSERT_EQ(false, pos.isWhiteTurn());
@@ -71,15 +71,15 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0x0003221448d14225, pos.getRight45RotatedBitboard().raw());
     ASSERT_EQ(0x0001221458914227, pos.getLeft45RotatedBitboard().raw());
 
-    ASSERT_EQ(Piece::WLance, pos.getPieceOnBoard(Square::S11));
-    ASSERT_EQ(Piece::Empty, pos.getPieceOnBoard(Square::S22));
-    ASSERT_EQ(Piece::Empty, pos.getPieceOnBoard(Square::S82));
-    ASSERT_EQ(Piece::BPawn, pos.getPieceOnBoard(Square::S67));
-    ASSERT_EQ(Piece::BBishop, pos.getPieceOnBoard(Square::S88));
-    ASSERT_EQ(Piece::BRook, pos.getPieceOnBoard(Square::S28));
+    ASSERT_EQ(Piece::whiteLance(), pos.getPieceOnBoard(Square::s11()));
+    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s22()));
+    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s82()));
+    ASSERT_EQ(Piece::blackPawn(), pos.getPieceOnBoard(Square::s67()));
+    ASSERT_EQ(Piece::blackBishop(), pos.getPieceOnBoard(Square::s88()));
+    ASSERT_EQ(Piece::blackRook(), pos.getPieceOnBoard(Square::s28()));
 
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Pawn));
-    ASSERT_EQ(0, pos.getBlackHandPieceCount(Piece::Bishop));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
+    ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
     ASSERT_EQ(false, pos.isBlackTurn());
     ASSERT_EQ(true, pos.isWhiteTurn());

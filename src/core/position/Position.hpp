@@ -138,14 +138,14 @@ public:
   /**
    * Get the piece count of the black hand
    */
-  Hand::ValueType getBlackHandPieceCount(const Piece& piece) const {
+  Hand::ValueType getBlackHandPieceCount(const PieceType& piece) const {
     return blackHand_.get(piece);
   }
 
   /**
    * Get the piece count of the white hand
    */
-  Hand::ValueType getWhiteHandPieceCount(const Piece& piece) const {
+  Hand::ValueType getWhiteHandPieceCount(const PieceType& piece) const {
     return whiteHand_.get(piece);
   }
 

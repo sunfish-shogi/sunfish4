@@ -37,37 +37,37 @@ public:
   /**
    * Increment the count of specified piece.
    */
-  void inc(const Piece& piece) {
-    incUnsafe(piece.kindOnly().unpromote());
+  void inc(const PieceType& piece) {
+    incUnsafe(piece.unpromote());
   }
 
   /**
    * Increment the count of specified piece.
    */
-  void incUnsafe(const Piece& piece) {
-    assert(piece == piece.kindOnly().unpromote());
+  void incUnsafe(const PieceType& piece) {
+    assert(piece == piece.unpromote());
     assert(counts_[piece.raw()] < 18);
-    assert(piece != Piece::Lance || counts_[piece.raw()] < 4);
-    assert(piece != Piece::Knight || counts_[piece.raw()] < 4);
-    assert(piece != Piece::Silver || counts_[piece.raw()] < 4);
-    assert(piece != Piece::Gold || counts_[piece.raw()] < 4);
-    assert(piece != Piece::Bishop || counts_[piece.raw()] < 2);
-    assert(piece != Piece::Rook || counts_[piece.raw()] < 2);
+    assert(piece != PieceType::lance() || counts_[piece.raw()] < 4);
+    assert(piece != PieceType::knight() || counts_[piece.raw()] < 4);
+    assert(piece != PieceType::silver() || counts_[piece.raw()] < 4);
+    assert(piece != PieceType::gold() || counts_[piece.raw()] < 4);
+    assert(piece != PieceType::bishop() || counts_[piece.raw()] < 2);
+    assert(piece != PieceType::rook() || counts_[piece.raw()] < 2);
     counts_[piece.raw()]++;
   }
 
   /**
    * Decrement the count of specified piece.
    */
-  void dec(const Piece& piece) {
-    decUnsafe(piece.kindOnly().unpromote());
+  void dec(const PieceType& piece) {
+    decUnsafe(piece.unpromote());
   }
 
   /**
    * Decrement the count of specified piece.
    */
-  void decUnsafe(const Piece& piece) {
-    assert(piece == piece.kindOnly().unpromote());
+  void decUnsafe(const PieceType& piece) {
+    assert(piece == piece.unpromote());
     assert(counts_[piece.raw()] > 0);
     counts_[piece.raw()]--;
   }
@@ -75,20 +75,20 @@ public:
   /**
    * Get the count of specified piece.
    */
-  ValueType get(const Piece& piece) const {
+  ValueType get(const PieceType& piece) const {
     return counts_[piece.raw()];
   }
 
   /**
    * Set the count of specified piece.
    */
-  void set(const Piece& piece, ValueType val) {
+  void set(const PieceType& piece, ValueType val) {
     counts_[piece.raw()] = val;
   }
 
 private:
 
-  std::array<ValueType, Piece::HandNum> counts_;
+  std::array<ValueType, PieceNumber::HandNum> counts_;
 
 };
 

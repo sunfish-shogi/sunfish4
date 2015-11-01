@@ -106,7 +106,7 @@ const uint8_t Square::rotateLeft45Table[81] = {
    0,  0,  0,  0,  0,  0,  0,  0,  0,
 };
 
-Square::RawType Square::distance(const Square& to) const {
+SquareRawType Square::distance(const Square& to) const {
   int x = (int)to.number_ % RankMax - (int)number_ % RankMax + 8;
   int y = (int)to.number_ / RankMax - (int)number_ / RankMax + 8;
   return square2Distance[x][y];
