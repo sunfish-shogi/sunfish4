@@ -14,13 +14,6 @@ using namespace sunfish;
 
 TEST(BitboardTest, test) {
   {
-    Bitboard bb;
-    bb.init(); // zero initialization
-    ASSERT_EQ(0x00LL, bb.first());
-    ASSERT_EQ(0x00LL, bb.second());
-  }
-
-  {
     Bitboard bb(0x00LL, 0x00LL);
     ASSERT_EQ(0x00LL, bb.first());
     ASSERT_EQ(0x00LL, bb.second());
@@ -40,11 +33,22 @@ TEST(BitboardTest, test) {
     ASSERT_EQ(0x8e3fLL, bb3.first());
     ASSERT_EQ(0x76a1LL, bb3.second());
   }
+
+  {
+    RotatedBitboard bb(0x00LL);
+    ASSERT_EQ(0x00LL, bb.raw());
+
+    RotatedBitboard bb2(0x8e3fLL);
+    RotatedBitboard bb3(bb2);
+    ASSERT_EQ(0x8e3fLL, bb3.raw());
+  }
 }
 
 TEST(BitboardTest, testOperators) {
   const Bitboard bb1(0x3LL, 0xcLL); // 0011b, 1100b
   const Bitboard bb2(0x9LL, 0x6LL); // 1001b, 0110b
+  const RotatedBitboard rbb1(0x3LL); // 0011b
+  const RotatedBitboard rbb2(0x9LL); // 1001b
 
   {
     // assignment operator
@@ -52,6 +56,10 @@ TEST(BitboardTest, testOperators) {
     bb = bb1;
     ASSERT_EQ(0x3LL, bb.first());
     ASSERT_EQ(0xcLL, bb.second());
+
+    RotatedBitboard rbb;
+    rbb = rbb1;
+    ASSERT_EQ(0x3LL, rbb.raw());
   }
 
   {
@@ -60,6 +68,10 @@ TEST(BitboardTest, testOperators) {
     bb |= bb2;
     ASSERT_EQ(0xbLL, bb.first());
     ASSERT_EQ(0xeLL, bb.second());
+
+    RotatedBitboard rbb(rbb1);
+    rbb |= rbb2;
+    ASSERT_EQ(0xbLL, rbb.raw());
   }
 
   {
@@ -68,6 +80,10 @@ TEST(BitboardTest, testOperators) {
     bb &= bb2;
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0x4LL, bb.second());
+
+    RotatedBitboard rbb(rbb1);
+    rbb &= rbb2;
+    ASSERT_EQ(0x1LL, rbb.raw());
   }
 
   {
@@ -76,6 +92,10 @@ TEST(BitboardTest, testOperators) {
     bb ^= bb2;
     ASSERT_EQ(0xaLL, bb.first());
     ASSERT_EQ(0xaLL, bb.second());
+
+    RotatedBitboard rbb(rbb1);
+    rbb ^= rbb2;
+    ASSERT_EQ(0xaLL, rbb.raw());
   }
 
   {
@@ -83,6 +103,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1 | bb2;
     ASSERT_EQ(0xbLL, bb.first());
     ASSERT_EQ(0xeLL, bb.second());
+
+    RotatedBitboard rbb = rbb1 | rbb2;
+    ASSERT_EQ(0xbLL, rbb.raw());
   }
 
   {
@@ -90,6 +113,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1 & bb2;
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0x4LL, bb.second());
+
+    RotatedBitboard rbb = rbb1 & rbb2;
+    ASSERT_EQ(0x1LL, rbb.raw());
   }
 
   {
@@ -97,6 +123,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1 ^ bb2;
     ASSERT_EQ(0xaLL, bb.first());
     ASSERT_EQ(0xaLL, bb.second());
+
+    RotatedBitboard rbb = rbb1 ^ rbb2;
+    ASSERT_EQ(0xaLL, rbb.raw());
   }
 
   {
@@ -104,6 +133,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = ~bb1;
     ASSERT_EQ(0x00001ffffffffffcLL, bb.first());
     ASSERT_EQ(0x0000000ffffffff3LL, bb.second());
+
+    RotatedBitboard rbb = ~rbb1;
+    ASSERT_EQ(0xfffffffffffffffcLL, rbb.raw());
   }
 
   {
@@ -111,6 +143,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1.andNot(bb2);
     ASSERT_EQ(0x8LL, bb.first());
     ASSERT_EQ(0x2LL, bb.second());
+
+    RotatedBitboard rbb = rbb1.andNot(rbb2);
+    ASSERT_EQ(0x8LL, rbb.raw());
   }
 
   {
@@ -119,6 +154,10 @@ TEST(BitboardTest, testOperators) {
     bb <<= 3;
     ASSERT_EQ(0x18LL, bb.first());
     ASSERT_EQ(0x60LL, bb.second());
+
+    RotatedBitboard rbb = rbb1;
+    rbb <<= 3;
+    ASSERT_EQ(0x18LL, rbb.raw());
   }
 
   {
@@ -127,6 +166,10 @@ TEST(BitboardTest, testOperators) {
     bb >>= 1;
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0x6LL, bb.second());
+
+    RotatedBitboard rbb = rbb1;
+    rbb >>= 1;
+    ASSERT_EQ(0x1LL, rbb.raw());
   }
 
   {
@@ -134,6 +177,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1 << 3;
     ASSERT_EQ(0x18LL, bb.first());
     ASSERT_EQ(0x60LL, bb.second());
+
+    RotatedBitboard rbb = rbb1 << 3;
+    ASSERT_EQ(0x18LL, rbb.raw());
   }
 
   {
@@ -141,6 +187,9 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1 >> 1;
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0x6LL, bb.second());
+
+    RotatedBitboard rbb = rbb1 >> 1;
+    ASSERT_EQ(0x1LL, rbb.raw());
   }
 }
 
@@ -150,6 +199,10 @@ TEST(BitboardTest, testSet) {
     bb.set(3);
     ASSERT_EQ(0xbLL, bb.first());
     ASSERT_EQ(0xcLL, bb.second());
+
+    RotatedBitboard rbb(0x3LL);
+    rbb.set(3);
+    ASSERT_EQ(0xbLL, rbb.raw());
   }
 
   {
@@ -164,6 +217,10 @@ TEST(BitboardTest, testSet) {
     bb.unset(1);
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0xcLL, bb.second());
+
+    RotatedBitboard rbb(0x3LL);
+    rbb.unset(1);
+    ASSERT_EQ(0x1LL, rbb.raw());
   }
 
   {
@@ -185,34 +242,12 @@ TEST(BitboardTest, testSet) {
     ASSERT_EQ(false, bb.check(46));
     ASSERT_EQ(true, bb.check(47));
     ASSERT_EQ(true, bb.check(48));
-  }
 
-  {
-    RotatedBitboard bb(0x3LL, 0xcLL);
-    bb.set1(5);
-    bb.set2(12);
-    ASSERT_EQ(0x0023LL, bb.first());
-    ASSERT_EQ(0x100cLL, bb.second());
-  }
-
-  {
-    RotatedBitboard bb(0x3LL, 0xcLL);
-    bb.unset1(1);
-    bb.unset2(3);
-    ASSERT_EQ(0x1LL, bb.first());
-    ASSERT_EQ(0x4LL, bb.second());
-  }
-
-  {
-    RotatedBitboard bb(0x3LL, 0xcLL);
-    ASSERT_EQ(true, bb.check1(0));
-    ASSERT_EQ(true, bb.check1(1));
-    ASSERT_EQ(false, bb.check1(2));
-    ASSERT_EQ(false, bb.check1(3));
-    ASSERT_EQ(false, bb.check1(4));
-    ASSERT_EQ(false, bb.check2(0));
-    ASSERT_EQ(false, bb.check2(1));
-    ASSERT_EQ(true, bb.check2(2));
-    ASSERT_EQ(true, bb.check2(3));
+    RotatedBitboard rbb(0x3LL);
+    ASSERT_EQ(true, rbb.check(0));
+    ASSERT_EQ(true, rbb.check(1));
+    ASSERT_EQ(false, rbb.check(2));
+    ASSERT_EQ(false, rbb.check(3));
+    ASSERT_EQ(false, rbb.check(4));
   }
 }

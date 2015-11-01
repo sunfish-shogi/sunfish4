@@ -220,13 +220,8 @@ TEST(SquareTest, testReversedDir) {
 
 TEST(SquareTest, testRotate) {
   {
-    ASSERT_EQ(20, Square(Square::S62).rotate0().raw());
-    ASSERT_EQ(54, Square(Square::S39).rotate0().raw());
-  }
-
-  {
-    ASSERT_EQ(4, Square(Square::S62).rotate90().raw());
-    ASSERT_EQ(0, Square(Square::S39).rotate90().raw());
+    ASSERT_EQ(10, Square(Square::S62).rotate90().raw());
+    ASSERT_EQ(62, Square(Square::S39).rotate90().raw());
   }
 
   {

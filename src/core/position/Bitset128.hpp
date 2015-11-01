@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_CORE_BASE_BITSET128_HPP__
-#define SUNFISH_CORE_BASE_BITSET128_HPP__
+#ifndef SUNFISH_CORE_POSITION_BITSET128_HPP__
+#define SUNFISH_CORE_POSITION_BITSET128_HPP__
 
 #include "common/Def.hpp"
 #include "core/Sse.hpp"
@@ -82,18 +82,6 @@ public:
    */
   static CONSTEXPR T zero() {
     return T(0x00LL, 0x00LL);
-  }
-
-  /**
-   * Initialize all bits to zero
-   */
-  void init() {
-#if USE_SSE2
-    bb_.m = zero().bb_.m;
-#else
-    firstRef() = 0x00LL;
-    secondRef() = 0x00LL;
-#endif
   }
 
   /**
@@ -386,4 +374,4 @@ protected:
 
 } // namespace sunfish
 
-#endif // SUNFISH_CORE_BASE_BITSET128_HPP__
+#endif // SUNFISH_CORE_POSITION_BITSET128_HPP__

@@ -1,0 +1,97 @@
+/* Hand.hpp
+ *
+ * Kubo Ryosuke
+ */
+
+#ifndef SUNFISH_CORE_POSITION_HAND_HPP__
+#define SUNFISH_CORE_POSITION_HAND_HPP__
+
+#include "core/base/Piece.hpp"
+#include <array>
+#include <algorithm>
+#include <cassert>
+
+namespace sunfish {
+
+class Hand {
+public:
+
+  using ValueType = uint8_t;
+
+  /**
+   * Constructor
+   */
+  Hand() : counts_{0} {
+  }
+
+  /**
+   * Copy constructor
+   */
+  Hand(const Hand&) = default;
+
+  /**
+   * Assignment operator
+   */
+  Hand& operator=(const Hand&) = default;
+
+  /**
+   * Increment the count of specified piece.
+   */
+  void inc(const Piece& piece) {
+    incUnsafe(piece.kindOnly().unpromote());
+  }
+
+  /**
+   * Increment the count of specified piece.
+   */
+  void incUnsafe(const Piece& piece) {
+    assert(piece == piece.kindOnly().unpromote());
+    assert(counts_[piece.raw()] < 18);
+    assert(piece != Piece::Lance || counts_[piece.raw()] < 4);
+    assert(piece != Piece::Knight || counts_[piece.raw()] < 4);
+    assert(piece != Piece::Silver || counts_[piece.raw()] < 4);
+    assert(piece != Piece::Gold || counts_[piece.raw()] < 4);
+    assert(piece != Piece::Bishop || counts_[piece.raw()] < 2);
+    assert(piece != Piece::Rook || counts_[piece.raw()] < 2);
+    counts_[piece.raw()]++;
+  }
+
+  /**
+   * Decrement the count of specified piece.
+   */
+  void dec(const Piece& piece) {
+    decUnsafe(piece.kindOnly().unpromote());
+  }
+
+  /**
+   * Decrement the count of specified piece.
+   */
+  void decUnsafe(const Piece& piece) {
+    assert(piece == piece.kindOnly().unpromote());
+    assert(counts_[piece.raw()] > 0);
+    counts_[piece.raw()]--;
+  }
+
+  /**
+   * Get the count of specified piece.
+   */
+  ValueType get(const Piece& piece) const {
+    return counts_[piece.raw()];
+  }
+
+  /**
+   * Set the count of specified piece.
+   */
+  void set(const Piece& piece, ValueType val) {
+    counts_[piece.raw()] = val;
+  }
+
+private:
+
+  std::array<ValueType, Piece::HandNum> counts_;
+
+};
+
+}
+
+#endif // SUNFISH_CORE_POSITION_HAND_HPP__

@@ -77,9 +77,18 @@ Position::Position() {
   initialize(EmptyBoardArray, true);
 }
 
+Position::Position(Handicap handicap) {
+  initialize(handicap);
+}
+
 void Position::initialize(Handicap handicap) {
   SQUARE_EACH(square) {
     board_[square.raw()] = EvenBoardArray[square.raw()];
+  }
+
+  HAND_EACH(piece) {
+    blackHand_.set(piece, 0);
+    whiteHand_.set(piece, 0);
   }
 
   if (handicap == Handicap::TwoPieces) {
@@ -94,25 +103,47 @@ void Position::initialize(Handicap handicap) {
 }
 
 void Position::onBoardArrayChanged() {
+
   operateEachBitboard([](Bitboard& bb) {
     bb = Bitboard::zero();
   });
-  bbOccupiedR90_ = RotatedBitboard::zero();
-  bbOccupiedR45_ = RotatedBitboard::zero();
+  bbRotatedR90_ = RotatedBitboard::zero();
+  bbRotatedRR45_ = RotatedBitboard::zero();
+  bbRotatedRL45_ = RotatedBitboard::zero();
 
+  blackKingSquare_ = Square::Invalid;
+  whiteKingSquare_ = Square::Invalid;
+
+  // generate occupied bitboard
   SQUARE_EACH(square) {
+
     auto piece = board_[square.raw()];
     if (!piece.isEmpty()) {
-      getBitboard(piece).set(square);
-      if (piece.isBlack()) {
-        bbBOccupied_.set(square);
+
+      if (piece == Piece::BKing) {
+        // black king
+        blackKingSquare_ = square;
+
+      } else if (piece == Piece::WKing) {
+        // white king
+        whiteKingSquare_ = square;
+
       } else {
-        bbWOccupied_.set(square);
+        // other piece type
+        getBitboard(piece).set(square);
+
       }
-      bbOccupiedR90_.set1(square.rotate0());
-      bbOccupiedR90_.set2(square.rotate90());
-      bbOccupiedR45_.set1(square.rotateRight45());
-      bbOccupiedR45_.set2(square.rotateLeft45());
+
+      // rotated bitboard
+      if (piece.isBlack()) {
+        bbBRotated_.set(square);
+      } else {
+        bbWRotated_.set(square);
+      }
+      bbRotatedR90_.set(square.rotate90());
+      bbRotatedRR45_.set(square.rotateRight45());
+      bbRotatedRL45_.set(square.rotateLeft45());
+
     }
   }
 }
