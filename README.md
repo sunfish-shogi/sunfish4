@@ -35,7 +35,7 @@ cd build/xcode
 cmake -G Xcode ../../src
 ```
 
-### Visual Studio
+### Visual Studio (not maitained)
 
 Set parameters into CMake as follows.
 
