@@ -1,7 +1,19 @@
 Sunfish
 ========
 
-Sunfish is computer Shogi program.
+Sunfish is computer Shogi program. This is 4th version of Sunfish.
+
+##### Older Versions
+
+- [Sunfish](https://github.com/sunfish-shogi/sunfish)
+ + 2008 ~ 2012
+ + Participated in WCSC2011 and WCSC2012(Rookie Award).
+- [Sunfish2](https://github.com/sunfish-shogi/sunfish2)
+ + 2012 ~ 2013
+ + Participated in WCSC2013
+- [Sunfish3](https://github.com/sunfish-shogi/sunfish3)
+ + 2014 ~ 2015
+ + Participated in WCSC2015
 
 Requirement
 -----------
