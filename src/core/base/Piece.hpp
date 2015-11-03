@@ -87,6 +87,8 @@ enum Type : PieceRawType {
 
 using PieceNumber = PieceNumber_::Type;
 
+class Piece;
+
 template <class T>
 class AbstractPieceType {
 public:
@@ -100,6 +102,12 @@ public:
    * Copy constructor
    */
   explicit CONSTEXPR AbstractPieceType(const T& src) : number_(src.number_) {
+  }
+
+  /**
+   * Move constructor
+   */
+  explicit CONSTEXPR AbstractPieceType(T&& src) : number_(src.number_) {
   }
 
   /**
@@ -124,6 +132,7 @@ public:
    * Assignment operator
    */
   T& operator=(const T& rhs) {
+    number_ == rhs.number_;
     return *(static_cast<T*>(this));
   }
 
@@ -189,6 +198,10 @@ public:
   CONSTEXPR bool isPromoted() const {
     return number_ & PieceNumber::Promotion;
   }
+
+  CONSTEXPR Piece black() const;
+
+  CONSTEXPR Piece white() const;
 
 protected:
 
@@ -355,6 +368,18 @@ public:
   static Piece parse(const char* str);
 
 };
+
+template <class T>
+inline
+CONSTEXPR Piece AbstractPieceType<T>::black() const {
+  return Piece(number_);
+}
+
+template <class T>
+inline
+CONSTEXPR Piece AbstractPieceType<T>::white() const {
+  return Piece(number_ | PieceNumber::White);
+}
 
 } // namespace sunfish
 

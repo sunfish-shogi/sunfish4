@@ -7,6 +7,7 @@
 
 #include "test/Test.hpp"
 #include "core/move/Move.hpp"
+#include "core/record/CsaReader.hpp"
 
 using namespace sunfish;
 
@@ -79,7 +80,59 @@ TEST(MoveTest, testSerialization) {
 }
 
 TEST(MoveTest, testSerialization16) {
-  // TODO
+    std::string src = "\
+P1 *  *  *  * -OU *  *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  * +KE *  * \n\
+P4 *  *  *  * +FU *  *  *  * \n\
+P5 *  * -FU *  * +HI *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  * +FU *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+  std::istringstream iss(src);
+  Position pos;
+  CsaReader::readPosition(iss, pos);
+
+  {
+    Move in(Piece::blackPawn(), Square::s77(), Square::s76(), false);
+    uint16_t data = Move::serialize16(in);
+    Move out = Move::deserialize16(data, pos);
+    ASSERT_EQ(in, out);
+  }
+
+  {
+    Move in(Piece::blackKnight(), Square::s33(), Square::s41(), true);
+    uint16_t data = Move::serialize16(in);
+    Move out = Move::deserialize16(data, pos);
+    ASSERT_EQ(in, out);
+  }
+
+  {
+    Move in(Piece::blackRook(), Square::s45(), Square::s75(), false);
+    in.setCapturedPiece(Piece::whitePawn());
+    uint16_t data = Move::serialize16(in);
+    Move out = Move::deserialize16(data, pos);
+    ASSERT_EQ(in, out);
+  }
+
+  {
+    Move in(Piece::blackPawn(), Square::s54());
+    uint16_t data = Move::serialize16(in);
+    Move out = Move::deserialize16(data, pos);
+    ASSERT_EQ(in, out);
+  }
+
+  {
+    Move in = Move::empty();
+    uint16_t data = Move::serialize16(in);
+    Move out = Move::deserialize16(data, pos);
+    ASSERT_EQ(in, out);
+  }
 }
 
 #endif // !defined(NDEBUG)

@@ -37,7 +37,7 @@ private:
 
   static CONSTEXPR_CONST int ToOffset = 7;
   static CONSTEXPR_CONST int PieceOffset = 15;
-  static CONSTEXPR_CONST int CaptureOffset = 19;
+  static CONSTEXPR_CONST int CaptureOffset = 20;
 
   explicit CONSTEXPR Move(RawType move) : move_(move) {
   }
