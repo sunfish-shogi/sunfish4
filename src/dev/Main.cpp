@@ -5,19 +5,17 @@
 
 #include "common/console/Console.hpp"
 #include "common/program_options/ProgramOptions.hpp"
-#include "test/Test.hpp"
 #include "logger/Logger.hpp"
-#include <fstream>
 
-#define DEFAULT_TEST_RESULT_FILENAME "test_result.xml"
+#include "dev/code_generator/ZobristCodeGenerator.hpp"
 
 using namespace sunfish;
 
 int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
+  po.addOption("gen-zobrist", "generate Zobrist.cpp", true);
   po.addOption("silent", "s", "silent mode");
-  po.addOption("out", "o", "output file name (default: " DEFAULT_TEST_RESULT_FILENAME ")", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -38,37 +36,24 @@ int main(int argc, char** argv, char**) {
     Loggers::develop.addStream(std::cerr, ESC_SEQ_COLOR_WHITE, ESC_SEQ_COLOR_RESET);
   }
 
-  // the name of the result file
-  std::string resultFileName = DEFAULT_TEST_RESULT_FILENAME;
-  if (po.has("out")) {
-    resultFileName = po.getValue("out");
-  }
-
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
     Loggers::warning << "WARNING: `" << invalidArgument.arg << "' is invalid argument: " << invalidArgument.reason;
   }
 
-  // execute
-  bool result = TestSuite::test();
+  // genearate Zobrist.cpp
+  if (po.has("gen-zobrist")) {
+    // output file
+    std::string outputPath = po.getValue("gen-zobrist");
 
-  // write results to a file in xUnit format
-  std::ofstream fout(resultFileName, std::ios::out);
-  if (!fout) {
-    Loggers::error << "Could not open output file: " << resultFileName;
-    return 1;
+    // generate
+    ZobristCodeGenerator generator(outputPath);
+    bool ok = generator.generate();
+
+    return ok ? 0 : 1;
   }
-  fout << TestSuite::getXml();
-  fout.close();
 
-  // show result
-  if (result) {
-    Loggers::message << "Test passed.";
-  } else {
-    Loggers::error << "Test failed.";
-  }
-  Loggers::message << "See '" << resultFileName << "'.";
+  Loggers::error << "No action is specified.";
 
-  // return value
-  return result ? 0 : 1;
+  return 1;
 }

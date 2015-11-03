@@ -7,5 +7,6 @@ add_library(core STATIC
 	base/Piece.cpp
 	base/Square.cpp
 	position/Position.cpp
+	position/Zobrist.cpp
 	record/CsaReader.cpp
 )

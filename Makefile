@@ -6,6 +6,7 @@ TEST:=test
 
 SUNFISH:=sunfish
 SUNFISH_TEST:=sunfish_test
+SUNFISH_DEV:=sunfish_dev
 EVAL_BIN:=eval.bin
 BUILD_DIR:=build
 PROF:=gprof
@@ -59,6 +60,17 @@ test-nosse:
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
+
+dev:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/dev && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_DEV) $(SUNFISH_DEV)
+
+gen-zobrist:
+	$(MAKE) dev
+	$(SHELL) -c './$(SUNFISH_DEV) --gen-zobrist src/core/position/Zobrist.cpp'
 
 clean:
 	$(RM) -r $(BUILD_DIR)

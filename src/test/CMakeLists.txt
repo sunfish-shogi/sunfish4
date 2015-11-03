@@ -22,7 +22,3 @@ add_executable(sunfish_test
 
 target_link_libraries(sunfish_test core)
 target_link_libraries(sunfish_test logger)
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	target_link_libraries(sunfish_test wsock32)
-endif()
