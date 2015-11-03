@@ -53,8 +53,8 @@ Set parameters into CMake as follows.
 
 | Name                        | Value                  |
 |:----------------------------|-----------------------:|
-| Where is the source code    | path/to/sunfish3/src   |
-| Where to build the binaries | path/to/sunfish3/build |
+| Where is the source code    | path/to/sunfish4/src   |
+| Where to build the binaries | path/to/sunfish4/build |
 
 Usage
 -----
