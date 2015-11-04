@@ -44,7 +44,7 @@ make test
 ```
 mkdir -p build/xcode
 cd build/xcode
-cmake -G Xcode ../../src
+cmake -G Xcode ../../src/app
 ```
 
 ### Visual Studio (not maitained)
