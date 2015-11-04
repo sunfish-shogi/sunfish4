@@ -6,6 +6,7 @@
 #ifndef SUNFISH_CORE_POSITION_POSITION_HPP__
 #define SUNFISH_CORE_POSITION_POSITION_HPP__
 
+#include "core/base/Turn.hpp"
 #include "core/base/Piece.hpp"
 #include "core/position/Bitboard.hpp"
 #include "core/position/Hand.hpp"
@@ -41,7 +42,7 @@ public:
    * Initialization function
    */
   template <class T>
-  void initialize(const T& board, bool blackTurn) {
+  void initialize(const T& board, Turn turn) {
     SQUARE_EACH(square) {
       board_[square.raw()] = board[square.raw()];
     }
@@ -49,7 +50,7 @@ public:
       blackHand_.set(piece, 0);
       whiteHand_.set(piece, 0);
     }
-    blackTurn_ = blackTurn;
+    turn_ = turn;
 
     onBoardArrayChanged();
   }
@@ -58,13 +59,13 @@ public:
    * Initialization function
    */
   template <class T>
-  void initialize(const T& board, const Hand& blackHand, const Hand& whiteHand, bool blackTurn) {
+  void initialize(const T& board, const Hand& blackHand, const Hand& whiteHand, Turn turn) {
     SQUARE_EACH(square) {
       board_[square.raw()] = board[square.raw()];
     }
     blackHand_ = blackHand;
     whiteHand_ = whiteHand;
-    blackTurn_ = blackTurn;
+    turn_ = turn;
 
     onBoardArrayChanged();
   }
@@ -150,17 +151,10 @@ public:
   }
 
   /**
-   * Return true if the current position is black turn, return false if not.
+   * Get the turn of the current position.
    */
-  bool isBlackTurn() const {
-    return blackTurn_;
-  }
-
-  /**
-   * Return true if the current position is white turn, return false if not.
-   */
-  bool isWhiteTurn() const {
-    return !blackTurn_;
+  Turn getTurn() const {
+    return turn_;
   }
 
 private:
@@ -248,7 +242,7 @@ private:
   Hand blackHand_;
   Hand whiteHand_;
 
-  bool blackTurn_;
+  Turn turn_;
 
 };
 

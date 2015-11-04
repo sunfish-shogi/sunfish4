@@ -7,6 +7,7 @@
 #define SUNFISH_CORE_BASE_SQUARE_HPP__
 
 #include "common/Def.hpp"
+#include "core/base/Turn.hpp"
 #include <string>
 #include <iostream>
 #include <cstdint>
@@ -387,33 +388,33 @@ public:
   /**
    * Check if the square is promotable range.
    */
-  template<bool black>
+  template<Turn turn>
   CONSTEXPR bool isPromotable() const {
-    return black ? getRank() - 1 <= 2 : getRank() - 1 >= 6;
+    return (turn == Turn::Black) ? getRank() - 1 <= 2 : getRank() - 1 >= 6;
   }
 
   /**
    * Check if the square is movable range for Pawn.
    */
-  template<bool black>
+  template<Turn turn>
   CONSTEXPR bool isPawnMovable() const {
-    return black ? getRank() - 1 != 0 : getRank() - 1 != 8;
+    return (turn == Turn::Black) ? getRank() - 1 != 0 : getRank() - 1 != 8;
   }
 
   /**
    * Check if the square is movable range for Lance.
    */
-  template<bool black>
+  template<Turn turn>
   CONSTEXPR bool isLanceMovable() const {
-    return isPawnMovable<black>();
+    return isPawnMovable<turn>();
   }
 
   /**
    * Check if the square is movable range for Knight.
    */
-  template<bool black>
+  template<Turn turn>
   CONSTEXPR bool isKnightMovable() const {
-    return black ? getRank() - 1 >= 2 : getRank() - 1 <= 6;
+    return (turn == Turn::Black) ? getRank() - 1 >= 2 : getRank() - 1 <= 6;
   }
 
   /**

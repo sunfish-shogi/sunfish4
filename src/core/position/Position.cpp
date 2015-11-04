@@ -74,7 +74,7 @@ Piece EvenBoardArray[Square::N] = {
 namespace sunfish {
 
 Position::Position() {
-  initialize(EmptyBoardArray, true);
+  initialize(EmptyBoardArray, Turn::Black);
 }
 
 Position::Position(Handicap handicap) {
@@ -94,9 +94,9 @@ void Position::initialize(Handicap handicap) {
   if (handicap == Handicap::TwoPieces) {
     board_[Square::s22().raw()] = Piece::empty();
     board_[Square::s82().raw()] = Piece::empty();
-    blackTurn_ = false;
+    turn_ = Turn::White;
   } else {
-    blackTurn_ = true;
+    turn_ = Turn::Black;
   }
 
   onBoardArrayChanged();

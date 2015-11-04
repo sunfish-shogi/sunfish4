@@ -23,7 +23,7 @@ void CsaReader::initializeMutablePosition(MutablePosition& mp) {
     mp.whiteHand.set(piece, 0);
   }
 
-  mp.blackTurn = true;
+  mp.turn = Turn::Black;
 }
 
 bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* info/* = nullptr*/) {
@@ -33,7 +33,7 @@ bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* i
   bool ok = readPosition(is, mp, info);
 
   if (ok) {
-    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.blackTurn);
+    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
   }
 
   return ok;
@@ -46,7 +46,7 @@ bool CsaReader::readPosition(const char* line, Position& position, RecordInfo* i
   bool ok = readPosition(line, mp, info);
 
   if (ok) {
-    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.blackTurn);
+    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
   }
 
   return ok;
@@ -84,20 +84,20 @@ bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* 
     if (line[1] >= '1' && line[1] <= '9') {
       return readPositionPieces(line, mp);
     } else if (line[1] == '+') {
-      return readHand(line, mp, true);
+      return readHand(line, mp, Turn::Black);
     } else if (line[1] == '-') {
-      return readHand(line, mp, false);
+      return readHand(line, mp, Turn::White);
     }
     Loggers::warning << __FILE_LINE__ << ": unknown command";
     Loggers::warning << line;
     return false;
 
   case '+':
-    mp.blackTurn = true;
+    mp.turn = Turn::Black;
     return true;
 
   case '-':
-    mp.blackTurn = false;
+    mp.turn = Turn::White;
     return true;
 
   case '$': case 'N':
@@ -149,7 +149,7 @@ bool CsaReader::readInfo(const char* line, RecordInfo& info) {
   return true;
 }
 
-bool CsaReader::readHand(const char* line, MutablePosition& mp, bool black) {
+bool CsaReader::readHand(const char* line, MutablePosition& mp, Turn turn) {
   unsigned length = (unsigned)strlen(line);
 
   for (unsigned i = 2; i + 4 <= length; i += 4) {
@@ -161,11 +161,11 @@ bool CsaReader::readHand(const char* line, MutablePosition& mp, bool black) {
     if (pieceType != PieceType::empty()) {
 
       if (Square::isValidFile(file) && Square::isValidRank(rank)) {
-        Piece piece = black ? pieceType.black() : pieceType.white();
+        Piece piece = (turn == Turn::Black) ? pieceType.black() : pieceType.white();
         mp.board[Square(file, rank).raw()] = piece;
 
       } else if (file == 0 && rank == 0 && pieceType.isUnpromoted() && pieceType != PieceType::king()) {
-        if (black) {
+        if (turn == Turn::Black) {
           mp.blackHand.inc(pieceType);
         } else {
           mp.whiteHand.inc(pieceType);
@@ -211,22 +211,22 @@ bool CsaReader::readMove(const char* line, const Position& position, Move& move)
     return false;
   }
 
-  bool black;
+  bool turn;
   if (line[0] == '+') {
-    black = true;
+    turn = Turn::Black;
   } else if (line[0] == '-') {
-    black = false;
+    turn = Turn::White;
   } else {
     return false;
   }
 
-  if (black != position.isBlackTurn()) {
+  if (turn != position.getTurn()) {
     return false;
   }
 
   Square to = Square::parse(&line[3]);
   PieceType pieceType = PieceType::parse(&line[5]);
-  Piece piece = black ? pieceType.black() : pieceType.white();
+  Piece piece = (turn == Turn::Black) ? pieceType.black() : pieceType.white();
   if (line[1] == '0' && line[2] == '0') {
     move = Move(piece, to);
   } else {

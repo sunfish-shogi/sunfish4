@@ -6,6 +6,7 @@
 #ifndef SUNFISH_CORE_RECORD_CSAREADER_HPP__
 #define SUNFISH_CORE_RECORD_CSAREADER_HPP__
 
+#include "core/base/Turn.hpp"
 #include "core/position/Position.hpp"
 #include "core/move/Move.hpp"
 #include "core/record/Record.hpp"
@@ -29,7 +30,7 @@ private:
     BoardArray board;
     Hand blackHand;
     Hand whiteHand;
-    bool blackTurn;
+    Turn turn;
   };
 
   CsaReader();
@@ -39,7 +40,7 @@ private:
   static bool readPosition(const char* line, MutablePosition& mp, RecordInfo* info = nullptr);
   static bool readPositionPieces(const char* line, MutablePosition& mp);
   static bool readInfo(const char* line, RecordInfo& info);
-  static bool readHand(const char* line, MutablePosition& position, bool black);
+  static bool readHand(const char* line, MutablePosition& position, Turn turn);
   static bool readComment(const char* line);
   static bool readTime(const char* line);
   static bool readCommand(const char* line);

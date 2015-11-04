@@ -29,8 +29,7 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
-    ASSERT_EQ(true, pos.isBlackTurn());
-    ASSERT_EQ(false, pos.isWhiteTurn());
+    ASSERT_EQ(Turn::Black, pos.getTurn());
   }
 
   {
@@ -55,8 +54,7 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
-    ASSERT_EQ(true, pos.isBlackTurn());
-    ASSERT_EQ(false, pos.isWhiteTurn());
+    ASSERT_EQ(Turn::Black, pos.getTurn());
   }
 
   {
@@ -81,8 +79,7 @@ TEST(PositionTest, testInitialization) {
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::pawn()));
     ASSERT_EQ(0, pos.getBlackHandPieceCount(PieceType::bishop()));
 
-    ASSERT_EQ(false, pos.isBlackTurn());
-    ASSERT_EQ(true, pos.isWhiteTurn());
+    ASSERT_EQ(Turn::White, pos.getTurn());
   }
 }
 
