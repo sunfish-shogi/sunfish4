@@ -220,11 +220,11 @@ public:
   /**
    * Make move
    */
-  bool makeMove(Move& move) {
+  bool doMove(Move& move) {
     if (turn_ == Turn::Black) {
-      return makeMove<Turn::Black>(move);
+      return doMove<Turn::Black>(move);
     } else {
-      return makeMove<Turn::White>(move);
+      return doMove<Turn::White>(move);
     }
   }
 
@@ -308,7 +308,7 @@ private:
   void onChanged();
 
   template <Turn turn>
-  bool makeMove(Move& move);
+  bool doMove(Move& move);
 
 private:
 

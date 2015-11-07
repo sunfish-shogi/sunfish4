@@ -127,7 +127,7 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
 
-    pos.makeMove(move);
+    pos.doMove(move);
 
     ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s77()));
     ASSERT_EQ(false, pos.getBPawnBitboard().check(Square::s77()));
@@ -182,7 +182,7 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
 
-    pos.makeMove(move);
+    pos.doMove(move);
 
     ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s33()));
     ASSERT_EQ(false, pos.getWPawnBitboard().check(Square::s33()));
@@ -237,7 +237,7 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
 
-    pos.makeMove(move);
+    pos.doMove(move);
 
     ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s88()));
     ASSERT_EQ(false, pos.getBBishopBitboard().check(Square::s88()));
@@ -294,7 +294,7 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
 
-    pos.makeMove(move);
+    pos.doMove(move);
 
     ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s31()));
     ASSERT_EQ(false, pos.getWSilverBitboard().check(Square::s31()));
@@ -350,7 +350,7 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackBishop(), Square::s45());
 
-    pos.makeMove(move);
+    pos.doMove(move);
 
     ASSERT_EQ(Piece::blackBishop(), pos.getPieceOnBoard(Square::s45()));
     ASSERT_EQ(true, pos.getBBishopBitboard().check(Square::s45()));

@@ -208,7 +208,7 @@ Bitboard& Position::getBitboard(Piece piece) {
 }
 
 template <Turn turn>
-bool Position::makeMove(Move& move) {
+bool Position::doMove(Move& move) {
   bool isDrop = move.isDrop();
   Piece piece = move.piece();
   Square to = move.to();
@@ -371,8 +371,8 @@ bool Position::makeMove(Move& move) {
 
   return true;
 }
-template bool Position::makeMove<Turn::Black>(Move& move);
-template bool Position::makeMove<Turn::White>(Move& move);
+template bool Position::doMove<Turn::Black>(Move& move);
+template bool Position::doMove<Turn::White>(Move& move);
 
 std::string Position::toString() const {
   std::ostringstream oss;
