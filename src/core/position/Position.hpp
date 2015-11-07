@@ -8,8 +8,10 @@
 
 #include "core/base/Turn.hpp"
 #include "core/base/Piece.hpp"
+#include "core/move/Move.hpp"
 #include "core/position/Bitboard.hpp"
 #include "core/position/Hand.hpp"
+#include "core/position/Zobrist.hpp"
 
 #include <array>
 
@@ -34,6 +36,22 @@ public:
   Position(Handicap handicap);
 
   /**
+   * Constructor
+   */
+  template <class T>
+  Position(const T& board, Turn turn) {
+    initialize(board, turn);
+  }
+
+  /**
+   * Constructor
+   */
+  template <class T>
+  Position(const T& board, const Hand& blackHand, const Hand& whiteHand, Turn turn) {
+    initialize(board, blackHand, whiteHand, turn);
+  }
+
+  /**
    * Copy constructor
    */
   Position(const Position& src) = default;
@@ -52,7 +70,7 @@ public:
     }
     turn_ = turn;
 
-    onBoardArrayChanged();
+    onChanged();
   }
 
   /**
@@ -67,7 +85,7 @@ public:
     whiteHand_ = whiteHand;
     turn_ = turn;
 
-    onBoardArrayChanged();
+    onChanged();
   }
 
   /**
@@ -109,6 +127,20 @@ public:
 #undef POSITION_BB_GEWTER
 
   /**
+   * Get occupied bitboard of black pieces
+   */
+  const Bitboard& getBOccupiedBitboard() const {
+    return bbBOccupied_;
+  }
+
+  /**
+   * Get occupied bitboard of white pieces
+   */
+  const Bitboard& getWOccupiedBitboard() const {
+    return bbWOccupied_;
+  }
+
+  /**
    * Get rotated bitboard
    */
   const RotatedBitboard& get90RotatedBitboard() const {
@@ -139,14 +171,14 @@ public:
   /**
    * Get the piece count of the black hand
    */
-  Hand::ValueType getBlackHandPieceCount(const PieceType& piece) const {
+  Hand::Type getBlackHandPieceCount(const PieceType& piece) const {
     return blackHand_.get(piece);
   }
 
   /**
    * Get the piece count of the white hand
    */
-  Hand::ValueType getWhiteHandPieceCount(const PieceType& piece) const {
+  Hand::Type getWhiteHandPieceCount(const PieceType& piece) const {
     return whiteHand_.get(piece);
   }
 
@@ -156,6 +188,47 @@ public:
   Turn getTurn() const {
     return turn_;
   }
+
+  /**
+   * Get the hash value.
+   */
+  Zobrist::Type getHash() const {
+    return getBoardHash() ^ getHandHash() ^ getTurnHash();
+  }
+
+  /**
+   * Get the hash value of the board.
+   */
+  Zobrist::Type getBoardHash() const {
+    return boardHash_;
+  }
+
+  /**
+   * Get the hash value of hands.
+   */
+  Zobrist::Type getHandHash() const {
+    return handHash_;
+  }
+
+  /**
+   * Get the hash value of the turn.
+   */
+  Zobrist::Type getTurnHash() const {
+    return (turn_ == Turn::Black) ? Zobrist::black() : 0x00ULL;
+  }
+
+  /**
+   * Make move
+   */
+  bool makeMove(Move& move) {
+    if (turn_ == Turn::Black) {
+      return makeMove<Turn::Black>(move);
+    } else {
+      return makeMove<Turn::White>(move);
+    }
+  }
+
+  std::string toString() const;
 
 private:
 
@@ -191,11 +264,51 @@ private:
     ope(bbWHorse_);
     ope(bbWDragon_);
 
-    ope(bbBRotated_);
-    ope(bbWRotated_);
+    ope(bbBOccupied_);
+    ope(bbWOccupied_);
   }
 
-  void onBoardArrayChanged();
+  template <class T>
+  void operateBitboard(const Piece& piece, T&& ope) {
+    switch (piece.raw()) {
+    case PieceNumber::BPawn     : ope(bbBPawn_); return;
+    case PieceNumber::BLance    : ope(bbBLance_); return;
+    case PieceNumber::BKnight   : ope(bbBKnight_); return;
+    case PieceNumber::BSilver   : ope(bbBSilver_); return;
+    case PieceNumber::BGold     : ope(bbBGold_); return;
+    case PieceNumber::BBishop   : ope(bbBBishop_); return;
+    case PieceNumber::BRook     : ope(bbBRook_); return;
+    case PieceNumber::BTokin    : ope(bbBTokin_); return;
+    case PieceNumber::BProLance : ope(bbBProLance_); return;
+    case PieceNumber::BProKnight: ope(bbBProKnight_); return;
+    case PieceNumber::BProSilver: ope(bbBProSilver_); return;
+    case PieceNumber::BHorse    : ope(bbBHorse_); return;
+    case PieceNumber::BDragon   : ope(bbBDragon_); return;
+
+    case PieceNumber::WPawn     : ope(bbWPawn_); return;
+    case PieceNumber::WLance    : ope(bbWLance_); return;
+    case PieceNumber::WKnight   : ope(bbWKnight_); return;
+    case PieceNumber::WSilver   : ope(bbWSilver_); return;
+    case PieceNumber::WGold     : ope(bbWGold_); return;
+    case PieceNumber::WBishop   : ope(bbWBishop_); return;
+    case PieceNumber::WRook     : ope(bbWRook_); return;
+    case PieceNumber::WTokin    : ope(bbWTokin_); return;
+    case PieceNumber::WProLance : ope(bbWProLance_); return;
+    case PieceNumber::WProKnight: ope(bbWProKnight_); return;
+    case PieceNumber::WProSilver: ope(bbWProSilver_); return;
+    case PieceNumber::WHorse    : ope(bbWHorse_); return;
+    case PieceNumber::WDragon   : ope(bbWDragon_); return;
+
+    case PieceNumber::BKing:
+    case PieceNumber::WKing:
+      assert(false);
+    }
+  }
+
+  void onChanged();
+
+  template <Turn turn>
+  bool makeMove(Move& move);
 
 private:
 
@@ -227,8 +340,8 @@ private:
   Bitboard bbWHorse_;
   Bitboard bbWDragon_;
 
-  Bitboard bbBRotated_;
-  Bitboard bbWRotated_;
+  Bitboard bbBOccupied_;
+  Bitboard bbWOccupied_;
 
   RotatedBitboard bbRotatedR90_;
   RotatedBitboard bbRotatedRR45_;
@@ -244,8 +357,16 @@ private:
 
   Turn turn_;
 
+  Zobrist::Type boardHash_;
+  Zobrist::Type handHash_;
+
 };
 
+}
+
+inline std::ostream& operator<<(std::ostream& os, const sunfish::Position& position) {
+  os << position.toString();
+  return os;
 }
 
 #endif // SUNFISH_CORE_POSITION_POSITION_HPP__

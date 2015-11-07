@@ -14,38 +14,19 @@
 namespace sunfish {
 
 class Zobrist {
-private:
-
-  Zobrist();
-
-  static const uint64_t Board[Square::N][PieceNumber::Num];
-  static const uint64_t HandBPawn[18];
-  static const uint64_t HandBLance[4];
-  static const uint64_t HandBKnight[4];
-  static const uint64_t HandBSilver[4];
-  static const uint64_t HandBGold[4];
-  static const uint64_t HandBBishop[2];
-  static const uint64_t HandBRook[2];
-  static const uint64_t HandWPawn[18];
-  static const uint64_t HandWLance[4];
-  static const uint64_t HandWKnight[4];
-  static const uint64_t HandWSilver[4];
-  static const uint64_t HandWGold[4];
-  static const uint64_t HandWBishop[2];
-  static const uint64_t HandWRook[2];
-  static const uint64_t Black;
-
 public:
 
-  static uint64_t board(const Square& sq, const Piece& piece) {
+  using Type = uint64_t;
+
+  static Type board(const Square& sq, const Piece& piece) {
     return Board[sq.raw()][piece.raw()];
   }
 
 #define FUNC_HAND__(piece) \
-  static uint64_t handB ## piece(int num) { \
+  static Type handB ## piece(int num) { \
     return HandB ## piece[num]; \
   } \
-  static uint64_t handW ## piece(int num) { \
+  static Type handW ## piece(int num) { \
     return HandW ## piece[num]; \
   }
 
@@ -59,7 +40,7 @@ public:
 
 #undef FUNC_HAND__
 
-  static uint64_t handBlack(const PieceType pieceType, int num) {
+  static Type blackHand(const PieceType pieceType, int num) {
     switch (pieceType.raw()) {
     case PieceNumber::Pawn: return HandBPawn[num];
     case PieceNumber::Lance: return HandBLance[num];
@@ -73,8 +54,8 @@ public:
     return 0; // unreachable
   }
 
-  static uint64_t handWhite(const PieceType piece, int num) {
-    switch (piece.raw()) {
+  static Type whiteHand(const PieceType pieceType, int num) {
+    switch (pieceType.raw()) {
     case PieceNumber::Pawn: return HandWPawn[num];
     case PieceNumber::Lance: return HandWLance[num];
     case PieceNumber::Knight: return HandWKnight[num];
@@ -87,9 +68,30 @@ public:
     return 0; // unreachable
   }
 
-  static uint64_t black() {
+  static Type black() {
     return Black;
   }
+
+private:
+
+  Zobrist();
+
+  static const Type Board[Square::N][PieceNumber::Num];
+  static const Type HandBPawn[18];
+  static const Type HandBLance[4];
+  static const Type HandBKnight[4];
+  static const Type HandBSilver[4];
+  static const Type HandBGold[4];
+  static const Type HandBBishop[2];
+  static const Type HandBRook[2];
+  static const Type HandWPawn[18];
+  static const Type HandWLance[4];
+  static const Type HandWKnight[4];
+  static const Type HandWSilver[4];
+  static const Type HandWGold[4];
+  static const Type HandWBishop[2];
+  static const Type HandWRook[2];
+  static const Type Black;
 
 };
 

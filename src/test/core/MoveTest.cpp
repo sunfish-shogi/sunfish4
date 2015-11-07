@@ -80,7 +80,7 @@ TEST(MoveTest, testSerialization) {
 }
 
 TEST(MoveTest, testSerialization16) {
-    std::string src = "\
+  std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  * +KE *  * \n\

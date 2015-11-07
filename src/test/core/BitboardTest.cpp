@@ -143,9 +143,6 @@ TEST(BitboardTest, testOperators) {
     Bitboard bb = bb1.andNot(bb2);
     ASSERT_EQ(0x8LL, bb.first());
     ASSERT_EQ(0x2LL, bb.second());
-
-    RotatedBitboard rbb = rbb1.andNot(rbb2);
-    ASSERT_EQ(0x8LL, rbb.raw());
   }
 
   {

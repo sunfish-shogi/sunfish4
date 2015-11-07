@@ -6,7 +6,7 @@
 #include "core/position/Zobrist.hpp"
 namespace sunfish {
 
-const uint64_t Zobrist::Board[Square::N][PieceNumber::Num] = {
+const Zobrist::Type Zobrist::Board[Square::N][PieceNumber::Num] = {
   {
     0xc74ffc48638b9ff7ll,
     0x43ce896ec0edab7ll,
@@ -2682,7 +2682,7 @@ const uint64_t Zobrist::Board[Square::N][PieceNumber::Num] = {
   },
 };
 
-const uint64_t Zobrist::HandBPawn[18] = {
+const Zobrist::Type Zobrist::HandBPawn[18] = {
   0xa1ba2cf3e8ece0call,
   0x71a0935a33bfc4ecll,
   0x352f845ae40a0ebll,
@@ -2702,39 +2702,39 @@ const uint64_t Zobrist::HandBPawn[18] = {
   0x157284febec65d4cll,
   0x118797c8255f1a61ll,
 };
-const uint64_t Zobrist::HandBLance[4] = {
+const Zobrist::Type Zobrist::HandBLance[4] = {
   0xc42bd7b0ed611939ll,
   0x92c3ce5cfed79c0fll,
   0x5a4c07e3cf882d06ll,
   0xe419a93e5cfd4bfdll,
 };
-const uint64_t Zobrist::HandBKnight[4] = {
+const Zobrist::Type Zobrist::HandBKnight[4] = {
   0x3ea10000660cc21cll,
   0x588b41bb9523527all,
   0xcce1d1e37f9a4e66ll,
   0x9277d9391c66102ll,
 };
-const uint64_t Zobrist::HandBSilver[4] = {
+const Zobrist::Type Zobrist::HandBSilver[4] = {
   0x6ca0e09b462109ell,
   0xbf27104946b1e17fll,
   0xf6890043e0cb47cll,
   0x31805a2054c62b6bll,
 };
-const uint64_t Zobrist::HandBGold[4] = {
+const Zobrist::Type Zobrist::HandBGold[4] = {
   0xb44a7ed1666f0381ll,
   0xc55003fb84460e5bll,
   0x1879579d29910620ll,
   0x9c07f6a3f0b329dcll,
 };
-const uint64_t Zobrist::HandBBishop[2] = {
+const Zobrist::Type Zobrist::HandBBishop[2] = {
   0x76e9d064b3c26d4bll,
   0x1950d2776715544dll,
 };
-const uint64_t Zobrist::HandBRook[2] = {
+const Zobrist::Type Zobrist::HandBRook[2] = {
   0x2f98b58f0d049aa5ll,
   0xfbe9338e589bd0d1ll,
 };
-const uint64_t Zobrist::HandWPawn[18] = {
+const Zobrist::Type Zobrist::HandWPawn[18] = {
   0xd6c33061bfbc5c7ell,
   0x45f4f0be5ca6b93ll,
   0xf0204a1d75381ee9ll,
@@ -2754,39 +2754,39 @@ const uint64_t Zobrist::HandWPawn[18] = {
   0x56abc16b0e653d53ll,
   0x41babc2f481719fall,
 };
-const uint64_t Zobrist::HandWLance[4] = {
+const Zobrist::Type Zobrist::HandWLance[4] = {
   0xb64d46eeb6c96501ll,
   0x817209c8f8b28e0dll,
   0x44816d1ee36c1all,
   0x48f441d8e336c3c4ll,
 };
-const uint64_t Zobrist::HandWKnight[4] = {
+const Zobrist::Type Zobrist::HandWKnight[4] = {
   0xba9042b921abd354ll,
   0xae59997b06baf801ll,
   0x5941f2e28bc66cacll,
   0x21475c6a8624b76fll,
 };
-const uint64_t Zobrist::HandWSilver[4] = {
+const Zobrist::Type Zobrist::HandWSilver[4] = {
   0xae0557fa505dc93cll,
   0x2ef1da02455e6b1all,
   0x2d6e1035817aae76ll,
   0x983c3dd1255eba09ll,
 };
-const uint64_t Zobrist::HandWGold[4] = {
+const Zobrist::Type Zobrist::HandWGold[4] = {
   0x64c5941f7f45f225ll,
   0xdfb88b52b8938458ll,
   0xd5ef3a8c7014adfell,
   0x926fcbb39249ec9dll,
 };
-const uint64_t Zobrist::HandWBishop[2] = {
+const Zobrist::Type Zobrist::HandWBishop[2] = {
   0x2ffbec9a3f540259ll,
   0xb772e1a3ca48d8acll,
 };
-const uint64_t Zobrist::HandWRook[2] = {
+const Zobrist::Type Zobrist::HandWRook[2] = {
   0xa14e4a925495ddb2ll,
   0x271ee4c91b8f4674ll,
 };
 
-const uint64_t Zobrist::Black = 0x83c931aa8dad7fb7ll;
+const Zobrist::Type Zobrist::Black = 0x83c931aa8dad7fb7ll;
 
 } // namespace sunfish

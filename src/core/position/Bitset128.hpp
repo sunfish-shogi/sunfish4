@@ -13,15 +13,15 @@
 
 namespace sunfish {
 
-template <class T, int W1, int W2>
+template <class T, class U, U W1, U W2>
 class Bitset128 {
 public:
 
   static_assert(W1 <= 64, "invalid bit width");
   static_assert(W2 <= 64, "invalid bit width");
 
-  static CONSTEXPR_CONST int Width1 = W1;
-  static CONSTEXPR_CONST int Width2 = W2;
+  static CONSTEXPR_CONST U Width1 = W1;
+  static CONSTEXPR_CONST U Width2 = W2;
   static CONSTEXPR_CONST uint64_t Mask1 = (1ULL<<W1)-1;
   static CONSTEXPR_CONST uint64_t Mask2 = (1ULL<<W2)-1;
 
@@ -106,7 +106,7 @@ public:
     firstRef() |= rhs.first();
     secondRef() |= rhs.second();
 #endif
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -119,7 +119,7 @@ public:
     firstRef() &= rhs.first();
     secondRef() &= rhs.second();
 #endif
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -132,7 +132,7 @@ public:
     firstRef() ^= rhs.first();
     secondRef() ^= rhs.second();
 #endif
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -199,7 +199,7 @@ public:
   /**
    * Shifts as the two unsgined 64-bit integers.
    */
-  void leftShift64(int n) {
+  void leftShift64(U n) {
 #if USE_SSE2
     bb_.m = _mm_slli_epi64(bb_.m, n);
 #else
@@ -211,7 +211,7 @@ public:
   /**
    * Shifts as the two unsgined 64-bit integers.
    */
-  void rightShift64(int n) {
+  void rightShift64(U n) {
 #if USE_SSE2
     bb_.m = _mm_srli_epi64(bb_.m, n);
 #else
@@ -224,34 +224,34 @@ public:
    * Left shift assignment operator.
    * This function uses <leftShift64> from the inside.
    */
-  const T& operator<<=(int n) {
+  const T& operator<<=(U n) {
     leftShift64(n);
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Right shift assignment operator.
    * This function uses <rightShift64> from the inside.
    */
-  const T& operator>>=(int n) {
+  const T& operator>>=(U n) {
     rightShift64(n);
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Left shift operator.
    * This function uses <leftShift64> from the inside.
    */
-  T operator<<(int n) const {
-    return T(*(T*)this) <<= n;
+  T operator<<(U n) const {
+    return T(*(static_cast<const T*>(this))) <<= n;
   }
 
   /**
    * Right shift operator.
    * This function uses <rightShift64> from the inside.
    */
-  T operator>>(int n) const {
-    return T(*(T*)this) >>= n;
+  T operator>>(U n) const {
+    return T(*(static_cast<const T*>(this))) >>= n;
   }
 
   /**
@@ -273,31 +273,33 @@ protected:
   /**
    * Set the specified bit.
    */
-  void set(int offset) {
+  T& set(U offset) {
     if (offset < Width1) {
       firstRef() |= 1LLU << offset;
     } else {
       assert(offset < Width1 + Width2);
       secondRef() |= 1LLU << (offset - Width1);
     }
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Unset the specified bit.
    */
-  void unset(int offset) {
+  T& unset(U offset) {
     if (offset < Width1) {
       firstRef() &= ~(1LLU << offset);
     } else {
       assert(offset < Width1 + Width2);
       secondRef() &= ~(1LLU << (offset - Width1));
     }
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Check the specified bit.
    */
-  bool check(int offset) const {
+  bool check(U offset) const {
     if (offset < Width1) {
       return first() & (1LLU << offset);
     } else {
@@ -309,23 +311,25 @@ protected:
   /**
    * Set the specified bit of the first quad ward.
    */
-  void set1(int offset) {
+  T& set1(U offset) {
     assert(offset < Width1);
     firstRef() |= 1LLU << offset;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Unset the specified bit of the first quad ward.
    */
-  void unset1(int offset) {
+  T& unset1(U offset) {
     assert(offset < Width1);
     firstRef() &= ~(1LLU << offset);
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Check the specified bit of the first quad ward.
    */
-  bool check1(int offset) const {
+  bool check1(U offset) const {
     assert(offset < Width1);
     return first() & (1LLU << offset);
   }
@@ -333,23 +337,25 @@ protected:
   /**
    * Set the specified bit of the first quad ward.
    */
-  void set2(int offset) {
+  T& set2(U offset) {
     assert(offset < Width2);
     secondRef() |= 1LLU << offset;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Unset the specified bit of the first quad ward.
    */
-  void unset2(int offset) {
+  T& unset2(U offset) {
     assert(offset < Width2);
     secondRef() &= ~(1LLU << offset);
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Check the specified bit of the first quad ward.
    */
-  bool check2(int offset) const {
+  bool check2(U offset) const {
     assert(offset < Width2);
     return second() & (1LLU << offset);
   }

@@ -16,7 +16,7 @@ namespace sunfish {
 class Hand {
 public:
 
-  using ValueType = uint8_t;
+  using Type = uint8_t;
 
   /**
    * Constructor
@@ -37,14 +37,14 @@ public:
   /**
    * Increment the count of specified piece.
    */
-  void inc(const PieceType& piece) {
-    incUnsafe(piece.unpromote());
+  Type inc(const PieceType& piece) {
+    return incUnsafe(piece.unpromote());
   }
 
   /**
    * Increment the count of specified piece.
    */
-  void incUnsafe(const PieceType& piece) {
+  Type incUnsafe(const PieceType& piece) {
     assert(piece == piece.unpromote());
     assert(counts_[piece.raw()] < 18);
     assert(piece != PieceType::lance() || counts_[piece.raw()] < 4);
@@ -53,42 +53,42 @@ public:
     assert(piece != PieceType::gold() || counts_[piece.raw()] < 4);
     assert(piece != PieceType::bishop() || counts_[piece.raw()] < 2);
     assert(piece != PieceType::rook() || counts_[piece.raw()] < 2);
-    counts_[piece.raw()]++;
+    return ++counts_[piece.raw()];
   }
 
   /**
    * Decrement the count of specified piece.
    */
-  void dec(const PieceType& piece) {
-    decUnsafe(piece.unpromote());
+  Type dec(const PieceType& piece) {
+    return decUnsafe(piece.unpromote());
   }
 
   /**
    * Decrement the count of specified piece.
    */
-  void decUnsafe(const PieceType& piece) {
+  Type decUnsafe(const PieceType& piece) {
     assert(piece == piece.unpromote());
     assert(counts_[piece.raw()] > 0);
-    counts_[piece.raw()]--;
+    return --counts_[piece.raw()];
   }
 
   /**
    * Get the count of specified piece.
    */
-  ValueType get(const PieceType& piece) const {
+  Type get(const PieceType& piece) const {
     return counts_[piece.raw()];
   }
 
   /**
    * Set the count of specified piece.
    */
-  void set(const PieceType& piece, ValueType val) {
+  void set(const PieceType& piece, Type val) {
     counts_[piece.raw()] = val;
   }
 
 private:
 
-  std::array<ValueType, PieceNumber::HandNum> counts_;
+  std::array<Type, PieceNumber::HandNum> counts_;
 
 };
 

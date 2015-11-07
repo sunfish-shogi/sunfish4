@@ -10,6 +10,7 @@
 #include "core/base/Square.hpp"
 #include "core/position/Bitset128.hpp"
 #include "core/position/Bitset64.hpp"
+#include <array>
 #include <cstdint>
 
 #define BB_FILES_1ST 5
@@ -20,36 +21,44 @@
 
 namespace sunfish {
 
-class Bitboard : public Bitset128<Bitboard, BB_SQUARES_1ST, BB_SQUARES_2ND> {
+class Bitboard : public Bitset128<Bitboard, SquareRawType, BB_SQUARES_1ST, BB_SQUARES_2ND> {
 public:
 
   using Bitset128::Bitset128;
 
-  void set(const Square& square) {
-    Bitset128::set(square.raw());
+  Bitboard& set(const Square& square) {
+    return Bitset128::set(square.raw());
   }
 
-  void unset(const Square& square) {
-    Bitset128::unset(square.raw());
+  Bitboard& unset(const Square& square) {
+    return Bitset128::unset(square.raw());
   }
 
   bool check(const Square& square) const {
     return Bitset128::check(square.raw());
   }
 
+  static const Bitboard& mask(const Square& square) {
+    return Mask[square.raw()];
+  }
+
+private:
+
+  static const std::array<Bitboard, NUMBER_OF_SQUARES> Mask;
+
 };
 
-class RotatedBitboard : public Bitset64<RotatedBitboard> {
+class RotatedBitboard : public Bitset64<RotatedBitboard, SquareRawType> {
 public:
 
   using Bitset64::Bitset64;
 
-  void set(const RotatedSquare& square) {
-    Bitset64::set(square.raw());
+  RotatedBitboard& set(const RotatedSquare& square) {
+    return Bitset64::set(square.raw());
   }
 
-  void unset(const RotatedSquare& square) {
-    Bitset64::unset(square.raw());
+  RotatedBitboard& unset(const RotatedSquare& square) {
+    return Bitset64::unset(square.raw());
   }
 
   bool check(const RotatedSquare& square) const {

@@ -14,25 +14,21 @@ TEST(PieceTest, testEmpty) {
   {
     PieceType empty = PieceType::empty();
     ASSERT_EQ(true, empty.isEmpty());
-    ASSERT_EQ(false, empty.exists());
   }
 
   {
     PieceType pawn = PieceType::pawn();
     ASSERT_EQ(false, pawn.isEmpty());
-    ASSERT_EQ(true, pawn.exists());
   }
 
   {
     Piece empty = Piece::empty();
     ASSERT_EQ(true, empty.isEmpty());
-    ASSERT_EQ(false, empty.exists());
   }
 
   {
     Piece blackPawn = Piece::blackPawn();
     ASSERT_EQ(false, blackPawn.isEmpty());
-    ASSERT_EQ(true, blackPawn.exists());
   }
 }
 

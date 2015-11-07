@@ -7,6 +7,7 @@
 #define SUNFISH_CORE_BASE_PIECE__
 
 #include "common/Def.hpp"
+#include "core/base/Turn.hpp"
 #include <iostream>
 #include <string>
 #include <cstdint>
@@ -148,13 +149,6 @@ public:
    */
   CONSTEXPR bool operator!=(const T& rhs) const {
     return number_ != rhs.number_;
-  }
-
-  /**
-   * Check the value is NOT equal to Empty
-   */
-  CONSTEXPR bool exists() const {
-    return number_ != PieceNumber::Empty;
   }
 
   /**

@@ -12,7 +12,7 @@
 
 namespace sunfish {
 
-template <class T>
+template <class T, class U>
 class Bitset64 {
 public:
 
@@ -52,7 +52,7 @@ public:
    */
   T& operator|=(const T& rhs) {
     bb_ |= rhs.bb_;
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -60,7 +60,7 @@ public:
    */
   T& operator&=(const T& rhs) {
     bb_ &= rhs.bb_;
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -68,7 +68,7 @@ public:
    */
   T& operator^=(const T& rhs) {
     bb_ ^= rhs.bb_;
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
@@ -100,40 +100,33 @@ public:
   }
 
   /**
-   * Bitwise AND-NOT operation
-   */
-  T andNot(const T& rhs) const{
-    return T((~bb_) & rhs.bb_);
-  }
-
-  /**
    * Left shift assignment operator.
    */
-  const T& operator<<=(int n) {
+  const T& operator<<=(U n) {
     bb_ <<= n;
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Right shift assignment operator.
    */
-  const T& operator>>=(int n) {
+  const T& operator>>=(U n) {
     bb_ >>= n;
-    return *(T*)this;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Left shift operator.
    */
-  T operator<<(int n) const {
-    return T(*(T*)this) <<= n;
+  T operator<<(U n) const {
+    return T(*(static_cast<const T*>(this))) <<= n;
   }
 
   /**
    * Right shift operator.
    */
-  T operator>>(int n) const {
-    return T(*(T*)this) >>= n;
+  T operator>>(U n) const {
+    return T(*(static_cast<const T*>(this))) >>= n;
   }
 
   /**
@@ -148,23 +141,25 @@ protected:
   /**
    * Set the specified bit.
    */
-  void set(int offset) {
+  T& set(U offset) {
     assert(offset < 64);
     bb_ |= 1LLU << offset;
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Unset the specified bit.
    */
-  void unset(int offset) {
+  T& unset(U offset) {
     assert(offset < 64);
     bb_ &= ~(1LLU << offset);
+    return *(static_cast<T*>(this));
   }
 
   /**
    * Check the specified bit.
    */
-  bool check(int offset) const {
+  bool check(U offset) const {
     assert(offset < 64);
     return bb_ & (1LLU << offset);
   }
