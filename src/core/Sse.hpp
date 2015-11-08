@@ -6,8 +6,12 @@
 #ifndef SUNFISH_COMMON_SSE_HPP__
 #define SUNFISH_COMMON_SSE_HPP__
 
-#if !defined(USE_SSE2) && __SSE2__
-# define USE_SSE2 1
+#if !defined(USE_SSE2)
+# if __SSE2__
+#  define USE_SSE2 1
+# else
+#  define USE_SSE2 0
+# endif
 #endif
 
 #if USE_SSE2
