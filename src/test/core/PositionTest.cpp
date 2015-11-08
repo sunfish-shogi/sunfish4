@@ -7,9 +7,67 @@
 
 #include "test/Test.hpp"
 #include "core/position/Position.hpp"
-#include "core/record/CsaReader.hpp"
+#include "core/util/PositionUtil.hpp"
 
 using namespace sunfish;
+
+namespace {
+
+void assertEq(const Position& expect, const Position& exact) {
+  ASSERT_EQ(expect.getBPawnBitboard(), exact.getBPawnBitboard());
+  ASSERT_EQ(expect.getBLanceBitboard(), exact.getBLanceBitboard());
+  ASSERT_EQ(expect.getBKnightBitboard(), exact.getBKnightBitboard());
+  ASSERT_EQ(expect.getBSilverBitboard(), exact.getBSilverBitboard());
+  ASSERT_EQ(expect.getBGoldBitboard(), exact.getBGoldBitboard());
+  ASSERT_EQ(expect.getBBishopBitboard(), exact.getBBishopBitboard());
+  ASSERT_EQ(expect.getBRookBitboard(), exact.getBRookBitboard());
+  ASSERT_EQ(expect.getBTokinBitboard(), exact.getBTokinBitboard());
+  ASSERT_EQ(expect.getBProLanceBitboard(), exact.getBProLanceBitboard());
+  ASSERT_EQ(expect.getBProKnightBitboard(), exact.getBProKnightBitboard());
+  ASSERT_EQ(expect.getBProSilverBitboard(), exact.getBProSilverBitboard());
+  ASSERT_EQ(expect.getBHorseBitboard(), exact.getBHorseBitboard());
+  ASSERT_EQ(expect.getBDragonBitboard(), exact.getBDragonBitboard());
+
+  ASSERT_EQ(expect.getWPawnBitboard(), exact.getWPawnBitboard());
+  ASSERT_EQ(expect.getWLanceBitboard(), exact.getWLanceBitboard());
+  ASSERT_EQ(expect.getWKnightBitboard(), exact.getWKnightBitboard());
+  ASSERT_EQ(expect.getWSilverBitboard(), exact.getWSilverBitboard());
+  ASSERT_EQ(expect.getWGoldBitboard(), exact.getWGoldBitboard());
+  ASSERT_EQ(expect.getWBishopBitboard(), exact.getWBishopBitboard());
+  ASSERT_EQ(expect.getWRookBitboard(), exact.getWRookBitboard());
+  ASSERT_EQ(expect.getWTokinBitboard(), exact.getWTokinBitboard());
+  ASSERT_EQ(expect.getWProLanceBitboard(), exact.getWProLanceBitboard());
+  ASSERT_EQ(expect.getWProKnightBitboard(), exact.getWProKnightBitboard());
+  ASSERT_EQ(expect.getWProSilverBitboard(), exact.getWProSilverBitboard());
+  ASSERT_EQ(expect.getWHorseBitboard(), exact.getWHorseBitboard());
+  ASSERT_EQ(expect.getWDragonBitboard(), exact.getWDragonBitboard());
+
+  ASSERT_EQ(expect.getBOccupiedBitboard(), exact.getBOccupiedBitboard());
+  ASSERT_EQ(expect.getWOccupiedBitboard(), exact.getWOccupiedBitboard());
+
+  ASSERT_EQ(expect.get90RotatedBitboard(), exact.get90RotatedBitboard());
+  ASSERT_EQ(expect.getRight45RotatedBitboard().raw() >> 1, exact.getRight45RotatedBitboard().raw() >> 1);
+  ASSERT_EQ(expect.getLeft45RotatedBitboard().raw() >> 1, exact.getLeft45RotatedBitboard().raw() >> 1);
+
+  ASSERT_EQ(expect.getBlackKingSquare(), exact.getBlackKingSquare());
+  ASSERT_EQ(expect.getWhiteKingSquare(), exact.getWhiteKingSquare());
+
+  SQUARE_EACH(square) {
+    ASSERT_EQ(expect.getPieceOnBoard(square), exact.getPieceOnBoard(square));
+  }
+
+  HAND_EACH(pieceType) {
+    ASSERT_EQ(expect.getBlackHandPieceCount(pieceType), exact.getBlackHandPieceCount(pieceType));
+    ASSERT_EQ(expect.getWhiteHandPieceCount(pieceType), exact.getWhiteHandPieceCount(pieceType));
+  }
+
+  ASSERT_EQ(expect.getTurn(), exact.getTurn());
+
+  ASSERT_EQ(expect.getBoardHash(), exact.getBoardHash());
+  ASSERT_EQ(expect.getHandHash(), exact.getHandHash());
+}
+
+}
 
 TEST(PositionTest, testInitialization) {
   {
@@ -108,7 +166,7 @@ TEST(PositionTest, testToString) {
 
 TEST(PositionTest, testMakeMove) {
   {
-    std::string src =
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
       "P2 * -HI *  *  *  *  * -KA * \n"
       "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
@@ -120,50 +178,33 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+\n"
       "P-\n"
-      "+\n";
-    std::istringstream iss(src);
-    Position pos;
-    CsaReader::readPosition(iss, pos);
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
 
     Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
 
     pos.doMove(move);
 
-    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s77()));
-    ASSERT_EQ(false, pos.getBPawnBitboard().check(Square::s77()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s77()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s77()));
-    ASSERT_EQ(false, pos.get90RotatedBitboard().check(Square::s77().rotate90()));
-    ASSERT_EQ(false, pos.getRight45RotatedBitboard().check(Square::s77().rotateRight45()));
-    ASSERT_EQ(false, pos.getLeft45RotatedBitboard().check(Square::s77().rotateLeft45()));
-
-    ASSERT_EQ(Piece::blackPawn(), pos.getPieceOnBoard(Square::s76()));
-    ASSERT_EQ(true, pos.getBPawnBitboard().check(Square::s76()));
-    ASSERT_EQ(true, pos.getBOccupiedBitboard().check(Square::s76()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s76()));
-    ASSERT_EQ(true, pos.get90RotatedBitboard().check(Square::s76().rotate90()));
-    ASSERT_EQ(true, pos.getRight45RotatedBitboard().check(Square::s76().rotateRight45()));
-    ASSERT_EQ(true, pos.getLeft45RotatedBitboard().check(Square::s76().rotateLeft45()));
-
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
 
-    ASSERT_EQ(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * -KA * \n"
-      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
-      "P4 *  *  *  *  *  *  *  *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  * +FU *  *  *  *  *  * \n"
-      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
-      "P8 * +KA *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+\n"
-      "P-\n"
-      "-\n", pos.toString());
+    assertEq(expectPos, pos);
   }
 
   {
-    std::string src =
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
       "P2 * -HI *  *  *  *  * -KA * \n"
       "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
@@ -175,50 +216,33 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+\n"
       "P-\n"
-      "-\n";
-    std::istringstream iss(src);
-    Position pos;
-    CsaReader::readPosition(iss, pos);
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
 
     Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
 
     pos.doMove(move);
 
-    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s33()));
-    ASSERT_EQ(false, pos.getWPawnBitboard().check(Square::s33()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s33()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s33()));
-    ASSERT_EQ(false, pos.get90RotatedBitboard().check(Square::s33().rotate90()));
-    ASSERT_EQ(false, pos.getRight45RotatedBitboard().check(Square::s33().rotateRight45()));
-    ASSERT_EQ(false, pos.getLeft45RotatedBitboard().check(Square::s33().rotateLeft45()));
-
-    ASSERT_EQ(Piece::whitePawn(), pos.getPieceOnBoard(Square::s34()));
-    ASSERT_EQ(true, pos.getWPawnBitboard().check(Square::s34()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s34()));
-    ASSERT_EQ(true, pos.getWOccupiedBitboard().check(Square::s34()));
-    ASSERT_EQ(true, pos.get90RotatedBitboard().check(Square::s34().rotate90()));
-    ASSERT_EQ(true, pos.getRight45RotatedBitboard().check(Square::s34().rotateRight45()));
-    ASSERT_EQ(true, pos.getLeft45RotatedBitboard().check(Square::s34().rotateLeft45()));
-
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
 
-    ASSERT_EQ(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * -KA * \n"
-      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
-      "P4 *  *  *  *  *  * -FU *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  * +FU *  *  *  *  *  * \n"
-      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
-      "P8 * +KA *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+\n"
-      "P-\n"
-      "+\n", pos.toString());
+    assertEq(expectPos, pos);
   }
 
   {
-    std::string src =
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
       "P2 * -HI *  *  *  *  * -KA * \n"
       "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
@@ -230,52 +254,33 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+\n"
       "P-\n"
-      "+\n";
-    std::istringstream iss(src);
-    Position pos;
-    CsaReader::readPosition(iss, pos);
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "-\n");
 
     Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
 
     pos.doMove(move);
 
-    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s88()));
-    ASSERT_EQ(false, pos.getBBishopBitboard().check(Square::s88()));
-    ASSERT_EQ(false, pos.getBHorseBitboard().check(Square::s88()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s88()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s88()));
-    ASSERT_EQ(false, pos.get90RotatedBitboard().check(Square::s88().rotate90()));
-    ASSERT_EQ(false, pos.getRight45RotatedBitboard().check(Square::s88().rotateRight45()));
-    ASSERT_EQ(false, pos.getLeft45RotatedBitboard().check(Square::s88().rotateLeft45()));
-
-    ASSERT_EQ(Piece::blackHorse(), pos.getPieceOnBoard(Square::s22()));
-    ASSERT_EQ(false, pos.getBBishopBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.getBHorseBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.getBOccupiedBitboard().check(Square::s22()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.get90RotatedBitboard().check(Square::s22().rotate90()));
-    ASSERT_EQ(true, pos.getRight45RotatedBitboard().check(Square::s22().rotateRight45()));
-    ASSERT_EQ(true, pos.getLeft45RotatedBitboard().check(Square::s22().rotateLeft45()));
-
     ASSERT_EQ(Piece::whiteBishop(), move.capturedPiece());
 
-    ASSERT_EQ(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * +UM * \n"
-      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
-      "P4 *  *  *  *  *  * -FU *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  * +FU *  *  *  *  *  * \n"
-      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
-      "P8 *  *  *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+00KA\n"
-      "P-\n"
-      "-\n", pos.toString());
+    assertEq(expectPos, pos);
   }
 
   {
-    std::string src =
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
       "P2 * -HI *  *  *  *  * +UM * \n"
       "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
@@ -287,51 +292,33 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+00KA\n"
       "P-\n"
-      "-\n";
-    std::istringstream iss(src);
-    Position pos;
-    CsaReader::readPosition(iss, pos);
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
+      "P2 * -HI *  *  *  *  * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-00KA\n"
+      "+\n");
 
     Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
 
     pos.doMove(move);
 
-    ASSERT_EQ(Piece::empty(), pos.getPieceOnBoard(Square::s31()));
-    ASSERT_EQ(false, pos.getWSilverBitboard().check(Square::s31()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s31()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s31()));
-    ASSERT_EQ(false, pos.get90RotatedBitboard().check(Square::s31().rotate90()));
-    ASSERT_EQ(false, pos.getRight45RotatedBitboard().check(Square::s31().rotateRight45()));
-    ASSERT_EQ(false, pos.getLeft45RotatedBitboard().check(Square::s31().rotateLeft45()));
-
-    ASSERT_EQ(Piece::whiteSilver(), pos.getPieceOnBoard(Square::s22()));
-    ASSERT_EQ(false, pos.getBHorseBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.getWSilverBitboard().check(Square::s22()));
-    ASSERT_EQ(false, pos.getBOccupiedBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.getWOccupiedBitboard().check(Square::s22()));
-    ASSERT_EQ(true, pos.get90RotatedBitboard().check(Square::s22().rotate90()));
-    ASSERT_EQ(true, pos.getRight45RotatedBitboard().check(Square::s22().rotateRight45()));
-    ASSERT_EQ(true, pos.getLeft45RotatedBitboard().check(Square::s22().rotateLeft45()));
-
     ASSERT_EQ(Piece::blackHorse(), move.capturedPiece());
 
-    ASSERT_EQ(
-      "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
-      "P2 * -HI *  *  *  *  * -GI * \n"
-      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
-      "P4 *  *  *  *  *  * -FU *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  * +FU *  *  *  *  *  * \n"
-      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
-      "P8 *  *  *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+00KA\n"
-      "P-00KA\n"
-      "+\n", pos.toString());
+    assertEq(expectPos, pos);
   }
 
   {
-    std::string src =
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
       "P2 * -HI *  *  *  *  * -GI * \n"
       "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
@@ -343,26 +330,9 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+00KA\n"
       "P-00KA\n"
-      "+\n";
-    std::istringstream iss(src);
-    Position pos;
-    CsaReader::readPosition(iss, pos);
+      "+\n");
 
-    Move move(Piece::blackBishop(), Square::s45());
-
-    pos.doMove(move);
-
-    ASSERT_EQ(Piece::blackBishop(), pos.getPieceOnBoard(Square::s45()));
-    ASSERT_EQ(true, pos.getBBishopBitboard().check(Square::s45()));
-    ASSERT_EQ(true, pos.getBOccupiedBitboard().check(Square::s45()));
-    ASSERT_EQ(false, pos.getWOccupiedBitboard().check(Square::s45()));
-    ASSERT_EQ(true, pos.get90RotatedBitboard().check(Square::s45().rotate90()));
-    ASSERT_EQ(true, pos.getRight45RotatedBitboard().check(Square::s45().rotateRight45()));
-    ASSERT_EQ(true, pos.getLeft45RotatedBitboard().check(Square::s45().rotateLeft45()));
-
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
-
-    ASSERT_EQ(
+    Position expectPos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
       "P2 * -HI *  *  *  *  * -GI * \n"
       "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
@@ -374,7 +344,209 @@ TEST(PositionTest, testMakeMove) {
       "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
       "P+\n"
       "P-00KA\n"
-      "-\n", pos.toString());
+      "-\n");
+
+    Move move(Piece::blackBishop(), Square::s45());
+
+    pos.doMove(move);
+
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
+  }
+}
+
+TEST(PositionTest, testUndoMove) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
+
+    pos.undoMove(move);
+
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
+
+    pos.undoMove(move);
+
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
+    move.setCapturedPiece(Piece::whiteBishop());
+
+    pos.undoMove(move);
+
+    ASSERT_EQ(Piece::whiteBishop(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
+      "P2 * -HI *  *  *  *  * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-00KA\n"
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "-\n");
+
+    Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
+    move.setCapturedPiece(Piece::blackHorse());
+
+    pos.undoMove(move);
+
+    ASSERT_EQ(Piece::blackHorse(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
+      "P2 * -HI *  *  *  *  * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  * +KA *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-00KA\n"
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI * -KE-KY\n"
+      "P2 * -HI *  *  *  *  * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-00KA\n"
+      "+\n");
+
+    Move move(Piece::blackBishop(), Square::s45());
+
+    pos.undoMove(move);
+
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+
+    assertEq(expectPos, pos);
   }
 }
 

@@ -196,7 +196,7 @@ public:
   }
 
   /**
-   * Get the string.
+   * Get a string of CSA format.
    */
   std::string toString() const;
 

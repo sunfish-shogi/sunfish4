@@ -298,12 +298,10 @@ bool Position::doMove(Move& move) {
       if (turn == Turn::Black) {
         bbBOccupied_ = maskFrom.andNot(bbBOccupied_);
         bbBOccupied_ |= maskTo;
-        bbWOccupied_ = maskFrom.andNot(bbWOccupied_);
         bbWOccupied_ = maskTo.andNot(bbWOccupied_);
       } else {
         bbWOccupied_ = maskFrom.andNot(bbWOccupied_);
         bbWOccupied_ |= maskTo;
-        bbBOccupied_ = maskFrom.andNot(bbBOccupied_);
         bbBOccupied_ = maskTo.andNot(bbBOccupied_);
       }
       bbRotatedR90_.unset(from.rotate90());
@@ -321,6 +319,8 @@ bool Position::doMove(Move& move) {
       }
 
     } else {
+      assert(!move.isCapturing());
+
       Square from = move.from();
       Piece pieceAfter = move.isPromotion() ? piece.promote() : piece;
 
@@ -347,13 +347,9 @@ bool Position::doMove(Move& move) {
       if (turn == Turn::Black) {
         bbBOccupied_ = maskFrom.andNot(bbBOccupied_);
         bbBOccupied_ |= maskTo;
-        bbWOccupied_ = maskFrom.andNot(bbWOccupied_);
-        bbWOccupied_ = maskTo.andNot(bbWOccupied_);
       } else {
         bbWOccupied_ = maskFrom.andNot(bbWOccupied_);
         bbWOccupied_ |= maskTo;
-        bbBOccupied_ = maskFrom.andNot(bbBOccupied_);
-        bbBOccupied_ = maskTo.andNot(bbBOccupied_);
       }
       bbRotatedR90_.unset(from.rotate90()).set(to.rotate90());
       bbRotatedRR45_.unset(from.rotateRight45()).set(to.rotateRight45());
@@ -367,12 +363,170 @@ bool Position::doMove(Move& move) {
 
   }
 
-  turn_ = turn_ == Turn::Black ? Turn::White : Turn::Black;
+  turn_ = turn == Turn::Black ? Turn::White : Turn::Black;
 
   return true;
 }
-template bool Position::doMove<Turn::Black>(Move& move);
-template bool Position::doMove<Turn::White>(Move& move);
+template bool Position::doMove<Turn::Black>(Move&);
+template bool Position::doMove<Turn::White>(Move&);
+
+template <Turn turn>
+void Position::undoMove(const Move& move) {
+  bool isDrop = move.isDrop();
+  Piece piece = move.piece();
+  Square to = move.to();
+
+  assert(!piece.isEmpty());
+  assert(piece.isBlack() == (turn == Turn::Black));
+  assert(piece.isWhite() == (turn == Turn::White));
+
+  if (isDrop) {
+    // update piece number array
+    board_[to.raw()] = Piece::empty();
+
+    // update occupied bitboard
+    auto maskTo = Bitboard::mask(to);
+    operateBitboard(piece, [&maskTo](Bitboard& bb) {
+      bb = maskTo.andNot(bb);
+    });
+    if (turn == Turn::Black) {
+      bbBOccupied_ = maskTo.andNot(bbBOccupied_);
+    } else {
+      bbWOccupied_ = maskTo.andNot(bbWOccupied_);
+    }
+    bbRotatedR90_.unset(to.rotate90());
+    bbRotatedRR45_.unset(to.rotateRight45());
+    bbRotatedRL45_.unset(to.rotateLeft45());
+
+    PieceType pieceType = piece.type();
+    Hand::Type handNum;
+
+    // update count of pieces in hand
+    if (turn == Turn::Black) {
+      handNum = blackHand_.incUnsafe(pieceType);
+    } else {
+      handNum = whiteHand_.incUnsafe(piece.type());
+    }
+
+    // zobrist hash
+    boardHash_ ^= Zobrist::board(to, piece);
+    if (turn == Turn::Black) {
+      handHash_ ^= Zobrist::blackHand(pieceType, handNum - 1);
+    } else {
+      handHash_ ^= Zobrist::whiteHand(pieceType, handNum - 1);
+    }
+
+  } else {
+    Piece captured = move.capturedPiece();
+
+    if (!captured.isEmpty()) {
+      int handNum;
+      PieceType handType = captured.type().unpromote();
+
+      // update count of pieces in hand
+      if (turn == Turn::Black) {
+        handNum = blackHand_.decUnsafe(handType);
+      } else {
+        handNum = whiteHand_.decUnsafe(handType);
+      }
+
+      Square from = move.from();
+      Piece pieceAfter = board_[to.raw()];
+
+      // update piece number array
+      board_[from.raw()] = piece;
+      board_[to.raw()] = captured;
+
+      // update occupied bitboard
+      auto maskFrom = Bitboard::mask(from);
+      auto maskTo = Bitboard::mask(to);
+      if (piece == pieceAfter) {
+        operateBitboard(piece, [&maskFrom, &maskTo](Bitboard& bb) {
+          bb |= maskFrom;
+          bb = maskTo.andNot(bb);
+        });
+      } else {
+        operateBitboard(piece, [&maskFrom](Bitboard& bb) {
+          bb |= maskFrom;
+        });
+        operateBitboard(pieceAfter, [&maskTo](Bitboard& bb) {
+          bb = maskTo.andNot(bb);
+        });
+      }
+      operateBitboard(captured, [&maskTo](Bitboard& bb) {
+        bb |= maskTo;
+      });
+      if (turn == Turn::Black) {
+        bbBOccupied_ |= maskFrom;
+        bbBOccupied_ = maskTo.andNot(bbBOccupied_);
+        bbWOccupied_ |= maskTo;
+      } else {
+        bbWOccupied_ |= maskFrom;
+        bbWOccupied_ = maskTo.andNot(bbWOccupied_);
+        bbBOccupied_ |= maskTo;
+      }
+      bbRotatedR90_.set(from.rotate90());
+      bbRotatedRR45_.set(from.rotateRight45());
+      bbRotatedRL45_.set(from.rotateLeft45());
+
+      // zobrist hash
+      boardHash_ ^= Zobrist::board(from, piece);
+      boardHash_ ^= Zobrist::board(to, pieceAfter);
+      boardHash_ ^= Zobrist::board(to, captured);
+      if (turn == Turn::Black) {
+        handHash_ ^= Zobrist::blackHand(handType, handNum);
+      } else {
+        handHash_ ^= Zobrist::whiteHand(handType, handNum);
+      }
+
+    } else {
+      Square from = move.from();
+      Piece pieceAfter = board_[to.raw()];
+
+      // update piece number array
+      board_[from.raw()] = piece;
+      board_[to.raw()] = Piece::empty();
+
+      // update occupied bitboard
+      auto maskFrom = Bitboard::mask(from);
+      auto maskTo = Bitboard::mask(to);
+      if (piece == pieceAfter) {
+        operateBitboard(piece, [&maskFrom, &maskTo](Bitboard& bb) {
+          bb |= maskFrom;
+          bb = maskTo.andNot(bb);
+        });
+      } else {
+        operateBitboard(piece, [&maskFrom](Bitboard& bb) {
+          bb |= maskFrom;
+        });
+        operateBitboard(pieceAfter, [&maskTo](Bitboard& bb) {
+          bb = maskTo.andNot(bb);
+        });
+      }
+      if (turn == Turn::Black) {
+        bbBOccupied_ |= maskFrom;
+        bbBOccupied_ = maskTo.andNot(bbBOccupied_);
+      } else {
+        bbWOccupied_ |= maskFrom;
+        bbWOccupied_ = maskTo.andNot(bbWOccupied_);
+      }
+      bbRotatedR90_.set(from.rotate90()).unset(to.rotate90());
+      bbRotatedRR45_.set(from.rotateRight45()).unset(to.rotateRight45());
+      bbRotatedRL45_.set(from.rotateLeft45()).unset(to.rotateLeft45());
+
+      // zobrist hash
+      boardHash_ ^= Zobrist::board(from, piece);
+      boardHash_ ^= Zobrist::board(to, pieceAfter);
+
+    }
+
+  }
+
+  turn_ = turn;
+
+}
+template void Position::undoMove<Turn::Black>(const Move&);
+template void Position::undoMove<Turn::White>(const Move&);
 
 std::string Position::toString() const {
   std::ostringstream oss;

@@ -4,6 +4,8 @@
  */
 
 #include "core/position/Bitboard.hpp"
+#include "common/util/StringUtil.hpp"
+#include <sstream>
 
 namespace sunfish {
 
@@ -90,5 +92,26 @@ const std::array<Bitboard, NUMBER_OF_SQUARES> Bitboard::Mask = {
   Bitboard().set(Square(static_cast<SquareRawType>(79))),
   Bitboard().set(Square(static_cast<SquareRawType>(80))),
 };
+
+std::string Bitboard::toString() const {
+  std::ostringstream oss;
+
+  for (int rank = 1; rank <= 9; rank++) {
+    for (int file = 9; file >= 1; file--) {
+      if (check(Square(file, rank))) {
+        oss << '1';
+      } else {
+        oss << '0';
+      }
+    }
+    oss << '\n';
+  }
+
+  return oss.str();
+}
+
+std::string RotatedBitboard::toString() const {
+  return StringUtil::stringify(bb_);
+}
 
 }

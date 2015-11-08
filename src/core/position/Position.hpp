@@ -162,6 +162,20 @@ public:
   }
 
   /**
+   * Get the square which the black king is occupying.
+   */
+  const Square getBlackKingSquare() const {
+    return blackKingSquare_;
+  }
+
+  /**
+   * Get the square which the white king is occupying.
+   */
+  const Square getWhiteKingSquare() const {
+    return whiteKingSquare_;
+  }
+
+  /**
    * Get piece of the specified square on board
    */
   Piece getPieceOnBoard(const Square& square) const {
@@ -228,6 +242,20 @@ public:
     }
   }
 
+  /**
+   * Undo move
+   */
+  void undoMove(const Move& move) {
+    if (turn_ == Turn::Black) {
+      undoMove<Turn::White>(move);
+    } else {
+      undoMove<Turn::Black>(move);
+    }
+  }
+
+  /**
+   * Get a string of CSA format
+   */
   std::string toString() const;
 
 private:
@@ -309,6 +337,9 @@ private:
 
   template <Turn turn>
   bool doMove(Move& move);
+
+  template <Turn turn>
+  void undoMove(const Move& move);
 
 private:
 

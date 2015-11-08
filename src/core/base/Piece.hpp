@@ -242,7 +242,7 @@ public:
   }
 
   /**
-   * Get a piece name(CSA format).
+   * Get a piece name in the CSA format.
    */
   std::string toString() const;
 

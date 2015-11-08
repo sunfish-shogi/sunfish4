@@ -8,6 +8,7 @@
 #include "test/Test.hpp"
 #include "core/move/Move.hpp"
 #include "core/record/CsaReader.hpp"
+#include "core/util/PositionUtil.hpp"
 
 using namespace sunfish;
 
@@ -80,23 +81,19 @@ TEST(MoveTest, testSerialization) {
 }
 
 TEST(MoveTest, testSerialization16) {
-  std::string src = "\
-P1 *  *  *  * -OU *  *  *  * \n\
-P2 *  *  *  *  *  *  *  *  * \n\
-P3 *  *  *  *  *  * +KE *  * \n\
-P4 *  *  *  * +FU *  *  *  * \n\
-P5 *  * -FU *  * +HI *  *  * \n\
-P6 *  *  *  *  *  *  *  *  * \n\
-P7 *  * +FU *  *  *  *  *  * \n\
-P8 *  *  *  *  *  *  *  *  * \n\
-P9 *  *  *  * +OU *  *  *  * \n\
-P+\n\
-P-\n\
-+\n\
-";
-  std::istringstream iss(src);
-  Position pos;
-  CsaReader::readPosition(iss, pos);
+  Position pos = PositionUtil::createPositionFromCsaString(
+    "P1 *  *  *  * -OU *  *  *  * \n"
+    "P2 *  *  *  *  *  *  *  *  * \n"
+    "P3 *  *  *  *  *  * +KE *  * \n"
+    "P4 *  *  *  * +FU *  *  *  * \n"
+    "P5 *  * -FU *  * +HI *  *  * \n"
+    "P6 *  *  *  *  *  *  *  *  * \n"
+    "P7 *  * +FU *  *  *  *  *  * \n"
+    "P8 *  *  *  *  *  *  *  *  * \n"
+    "P9 *  *  *  * +OU *  *  *  * \n"
+    "P+\n"
+    "P-\n"
+    "+\n");
 
   {
     Move in(Piece::blackPawn(), Square::s77(), Square::s76(), false);

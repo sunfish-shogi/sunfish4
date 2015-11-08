@@ -129,6 +129,22 @@ public:
     return T(*(static_cast<const T*>(this))) >>= n;
   }
 
+#ifndef NDEBUG
+  /**
+   * EQUAL operator
+   */
+  bool operator==(const T& rhs) const {
+    return bb_ == rhs.bb_;
+  }
+
+  /**
+   * NOT-EQUAL operator
+   */
+  bool operator!=(const T& rhs) const {
+    return !operator==(rhs);
+  }
+#endif
+
   /**
    * Get the raw value.
    */

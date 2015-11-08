@@ -665,7 +665,7 @@ public:
   }
 
   /**
-   * Get a square as a string type.
+   * Get a string representing the square.
    */
   std::string toString() const;
 

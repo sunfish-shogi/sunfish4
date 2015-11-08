@@ -254,6 +254,22 @@ public:
     return T(*(static_cast<const T*>(this))) >>= n;
   }
 
+#ifndef NDEBUG
+  /**
+   * EQUAL operator
+   */
+  bool operator==(const T& rhs) const {
+    return first() == rhs.first() && second() == rhs.second();
+  }
+
+  /**
+   * NOT-EQUAL operator
+   */
+  bool operator!=(const T& rhs) const {
+    return !operator==(rhs);
+  }
+#endif
+
   /**
    * Get 1st quad word
    */

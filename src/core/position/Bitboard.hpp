@@ -42,6 +42,8 @@ public:
     return Mask[square.raw()];
   }
 
+  std::string toString() const;
+
 private:
 
   static const std::array<Bitboard, NUMBER_OF_SQUARES> Mask;
@@ -65,8 +67,20 @@ public:
     return Bitset64::check(square.raw());
   }
 
+  std::string toString() const;
+
 };
 
 } // namespace sunfish
+
+inline std::ostream& operator<<(std::ostream& os, const sunfish::Bitboard& bb) {
+  os << bb.toString();
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const sunfish::RotatedBitboard& bb) {
+  os << bb.toString();
+  return os;
+}
 
 #endif // SUNFISH_CORE_POSITION_BITBOARD_HPP__
