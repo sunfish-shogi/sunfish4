@@ -20,9 +20,16 @@ namespace sunfish {
 class Position {
 public:
 
+  using BoardArrayType = std::array<Piece, Square::N>;
+
   enum class Handicap {
     Even,
     TwoPieces,
+  };
+
+  struct CheckState {
+    Direction shortDirection;
+    Direction longDirection;
   };
 
   /**
@@ -144,21 +151,21 @@ public:
    * Get rotated bitboard
    */
   const RotatedBitboard& get90RotatedBitboard() const {
-    return bbRotatedR90_;
+    return bbRotated90_;
   }
 
   /**
    * Get rotated bitboard
    */
   const RotatedBitboard& getRight45RotatedBitboard() const {
-    return bbRotatedRR45_;
+    return bbRotatedR45_;
   }
 
   /**
    * Get rotated bitboard
    */
   const RotatedBitboard& getLeft45RotatedBitboard() const {
-    return bbRotatedRL45_;
+    return bbRotatedL45_;
   }
 
   /**
@@ -254,6 +261,25 @@ public:
   }
 
   /**
+   * Detect if the king is checked.
+   */
+  bool isChecking() const {
+    if (turn_ == Turn::Black) {
+      return isChecking<Turn::Black>();
+    } else {
+      return isChecking<Turn::White>();
+    }
+  }
+
+  CheckState getCheckState() const {
+    if (turn_ == Turn::Black) {
+      return getCheckState<Turn::Black>();
+    } else {
+      return getCheckState<Turn::White>();
+    }
+  }
+
+  /**
    * Get a string of CSA format
    */
   std::string toString() const;
@@ -341,6 +367,18 @@ private:
   template <Turn turn>
   void undoMove(const Move& move);
 
+  template <Turn turn>
+  Direction getShortCheckDirection() const;
+
+  template <Turn turn>
+  Direction getLongCheckDirection() const;
+
+  template <Turn turn>
+  bool isChecking() const;
+
+  template <Turn turn>
+  CheckState getCheckState() const;
+
 private:
 
   Bitboard bbBPawn_;
@@ -374,14 +412,14 @@ private:
   Bitboard bbBOccupied_;
   Bitboard bbWOccupied_;
 
-  RotatedBitboard bbRotatedR90_;
-  RotatedBitboard bbRotatedRR45_;
-  RotatedBitboard bbRotatedRL45_;
+  RotatedBitboard bbRotated90_;
+  RotatedBitboard bbRotatedR45_;
+  RotatedBitboard bbRotatedL45_;
 
   Square blackKingSquare_;
   Square whiteKingSquare_;
 
-  std::array<Piece, Square::N> board_;
+  BoardArrayType board_;
 
   Hand blackHand_;
   Hand whiteHand_;

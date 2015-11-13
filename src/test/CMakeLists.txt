@@ -17,6 +17,7 @@ add_executable(sunfish_test
   core/CsaReaderTest.cpp
   core/MoveTest.cpp
   core/MovesTest.cpp
+  core/MoveTablesTest.cpp
 	core/PieceTest.cpp
 	core/PositionTest.cpp
 	core/SquareTest.cpp

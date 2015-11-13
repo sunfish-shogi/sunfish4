@@ -4,6 +4,7 @@
  */
 
 #include "core/position/Position.hpp"
+#include "core/move/MoveTables.hpp"
 #include <sstream>
 
 namespace {
@@ -70,7 +71,111 @@ Piece EvenBoardArray[Square::N] = {
 #undef WR
 #undef WK
 
-}
+struct ShortCheck {
+  template <Turn turn>
+  static bool isMovable(const Position::BoardArrayType& board, const Square& from, Direction dir) {
+    if (!from.isValid()) {
+      return false;
+    }
+
+    Piece piece = board[from.raw()];
+    if ((turn == Turn::Black && !piece.isWhite()) ||
+        (turn == Turn::White && !piece.isBlack())) {
+      return false;
+    }
+
+    return MoveTables::isMovableInOneStep(piece, dir);
+  }
+};
+
+struct LongCheck {
+  enum class Type {
+    Ver, Hor, DiagRight, DiagLeft
+  };
+
+  template <Turn turn, Type type>
+  static Direction getAttackedDirection(const Position::BoardArrayType& board, Bitboard bb, const Square& to) {
+    BB_EACH(from, bb) {
+      Piece piece = board[from.raw()];
+      assert(!piece.isEmpty());
+
+      if ((turn == Turn::Black && !piece.isWhite()) &&
+          (turn == Turn::White && !piece.isBlack())) {
+        continue;
+      }
+
+      if (turn == Turn::Black) {
+        if (type == Type::Ver) {
+          // rook or dragon
+          if (piece == Piece::whiteRook() || piece == Piece::whiteDragon()) {
+            return from.raw() < to.raw() ? Direction::Up : Direction::Down;
+          }
+
+          // lance
+          if (from.raw() < to.raw() && piece == Piece::whiteLance()) {
+            return Direction::Up;
+          }
+
+        } else if (type == Type::Hor) {
+          // rook or dragon
+          if (piece == Piece::whiteRook() || piece == Piece::whiteDragon()) {
+            return from.raw() < to.raw() ? Direction::Left : Direction::Right;
+          }
+
+        } else if (type == Type::DiagRight) {
+          // bishop or horse
+          if (piece == Piece::whiteBishop() || piece == Piece::whiteHorse()) {
+            return from.raw() < to.raw() ? Direction::LeftDown : Direction::RightUp;
+          }
+
+        } else if (type == Type::DiagLeft) {
+          // bishop or horse
+          if (piece == Piece::whiteBishop() || piece == Piece::whiteHorse()) {
+            return from.raw() < to.raw() ? Direction::LeftUp : Direction::RightDown;
+          }
+
+        }
+
+      } else {
+        if (type == Type::Ver) {
+          // rook or dragon
+          if (piece == Piece::blackRook() || piece == Piece::blackDragon()) {
+            return from.raw() < to.raw() ? Direction::Up : Direction::Down;
+          }
+
+          // lance
+          if (from.raw() > to.raw() && piece == Piece::blackLance()) {
+            return Direction::Down;
+          }
+
+        } else if (type == Type::Hor) {
+          // rook or dragon
+          if (piece == Piece::blackRook() || piece == Piece::blackDragon()) {
+            return from.raw() < to.raw() ? Direction::Left : Direction::Right;
+          }
+
+        } else if (type == Type::DiagRight) {
+          // bishop or horse
+          if (piece == Piece::blackBishop() || piece == Piece::blackHorse()) {
+            return from.raw() < to.raw() ? Direction::LeftDown : Direction::RightUp;
+          }
+
+        } else if (type == Type::DiagLeft) {
+          // bishop or horse
+          if (piece == Piece::blackBishop() || piece == Piece::blackHorse()) {
+            return from.raw() < to.raw() ? Direction::LeftUp : Direction::RightDown;
+          }
+
+        }
+
+      }
+    }
+
+    return Direction::None;
+  }
+};
+
+} // namespace
 
 namespace sunfish {
 
@@ -109,9 +214,9 @@ void Position::onChanged() {
   operateEachBitboard([](Bitboard& bb) {
     bb = Bitboard::zero();
   });
-  bbRotatedR90_ = RotatedBitboard::zero();
-  bbRotatedRR45_ = RotatedBitboard::zero();
-  bbRotatedRL45_ = RotatedBitboard::zero();
+  bbRotated90_ = RotatedBitboard::zero();
+  bbRotatedR45_ = RotatedBitboard::zero();
+  bbRotatedL45_ = RotatedBitboard::zero();
 
   blackKingSquare_ = Square::Invalid;
   whiteKingSquare_ = Square::Invalid;
@@ -145,9 +250,9 @@ void Position::onChanged() {
       } else {
         bbWOccupied_.set(square);
       }
-      bbRotatedR90_.set(square.rotate90());
-      bbRotatedRR45_.set(square.rotateRight45());
-      bbRotatedRL45_.set(square.rotateLeft45());
+      bbRotated90_.set(square.rotate90());
+      bbRotatedR45_.set(square.rotateRight45());
+      bbRotatedL45_.set(square.rotateLeft45());
 
       // zobrist hash
       boardHash_ ^= Zobrist::board(square, piece);
@@ -231,9 +336,9 @@ bool Position::doMove(Move& move) {
     } else {
       bbWOccupied_ |= maskTo;
     }
-    bbRotatedR90_.set(to.rotate90());
-    bbRotatedRR45_.set(to.rotateRight45());
-    bbRotatedRL45_.set(to.rotateLeft45());
+    bbRotated90_.set(to.rotate90());
+    bbRotatedR45_.set(to.rotateRight45());
+    bbRotatedL45_.set(to.rotateLeft45());
 
     PieceType pieceType = piece.type();
     Hand::Type handNum;
@@ -304,9 +409,9 @@ bool Position::doMove(Move& move) {
         bbWOccupied_ |= maskTo;
         bbBOccupied_ = maskTo.andNot(bbBOccupied_);
       }
-      bbRotatedR90_.unset(from.rotate90());
-      bbRotatedRR45_.unset(from.rotateRight45());
-      bbRotatedRL45_.unset(from.rotateLeft45());
+      bbRotated90_.unset(from.rotate90());
+      bbRotatedR45_.unset(from.rotateRight45());
+      bbRotatedL45_.unset(from.rotateLeft45());
 
       // zobrist hash
       boardHash_ ^= Zobrist::board(from, piece);
@@ -351,9 +456,9 @@ bool Position::doMove(Move& move) {
         bbWOccupied_ = maskFrom.andNot(bbWOccupied_);
         bbWOccupied_ |= maskTo;
       }
-      bbRotatedR90_.unset(from.rotate90()).set(to.rotate90());
-      bbRotatedRR45_.unset(from.rotateRight45()).set(to.rotateRight45());
-      bbRotatedRL45_.unset(from.rotateLeft45()).set(to.rotateLeft45());
+      bbRotated90_.unset(from.rotate90()).set(to.rotate90());
+      bbRotatedR45_.unset(from.rotateRight45()).set(to.rotateRight45());
+      bbRotatedL45_.unset(from.rotateLeft45()).set(to.rotateLeft45());
 
       // zobrist hash
       boardHash_ ^= Zobrist::board(from, piece);
@@ -394,9 +499,9 @@ void Position::undoMove(const Move& move) {
     } else {
       bbWOccupied_ = maskTo.andNot(bbWOccupied_);
     }
-    bbRotatedR90_.unset(to.rotate90());
-    bbRotatedRR45_.unset(to.rotateRight45());
-    bbRotatedRL45_.unset(to.rotateLeft45());
+    bbRotated90_.unset(to.rotate90());
+    bbRotatedR45_.unset(to.rotateRight45());
+    bbRotatedL45_.unset(to.rotateLeft45());
 
     PieceType pieceType = piece.type();
     Hand::Type handNum;
@@ -465,9 +570,9 @@ void Position::undoMove(const Move& move) {
         bbWOccupied_ = maskTo.andNot(bbWOccupied_);
         bbBOccupied_ |= maskTo;
       }
-      bbRotatedR90_.set(from.rotate90());
-      bbRotatedRR45_.set(from.rotateRight45());
-      bbRotatedRL45_.set(from.rotateLeft45());
+      bbRotated90_.set(from.rotate90());
+      bbRotatedR45_.set(from.rotateRight45());
+      bbRotatedL45_.set(from.rotateLeft45());
 
       // zobrist hash
       boardHash_ ^= Zobrist::board(from, piece);
@@ -510,9 +615,9 @@ void Position::undoMove(const Move& move) {
         bbWOccupied_ |= maskFrom;
         bbWOccupied_ = maskTo.andNot(bbWOccupied_);
       }
-      bbRotatedR90_.set(from.rotate90()).unset(to.rotate90());
-      bbRotatedRR45_.set(from.rotateRight45()).unset(to.rotateRight45());
-      bbRotatedRL45_.set(from.rotateLeft45()).unset(to.rotateLeft45());
+      bbRotated90_.set(from.rotate90()).unset(to.rotate90());
+      bbRotatedR45_.set(from.rotateRight45()).unset(to.rotateRight45());
+      bbRotatedL45_.set(from.rotateLeft45()).unset(to.rotateLeft45());
 
       // zobrist hash
       boardHash_ ^= Zobrist::board(from, piece);
@@ -527,6 +632,110 @@ void Position::undoMove(const Move& move) {
 }
 template void Position::undoMove<Turn::Black>(const Move&);
 template void Position::undoMove<Turn::White>(const Move&);
+
+template <Turn turn>
+Direction Position::getShortCheckDirection() const {
+  const Square& to = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
+
+  if (ShortCheck::isMovable<turn>(board_, to.leftUp(), Direction::RightDown)) {
+    return Direction::LeftUp;
+  } else if (ShortCheck::isMovable<turn>(board_, to.up(), Direction::Down)) {
+    return Direction::Up;
+  } else if (ShortCheck::isMovable<turn>(board_, to.rightUp(), Direction::LeftDown)) {
+    return Direction::RightUp;
+  } else if (ShortCheck::isMovable<turn>(board_, to.left(), Direction::Right)) {
+    return Direction::Left;
+  } else if (ShortCheck::isMovable<turn>(board_, to.right(), Direction::Left)) {
+    return Direction::Right;
+  } else if (ShortCheck::isMovable<turn>(board_, to.leftDown(), Direction::RightUp)) {
+    return Direction::LeftDown;
+  } else if (ShortCheck::isMovable<turn>(board_, to.down(), Direction::Up)) {
+    return Direction::Down;
+  } else if (ShortCheck::isMovable<turn>(board_, to.rightDown(), Direction::LeftUp)) {
+    return Direction::RightDown;
+  }
+
+  if (turn == Turn::Black) {
+    Square from = to.leftUpKnight();
+    if (from.isValid() && board_[from.raw()] == Piece::whiteKnight()) {
+      return Direction::LeftUpKnight;
+    }
+
+    from = to.rightUpKnight();
+    if (from.isValid() && board_[from.raw()] == Piece::whiteKnight()) {
+      return Direction::RightUpKnight;
+    }
+
+  } else {
+    Square from = to.leftDownKnight();
+    if (from.isValid() && board_[from.raw()] == Piece::blackKnight()) {
+      return Direction::LeftDownKnight;
+    }
+
+    from = to.rightDownKnight();
+    if (from.isValid() && board_[from.raw()] == Piece::blackKnight()) {
+      return Direction::RightDownKnight;
+    }
+
+  }
+
+  return Direction::None;
+}
+
+template <Turn turn>
+Direction Position::getLongCheckDirection() const {
+  const Square& to = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
+  const Bitboard& occ = turn == Turn::Black ? bbWOccupied_ : bbBOccupied_;
+  const Bitboard& attacher = turn == Turn::Black ? bbWOccupied_ : bbBOccupied_;
+  Direction dir;
+
+  dir = LongCheck::getAttackedDirection<turn, LongCheck::Type::Ver>(board_, MoveTables::ver(occ, to) & attacher, to);
+  if (dir != Direction::None) {
+    return dir;
+  }
+
+  dir = LongCheck::getAttackedDirection<turn, LongCheck::Type::Hor>(board_, MoveTables::hor(bbRotated90_, to) & attacher, to);
+  if (dir != Direction::None) {
+    return dir;
+  }
+
+  dir = LongCheck::getAttackedDirection<turn, LongCheck::Type::DiagRight>(board_, MoveTables::diagR45(bbRotatedR45_, to) & attacher, to);
+  if (dir != Direction::None) {
+    return dir;
+  }
+
+  dir = LongCheck::getAttackedDirection<turn, LongCheck::Type::DiagLeft>(board_, MoveTables::diagL45(bbRotatedL45_, to) & attacher, to);
+
+  return dir;
+}
+
+template <Turn turn>
+bool Position::isChecking() const {
+  if (getShortCheckDirection<turn>() != Direction::None) {
+    return true;
+  }
+
+  if (getLongCheckDirection<turn>() != Direction::None) {
+    return true;
+  }
+
+  return false;
+}
+template bool Position::isChecking<Turn::Black>() const;
+template bool Position::isChecking<Turn::White>() const;
+
+template <Turn turn>
+Position::CheckState Position::getCheckState() const {
+  CheckState state = { Direction::None, Direction::None };
+
+  state.shortDirection = getShortCheckDirection<turn>();
+
+  state.longDirection = getLongCheckDirection<turn>();
+
+  return state;
+}
+template Position::CheckState Position::getCheckState<Turn::Black>() const;
+template Position::CheckState Position::getCheckState<Turn::White>() const;
 
 std::string Position::toString() const {
   std::ostringstream oss;

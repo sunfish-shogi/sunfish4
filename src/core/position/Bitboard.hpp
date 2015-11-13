@@ -21,7 +21,7 @@
 
 namespace sunfish {
 
-class Bitboard : public Bitset128<Bitboard, SquareRawType, BB_SQUARES_1ST, BB_SQUARES_2ND> {
+class Bitboard : public Bitset128<Bitboard, SquareRawType, BB_SQUARES_1ST, BB_SQUARES_2ND, Square::Invalid> {
 public:
 
   using Bitset128::Bitset128;
@@ -82,5 +82,7 @@ inline std::ostream& operator<<(std::ostream& os, const sunfish::RotatedBitboard
   os << bb.toString();
   return os;
 }
+
+#define BB_EACH(square, bb) for (sunfish::Square square(bb.pickFirst()); square.isValid(); square = Square(bb.pickFirst()))
 
 #endif // SUNFISH_CORE_POSITION_BITBOARD_HPP__

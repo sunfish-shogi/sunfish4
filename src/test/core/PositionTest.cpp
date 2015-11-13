@@ -143,25 +143,21 @@ TEST(PositionTest, testInitialization) {
 }
 
 TEST(PositionTest, testToString) {
-  {
-    Position pos(Position::Handicap::Even);
+  Position pos(Position::Handicap::Even);
 
-    ASSERT_EQ(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * -KA * \n"
-      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
-      "P4 *  *  *  *  *  *  *  *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  *  *  *  *  *  *  *  * \n"
-      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
-      "P8 * +KA *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+\n"
-      "P-\n"
-      "+\n", pos.toString());
-  }
-
-  // TODO: hand, promoted piece, white turn
+  ASSERT_EQ(
+    "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+    "P2 * -HI *  *  *  *  * -KA * \n"
+    "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+    "P4 *  *  *  *  *  *  *  *  * \n"
+    "P5 *  *  *  *  *  *  *  *  * \n"
+    "P6 *  *  *  *  *  *  *  *  * \n"
+    "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+    "P8 * +KA *  *  *  *  * +HI * \n"
+    "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+    "P+\n"
+    "P-\n"
+    "+\n", pos.toString());
 }
 
 TEST(PositionTest, testMakeMove) {
@@ -547,6 +543,669 @@ TEST(PositionTest, testUndoMove) {
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
 
     assertEq(expectPos, pos);
+  }
+}
+
+TEST(PositionTest, testIsChecking) {
+  {
+    // checked by pawn
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -FU *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  * +FU *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  * -KE * +UM *  * \n"
+      "P5 *  * -GI-FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  * +FU *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked by knight
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU-KE *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // checked by silver
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  * -GI *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // checked by silver
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  * -GI *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // checked by bishop
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 * -KA *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KY-OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  * -KA *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked by dragon
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  * -RY * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  * -KY *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked by tokin
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU+TO *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * +TO *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked by horse
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5+UM *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * +UM * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * +UM *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * +KY *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5+UM *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * -OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+}
+
+TEST(PositionTest, testGetCheckState) {
+  {
+    // checked by pawn
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -FU *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  * +FU *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::Up, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  * -KE * +UM *  * \n"
+      "P5 *  * -GI-FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  * +FU *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by knight
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU-KE *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::RightUpKnight, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by silver
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  * -GI *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::LeftUp, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by silver
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  * -GI *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::LeftDown, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by bishop
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 * -KA *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::LeftDown, state.longDirection);
+  }
+
+  {
+    // checked by bishop and promoted silver
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU-NG *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  * -KA *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::Right, state.shortDirection);
+    ASSERT_EQ(Direction::RightDown, state.longDirection);
+  }
+
+  {
+    // checked by dragon
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  * -RY * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::Right, state.longDirection);
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::Up, state.longDirection);
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  * -KE *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::LeftUpKnight, state.shortDirection);
+    ASSERT_EQ(Direction::Up, state.longDirection);
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by tokin
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU+TO *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::Right, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked by tokin and bishop
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU+TO *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  * +KA\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::Right, state.shortDirection);
+    ASSERT_EQ(Direction::RightDown, state.longDirection);
+  }
+
+  {
+    // checked by horse
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5+UM *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::LeftDown, state.longDirection);
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * +UM *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::Down, state.longDirection);
+  }
+
+  {
+    // checked by lance and gold
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  * +KI * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * +UM *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +KY *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::LeftDown, state.shortDirection);
+    ASSERT_EQ(Direction::Down, state.longDirection);
   }
 }
 

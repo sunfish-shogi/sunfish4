@@ -5,6 +5,7 @@
 
 #include "common/console/Console.hpp"
 #include "common/program_options/ProgramOptions.hpp"
+#include "core/util/CoreUtil.hpp"
 #include "test/Test.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>
@@ -14,6 +15,9 @@
 using namespace sunfish;
 
 int main(int argc, char** argv, char**) {
+  // initialize static objects
+  CoreUtil::initialize();
+
   // program options
   ProgramOptions po;
   po.addOption("silent", "s", "silent mode");

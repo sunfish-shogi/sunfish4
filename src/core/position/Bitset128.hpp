@@ -13,7 +13,7 @@
 
 namespace sunfish {
 
-template <class T, class U, U W1, U W2>
+template <class T, class U, U W1, U W2, U I>
 class Bitset128 {
 public:
 
@@ -22,6 +22,7 @@ public:
 
   static CONSTEXPR_CONST U Width1 = W1;
   static CONSTEXPR_CONST U Width2 = W2;
+  static CONSTEXPR_CONST U InvalidOffset = I;
   static CONSTEXPR_CONST uint64_t Mask1 = (1ULL<<W1)-1;
   static CONSTEXPR_CONST uint64_t Mask2 = (1ULL<<W2)-1;
 
@@ -284,6 +285,24 @@ public:
     return bb_.u64[1];
   }
 
+  /**
+   * Pick the first set bit.
+   */
+  U pickFirst() {
+    U offset;
+    if (first()) {
+      offset = getFirst(first()) - 1;
+      unset1(offset);
+    } else if (second()) {
+      offset = getFirst(second()) - 1;
+      unset2(offset);
+      offset += Width1;
+    } else {
+      offset = InvalidOffset;
+    }
+    return offset;
+  }
+
 protected:
 
   /**
@@ -388,6 +407,41 @@ protected:
    */
   uint64_t& secondRef() {
     return bb_.u64[1];
+  }
+
+  static U getFirst(uint64_t data) {
+#if defined(WIN32) && !defined(__MINGW32__)
+    unsigned long offset;
+    return _BitScanForward64((DWORD*)&offset, data) ? (offset + 1) : 0;
+#elif defined(UNIX)
+    return data == 0x00LL ? 0 : __builtin_ffsll(data);
+#else
+    static const int8_t bfirst_[256] = {
+       0, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 7, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 8, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 7, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+    };
+    U offset;
+    if (data == 0x00) { return 0; }
+    if ((offset = bfirst_[ data     &0xff]) != 0) { return offset; }
+    if ((offset = bfirst_[(data>> 8)&0xff]) != 0) { return offset +  8; }
+    if ((offset = bfirst_[(data>>16)&0xff]) != 0) { return offset + 16; }
+    if ((offset = bfirst_[(data>>24)&0xff]) != 0) { return offset + 24; }
+    if ((offset = bfirst_[ data>>32 &0xff]) != 0) { return offset + 32; }
+    if ((offset = bfirst_[(data>>40)&0xff]) != 0) { return offset + 40; }
+    if ((offset = bfirst_[(data>>48)&0xff]) != 0) { return offset + 48; }
+    return        bfirst_[(data>>56)     ] + 56;
+#endif
   }
 
   u128 bb_;
