@@ -12,7 +12,7 @@ add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_dev
 	Main.cpp
-  code_generator/ZobristCodeGenerator.cpp
+	code_generator/ZobristCodeGenerator.cpp
 )
 
 target_link_libraries(sunfish_dev logger)
