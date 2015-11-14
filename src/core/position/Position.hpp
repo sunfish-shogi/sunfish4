@@ -17,6 +17,14 @@
 
 namespace sunfish {
 
+struct MutablePosition {
+  using BoardArray = std::array<Piece, Square::N>;
+  BoardArray board;
+  Hand blackHand;
+  Hand whiteHand;
+  Turn turn;
+};
+
 class Position {
 public:
 
@@ -38,11 +46,6 @@ public:
   Position();
 
   /**
-   * Default constructor
-   */
-  Position(Handicap handicap);
-
-  /**
    * Constructor
    */
   template <class T>
@@ -59,12 +62,24 @@ public:
   }
 
   /**
+   * Constructor
+   */
+  explicit Position(Handicap handicap);
+
+  /**
+   * Constructor
+   */
+  explicit Position(const MutablePosition& mp) {
+    initialize(mp);
+  }
+
+  /**
    * Copy constructor
    */
   Position(const Position& src) = default;
 
   /**
-   * Initialization function
+   * Initialization
    */
   template <class T>
   void initialize(const T& board, Turn turn) {
@@ -81,7 +96,7 @@ public:
   }
 
   /**
-   * Initialization function
+   * Initialization
    */
   template <class T>
   void initialize(const T& board, const Hand& blackHand, const Hand& whiteHand, Turn turn) {
@@ -99,6 +114,18 @@ public:
    * Initialization function
    */
   void initialize(Handicap handicap);
+
+  /**
+   * Initialization
+   */
+  void initialize(const MutablePosition& mp) {
+    initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
+  }
+
+  /**
+   * Get MutablePosition
+   */
+  MutablePosition getMutablePosition() const;
 
 #define POSITION_BB_GETTER(piece) \
   const Bitboard& get ## piece ## Bitboard() const { \

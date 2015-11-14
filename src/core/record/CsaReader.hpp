@@ -18,26 +18,16 @@ namespace sunfish {
 class CsaReader {
 public:
 
+  static void initializeMutablePosition(MutablePosition& mp);
   static bool readPosition(std::istream& is, Position& position, RecordInfo* info = nullptr);
-  static bool readPosition(const char* line, Position& position, RecordInfo* info = nullptr);
+  static bool readPosition(const char* line, MutablePosition& position, RecordInfo* info = nullptr);
   static bool readMove(const char* line, const Position& position, Move& move);
 
 private:
 
-  using BoardArray = std::array<Piece, Square::N>;
-
-  struct MutablePosition {
-    BoardArray board;
-    Hand blackHand;
-    Hand whiteHand;
-    Turn turn;
-  };
-
   CsaReader();
 
-  static void initializeMutablePosition(MutablePosition& mp);
-  static bool readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info = nullptr);
-  static bool readPosition(const char* line, MutablePosition& mp, RecordInfo* info = nullptr);
+  static bool readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info);
   static bool readPositionPieces(const char* line, MutablePosition& mp);
   static bool readInfo(const char* line, RecordInfo& info);
   static bool readHand(const char* line, MutablePosition& position, Turn turn);

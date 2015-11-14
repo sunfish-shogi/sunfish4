@@ -24,7 +24,7 @@ struct RecordInfo {
   std::string whiteName;
 
   /** hour-part of the time limit */
-  int timeLimitHour;
+  int timeLimitHours;
 
   /** minutes-part of the time limit */
   int timeLimitMinutes;

@@ -142,6 +142,38 @@ TEST(PositionTest, testInitialization) {
   }
 }
 
+TEST(PositionTest, testMutablePosition) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    MutablePosition mp = pos.getMutablePosition();
+    ASSERT_EQ(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n", Position(mp).toString());
+  }
+}
+
 TEST(PositionTest, testToString) {
   Position pos(Position::Handicap::Even);
 

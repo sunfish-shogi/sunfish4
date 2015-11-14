@@ -39,20 +39,7 @@ bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* i
   return ok;
 }
 
-bool CsaReader::readPosition(const char* line, Position& position, RecordInfo* info/* = nullptr*/) {
-  MutablePosition mp;
-  initializeMutablePosition(mp);
-
-  bool ok = readPosition(line, mp, info);
-
-  if (ok) {
-    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
-  }
-
-  return ok;
-}
-
-bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info) {
   char line[LINE_BUFFER_SIZE];
 
   while (true) {
@@ -137,7 +124,7 @@ bool CsaReader::readInfo(const char* line, RecordInfo& info) {
     info.whiteName = &line[2];
 
   } else if (strncmp(line, "$TIME_LIMIT:", 12) == 0 && strlen(line) >= 20) {
-    info.timeLimitHour = std::stoi(&line[12]);
+    info.timeLimitHours = std::stoi(&line[12]);
     info.timeLimitMinutes = std::stoi(&line[15]);
     info.timeLimitReadoff = std::stoi(&line[18]);
 

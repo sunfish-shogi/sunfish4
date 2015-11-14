@@ -277,6 +277,17 @@ void Position::onChanged() {
   }
 }
 
+MutablePosition Position::getMutablePosition() const {
+  MutablePosition mp;
+  SQUARE_EACH(square) {
+    mp.board[square.raw()] = board_[square.raw()];
+  }
+  mp.blackHand = blackHand_;
+  mp.whiteHand = whiteHand_;
+  mp.turn = turn_;
+  return mp;
+}
+
 Bitboard& Position::getBitboard(Piece piece) {
   switch (piece.raw()) {
   case PieceNumber::BPawn     : return bbBPawn_;
