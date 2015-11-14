@@ -6,6 +6,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include(../Common.cmake)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+
 include_directories("..")
 
 add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")

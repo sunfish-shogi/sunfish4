@@ -11,6 +11,7 @@ EVAL_BIN:=eval.bin
 BUILD_DIR:=build
 PROF:=gprof
 PROFOUT:=profile.txt
+GEN_COV:=tools/gen_cov_report.py
 
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 
@@ -25,16 +26,14 @@ help:
 
 release:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/app && \
-	$(MAKE)
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/app
+	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 debug:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/app && \
-	$(MAKE)
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/app
+	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 test:
@@ -47,25 +46,24 @@ endif
 
 test-sse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 ../../src/test && \
-	$(MAKE)
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 ../../src/test
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src > ../../coverage_sse.txt'
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_sse.xml'
 
 test-nosse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 ../../src/test && \
-	$(MAKE)
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 ../../src/test
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src > ../../coverage_nosse.txt'
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
 
 dev:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/dev && \
-	$(MAKE)
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/dev
+	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_DEV) $(SUNFISH_DEV)
 
 gen-zobrist:
