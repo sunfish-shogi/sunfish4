@@ -7,6 +7,7 @@
 
 #include "test/Test.hpp"
 #include "core/base/Piece.hpp"
+#include <sstream>
 
 using namespace sunfish;
 
@@ -165,6 +166,50 @@ TEST(PieceTest, testStringify) {
   ASSERT_EQ(Piece::blackDragon(), Piece::parse("+RY"));
   ASSERT_EQ(Piece::whitePawn(), Piece::parse("-FU"));
   ASSERT_EQ(Piece::whiteDragon(), Piece::parse("-RY"));
+}
+
+TEST(PieceTest, testConversion) {
+  ASSERT_EQ(Piece::blackPawn(), PieceType::pawn().black());
+  ASSERT_EQ(Piece::whitePawn(), PieceType::pawn().white());
+
+  ASSERT_EQ(PieceType::pawn(), Piece::whitePawn().type());
+  ASSERT_EQ(PieceType::dragon(), Piece::blackDragon().type());
+}
+
+TEST(PieceTest, testToString) {
+  {
+    ASSERT_EQ("FU", PieceType::pawn().toString());
+    ASSERT_EQ("RY", PieceType::dragon().toString());
+    ASSERT_EQ("102", PieceType(102).toString());
+  }
+
+  {
+    ASSERT_EQ("+FU", Piece::blackPawn().toString());
+    ASSERT_EQ("-RY", Piece::whiteDragon().toString());
+    ASSERT_EQ("102", Piece(102).toString());
+  }
+
+  {
+    std::ostringstream oss;
+    oss << PieceType::dragon();
+    ASSERT_EQ("RY", oss.str());
+  }
+
+  {
+    std::ostringstream oss;
+    oss << Piece::whiteSilver();
+    ASSERT_EQ("-GI", oss.str());
+  }
+}
+
+TEST(PieceTest, testParse) {
+  ASSERT_EQ(PieceType::pawn(), PieceType::parse("FU"));
+  ASSERT_EQ(PieceType::dragon(), PieceType::parse("RY"));
+  ASSERT_EQ(PieceType::empty(), PieceType::parse("hoge"));
+
+  ASSERT_EQ(Piece::blackPawn(), Piece::parse("+FU"));
+  ASSERT_EQ(Piece::whiteDragon(), Piece::parse("-RY"));
+  ASSERT_EQ(Piece::empty(), Piece::parse("hoge"));
 }
 
 #endif // !defined(NDEBUG)

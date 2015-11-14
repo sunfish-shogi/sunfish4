@@ -99,10 +99,8 @@ struct LongCheck {
       Piece piece = board[from.raw()];
       assert(!piece.isEmpty());
 
-      if ((turn == Turn::Black && !piece.isWhite()) &&
-          (turn == Turn::White && !piece.isBlack())) {
-        continue;
-      }
+      assert(turn != Turn::Black || piece.isWhite());
+      assert(turn != Turn::White || piece.isBlack());
 
       if (turn == Turn::Black) {
         if (type == Type::Ver) {

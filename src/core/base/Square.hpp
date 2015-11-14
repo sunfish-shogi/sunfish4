@@ -697,7 +697,7 @@ inline bool operator!=(uint8_t lhs, const sunfish::Square& rhs) {
 }
 
 inline std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {
-  os << square.raw();
+  os << square.toString();
   return os;
 }
 

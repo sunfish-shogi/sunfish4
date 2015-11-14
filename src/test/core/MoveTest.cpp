@@ -9,6 +9,7 @@
 #include "core/move/Move.hpp"
 #include "core/record/CsaReader.hpp"
 #include "core/util/PositionUtil.hpp"
+#include <sstream>
 
 using namespace sunfish;
 
@@ -129,6 +130,21 @@ TEST(MoveTest, testSerialization16) {
     uint16_t data = Move::serialize16(in);
     Move out = Move::deserialize16(data, pos);
     ASSERT_EQ(in, out);
+  }
+}
+
+TEST(MoveTest, testToString) {
+  {
+    ASSERT_EQ("+3736FU", Move(Piece::blackPawn(), Square::s37(), Square::s36(), false).toString());
+    ASSERT_EQ("-5162OU", Move(Piece::whiteKing(), Square::s51(), Square::s62(), false).toString());
+    ASSERT_EQ("+2822RY", Move(Piece::blackRook(), Square::s28(), Square::s22(), true).toString());
+    ASSERT_EQ("-0065KA", Move(Piece::whiteBishop(), Square::s65()).toString());
+  }
+
+  {
+    std::ostringstream oss;
+    oss << Move(Piece::whiteKing(), Square::s51(), Square::s62(), false);
+    ASSERT_EQ("-5162OU", oss.str());
   }
 }
 

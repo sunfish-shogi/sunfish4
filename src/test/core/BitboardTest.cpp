@@ -9,6 +9,7 @@
 
 #include "test/Test.hpp"
 #include "core/position/Bitboard.hpp"
+#include <sstream>
 
 using namespace sunfish;
 
@@ -246,5 +247,28 @@ TEST(BitboardTest, testSet) {
     ASSERT_EQ(false, rbb.check(2));
     ASSERT_EQ(false, rbb.check(3));
     ASSERT_EQ(false, rbb.check(4));
+  }
+}
+
+TEST(BitboardTest, testToString) {
+  {
+    std::ostringstream oss;
+    oss << Bitboard(0x3LL, 0xcLL);
+    ASSERT_EQ(
+        "100000000\n"
+        "100000000\n"
+        "000001000\n"
+        "000001000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n", oss.str());
+  }
+
+  {
+    std::ostringstream oss;
+    oss << RotatedBitboard(0x3LL);
+    ASSERT_EQ("0000000000000003", oss.str());
   }
 }

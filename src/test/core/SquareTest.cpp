@@ -7,6 +7,7 @@
 
 #include "test/Test.hpp"
 #include "core/base/Square.hpp"
+#include <sstream>
 
 using namespace sunfish;
 
@@ -20,6 +21,16 @@ TEST(SquareTest, test) {
     Square sq46(Square::s46());
     ASSERT_EQ(4, sq46.getFile());
     ASSERT_EQ(6, sq46.getRank());
+  }
+
+  {
+    ASSERT_EQ(true, Square::isValidFile(1));
+    ASSERT_EQ(true, Square::isValidFile(9));
+    ASSERT_EQ(false, Square::isValidFile(10));
+
+    ASSERT_EQ(true, Square::isValidRank(1));
+    ASSERT_EQ(true, Square::isValidRank(9));
+    ASSERT_EQ(false, Square::isValidRank(10));
   }
 }
 
@@ -207,15 +218,53 @@ TEST(SquareTest, testDistance) {
   }
 }
 
+TEST(SquareTest, testDir) {
+  {
+    Square sq36(3, 6);
+    Square sq63(6, 3);
+    Square sq73(7, 3);
+    Square sq38(3, 8);
+    ASSERT_EQ(Direction::LeftUp, sq36.dir(sq63));
+    ASSERT_EQ(Direction::None, sq36.dir(sq73));
+    ASSERT_EQ(Direction::Down, sq36.dir(sq38));
+  }
+}
+
 TEST(SquareTest, testToString) {
   {
-    ASSERT_EQ("11", Square(Square::s11()).toString());
-    ASSERT_EQ("76", Square(Square::s76()).toString());
+    ASSERT_EQ("11", Square::s11().toString());
+    ASSERT_EQ("76", Square::s76().toString());
+  }
+
+  {
+    std::ostringstream oss;
+    oss << Square::s68();
+    ASSERT_EQ("68", oss.str());
+  }
+}
+
+TEST(SquareTest, testParse) {
+  {
+    ASSERT_EQ(Square::s36(), Square::parse("36"));
+    ASSERT_EQ(Square::s88(), Square::parse("88"));
+    ASSERT_EQ(false, Square::parse("hoge").isValid());
   }
 }
 
 TEST(SquareTest, testReversedDir) {
+  ASSERT_EQ(Direction::LeftUp, getReversedDir(Direction::RightDown));
   ASSERT_EQ(Direction::Up, getReversedDir(Direction::Down));
+  ASSERT_EQ(Direction::RightUp, getReversedDir(Direction::LeftDown));
+  ASSERT_EQ(Direction::Right, getReversedDir(Direction::Left));
+  ASSERT_EQ(Direction::Left, getReversedDir(Direction::Right));
+  ASSERT_EQ(Direction::LeftDown, getReversedDir(Direction::RightUp));
+  ASSERT_EQ(Direction::Down, getReversedDir(Direction::Up));
+  ASSERT_EQ(Direction::RightDown, getReversedDir(Direction::LeftUp));
+  ASSERT_EQ(Direction::LeftUpKnight, getReversedDir(Direction::RightDownKnight));
+  ASSERT_EQ(Direction::RightUpKnight, getReversedDir(Direction::LeftDownKnight));
+  ASSERT_EQ(Direction::LeftDownKnight, getReversedDir(Direction::RightUpKnight));
+  ASSERT_EQ(Direction::RightDownKnight, getReversedDir(Direction::LeftUpKnight));
+  ASSERT_EQ(Direction::None, getReversedDir(Direction::None));
 }
 
 TEST(SquareTest, testRotate) {
