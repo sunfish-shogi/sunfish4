@@ -60,11 +60,11 @@ def PrintResult(results):
   fmt = '  %6.2f      %5d %-' + str(maxSrcLength) + 's %s'
   for result in results:
     print fmt % (
-        result['executed'], result['executable'],
-        result['file'], result['gcov'])
+        result.get('executed', 0.0), result.get('executable', 0),
+        result.get('file', ''), result.get('gcov', ''))
 
 def GetExecuted(item):
-  return item['executed']
+  return item.get('executed', 0.0)
 
 def GenerateCovReport(buildDirectory, srcRoot, exceptDirectory, outPath):
   # find object files
