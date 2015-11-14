@@ -48,7 +48,7 @@ test-sse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 ../../src/test
 	cd $(BUILD_DIR)/$@ && $(MAKE)
-	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src > ../../coverage_sse.txt'
+	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_sse.txt'
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_sse.xml'
 
@@ -56,7 +56,7 @@ test-nosse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 ../../src/test
 	cd $(BUILD_DIR)/$@ && $(MAKE)
-	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src > ../../coverage_nosse.txt'
+	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_nosse.txt'
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
 

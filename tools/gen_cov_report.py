@@ -18,7 +18,7 @@ def FindObjectFiles(directory):
         results.append(os.path.join(root, file))
   return results
 
-def ParseGcovOutput(output, srcRoot):
+def ParseGcovOutput(output, srcRoot, exceptDirectory):
   results = []
   item = {}
 
@@ -33,8 +33,13 @@ def ParseGcovOutput(output, srcRoot):
     m = FILE_MATCHER.match(line)
     if m != None:
       path = m.group(1)
-      if os.path.realpath(path).startswith(os.path.realpath(srcRoot)):
-        item['file'] = os.path.relpath(path, srcRoot)
+      fullpath = os.path.realpath(path)
+      relpath = os.path.relpath(path, srcRoot)
+      if (fullpath.startswith(os.path.realpath(srcRoot)) and
+          (exceptDirectory == None or
+           not relpath.startswith(exceptDirectory))):
+        item['file'] = relpath
+        item['gcov'] = os.path.realpath(os.path.basename(path) + '.gcov')
       continue
 
     m = EXECUTED_MATCHER.match(line)
@@ -45,10 +50,23 @@ def ParseGcovOutput(output, srcRoot):
 
   return results
 
+def PrintResult(results):
+  maxSrcLength = 0
+  for result in results:
+    maxSrcLength = max(maxSrcLength, len(result['file']))
+
+  print '    %    executable source'
+  print 'executed      lines file'
+  fmt = '  %6.2f      %5d %-' + str(maxSrcLength) + 's %s'
+  for result in results:
+    print fmt % (
+        result['executed'], result['executable'],
+        result['file'], result['gcov'])
+
 def GetExecuted(item):
   return item['executed']
 
-def GenerateCovReport(buildDirectory, srcRoot, outPath):
+def GenerateCovReport(buildDirectory, srcRoot, exceptDirectory, outPath):
   # find object files
   objectFiles = FindObjectFiles(buildDirectory)
 
@@ -63,13 +81,11 @@ def GenerateCovReport(buildDirectory, srcRoot, outPath):
   if status != 0:
     raise IOError('gcov command failed.')
 
-  results = ParseGcovOutput(output, srcRoot)
+  results = ParseGcovOutput(output, srcRoot, exceptDirectory)
   results = sorted(results, key=GetExecuted, reverse=True)
 
-  print '    %    executable'
-  print 'executed      lines path'
-  for result in results:
-    print '  %6.2f      %5d %s' % (result['executed'], result['executable'], result['file'])
+  # print result
+  PrintResult(results)
 
 def main(argv):
   parser = OptionParser()
@@ -77,11 +93,13 @@ def main(argv):
                    help='Directory for searching object files', metavar='DIR')
   parser.add_option('-s', '--source', dest='source', default='.',
                    help='Root directory of sources', metavar='DIR')
+  parser.add_option('-e', '--except', dest='except_', default=None,
+                    help='Directory to except', metavar='DIR')
   parser.add_option('-o', '--out', dest='out', default='coverage.txt',
                    help='Output file name', metavar='FILE')
   (options, args) = parser.parse_args()
 
-  GenerateCovReport(options.dir, options.source, options.out)
+  GenerateCovReport(options.dir, options.source, options.except_, options.out)
 
   return 0
 
