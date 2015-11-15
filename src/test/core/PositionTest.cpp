@@ -772,6 +772,44 @@ TEST(PositionTest, testIsChecking) {
   {
     // not checked
     Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM-KA * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -KE *  *  *  *  * \n"
+      "P7 *  * -GI *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isChecking());
+  }
+
+  {
+    // checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM * -KA\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -KE *  *  *  *  * \n"
+      "P7 *  * -GI *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isChecking());
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  *  *  *  *  *  * \n"
       "P2 *  *  * -OU *  *  *  *  * \n"
       "P3 *  *  *  * +FU *  *  *  * \n"
@@ -1112,6 +1150,48 @@ TEST(PositionTest, testGetCheckState) {
     auto state = pos.getCheckState();
     ASSERT_EQ(Direction::LeftUpKnight, state.shortDirection);
     ASSERT_EQ(Direction::Up, state.longDirection);
+  }
+
+  {
+    // not checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM-KA * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -KE *  *  *  *  * \n"
+      "P7 *  * -GI *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::None, state.longDirection);
+  }
+
+  {
+    // checked
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM * -KA\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -KE *  *  *  *  * \n"
+      "P7 *  * -GI *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Direction::None, state.shortDirection);
+    ASSERT_EQ(Direction::RightUp, state.longDirection);
   }
 
   {

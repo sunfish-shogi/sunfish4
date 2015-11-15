@@ -646,21 +646,21 @@ template <Turn turn>
 Direction Position::getShortCheckDirection() const {
   const Square& to = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
 
-  if (ShortCheck::isMovable<turn>(board_, to.leftUp(), Direction::RightDown)) {
+  if (ShortCheck::isMovable<turn>(board_, to.safetyLeftUp(), Direction::RightDown)) {
     return Direction::LeftUp;
-  } else if (ShortCheck::isMovable<turn>(board_, to.up(), Direction::Down)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyUp(), Direction::Down)) {
     return Direction::Up;
-  } else if (ShortCheck::isMovable<turn>(board_, to.rightUp(), Direction::LeftDown)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyRightUp(), Direction::LeftDown)) {
     return Direction::RightUp;
-  } else if (ShortCheck::isMovable<turn>(board_, to.left(), Direction::Right)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyLeft(), Direction::Right)) {
     return Direction::Left;
-  } else if (ShortCheck::isMovable<turn>(board_, to.right(), Direction::Left)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyRight(), Direction::Left)) {
     return Direction::Right;
-  } else if (ShortCheck::isMovable<turn>(board_, to.leftDown(), Direction::RightUp)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyLeftDown(), Direction::RightUp)) {
     return Direction::LeftDown;
-  } else if (ShortCheck::isMovable<turn>(board_, to.down(), Direction::Up)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyDown(), Direction::Up)) {
     return Direction::Down;
-  } else if (ShortCheck::isMovable<turn>(board_, to.rightDown(), Direction::LeftUp)) {
+  } else if (ShortCheck::isMovable<turn>(board_, to.safetyRightDown(), Direction::LeftUp)) {
     return Direction::RightDown;
   }
 
