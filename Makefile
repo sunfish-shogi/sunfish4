@@ -72,4 +72,4 @@ gen-zobrist:
 
 clean:
 	$(RM) -r $(BUILD_DIR)
-	$(RM) $(SUNFISH) $(SUNFISH_TEST)
+	$(RM) $(SUNFISH) $(SUNFISH_TEST) $(SUNFISH_DEV)
