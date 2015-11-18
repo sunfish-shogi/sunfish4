@@ -294,26 +294,26 @@ Bitboard& Position::getBitboard(Piece piece) {
   case PieceNumber::BLance    : return bbBLance_;
   case PieceNumber::BKnight   : return bbBKnight_;
   case PieceNumber::BSilver   : return bbBSilver_;
-  case PieceNumber::BGold     : return bbBGold_;
+  case PieceNumber::BGold     : // fall through
+  case PieceNumber::BTokin    : // fall through
+  case PieceNumber::BProLance : // fall through
+  case PieceNumber::BProKnight: // fall through
+  case PieceNumber::BProSilver: return bbBGold_;
   case PieceNumber::BBishop   : return bbBBishop_;
   case PieceNumber::BRook     : return bbBRook_;
-  case PieceNumber::BTokin    : return bbBTokin_;
-  case PieceNumber::BProLance : return bbBProLance_;
-  case PieceNumber::BProKnight: return bbBProKnight_;
-  case PieceNumber::BProSilver: return bbBProSilver_;
   case PieceNumber::BHorse    : return bbBHorse_;
   case PieceNumber::BDragon   : return bbBDragon_;
   case PieceNumber::WPawn     : return bbWPawn_;
   case PieceNumber::WLance    : return bbWLance_;
   case PieceNumber::WKnight   : return bbWKnight_;
   case PieceNumber::WSilver   : return bbWSilver_;
-  case PieceNumber::WGold     : return bbWGold_;
+  case PieceNumber::WGold     : // fall through
+  case PieceNumber::WTokin    : // fall through
+  case PieceNumber::WProLance : // fall through
+  case PieceNumber::WProKnight: // fall through
+  case PieceNumber::WProSilver: return bbWGold_;
   case PieceNumber::WBishop   : return bbWBishop_;
   case PieceNumber::WRook     : return bbWRook_;
-  case PieceNumber::WTokin    : return bbWTokin_;
-  case PieceNumber::WProLance : return bbWProLance_;
-  case PieceNumber::WProKnight: return bbWProKnight_;
-  case PieceNumber::WProSilver: return bbWProSilver_;
   case PieceNumber::WHorse    : return bbWHorse_;
   case PieceNumber::WDragon   : return bbWDragon_;
   }

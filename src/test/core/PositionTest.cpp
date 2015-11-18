@@ -21,10 +21,6 @@ void assertEq(const Position& expect, const Position& exact) {
   ASSERT_EQ(expect.getBGoldBitboard(), exact.getBGoldBitboard());
   ASSERT_EQ(expect.getBBishopBitboard(), exact.getBBishopBitboard());
   ASSERT_EQ(expect.getBRookBitboard(), exact.getBRookBitboard());
-  ASSERT_EQ(expect.getBTokinBitboard(), exact.getBTokinBitboard());
-  ASSERT_EQ(expect.getBProLanceBitboard(), exact.getBProLanceBitboard());
-  ASSERT_EQ(expect.getBProKnightBitboard(), exact.getBProKnightBitboard());
-  ASSERT_EQ(expect.getBProSilverBitboard(), exact.getBProSilverBitboard());
   ASSERT_EQ(expect.getBHorseBitboard(), exact.getBHorseBitboard());
   ASSERT_EQ(expect.getBDragonBitboard(), exact.getBDragonBitboard());
 
@@ -35,10 +31,6 @@ void assertEq(const Position& expect, const Position& exact) {
   ASSERT_EQ(expect.getWGoldBitboard(), exact.getWGoldBitboard());
   ASSERT_EQ(expect.getWBishopBitboard(), exact.getWBishopBitboard());
   ASSERT_EQ(expect.getWRookBitboard(), exact.getWRookBitboard());
-  ASSERT_EQ(expect.getWTokinBitboard(), exact.getWTokinBitboard());
-  ASSERT_EQ(expect.getWProLanceBitboard(), exact.getWProLanceBitboard());
-  ASSERT_EQ(expect.getWProKnightBitboard(), exact.getWProKnightBitboard());
-  ASSERT_EQ(expect.getWProSilverBitboard(), exact.getWProSilverBitboard());
   ASSERT_EQ(expect.getWHorseBitboard(), exact.getWHorseBitboard());
   ASSERT_EQ(expect.getWDragonBitboard(), exact.getWDragonBitboard());
 

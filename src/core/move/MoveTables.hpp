@@ -29,9 +29,29 @@ public:
     return MovableInOneStep[piece.raw()] & (static_cast<uint16_t>(0x01) << static_cast<int32_t>(dir));
   }
 
+  static const Bitboard& blackKnight(const Square& square) {
+    return BlackKnight[square.raw()];
+  }
+  static const Bitboard& whiteKnight(const Square& square) {
+    return WhiteKnight[square.raw()];
+  }
+  static const Bitboard& blackSilver(const Square& square) {
+    return BlackSilver[square.raw()];
+  }
+  static const Bitboard& whiteSilver(const Square& square) {
+    return WhiteSilver[square.raw()];
+  }
+  static const Bitboard& blackGold(const Square& square) {
+    return BlackGold[square.raw()];
+  }
+  static const Bitboard& whiteGold(const Square& square) {
+    return WhiteGold[square.raw()];
+  }
   static const Bitboard& king(const Square& square) {
     return King[square.raw()];
   }
+  static const Bitboard& blackLance(const Bitboard& occ, const Square& square);
+  static const Bitboard& whiteLance(const Bitboard& occ, const Square& square);
   static const Bitboard& ver(const Bitboard& occ, const Square& square);
   static const Bitboard& hor(const RotatedBitboard& occ, const Square& square);
   static const Bitboard& diagR45(const RotatedBitboard& occ, const Square& square);
@@ -45,7 +65,15 @@ private:
   static void initializeBitboards();
 
   static MovableInOneStepType MovableInOneStep;
+  static OneStepTableType BlackKnight;
+  static OneStepTableType WhiteKnight;
+  static OneStepTableType BlackSilver;
+  static OneStepTableType WhiteSilver;
+  static OneStepTableType BlackGold;
+  static OneStepTableType WhiteGold;
   static OneStepTableType King;
+  static VerTableType BlackLance;
+  static VerTableType WhiteLance;
   static VerTableType Ver;
   static HorTableType Hor;
   static DiagTableType DiagRight45;

@@ -42,6 +42,30 @@ public:
     return Mask[square.raw()];
   }
 
+  static Bitboard blackPromotable() {
+    return Bitboard(0x00000070381c0e07, 0x00000000381c0e07);
+  }
+
+  static Bitboard whitePromotable() {
+    return Bitboard(0x00001c0e070381c0, 0x0000000e070381c0);
+  }
+
+  static Bitboard blackPromotable2() {
+    return Bitboard(0x00000030180c0603, 0x00000000180c0603);
+  }
+
+  static Bitboard whitePromotable2() {
+    return Bitboard(0x0000180c06030180, 0x0000000c06030180);
+  }
+
+  static Bitboard blackNotPromotable() {
+    return Bitboard(0x00001f8fc7e3f1f8, 0x0000000fc7e3f1f8);
+  }
+
+  static Bitboard whiteNotPromotable() {
+    return Bitboard(0x000003f1f8fc7e3f, 0x00000001f8fc7e3f);
+  }
+
   std::string toString() const;
 
 private:

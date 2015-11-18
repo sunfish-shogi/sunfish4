@@ -70,7 +70,15 @@ uint8_t DiagLeftLineOffset[NUMBER_OF_SQUARES] = {
 namespace sunfish {
 
 MoveTables::MovableInOneStepType MoveTables::MovableInOneStep;
+MoveTables::OneStepTableType MoveTables::BlackKnight;
+MoveTables::OneStepTableType MoveTables::WhiteKnight;
+MoveTables::OneStepTableType MoveTables::BlackSilver;
+MoveTables::OneStepTableType MoveTables::WhiteSilver;
+MoveTables::OneStepTableType MoveTables::BlackGold;
+MoveTables::OneStepTableType MoveTables::WhiteGold;
 MoveTables::OneStepTableType MoveTables::King;
+MoveTables::VerTableType MoveTables::BlackLance;
+MoveTables::VerTableType MoveTables::WhiteLance;
 MoveTables::VerTableType MoveTables::Ver;
 MoveTables::HorTableType MoveTables::Hor;
 MoveTables::DiagTableType MoveTables::DiagRight45;
@@ -215,6 +223,50 @@ void MoveTables::initializeBitboards() {
   SQUARE_EACH(square) {
     auto s = square.raw();
 
+    // black knight
+    BlackKnight[s] = Bitboard::zero();
+    setIfValid(BlackKnight[s], square.safetyLeftUpKnight());
+    setIfValid(BlackKnight[s], square.safetyRightUpKnight());
+
+    // white knight
+    WhiteKnight[s] = Bitboard::zero();
+    setIfValid(WhiteKnight[s], square.safetyLeftDownKnight());
+    setIfValid(WhiteKnight[s], square.safetyRightDownKnight());
+
+    // black silver
+    BlackSilver[s] = Bitboard::zero();
+    setIfValid(BlackSilver[s], square.safetyLeftUp());
+    setIfValid(BlackSilver[s], square.safetyUp());
+    setIfValid(BlackSilver[s], square.safetyRightUp());
+    setIfValid(BlackSilver[s], square.safetyLeftDown());
+    setIfValid(BlackSilver[s], square.safetyRightDown());
+
+    // white silver
+    WhiteSilver[s] = Bitboard::zero();
+    setIfValid(WhiteSilver[s], square.safetyLeftUp());
+    setIfValid(WhiteSilver[s], square.safetyRightUp());
+    setIfValid(WhiteSilver[s], square.safetyLeftDown());
+    setIfValid(WhiteSilver[s], square.safetyDown());
+    setIfValid(WhiteSilver[s], square.safetyRightDown());
+
+    // black gold
+    BlackGold[s] = Bitboard::zero();
+    setIfValid(BlackGold[s], square.safetyLeftUp());
+    setIfValid(BlackGold[s], square.safetyUp());
+    setIfValid(BlackGold[s], square.safetyRightUp());
+    setIfValid(BlackGold[s], square.safetyLeft());
+    setIfValid(BlackGold[s], square.safetyRight());
+    setIfValid(BlackGold[s], square.safetyDown());
+
+    // white gold
+    WhiteGold[s] = Bitboard::zero();
+    setIfValid(WhiteGold[s], square.safetyUp());
+    setIfValid(WhiteGold[s], square.safetyLeft());
+    setIfValid(WhiteGold[s], square.safetyRight());
+    setIfValid(WhiteGold[s], square.safetyLeftDown());
+    setIfValid(WhiteGold[s], square.safetyDown());
+    setIfValid(WhiteGold[s], square.safetyRightDown());
+
     // king
     King[s] = Bitboard::zero();
     setIfValid(King[s], square.safetyLeftUp());
@@ -228,9 +280,12 @@ void MoveTables::initializeBitboards() {
 
     // vertical
     for (uint32_t pattern = 0x00; pattern < 0x80; pattern++) {
+      BlackLance[s][pattern] = Bitboard::zero();
+      WhiteLance[s][pattern] = Bitboard::zero();
       Ver[s][pattern] = Bitboard::zero();
 
       for (Square to = square.safetyUp(); to.isValid(); to = to.safetyUp()) {
+        BlackLance[s][pattern].set(to);
         Ver[s][pattern].set(to);
         if (to.safetyUp().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to.raw()))))) {
           break;
@@ -238,6 +293,7 @@ void MoveTables::initializeBitboards() {
       }
 
       for (Square to = square.safetyDown(); to.isValid(); to = to.safetyDown()) {
+        WhiteLance[s][pattern].set(to);
         Ver[s][pattern].set(to);
         if (to.safetyDown().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to.raw()))))) {
           break;
@@ -307,6 +363,30 @@ void MoveTables::initializeBitboards() {
         }
       }
     }
+  }
+}
+
+const Bitboard& MoveTables::blackLance(const Bitboard& occ, const Square& square) {
+  if (isFirstQuadWord(square)) {
+    auto offset = verLineOffsetOfFirstQuadWord(square);
+    auto pattern = (occ.first() >> offset) & 0x7f;
+    return BlackLance[square.raw()][pattern];
+  } else {
+    auto offset = verLineOffsetOfSecondQuadWord(square);
+    auto pattern = (occ.second() >> offset) & 0x7f;
+    return BlackLance[square.raw()][pattern];
+  }
+}
+
+const Bitboard& MoveTables::whiteLance(const Bitboard& occ, const Square& square) {
+  if (isFirstQuadWord(square)) {
+    auto offset = verLineOffsetOfFirstQuadWord(square);
+    auto pattern = (occ.first() >> offset) & 0x7f;
+    return WhiteLance[square.raw()][pattern];
+  } else {
+    auto offset = verLineOffsetOfSecondQuadWord(square);
+    auto pattern = (occ.second() >> offset) & 0x7f;
+    return WhiteLance[square.raw()][pattern];
   }
 }
 

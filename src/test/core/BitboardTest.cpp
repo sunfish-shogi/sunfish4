@@ -45,6 +45,60 @@ TEST(BitboardTest, test) {
   }
 }
 
+TEST(BitboardTest, testConstants) {
+  {
+    ASSERT_EQ(Bitboard::zero().set(Square::s34()), Bitboard::mask(Square::s34()));
+    ASSERT_EQ(Bitboard::zero().set(Square::s58()), Bitboard::mask(Square::s58()));
+    ASSERT_EQ(Bitboard::zero().set(Square::s96()), Bitboard::mask(Square::s96()));
+  }
+
+  {
+    Bitboard exact = Bitboard::zero();
+    SQUARE_EACH(square) {
+      if (square.isPromotable<Turn::Black>()) {
+        exact.set(square);
+      }
+    }
+    ASSERT_EQ(exact, Bitboard::blackPromotable());
+
+    exact = ~exact;
+    ASSERT_EQ(exact, Bitboard::blackNotPromotable());
+  }
+
+  {
+    Bitboard exact = Bitboard::zero();
+    SQUARE_EACH(square) {
+      if (square.isPromotable<Turn::White>()) {
+        exact.set(square);
+      }
+    }
+    ASSERT_EQ(exact, Bitboard::whitePromotable());
+
+    exact = ~exact;
+    ASSERT_EQ(exact, Bitboard::whiteNotPromotable());
+  }
+
+  {
+    Bitboard exact = Bitboard::zero();
+    SQUARE_EACH(square) {
+      if (square.getRank() <= 2) {
+        exact.set(square);
+      }
+    }
+    ASSERT_EQ(exact, Bitboard::blackPromotable2());
+  }
+
+  {
+    Bitboard exact = Bitboard::zero();
+    SQUARE_EACH(square) {
+      if (square.getRank() >= 8) {
+        exact.set(square);
+      }
+    }
+    ASSERT_EQ(exact, Bitboard::whitePromotable2());
+  }
+}
+
 TEST(BitboardTest, testOperators) {
   const Bitboard bb1(0x3LL, 0xcLL); // 0011b, 1100b
   const Bitboard bb2(0x9LL, 0x6LL); // 1001b, 0110b

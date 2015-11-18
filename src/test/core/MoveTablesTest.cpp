@@ -376,7 +376,67 @@ TEST(MoveTablesTest, testIsMovehableInOneStep) {
   ASSERT_EQ(false, MoveTables::isMovableInOneStep(Piece::whiteDragon(), Direction::RightDownKnight));
 }
 
-TEST(MoveTablesTest, testKing) {
+TEST(MoveTablesTest, testOneStep) {
+  {
+    const auto& bb = MoveTables::blackSilver(Square::s67());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "001110000\n"
+      "000000000\n"
+      "001010000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
+  {
+    const auto& bb = MoveTables::whiteSilver(Square::s67());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "001010000\n"
+      "000000000\n"
+      "001110000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
+  {
+    const auto& bb = MoveTables::blackGold(Square::s67());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "001110000\n"
+      "001010000\n"
+      "000100000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
+  {
+    const auto& bb = MoveTables::whiteGold(Square::s67());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000100000\n"
+      "001010000\n"
+      "001110000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
   {
     const auto& bb = MoveTables::king(Square::s67());
     ASSERT_EQ(
@@ -394,6 +454,42 @@ TEST(MoveTablesTest, testKing) {
 }
 
 TEST(MoveTablesTest, testVer) {
+  {
+    auto occ = Bitboard::zero();
+    occ.set(Square::s43());
+    occ.set(Square::s48());
+    const auto& bb = MoveTables::blackLance(occ, Square::s47());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000001000\n"
+      "000001000\n"
+      "000001000\n"
+      "000001000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
+  {
+    auto occ = Bitboard::zero();
+    occ.set(Square::s43());
+    occ.set(Square::s48());
+    const auto& bb = MoveTables::whiteLance(occ, Square::s47());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000001000\n"
+      "000000000\n",
+      bb.toString());
+  }
+
   {
     auto occ = Bitboard::zero();
     const auto& bb = MoveTables::ver(occ, Square::s47());

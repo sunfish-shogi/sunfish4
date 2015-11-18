@@ -138,10 +138,6 @@ public:
   POSITION_BB_GETTER(BGold);
   POSITION_BB_GETTER(BBishop);
   POSITION_BB_GETTER(BRook);
-  POSITION_BB_GETTER(BTokin);
-  POSITION_BB_GETTER(BProLance);
-  POSITION_BB_GETTER(BProKnight);
-  POSITION_BB_GETTER(BProSilver);
   POSITION_BB_GETTER(BHorse);
   POSITION_BB_GETTER(BDragon);
 
@@ -152,10 +148,6 @@ public:
   POSITION_BB_GETTER(WGold);
   POSITION_BB_GETTER(WBishop);
   POSITION_BB_GETTER(WRook);
-  POSITION_BB_GETTER(WTokin);
-  POSITION_BB_GETTER(WProLance);
-  POSITION_BB_GETTER(WProKnight);
-  POSITION_BB_GETTER(WProSilver);
   POSITION_BB_GETTER(WHorse);
   POSITION_BB_GETTER(WDragon);
 #undef POSITION_BB_GEWTER
@@ -324,10 +316,6 @@ private:
     ope(bbBGold_);
     ope(bbBBishop_);
     ope(bbBRook_);
-    ope(bbBTokin_);
-    ope(bbBProLance_);
-    ope(bbBProKnight_);
-    ope(bbBProSilver_);
     ope(bbBHorse_);
     ope(bbBDragon_);
 
@@ -338,10 +326,6 @@ private:
     ope(bbWGold_);
     ope(bbWBishop_);
     ope(bbWRook_);
-    ope(bbWTokin_);
-    ope(bbWProLance_);
-    ope(bbWProKnight_);
-    ope(bbWProSilver_);
     ope(bbWHorse_);
     ope(bbWDragon_);
 
@@ -356,13 +340,13 @@ private:
     case PieceNumber::BLance    : ope(bbBLance_); return;
     case PieceNumber::BKnight   : ope(bbBKnight_); return;
     case PieceNumber::BSilver   : ope(bbBSilver_); return;
-    case PieceNumber::BGold     : ope(bbBGold_); return;
+    case PieceNumber::BGold     : // fall through
+    case PieceNumber::BTokin    : // fall through
+    case PieceNumber::BProLance : // fall through
+    case PieceNumber::BProKnight: // fall through
+    case PieceNumber::BProSilver: ope(bbBGold_); return;
     case PieceNumber::BBishop   : ope(bbBBishop_); return;
     case PieceNumber::BRook     : ope(bbBRook_); return;
-    case PieceNumber::BTokin    : ope(bbBTokin_); return;
-    case PieceNumber::BProLance : ope(bbBProLance_); return;
-    case PieceNumber::BProKnight: ope(bbBProKnight_); return;
-    case PieceNumber::BProSilver: ope(bbBProSilver_); return;
     case PieceNumber::BHorse    : ope(bbBHorse_); return;
     case PieceNumber::BDragon   : ope(bbBDragon_); return;
 
@@ -370,13 +354,13 @@ private:
     case PieceNumber::WLance    : ope(bbWLance_); return;
     case PieceNumber::WKnight   : ope(bbWKnight_); return;
     case PieceNumber::WSilver   : ope(bbWSilver_); return;
-    case PieceNumber::WGold     : ope(bbWGold_); return;
+    case PieceNumber::WGold     : // fall through
+    case PieceNumber::WTokin    : // fall through
+    case PieceNumber::WProLance : // fall through
+    case PieceNumber::WProKnight: // fall through
+    case PieceNumber::WProSilver: ope(bbWGold_); return;
     case PieceNumber::WBishop   : ope(bbWBishop_); return;
     case PieceNumber::WRook     : ope(bbWRook_); return;
-    case PieceNumber::WTokin    : ope(bbWTokin_); return;
-    case PieceNumber::WProLance : ope(bbWProLance_); return;
-    case PieceNumber::WProKnight: ope(bbWProKnight_); return;
-    case PieceNumber::WProSilver: ope(bbWProSilver_); return;
     case PieceNumber::WHorse    : ope(bbWHorse_); return;
     case PieceNumber::WDragon   : ope(bbWDragon_); return;
 
@@ -415,10 +399,6 @@ private:
   Bitboard bbBGold_;
   Bitboard bbBBishop_;
   Bitboard bbBRook_;
-  Bitboard bbBTokin_;
-  Bitboard bbBProLance_;
-  Bitboard bbBProKnight_;
-  Bitboard bbBProSilver_;
   Bitboard bbBHorse_;
   Bitboard bbBDragon_;
 
@@ -429,10 +409,6 @@ private:
   Bitboard bbWGold_;
   Bitboard bbWBishop_;
   Bitboard bbWRook_;
-  Bitboard bbWTokin_;
-  Bitboard bbWProLance_;
-  Bitboard bbWProKnight_;
-  Bitboard bbWProSilver_;
   Bitboard bbWHorse_;
   Bitboard bbWDragon_;
 
