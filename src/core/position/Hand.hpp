@@ -21,7 +21,7 @@ public:
   /**
    * Constructor
    */
-  Hand() : counts_{0} {
+  Hand() : counts_{{0}} {
   }
 
   /**
