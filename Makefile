@@ -12,8 +12,10 @@ BUILD_DIR:=build
 PROF:=gprof
 PROFOUT:=profile.txt
 GEN_COV:=tools/gen_cov_report.py
+COV:=gcov
 
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
+HAS_COV:=$(shell which $(COV))
 
 .PHONY: release debug learn clean
 
@@ -50,7 +52,9 @@ test-sse:
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_sse.xml'
+ifneq ($(HAS_COV),)
 	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_sse.txt'
+endif
 
 test-nosse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
@@ -58,7 +62,9 @@ test-nosse:
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
+ifneq ($(HAS_COV),)
 	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_nosse.txt'
+endif
 
 dev:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
