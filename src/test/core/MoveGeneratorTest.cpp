@@ -8,10 +8,22 @@
 #include "test/Test.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "core/util/PositionUtil.hpp"
+#include <sstream>
 
 using namespace sunfish;
 
 namespace {
+
+#if 0
+void debugPrint(const Moves& moves) {
+  std::ostringstream oss;
+  oss << "debugPrint(Moves):";
+  for (const auto& move : moves) {
+    oss << ' ' << move.toString();
+  }
+  Loggers::debug << oss.str();
+}
+#endif
 
 void sortMoves(Moves& moves) {
   std::sort(moves.begin(), moves.end(), [](const Move& lhs, const Move& rhs) {
@@ -43,17 +55,9 @@ void sortMoves(Moves& moves) {
       return lhs.isPromotion();
     }
 
-    return true;
+    return false;
   });
 }
-
-#if 0
-void debugPrint(const Moves& moves) {
-  for (const auto& move : moves) {
-    Loggers::message << ' ' << move.toString();
-  }
-}
-#endif
 
 }
 
