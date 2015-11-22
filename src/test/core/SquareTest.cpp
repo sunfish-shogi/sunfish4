@@ -230,6 +230,22 @@ TEST(SquareTest, testDir) {
   }
 }
 
+TEST(SquareTest, testMove) {
+  {
+    Square sq36(4, 6);
+    ASSERT_EQ(Square::s35(), sq36.move(Direction::RightUp));
+    ASSERT_EQ(Square::s56(), sq36.move(Direction::Left));
+    ASSERT_EQ(Square::s58(), sq36.move(Direction::LeftDownKnight));
+  }
+
+  {
+    Square sq79(7, 9);
+    ASSERT_EQ(Square::s78(), sq79.safetyMove(Direction::Up));
+    ASSERT_EQ(Square::invalid(), sq79.safetyMove(Direction::Down));
+    ASSERT_EQ(Square::invalid(), sq79.safetyMove(Direction::RightDownKnight));
+  }
+}
+
 TEST(SquareTest, testToString) {
   {
     ASSERT_EQ("11", Square::s11().toString());
