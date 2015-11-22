@@ -26,6 +26,11 @@ struct MutablePosition {
   Turn turn;
 };
 
+struct CheckState {
+  Square from1;
+  Square from2;
+};
+
 class Position {
 public:
 
@@ -34,11 +39,6 @@ public:
   enum class Handicap {
     Even,
     TwoPieces,
-  };
-
-  struct CheckState {
-    Square from1;
-    Square from2;
   };
 
   /**

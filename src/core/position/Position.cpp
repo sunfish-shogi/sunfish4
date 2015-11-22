@@ -849,7 +849,7 @@ template bool Position::isChecking<Turn::Black>() const;
 template bool Position::isChecking<Turn::White>() const;
 
 template <Turn turn>
-Position::CheckState Position::getCheckState() const {
+CheckState Position::getCheckState() const {
   const Square& square = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
   CheckState checkState;
 
@@ -872,8 +872,8 @@ Position::CheckState Position::getCheckState() const {
 
   return checkState;
 }
-template Position::CheckState Position::getCheckState<Turn::Black>() const;
-template Position::CheckState Position::getCheckState<Turn::White>() const;
+template CheckState Position::getCheckState<Turn::Black>() const;
+template CheckState Position::getCheckState<Turn::White>() const;
 
 template <Turn turn>
 bool Position::isForced(const Square& square) const {

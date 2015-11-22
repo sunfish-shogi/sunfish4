@@ -471,6 +471,80 @@ TEST(MoveGeneratorTest, test) {
   }
 }
 
+TEST(MoveGeneratorTest, testEvasions) {
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  * +RY * -KA *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  * -HI * \n"
+      "P7 * +OU+FU *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 * -UM *  *  *  *  *  *  * \n"
+      "P+00FU00FU00KI\n"
+      "P-\n"
+      "+\n");
+
+    Moves evasions;
+    MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
+    sortMoves(evasions);
+    ASSERT_EQ(14, evasions.size());
+    ASSERT_EQ(Move(Piece::blackPawn(),   Square::s77(), Square::s76(), false), evasions[0]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s76(), false), evasions[1]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s78(), false), evasions[2]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s86(), false), evasions[3]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s88(), false), evasions[4]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s96(), false), evasions[5]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s97(), false), evasions[6]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s87(), Square::s98(), false), evasions[7]);
+    ASSERT_EQ(Move(Piece::blackDragon(), Square::s74(), Square::s54(), false), evasions[8]);
+    ASSERT_EQ(Move(Piece::blackDragon(), Square::s74(), Square::s65(), false), evasions[9]);
+    ASSERT_EQ(Move(Piece::blackDragon(), Square::s74(), Square::s76(), false), evasions[10]);
+    ASSERT_EQ(Move(Piece::blackPawn(),   Square::s65()),                       evasions[11]);
+    ASSERT_EQ(Move(Piece::blackGold(),   Square::s65()),                       evasions[12]);
+    ASSERT_EQ(Move(Piece::blackGold(),   Square::s76()),                       evasions[13]);
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 * +UM *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 * -OU-FU *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  * +HI * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * -RY * +KA *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00KI\n"
+      "-\n");
+
+    Moves evasions;
+    MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
+    sortMoves(evasions);
+    ASSERT_EQ(14, evasions.size());
+    ASSERT_EQ(Move(Piece::whitePawn(),   Square::s73(), Square::s74(), false), evasions[0]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s72(), false), evasions[1]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s74(), false), evasions[2]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s82(), false), evasions[3]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s84(), false), evasions[4]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s92(), false), evasions[5]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s93(), false), evasions[6]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s83(), Square::s94(), false), evasions[7]);
+    ASSERT_EQ(Move(Piece::whiteDragon(), Square::s76(), Square::s56(), false), evasions[8]);
+    ASSERT_EQ(Move(Piece::whiteDragon(), Square::s76(), Square::s65(), false), evasions[9]);
+    ASSERT_EQ(Move(Piece::whiteDragon(), Square::s76(), Square::s74(), false), evasions[10]);
+    ASSERT_EQ(Move(Piece::whitePawn(),   Square::s65()),                       evasions[11]);
+    ASSERT_EQ(Move(Piece::whiteGold(),   Square::s65()),                       evasions[12]);
+    ASSERT_EQ(Move(Piece::whiteGold(),   Square::s74()),                       evasions[13]);
+  }
+}
+
 TEST(MoveGeneratorTest, testMateWithPawnDrop) {
   {
     // black

@@ -17,29 +17,29 @@ public:
   static void generateCapturingMoves(const Position& pos, Moves& moves) {
     assert(!pos.isChecking());
     if (pos.getTurn() == Turn::Black) {
-      generateMovesOnBoard<Turn::Black, GenerationType::Capturing>(pos, moves);
+      generateMovesOnBoard<Turn::Black, GenerationType::Capturing, false>(pos, moves, Bitboard::full());
     } else {
-      generateMovesOnBoard<Turn::White, GenerationType::Capturing>(pos, moves);
+      generateMovesOnBoard<Turn::White, GenerationType::Capturing, false>(pos, moves, Bitboard::full());
     }
   }
 
   static void generateNotCapturingMoves(const Position& pos, Moves& moves) {
     assert(!pos.isChecking());
     if (pos.getTurn() == Turn::Black) {
-      generateMovesOnBoard<Turn::Black, GenerationType::NotCapturing>(pos, moves);
-      generateDrops<Turn::Black>(pos, moves);
+      generateMovesOnBoard<Turn::Black, GenerationType::NotCapturing, false>(pos, moves, Bitboard::full());
+      generateDrops<Turn::Black>(pos, moves, Bitboard::full());
     } else {
-      generateMovesOnBoard<Turn::White, GenerationType::NotCapturing>(pos, moves);
-      generateDrops<Turn::White>(pos, moves);
+      generateMovesOnBoard<Turn::White, GenerationType::NotCapturing, false>(pos, moves, Bitboard::full());
+      generateDrops<Turn::White>(pos, moves, Bitboard::full());
     }
   }
 
-  static void generateEvasions(const Position& pos, Moves& moves) {
+  static void generateEvasions(const Position& pos, CheckState checkState, Moves& moves) {
     assert(pos.isChecking());
     if (pos.getTurn() == Turn::Black) {
-      generateEvasions<Turn::Black>(pos, moves);
+      generateEvasions<Turn::Black>(pos, checkState, moves);
     } else {
-      generateEvasions<Turn::White>(pos, moves);
+      generateEvasions<Turn::White>(pos, checkState, moves);
     }
   }
 
@@ -50,16 +50,17 @@ private:
   enum class GenerationType {
     Capturing,
     NotCapturing,
+    All,
   };
 
-  template <Turn turn, GenerationType type>
-  static void generateMovesOnBoard(const Position& pos, Moves& moves);
+  template <Turn turn, GenerationType type, bool exceptKing>
+  static void generateMovesOnBoard(const Position& pos, Moves& moves, const Bitboard& mask);
 
   template <Turn turn>
-  static void generateDrops(const Position& pos, Moves& moves);
+  static void generateDrops(const Position& pos, Moves& moves, const Bitboard& mask);
 
   template <Turn turn>
-  static void generateEvasions(const Position& pos, Moves& moves);
+  static void generateEvasions(const Position& pos, CheckState checkState, Moves& moves);
 
 };
 

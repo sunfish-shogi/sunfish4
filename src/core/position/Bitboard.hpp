@@ -58,6 +58,10 @@ public:
     return LineMask[from.raw()][to.raw()];
   }
 
+  static CONSTEXPR Bitboard full() {
+    return Bitboard(Mask1, Mask2);
+  }
+
   static CONSTEXPR Bitboard blackPromotable() {
     return Bitboard(0x00000070381c0e07, 0x00000000381c0e07);
   }
