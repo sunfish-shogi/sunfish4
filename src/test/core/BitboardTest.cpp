@@ -522,7 +522,7 @@ TEST(BitboardTest, testOperators) {
 TEST(BitboardTest, testSet) {
   {
     Bitboard bb(0x3LL, 0xcLL);
-    bb.set(3);
+    bb.set(Square(3));
     ASSERT_EQ(0xbLL, bb.first());
     ASSERT_EQ(0xcLL, bb.second());
 
@@ -533,14 +533,14 @@ TEST(BitboardTest, testSet) {
 
   {
     Bitboard bb(0x3LL, 0xcLL);
-    bb.set(46);
+    bb.set(Square(46));
     ASSERT_EQ(0x3LL, bb.first());
     ASSERT_EQ(0xeLL, bb.second());
   }
 
   {
     Bitboard bb(0x3LL, 0xcLL);
-    bb.unset(1);
+    bb.unset(Square(1));
     ASSERT_EQ(0x1LL, bb.first());
     ASSERT_EQ(0xcLL, bb.second());
 
@@ -551,23 +551,23 @@ TEST(BitboardTest, testSet) {
 
   {
     Bitboard bb(0x3LL, 0xcLL);
-    bb.unset(47);
+    bb.unset(Square(47));
     ASSERT_EQ(0x3LL, bb.first());
     ASSERT_EQ(0x8LL, bb.second());
   }
 
   {
     Bitboard bb(0x3LL, 0xcLL);
-    ASSERT_EQ(true, bb.check(0));
-    ASSERT_EQ(true, bb.check(1));
-    ASSERT_EQ(false, bb.check(2));
-    ASSERT_EQ(false, bb.check(3));
-    ASSERT_EQ(false, bb.check(4));
-    ASSERT_EQ(false, bb.check(44));
-    ASSERT_EQ(false, bb.check(45));
-    ASSERT_EQ(false, bb.check(46));
-    ASSERT_EQ(true, bb.check(47));
-    ASSERT_EQ(true, bb.check(48));
+    ASSERT_EQ(true, bb.check(Square(0)));
+    ASSERT_EQ(true, bb.check(Square(1)));
+    ASSERT_EQ(false, bb.check(Square(2)));
+    ASSERT_EQ(false, bb.check(Square(3)));
+    ASSERT_EQ(false, bb.check(Square(4)));
+    ASSERT_EQ(false, bb.check(Square(44)));
+    ASSERT_EQ(false, bb.check(Square(45)));
+    ASSERT_EQ(false, bb.check(Square(46)));
+    ASSERT_EQ(true, bb.check(Square(47)));
+    ASSERT_EQ(true, bb.check(Square(48)));
 
     RotatedBitboard rbb(0x3LL);
     ASSERT_EQ(true, rbb.check(0));

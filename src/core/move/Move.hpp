@@ -94,14 +94,14 @@ public:
    * Get the starting square
    */
   Square from() const {
-    return (move_ & FromMask) - 1;
+    return Square((move_ & FromMask) - 1);
   }
 
   /**
    * Get the ending square
    */
   Square to() const {
-    return (move_ & ToMask) >> ToOffset;
+    return Square((move_ & ToMask) >> ToOffset);
   }
 
   /**

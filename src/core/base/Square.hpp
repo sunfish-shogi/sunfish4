@@ -199,7 +199,7 @@ public:
   /**
    * Constructor which takes the square number as an argument.
    */
-  CONSTEXPR Square(SquareRawType number) : number_(number) {
+  explicit CONSTEXPR Square(SquareRawType number) : number_(number) {
   }
 
   /**
@@ -209,6 +209,9 @@ public:
     number_((9 - file) * RankMax + rank - 1) {
   }
 
+  static CONSTEXPR Square invalid() { return Square(Invalid); }
+  static CONSTEXPR Square begin() { return Square(Begin); }
+  static CONSTEXPR Square end() { return Square(End); }
   static CONSTEXPR Square s11() { return Square(static_cast<SquareRawType>(SquareNumber::S11)); }
   static CONSTEXPR Square s12() { return Square(static_cast<SquareRawType>(SquareNumber::S12)); }
   static CONSTEXPR Square s13() { return Square(static_cast<SquareRawType>(SquareNumber::S13)); }
@@ -421,7 +424,7 @@ public:
    * Get a symmetrical square diagonally.
    */
   CONSTEXPR Square dsym() const {
-    return N - 1 - number_;
+    return Square(N - 1 - number_);
   }
 
   /**
@@ -442,28 +445,28 @@ public:
    * Get a square located over of the current square.
    */
   CONSTEXPR Square up(SquareRawType distance = 1) const {
-    return number_ - distance;
+    return Square(number_ - distance);
   }
 
   /**
    * Get a square located under of the current square.
    */
   CONSTEXPR Square down(SquareRawType distance = 1) const {
-    return number_ + distance;
+    return Square(number_ + distance);
   }
 
   /**
    * Get a square located to the left of the current square.
    */
   CONSTEXPR Square left(SquareRawType distance = 1) const {
-    return number_ - distance * RankMax;
+    return Square(number_ - distance * RankMax);
   }
 
   /**
    * Get a square located to the right of the current square.
    */
   CONSTEXPR Square right(SquareRawType distance = 1) const {
-    return number_ + distance * RankMax;
+    return Square(number_ + distance * RankMax);
   }
 
   /**
@@ -528,7 +531,7 @@ public:
    */
   CONSTEXPR Square safetyUp(SquareRawType distance = 1) const {
     return (!isInvalid() && getRank() - distance >= 1) ?
-      up(distance) : Square(Invalid);
+      up(distance) : invalid();
   }
 
   /**
@@ -537,7 +540,7 @@ public:
    */
   CONSTEXPR Square safetyDown(SquareRawType distance = 1) const {
     return (!isInvalid() && getRank() + distance <= 9) ?
-      down(distance) : Square(Invalid);
+      down(distance) : invalid();
   }
 
   /**
@@ -546,7 +549,7 @@ public:
    */
   CONSTEXPR Square safetyLeft(SquareRawType distance = 1) const {
     return (!isInvalid() && getFile() + distance <= 9) ?
-      left(distance) : Square(Invalid);
+      left(distance) : invalid();
   }
 
   /**
@@ -555,7 +558,7 @@ public:
    */
   CONSTEXPR Square safetyRight(SquareRawType distance = 1) const {
     return (!isInvalid() && getFile() - distance >= 1) ?
-      right(distance) : Square(Invalid);
+      right(distance) : invalid();
   }
 
   /**
@@ -654,7 +657,7 @@ public:
     case Direction::LeftDownKnight:  return leftDownKnight();
     case Direction::RightUpKnight:   return rightUpKnight();
     case Direction::RightDownKnight: return rightDownKnight();
-    default: return Square(Invalid);
+    default: return invalid();
     }
   }
 
@@ -672,7 +675,7 @@ public:
     case Direction::LeftDownKnight:  return safetyLeftDownKnight();
     case Direction::RightUpKnight:   return safetyRightUpKnight();
     case Direction::RightDownKnight: return safetyRightDownKnight();
-    default: return Square(Invalid);
+    default: return invalid();
     }
   }
 
@@ -722,7 +725,7 @@ private:
 
 } // namespace sunfish
 
-#define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::Begin; (sq) != sunfish::Square::End; (sq) = (sq).next())
+#define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::begin(); (sq) != sunfish::Square::end(); (sq) = (sq).next())
 
 inline bool operator==(uint8_t lhs, const sunfish::Square& rhs) {
   return lhs == rhs.raw();

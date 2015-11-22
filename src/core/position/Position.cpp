@@ -131,7 +131,7 @@ Square detectShortEffect(const Position& pos, const Square& square) {
 
   }
 
-  return Square(Square::Invalid);
+  return Square::invalid();
 }
 
 enum class LongEffectType {
@@ -220,7 +220,7 @@ static Square detectLongEffect(const Position& pos, const Square& to) {
     }
   }
 
-  return Square(Square::Invalid);
+  return Square::invalid();
 }
 
 template <Turn turn, LongEffectType type>
@@ -344,8 +344,8 @@ void Position::onChanged() {
   bbRotatedR45_ = RotatedBitboard::zero();
   bbRotatedL45_ = RotatedBitboard::zero();
 
-  blackKingSquare_ = Square::Invalid;
-  whiteKingSquare_ = Square::Invalid;
+  blackKingSquare_ = Square::invalid();
+  whiteKingSquare_ = Square::invalid();
 
   boardHash_ = 0x00ULL;
   handHash_ = 0x00ULL;
@@ -780,7 +780,7 @@ std::tuple<Square, Square> Position::detectLongEffects(const Square& square, Squ
       return std::make_tuple(from1, from2);
     }
     from1 = from2;
-    from2 = Square(Square::Invalid);
+    from2 = Square::invalid();
   }
 
   from2 = detectLongEffect<turn, LongEffectType::Hor>(*this, square);
@@ -789,7 +789,7 @@ std::tuple<Square, Square> Position::detectLongEffects(const Square& square, Squ
       return std::make_tuple(from1, from2);
     }
     from1 = from2;
-    from2 = Square(Square::Invalid);
+    from2 = Square::invalid();
   }
 
   from2 = detectLongEffect<turn, LongEffectType::DiagRight>(*this, square);
@@ -798,7 +798,7 @@ std::tuple<Square, Square> Position::detectLongEffects(const Square& square, Squ
       return std::make_tuple(from1, from2);
     }
     from1 = from2;
-    from2 = Square(Square::Invalid);
+    from2 = Square::invalid();
   }
 
   from2 = detectLongEffect<turn, LongEffectType::DiagLeft>(*this, square);
@@ -1209,7 +1209,7 @@ bool Position::isMateWithPawnDrop() {
   // detect whether checkmate
   CheckState checkState;
   checkState.from1 = to;
-  checkState.from2 = Square(Square::Invalid);
+  checkState.from2 = Square::invalid();
   bool result = turn == Turn::Black
       ? isMate<Turn::White>(checkState)
       : isMate<Turn::Black>(checkState);

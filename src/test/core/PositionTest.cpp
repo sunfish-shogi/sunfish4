@@ -952,7 +952,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s66(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -972,8 +972,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Square::Invalid, state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from1);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -994,7 +994,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s55(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1015,7 +1015,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s76(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1036,7 +1036,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s78(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1057,7 +1057,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s89(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1099,7 +1099,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s27(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1120,7 +1120,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s62(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1182,8 +1182,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Square::Invalid, state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from1);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1204,7 +1204,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s14(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1224,8 +1224,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Square::Invalid, state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from1);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1246,7 +1246,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s52(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1288,7 +1288,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s95(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1309,7 +1309,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s67(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {
@@ -1351,7 +1351,7 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s44(), state.from1);
-    ASSERT_EQ(Square::Invalid, state.from2);
+    ASSERT_EQ(Square::invalid(), state.from2);
   }
 
   {

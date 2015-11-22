@@ -287,7 +287,7 @@ void MoveTables::initializeBitboards() {
       for (Square to = square.safetyUp(); to.isValid(); to = to.safetyUp()) {
         BlackLance[s][pattern].set(to);
         Ver[s][pattern].set(to);
-        if (to.safetyUp().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to.raw()))))) {
+        if (to.safetyUp().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to))))) {
           break;
         }
       }
@@ -295,7 +295,7 @@ void MoveTables::initializeBitboards() {
       for (Square to = square.safetyDown(); to.isValid(); to = to.safetyDown()) {
         WhiteLance[s][pattern].set(to);
         Ver[s][pattern].set(to);
-        if (to.safetyDown().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to.raw()))))) {
+        if (to.safetyDown().isValid() && (pattern & (0x01 << (to.raw() - verLineOffset(to))))) {
           break;
         }
       }
