@@ -640,6 +640,42 @@ public:
    */
   Direction dir(const Square& to) const;
 
+  Square move(Direction dir) const {
+    switch (dir) {
+    case Direction::Up:              return up();
+    case Direction::Down:            return down();
+    case Direction::Left:            return left();
+    case Direction::Right:           return right();
+    case Direction::LeftUp:          return leftUp();
+    case Direction::LeftDown:        return leftDown();
+    case Direction::RightUp:         return rightUp();
+    case Direction::RightDown:       return rightDown();
+    case Direction::LeftUpKnight:    return leftUpKnight();
+    case Direction::LeftDownKnight:  return leftDownKnight();
+    case Direction::RightUpKnight:   return rightUpKnight();
+    case Direction::RightDownKnight: return rightDownKnight();
+    default: return Square(Invalid);
+    }
+  }
+
+  Square safetyMove(Direction dir) const {
+    switch (dir) {
+    case Direction::Up:              return safetyUp();
+    case Direction::Down:            return safetyDown();
+    case Direction::Left:            return safetyLeft();
+    case Direction::Right:           return safetyRight();
+    case Direction::LeftUp:          return safetyLeftUp();
+    case Direction::LeftDown:        return safetyLeftDown();
+    case Direction::RightUp:         return safetyRightUp();
+    case Direction::RightDown:       return safetyRightDown();
+    case Direction::LeftUpKnight:    return safetyLeftUpKnight();
+    case Direction::LeftDownKnight:  return safetyLeftDownKnight();
+    case Direction::RightUpKnight:   return safetyRightUpKnight();
+    case Direction::RightDownKnight: return safetyRightDownKnight();
+    default: return Square(Invalid);
+    }
+  }
+
   /**
    * Get the rotated square.
    */

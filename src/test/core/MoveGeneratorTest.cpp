@@ -401,6 +401,330 @@ TEST(MoveGeneratorTest, test) {
     ASSERT_EQ(Move(Piece::whiteHorse(),  Square::s97(), Square::s96(), false), nocaps[34]);
     ASSERT_EQ(Move(Piece::whiteHorse(),  Square::s97(), Square::s98(), false), nocaps[35]);
   }
+
+  {
+    // black drop
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  * -KI *  * \n"
+      "P3 *  *  *  * -FU *  *  *  * \n"
+      "P4 * +FU * +FU *  *  * +FU * \n"
+      "P5 *  *  *  *  *  *  * -KY * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * -FU *  *  *  *  * \n"
+      "P8 * -RY *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00KI00KE00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves caps;
+    MoveGenerator::generateCapturingMoves(pos, caps);
+    sortMoves(caps);
+    ASSERT_EQ(3, caps.size());
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(175, nocaps.size());
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s48(), false), nocaps[0]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s12()),                       nocaps[5]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s19()),                       nocaps[12]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s33()),                       nocaps[13]);
+    ASSERT_EQ(Move(Piece::blackKnight(), Square::s13()),                     nocaps[50]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s11()),                       nocaps[105]);
+  }
+
+  {
+    // white drop
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 * +RY *  *  *  *  *  *  * \n"
+      "P3 *  *  * +FU *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * +KY * \n"
+      "P6 * -FU * -FU *  *  * -FU * \n"
+      "P7 *  *  *  * +FU *  *  *  * \n"
+      "P8 *  *  *  *  *  * +KI *  * \n"
+      "P9+KY *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-00KI00KE00FU\n"
+      "-\n");
+
+    Moves caps;
+    MoveGenerator::generateCapturingMoves(pos, caps);
+    sortMoves(caps);
+    ASSERT_EQ(3, caps.size());
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(175, nocaps.size());
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s41(), false), nocaps[0]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s11()),                       nocaps[5]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s18()),                       nocaps[12]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s31()),                       nocaps[13]);
+    ASSERT_EQ(Move(Piece::whiteKnight(), Square::s11()),                     nocaps[50]);
+    ASSERT_EQ(Move(Piece::whiteKnight(), Square::s17()),                     nocaps[56]);
+    ASSERT_EQ(Move(Piece::whiteKnight(), Square::s21()),                     nocaps[57]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s11()),                       nocaps[105]);
+  }
+}
+
+TEST(MoveGeneratorTest, testMateWithPawnDrop) {
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KY-OU-KE *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  * +KI *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P7+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00FU00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(17, nocaps.size());
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s32(), false), nocaps[0]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s33(), false), nocaps[1]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s42(), false), nocaps[2]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s44(), false), nocaps[3]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s52(), false), nocaps[4]);
+    ASSERT_EQ(Move(Piece::blackGold(), Square::s43(), Square::s53(), false), nocaps[5]);
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s48(), false), nocaps[6]);
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s49(), false), nocaps[7]);
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s58(), false), nocaps[8]);
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s68(), false), nocaps[9]);
+    ASSERT_EQ(Move(Piece::blackKing(), Square::s59(), Square::s69(), false), nocaps[10]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s53()), nocaps[11]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s54()), nocaps[12]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s55()), nocaps[13]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s56()), nocaps[14]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s57()), nocaps[15]);
+    ASSERT_EQ(Move(Piece::blackPawn(), Square::s58()), nocaps[16]);
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P4+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -KI *  *  * \n"
+      "P8 *  *  * +KY *  *  *  *  * \n"
+      "P9 *  *  * +KY+OU+KE *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00FU\n"
+      "-\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(17, nocaps.size());
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s37(), false), nocaps[0]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s38(), false), nocaps[1]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s46(), false), nocaps[2]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s48(), false), nocaps[3]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s57(), false), nocaps[4]);
+    ASSERT_EQ(Move(Piece::whiteGold(), Square::s47(), Square::s58(), false), nocaps[5]);
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s41(), false), nocaps[6]);
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s42(), false), nocaps[7]);
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s52(), false), nocaps[8]);
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s61(), false), nocaps[9]);
+    ASSERT_EQ(Move(Piece::whiteKing(), Square::s51(), Square::s62(), false), nocaps[10]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s52()), nocaps[11]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s53()), nocaps[12]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s54()), nocaps[13]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s55()), nocaps[14]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s56()), nocaps[15]);
+    ASSERT_EQ(Move(Piece::whitePawn(), Square::s57()), nocaps[16]);
+  }
+
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KY-OU-KE *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  * -GI * +KI *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P7+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00FU00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P4+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +GI * -KI *  *  * \n"
+      "P8 *  *  * +KY *  *  *  *  * \n"
+      "P9 *  *  * +KY+OU+KE *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00FU\n"
+      "-\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KY-OU-KE *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  * +KI *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * -KA *  *  *  *  *  *  * \n"
+      "P6-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P7+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00FU00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P4+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P5 * +KA *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -KI *  *  * \n"
+      "P8 *  *  * +KY *  *  *  *  * \n"
+      "P9 *  *  * +KY+OU+KE *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00FU\n"
+      "-\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KI-OU-KE *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  * +KI *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P7+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00FU00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P4+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -KI *  *  * \n"
+      "P8 *  *  * +KY *  *  *  *  * \n"
+      "P9 *  *  * +KI+OU+KE *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00FU\n"
+      "-\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(18, nocaps.size());
+  }
+
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1+RY *  * -KI-OU-KE *  *  * \n"
+      "P2 *  *  * -KY *  *  *  *  * \n"
+      "P3 *  *  *  *  * +KI *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P7+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00FU00FU\n"
+      "P-\n"
+      "+\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(24, nocaps.size());
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU * -FU-FU-FU-FU\n"
+      "P4+FU+FU+FU+FU * +FU+FU+FU+FU\n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -KI *  *  * \n"
+      "P8 *  *  * +KY *  *  *  *  * \n"
+      "P9-RY *  * +KI+OU+KE *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00FU\n"
+      "-\n");
+
+    Moves nocaps;
+    MoveGenerator::generateNotCapturingMoves(pos, nocaps);
+    sortMoves(nocaps);
+    ASSERT_EQ(24, nocaps.size());
+  }
 }
 
 #endif // !defined(NDEBUG)

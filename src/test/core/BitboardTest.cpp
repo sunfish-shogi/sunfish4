@@ -53,49 +53,323 @@ TEST(BitboardTest, testConstants) {
   }
 
   {
-    Bitboard exact = Bitboard::zero();
-    SQUARE_EACH(square) {
-      if (square.isPromotable<Turn::Black>()) {
-        exact.set(square);
-      }
-    }
-    ASSERT_EQ(exact, Bitboard::blackPromotable());
+    ASSERT_EQ(
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::blackPromotable().toString());
 
-    exact = ~exact;
-    ASSERT_EQ(exact, Bitboard::blackNotPromotable());
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n",
+        Bitboard::blackNotPromotable().toString());
   }
 
   {
-    Bitboard exact = Bitboard::zero();
-    SQUARE_EACH(square) {
-      if (square.isPromotable<Turn::White>()) {
-        exact.set(square);
-      }
-    }
-    ASSERT_EQ(exact, Bitboard::whitePromotable());
-
-    exact = ~exact;
-    ASSERT_EQ(exact, Bitboard::whiteNotPromotable());
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n",
+        Bitboard::whitePromotable().toString());
   }
 
   {
-    Bitboard exact = Bitboard::zero();
-    SQUARE_EACH(square) {
-      if (square.getRank() <= 2) {
-        exact.set(square);
-      }
-    }
-    ASSERT_EQ(exact, Bitboard::blackPromotable2());
+    ASSERT_EQ(
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::whiteNotPromotable().toString());
   }
 
   {
-    Bitboard exact = Bitboard::zero();
-    SQUARE_EACH(square) {
-      if (square.getRank() >= 8) {
-        exact.set(square);
-      }
-    }
-    ASSERT_EQ(exact, Bitboard::whitePromotable2());
+    ASSERT_EQ(
+        "111111111\n"
+        "111111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::blackPromotable2().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "111111111\n"
+        "111111111\n",
+        Bitboard::whitePromotable2().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "111111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::rank1().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "111111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::rank2().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n",
+        Bitboard::rank3to9().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n",
+        Bitboard::rank2to9().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "111111111\n",
+        Bitboard::rank9().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "111111111\n"
+        "000000000\n",
+        Bitboard::rank8().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "000000000\n"
+        "000000000\n",
+        Bitboard::rank1to7().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "111111111\n"
+        "000000000\n",
+        Bitboard::rank1to8().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n"
+        "000000001\n",
+        Bitboard::file1().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n"
+        "000000010\n",
+        Bitboard::file2().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n"
+        "000000100\n",
+        Bitboard::file3().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n"
+        "000001000\n",
+        Bitboard::file4().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n"
+        "000010000\n",
+        Bitboard::file5().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n"
+        "000100000\n",
+        Bitboard::file6().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n"
+        "001000000\n",
+        Bitboard::file7().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n"
+        "010000000\n",
+        Bitboard::file8().toString());
+  }
+
+  {
+    ASSERT_EQ(
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n"
+        "100000000\n",
+        Bitboard::file9().toString());
   }
 }
 
@@ -301,6 +575,42 @@ TEST(BitboardTest, testSet) {
     ASSERT_EQ(false, rbb.check(2));
     ASSERT_EQ(false, rbb.check(3));
     ASSERT_EQ(false, rbb.check(4));
+  }
+}
+
+TEST(BitboardTest, testCheckFile) {
+  {
+    Bitboard bb = Bitboard::zero();
+    bb.set(Square::s19());
+    bb.set(Square::s41());
+    bb.set(Square::s59());
+    bb.set(Square::s91());
+    ASSERT_EQ(true,  bb.checkFile(1));
+    ASSERT_EQ(false, bb.checkFile(2));
+    ASSERT_EQ(false, bb.checkFile(3));
+    ASSERT_EQ(true,  bb.checkFile(4));
+    ASSERT_EQ(true,  bb.checkFile(5));
+    ASSERT_EQ(false, bb.checkFile(6));
+    ASSERT_EQ(false, bb.checkFile(7));
+    ASSERT_EQ(false, bb.checkFile(8));
+    ASSERT_EQ(true,  bb.checkFile(9));
+  }
+
+  {
+    Bitboard bb = Bitboard::zero();
+    bb.set(Square::s29());
+    bb.set(Square::s49());
+    bb.set(Square::s61());
+    bb.set(Square::s89());
+    ASSERT_EQ(false, bb.checkFile(1));
+    ASSERT_EQ(true,  bb.checkFile(2));
+    ASSERT_EQ(false, bb.checkFile(3));
+    ASSERT_EQ(true,  bb.checkFile(4));
+    ASSERT_EQ(false, bb.checkFile(5));
+    ASSERT_EQ(true,  bb.checkFile(6));
+    ASSERT_EQ(false, bb.checkFile(7));
+    ASSERT_EQ(true,  bb.checkFile(8));
+    ASSERT_EQ(false, bb.checkFile(9));
   }
 }
 

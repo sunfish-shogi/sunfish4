@@ -14,6 +14,7 @@
 #include "core/position/Zobrist.hpp"
 
 #include <array>
+#include <tuple>
 
 namespace sunfish {
 
@@ -36,8 +37,8 @@ public:
   };
 
   struct CheckState {
-    Direction shortDirection;
-    Direction longDirection;
+    Square from1;
+    Square from2;
   };
 
   /**
@@ -201,6 +202,10 @@ public:
     return whiteKingSquare_;
   }
 
+  const BoardArrayType& getBoard() const {
+    return board_;
+  }
+
   /**
    * Get piece of the specified square on board
    */
@@ -220,6 +225,14 @@ public:
    */
   Hand::Type getWhiteHandPieceCount(const PieceType& piece) const {
     return whiteHand_.get(piece);
+  }
+
+  const Hand& getBlackHand() const {
+    return blackHand_;
+  }
+
+  const Hand& getWhiteHand() const {
+    return whiteHand_;
   }
 
   /**
@@ -280,7 +293,7 @@ public:
   }
 
   /**
-   * Detect if the king is checked.
+   * Indicate whether the king is checked.
    */
   bool isChecking() const {
     if (turn_ == Turn::Black) {
@@ -290,11 +303,50 @@ public:
     }
   }
 
+  /**
+   * Get CheckState which contains directions of check.
+   */
   CheckState getCheckState() const {
     if (turn_ == Turn::Black) {
       return getCheckState<Turn::Black>();
     } else {
       return getCheckState<Turn::White>();
+    }
+  }
+
+  /**
+   *  Indicate whether the current position is checkmate.
+   */
+  bool isMate() const {
+    CheckState checkState = getCheckState();
+    if (!checkState.from1.isValid() &&
+        !checkState.from2.isValid()) {
+      return false;
+    }
+    return isMate(checkState);
+  }
+
+  /**
+   *  Indicate whether the current position is checkmate.
+   *  This function takes CheckState as an arguments
+   *  for curtailing check detection.
+   */
+  bool isMate(const CheckState& checkState) const {
+    if (turn_ == Turn::Black) {
+      return const_cast<Position*>(this)->isMate<Turn::Black>(checkState);
+    } else {
+      return const_cast<Position*>(this)->isMate<Turn::White>(checkState);
+    }
+  }
+
+  /**
+   * Indicate whether 
+   */
+  bool isMateWithPawnDrop() const {
+    if (turn_ == Turn::Black) {
+      return const_cast<Position*>(this)->isMateWithPawnDrop<Turn::Black>();
+    } else {
+      return const_cast<Position*>(this)->isMateWithPawnDrop<Turn::White>();
     }
   }
 
@@ -379,16 +431,34 @@ private:
   void undoMove(const Move& move);
 
   template <Turn turn>
-  Direction getShortCheckDirection() const;
+  std::tuple<Square, Square> detectLongEffects(const Square& square, Square) const;
 
   template <Turn turn>
-  Direction getLongCheckDirection() const;
+  bool hasLongEffect(const Square& square) const;
 
   template <Turn turn>
   bool isChecking() const;
 
   template <Turn turn>
   CheckState getCheckState() const;
+
+  template <Turn turn>
+  bool isForced(const Square& square) const;
+
+  template <Turn turn>
+  bool isPinned(const Square& square) const;
+
+  template <Turn turn>
+  bool isDroppable(const Bitboard& mask) const;
+
+  template <Turn turn, bool exceptKing>
+  bool isMovable(const Bitboard& mask) const;
+
+  template <Turn turn>
+  bool isMate(const CheckState& checkState);
+
+  template <Turn turn>
+  bool isMateWithPawnDrop();
 
 private:
 

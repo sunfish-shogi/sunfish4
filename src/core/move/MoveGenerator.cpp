@@ -10,6 +10,8 @@ namespace sunfish {
 
 template <Turn turn, MoveGenerator::GenerationType type>
 void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves) {
+  auto occ = pos.getBOccupiedBitboard() | pos.getWOccupiedBitboard();
+
   auto notSelfOcc = turn == Turn::Black ? ~pos.getBOccupiedBitboard() : ~pos.getWOccupiedBitboard();
   auto cap = turn == Turn::Black ? pos.getWOccupiedBitboard() : pos.getBOccupiedBitboard();
   auto prom = turn == Turn::Black ? Bitboard::blackPromotable() : Bitboard::whitePromotable();
@@ -145,8 +147,6 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves) {
     }
   }
 
-  auto occ = pos.getBOccupiedBitboard() | pos.getWOccupiedBitboard();
-
   // rook
   {
     auto fbb = turn == Turn::Black ? pos.getBRookBitboard() : pos.getWRookBitboard();
@@ -259,8 +259,97 @@ template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::Ge
 template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::NotCapturing>(const Position&, Moves&);
 
 template <Turn turn>
-void MoveGenerator::generateDrops(const Position&, Moves&) {
-  // TODO
+void MoveGenerator::generateDrops(const Position& pos, Moves& moves) {
+  Piece pieces[6];
+  int kn = 0;
+  int ln = 0;
+  int pn = 0;
+
+  const auto& hand = turn == Turn::Black ? pos.getBlackHand() : pos.getWhiteHand();
+  if (turn == Turn::Black) {
+    if (hand.get(PieceType::knight()) != 0) { pieces[pn++] = Piece::blackKnight(); ln = kn = pn; }
+    if (hand.get(PieceType::lance()) != 0)  { pieces[pn++] = Piece::blackLance(); ln = pn; }
+    if (hand.get(PieceType::silver()) != 0) { pieces[pn++] = Piece::blackSilver(); }
+    if (hand.get(PieceType::gold()) != 0)   { pieces[pn++] = Piece::blackGold(); }
+    if (hand.get(PieceType::bishop()) != 0) { pieces[pn++] = Piece::blackBishop(); }
+    if (hand.get(PieceType::rook()) != 0)   { pieces[pn++] = Piece::blackRook(); }
+  } else {
+    if (hand.get(PieceType::knight()) != 0) { pieces[pn++] = Piece::whiteKnight(); ln = kn = pn; }
+    if (hand.get(PieceType::lance()) != 0)  { pieces[pn++] = Piece::whiteLance(); ln = pn; }
+    if (hand.get(PieceType::silver()) != 0) { pieces[pn++] = Piece::whiteSilver(); }
+    if (hand.get(PieceType::gold()) != 0)   { pieces[pn++] = Piece::whiteGold(); }
+    if (hand.get(PieceType::bishop()) != 0) { pieces[pn++] = Piece::whiteBishop(); }
+    if (hand.get(PieceType::rook()) != 0)   { pieces[pn++] = Piece::whiteRook(); }
+  }
+
+  auto occ = pos.getBOccupiedBitboard() | pos.getWOccupiedBitboard();
+  auto noocc = ~occ;
+
+  if (hand.get(PieceType::pawn()) != 0) {
+    Bitboard rank2to9;
+    if (turn == Turn::Black) {
+      rank2to9 = Bitboard::rank2to9() & noocc;
+    } else {
+      rank2to9 = Bitboard::rank1to8() & noocc;
+    }
+
+    const auto& pawn = turn == Turn::Black ? pos.getBPawnBitboard() : pos.getWPawnBitboard();
+    if (pawn.checkFile(1)) { rank2to9 = Bitboard::file1().andNot(rank2to9); }
+    if (pawn.checkFile(2)) { rank2to9 = Bitboard::file2().andNot(rank2to9); }
+    if (pawn.checkFile(3)) { rank2to9 = Bitboard::file3().andNot(rank2to9); }
+    if (pawn.checkFile(4)) { rank2to9 = Bitboard::file4().andNot(rank2to9); }
+    if (pawn.checkFile(5)) { rank2to9 = Bitboard::file5().andNot(rank2to9); }
+    if (pawn.checkFile(6)) { rank2to9 = Bitboard::file6().andNot(rank2to9); }
+    if (pawn.checkFile(7)) { rank2to9 = Bitboard::file7().andNot(rank2to9); }
+    if (pawn.checkFile(8)) { rank2to9 = Bitboard::file8().andNot(rank2to9); }
+    if (pawn.checkFile(9)) { rank2to9 = Bitboard::file9().andNot(rank2to9); }
+
+    if (pos.isMateWithPawnDrop()) {
+      auto enemyKing = turn == Turn::Black ? pos.getWhiteKingSquare() : pos.getBlackKingSquare();
+      auto square = turn == Turn::Black ? enemyKing.down() : enemyKing.up();
+      rank2to9 = Bitboard::mask(square).andNot(rank2to9);
+    }
+
+    BB_EACH(to, rank2to9) {
+      auto piece = turn == Turn::Black ? Piece::blackPawn() : Piece::whitePawn();
+      moves.add(Move(piece, to));
+    }
+  }
+
+  if (pn == 0) {
+    return;
+  }
+
+  Bitboard rank1;
+  Bitboard rank2;
+  Bitboard rank3to9;
+  if (turn == Turn::Black) {
+    rank1 = Bitboard::rank1() & noocc;
+    rank2 = Bitboard::rank2() & noocc;
+    rank3to9 = Bitboard::rank3to9() & noocc;
+  } else {
+    rank1 = Bitboard::rank9() & noocc;
+    rank2 = Bitboard::rank8() & noocc;
+    rank3to9 = Bitboard::rank1to7() & noocc;
+  }
+
+  BB_EACH(to, rank3to9) {
+    for (int i = 0; i < pn; i++) {
+      moves.add(Move(pieces[i], to));
+    }
+  }
+
+  BB_EACH(to, rank2) {
+    for (int i = kn; i < pn; i++) {
+      moves.add(Move(pieces[i], to));
+    }
+  }
+
+  BB_EACH(to, rank1) {
+    for (int i = ln; i < pn; i++) {
+      moves.add(Move(pieces[i], to));
+    }
+  }
 }
 template void MoveGenerator::generateDrops<Turn::Black>(const Position&, Moves&);
 template void MoveGenerator::generateDrops<Turn::White>(const Position&, Moves&);

@@ -951,8 +951,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::Up, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::s66(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -972,8 +972,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::Invalid, state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -993,8 +993,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::RightUpKnight, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::s55(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1014,8 +1014,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::LeftUp, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::s76(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1035,8 +1035,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::LeftDown, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::s78(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1056,8 +1056,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::LeftDown, state.longDirection);
+    ASSERT_EQ(Square::s89(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1077,8 +1077,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::Right, state.shortDirection);
-    ASSERT_EQ(Direction::RightDown, state.longDirection);
+    ASSERT_EQ(Square::s57(), state.from1);
+    ASSERT_EQ(Square::s49(), state.from2);
   }
 
   {
@@ -1098,8 +1098,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::Right, state.longDirection);
+    ASSERT_EQ(Square::s27(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1119,12 +1119,12 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::Up, state.longDirection);
+    ASSERT_EQ(Square::s62(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
-    // checked by lance
+    // checked by lance and knight
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  * -OU *  *  *  * \n"
       "P2 *  *  * -KY *  *  *  *  * \n"
@@ -1140,8 +1140,29 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::LeftUpKnight, state.shortDirection);
-    ASSERT_EQ(Direction::Up, state.longDirection);
+    ASSERT_EQ(Square::s75(), state.from1);
+    ASSERT_EQ(Square::s62(), state.from2);
+  }
+
+  {
+    // checked by rook and horse
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  *  *  * -UM *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  * -HI\n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Square::s17(), state.from1);
+    ASSERT_EQ(Square::s45(), state.from2);
   }
 
   {
@@ -1161,8 +1182,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::Invalid, state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1182,8 +1203,8 @@ TEST(PositionTest, testGetCheckState) {
       "+\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::RightUp, state.longDirection);
+    ASSERT_EQ(Square::s14(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1203,8 +1224,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::Invalid, state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1224,8 +1245,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::Right, state.shortDirection);
-    ASSERT_EQ(Direction::None, state.longDirection);
+    ASSERT_EQ(Square::s52(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1245,8 +1266,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::Right, state.shortDirection);
-    ASSERT_EQ(Direction::RightDown, state.longDirection);
+    ASSERT_EQ(Square::s52(), state.from1);
+    ASSERT_EQ(Square::s17(), state.from2);
   }
 
   {
@@ -1266,8 +1287,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::LeftDown, state.longDirection);
+    ASSERT_EQ(Square::s95(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1287,8 +1308,8 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::None, state.shortDirection);
-    ASSERT_EQ(Direction::Down, state.longDirection);
+    ASSERT_EQ(Square::s67(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
   }
 
   {
@@ -1308,8 +1329,50 @@ TEST(PositionTest, testGetCheckState) {
       "-\n");
 
     auto state = pos.getCheckState();
-    ASSERT_EQ(Direction::LeftDown, state.shortDirection);
-    ASSERT_EQ(Direction::Down, state.longDirection);
+    ASSERT_EQ(Square::s73(), state.from1);
+    ASSERT_EQ(Square::s67(), state.from2);
+  }
+
+  {
+    // checked by dragon
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  * +RY *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -OU *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +KI+OU+KI *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Square::s44(), state.from1);
+    ASSERT_EQ(Square::Invalid, state.from2);
+  }
+
+  {
+    // checked by bishop and dragon
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 * +KA *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  * +RY *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * -OU *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +KI+OU+KI *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Square::s44(), state.from1);
+    ASSERT_EQ(Square::s83(), state.from2);
   }
 }
 
