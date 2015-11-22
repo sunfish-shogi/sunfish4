@@ -1376,4 +1376,548 @@ TEST(PositionTest, testGetCheckState) {
   }
 }
 
+TEST(PositionTest, testIsMate) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * -FU-KI *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * -FU *  *  *  *  * \n"
+      "P8 *  *  * -KI *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -FU *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  * -KI *  *  *  *  * \n"
+      "P9 *  *  * +OU *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * -FU *  *  *  *  * \n"
+      "P8 *  *  * -KI *  *  *  *  * \n"
+      "P9 *  *  * +OU+GI *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * -KE * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * -KE * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU * -KY *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU * -KY *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+00FU\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU * -KY *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  * +FU *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+00FU\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU * -KY *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  * +FU *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+00FU00KE\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU * -KY *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  * -KA\n"
+      "P6 *  *  *  * -RY *  *  *  * \n"
+      "P7 *  *  *  *  *  * +OU+FU * \n"
+      "P8 *  *  *  *  *  * +FU *  * \n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+00FU00KE\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -OU *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  * +FU+KI *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -OU *  *  *  *  * \n"
+      "P2 *  *  * +KI *  *  *  *  * \n"
+      "P3 *  *  * +FU *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -OU *  *  *  *  * \n"
+      "P2 *  *  * +KI *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  * +FU *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -OU-GI *  *  *  * \n"
+      "P2 *  *  * +KI *  *  *  *  * \n"
+      "P3 *  *  * +FU *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * +KE * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  * -OU *  * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * +KE * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +KY *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +KY *  * \n"
+      "P+\n"
+      "P-00FU\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  * -FU *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +KY *  * \n"
+      "P+\n"
+      "P-00FU\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  * -FU *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +KY *  * \n"
+      "P+\n"
+      "P-00FU00KE\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMate());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  * -FU *  * \n"
+      "P3 *  *  *  *  *  * -OU-FU * \n"
+      "P4 *  *  *  * +RY *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  * +KA\n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +KY *  * \n"
+      "P+\n"
+      "P-00FU00KE\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMate());
+  }
+}
+
+TEST(PositionTest, testIsMateWithPawnDrop) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  * -OU\n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  * +RY * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  * -OU\n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  * +RY * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  * -KE-KY\n"
+      "P3 *  *  *  *  *  *  *  * -OU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * +RY * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  * +UM *  * \n"
+      "P2 *  *  *  *  *  *  * -KE-KY\n"
+      "P3 *  *  *  *  *  *  *  * -OU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * +RY * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  * -RY * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  * +OU\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  * -RY * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  * +OU\n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * -RY * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  * +OU\n"
+      "P8 *  *  *  *  *  *  * +KE+KY\n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  * -RY * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  * +OU\n"
+      "P8 *  *  *  *  *  *  * +KE+KY\n"
+      "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+}
+
 #endif // !defined(NDEBUG)

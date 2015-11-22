@@ -898,11 +898,11 @@ bool Position::isPinned(const Square& square) const {
     case Direction::Left:
     case Direction::Right:
       return ::isPinned<turn, LongEffectType::Hor>(*this, square);
-    case Direction::LeftUp:
-    case Direction::RightDown:
-      return ::isPinned<turn, LongEffectType::DiagRight>(*this, square);
     case Direction::RightUp:
     case Direction::LeftDown:
+      return ::isPinned<turn, LongEffectType::DiagRight>(*this, square);
+    case Direction::LeftUp:
+    case Direction::RightDown:
       return ::isPinned<turn, LongEffectType::DiagLeft>(*this, square);
     default:
       return false;
