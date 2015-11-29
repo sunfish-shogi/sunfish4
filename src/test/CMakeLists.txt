@@ -23,7 +23,7 @@ add_executable(sunfish_test
 	core/MoveTest.cpp
 	core/PieceTest.cpp
 	core/PositionTest.cpp
-    core/SfenParserTest.cpp
+	core/SfenParserTest.cpp
 	core/SquareTest.cpp
 )
 
