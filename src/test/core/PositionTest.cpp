@@ -216,10 +216,9 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
 
-    pos.doMove(move);
-
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
-
     assertEq(expectPos, pos);
   }
 
@@ -254,10 +253,9 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
 
-    pos.doMove(move);
-
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
-
     assertEq(expectPos, pos);
   }
 
@@ -292,10 +290,9 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
 
-    pos.doMove(move);
-
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
     ASSERT_EQ(Piece::whiteBishop(), move.capturedPiece());
-
     assertEq(expectPos, pos);
   }
 
@@ -330,10 +327,9 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
 
-    pos.doMove(move);
-
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
     ASSERT_EQ(Piece::blackHorse(), move.capturedPiece());
-
     assertEq(expectPos, pos);
   }
 
@@ -368,11 +364,118 @@ TEST(PositionTest, testMakeMove) {
 
     Move move(Piece::blackBishop(), Square::s45());
 
-    pos.doMove(move);
-
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
     ASSERT_EQ(Piece::empty(), move.capturedPiece());
-
     assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA * +OU *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI * +KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    Move move(Piece::blackKing(), Square::s59(), Square::s68(), false);
+
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA * +OU *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI * +KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI * -KI-GI-KE-KY\n"
+      "P2 * -HI *  * -OU *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA * +OU *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI * +KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Move move(Piece::whiteKing(), Square::s51(), Square::s52(), false);
+
+    bool ok = pos.doMove(move);
+    ASSERT_EQ(true, ok);
+    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    assertEq(expectPos, pos);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  * -UM *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  * +OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    Move king57(Piece::blackKing(), Square::s67(), Square::s57(), false);
+    Move king58(Piece::blackKing(), Square::s67(), Square::s58(), false);
+    Move king68(Piece::blackKing(), Square::s67(), Square::s68(), false);
+    Move king76(Piece::blackKing(), Square::s67(), Square::s76(), false);
+    Move king78(Piece::blackKing(), Square::s67(), Square::s78(), false);
+    Move king56(Piece::blackKing(), Square::s67(), Square::s56(), false);
+    Move king66(Piece::blackKing(), Square::s67(), Square::s66(), false);
+    Move king77(Piece::blackKing(), Square::s67(), Square::s77(), false);
+
+    ASSERT_EQ(true,  Position(pos).doMove(king57));
+    ASSERT_EQ(true,  Position(pos).doMove(king58));
+    ASSERT_EQ(true,  Position(pos).doMove(king68));
+    ASSERT_EQ(true,  Position(pos).doMove(king76));
+    ASSERT_EQ(true,  Position(pos).doMove(king78));
+    ASSERT_EQ(false, Position(pos).doMove(king56));
+    ASSERT_EQ(false, Position(pos).doMove(king66));
+    ASSERT_EQ(false, Position(pos).doMove(king77));
   }
 }
 
@@ -570,7 +673,7 @@ TEST(PositionTest, testUndoMove) {
   }
 }
 
-TEST(PositionTest, testIsChecking) {
+TEST(PositionTest, testInCheck) {
   {
     // checked by pawn
     Position pos = PositionUtil::createPositionFromCsaString(
@@ -587,7 +690,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -606,7 +709,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -625,7 +728,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -644,7 +747,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -663,7 +766,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -682,7 +785,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -701,7 +804,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -720,7 +823,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -739,7 +842,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -758,7 +861,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -777,7 +880,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -796,7 +899,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "+\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -815,7 +918,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -834,7 +937,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -853,7 +956,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -872,7 +975,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -891,7 +994,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 
   {
@@ -910,7 +1013,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(true, pos.isChecking());
+    ASSERT_EQ(true, pos.inCheck());
   }
 
   {
@@ -929,7 +1032,7 @@ TEST(PositionTest, testIsChecking) {
       "P-\n"
       "-\n");
 
-    ASSERT_EQ(false, pos.isChecking());
+    ASSERT_EQ(false, pos.inCheck());
   }
 }
 
@@ -1849,6 +1952,60 @@ TEST(PositionTest, testIsMateWithPawnDrop) {
 
   {
     Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  * -OU *  *  * \n"
+      "P2 *  *  * +RY *  * -FU *  * \n"
+      "P3 *  *  *  * +KA *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  * -OU-FU *  * \n"
+      "P2 *  *  * +RY *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  * -OU-FU *  * \n"
+      "P2 *  *  * +RY *  *  *  *  * \n"
+      "P3 *  *  *  *  *  * +FU *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  * -OU *  *  *  * \n"
       "P2 *  *  *  *  *  *  *  *  * \n"
       "P3 *  *  *  *  *  *  *  *  * \n"
@@ -1912,6 +2069,60 @@ TEST(PositionTest, testIsMateWithPawnDrop) {
       "P7 *  *  *  *  *  *  *  * +OU\n"
       "P8 *  *  *  *  *  *  * +KE+KY\n"
       "P9 *  *  *  *  *  * -UM *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(true, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  * -KA *  *  *  * \n"
+      "P8 *  *  * -RY *  * +FU *  * \n"
+      "P9 *  *  *  *  * +OU *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  * -RY *  *  *  *  * \n"
+      "P9 *  *  *  *  * +OU+FU *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    ASSERT_EQ(false, pos.isMateWithPawnDrop());
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  * -FU *  * \n"
+      "P8 *  *  * -RY *  *  *  *  * \n"
+      "P9 *  *  *  *  * +OU+FU *  * \n"
       "P+\n"
       "P-\n"
       "-\n");

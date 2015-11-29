@@ -295,11 +295,11 @@ public:
   /**
    * Indicate whether the king is checked.
    */
-  bool isChecking() const {
+  bool inCheck() const {
     if (turn_ == Turn::Black) {
-      return isChecking<Turn::Black>();
+      return inCheck<Turn::Black>();
     } else {
-      return isChecking<Turn::White>();
+      return inCheck<Turn::White>();
     }
   }
 
@@ -418,7 +418,8 @@ private:
 
     case PieceNumber::BKing:
     case PieceNumber::WKing:
-      assert(false);
+      // do nothing
+      return;
     }
   }
 
@@ -437,7 +438,7 @@ private:
   bool hasLongEffect(const Square& square) const;
 
   template <Turn turn>
-  bool isChecking() const;
+  bool inCheck() const;
 
   template <Turn turn>
   CheckState getCheckState() const;

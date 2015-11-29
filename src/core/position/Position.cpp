@@ -603,9 +603,23 @@ bool Position::doMove(Move& move) {
 
     }
 
+    if (turn == Turn::Black) {
+      if (piece == Piece::blackKing()) {
+        blackKingSquare_ = to;
+      }
+    } else {
+      if (piece == Piece::whiteKing()) {
+        whiteKingSquare_ = to;
+      }
+    }
   }
 
   turn_ = turn == Turn::Black ? Turn::White : Turn::Black;
+
+  if (inCheck<turn>()) {
+    undoMove(move);
+    return false;
+  }
 
   return true;
 }
@@ -659,6 +673,7 @@ void Position::undoMove(const Move& move) {
     }
 
   } else {
+    Square from = move.from();
     Piece captured = move.capturedPiece();
 
     if (!captured.isEmpty()) {
@@ -672,7 +687,6 @@ void Position::undoMove(const Move& move) {
         handNum = whiteHand_.decUnsafe(handType);
       }
 
-      Square from = move.from();
       Piece pieceAfter = board_[to.raw()];
 
       // update piece number array
@@ -722,7 +736,6 @@ void Position::undoMove(const Move& move) {
       }
 
     } else {
-      Square from = move.from();
       Piece pieceAfter = board_[to.raw()];
 
       // update piece number array
@@ -762,6 +775,15 @@ void Position::undoMove(const Move& move) {
 
     }
 
+    if (turn == Turn::Black) {
+      if (piece == Piece::blackKing()) {
+        blackKingSquare_ = from;
+      }
+    } else {
+      if (piece == Piece::whiteKing()) {
+        whiteKingSquare_ = from;
+      }
+    }
   }
 
   turn_ = turn;
@@ -834,7 +856,7 @@ bool Position::hasLongEffect(const Square& square) const {
 }
 
 template <Turn turn>
-bool Position::isChecking() const {
+bool Position::inCheck() const {
   if (turn == Turn::Black) {
     const Square& square = blackKingSquare_;
     return detectShortEffect<Turn::White>(*this, square).isValid()
@@ -845,8 +867,8 @@ bool Position::isChecking() const {
         || hasLongEffect<Turn::Black>(square);
   }
 }
-template bool Position::isChecking<Turn::Black>() const;
-template bool Position::isChecking<Turn::White>() const;
+template bool Position::inCheck<Turn::Black>() const;
+template bool Position::inCheck<Turn::White>() const;
 
 template <Turn turn>
 CheckState Position::getCheckState() const {
