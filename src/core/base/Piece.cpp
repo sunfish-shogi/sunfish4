@@ -11,7 +11,7 @@ namespace {
 
 using namespace sunfish;
 
-const char* namesCsaKindOnly[] = {
+const char* const namesCsaKindOnly[] = {
   "FU", "KY", "KE", "GI", "KI", "KA", "HI", "OU",
   "TO", "NY", "NK", "NG", "  ", "UM", "RY", "  ",
   "FU", "KY", "KE", "GI", "KI", "KA", "HI", "OU",
@@ -19,12 +19,20 @@ const char* namesCsaKindOnly[] = {
   "  "
 };
 
-const char* namesCsa[] = {
+const char* const namesCsa[] = {
   "+FU", "+KY", "+KE", "+GI", "+KI", "+KA", "+HI", "+OU",
   "+TO", "+NY", "+NK", "+NG", "   ", "+UM", "+RY", "   ",
   "-FU", "-KY", "-KE", "-GI", "-KI", "-KA", "-HI", "-OU",
   "-TO", "-NY", "-NK", "-NG", "   ", "-UM", "-RY", "   ",
   "   "
+};
+
+const char* const namesSfen[] = {
+  "P", "L", "N", "S", "G", "B", "R", "K",
+  "+P", "+L", "+N", "+S", "", "+B", "+R", "",
+  "p", "l", "n", "s", "g", "b", "r", "k",
+  "+p", "+l", "+n", "+s", "", "+b", "+r", "",
+  ""
 };
 
 }
@@ -59,6 +67,25 @@ std::string Piece::toString() const {
 Piece Piece::parse(const char* str) {
   PIECE_EACH(piece) {
     if (strncmp(str, namesCsa[piece.number_], 3) == 0) {
+      return piece;
+    }
+  }
+  return Piece::empty();
+}
+
+std::string Piece::toStringSFEN() const {
+  if (number_ > sizeof(namesSfen) / sizeof(namesSfen[0])) {
+    return std::to_string(number_);
+  } else {
+    return namesSfen[number_];
+  }
+}
+
+Piece Piece::parseSFEN(const char* str) {
+  PIECE_EACH(piece) {
+    const char* p = namesSfen[piece.number_];
+    auto len = strlen(p);
+    if (strncmp(str, p, len) == 0) {
       return piece;
     }
   }

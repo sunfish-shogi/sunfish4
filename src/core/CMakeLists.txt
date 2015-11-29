@@ -12,4 +12,5 @@ add_library(core STATIC
 	position/Position.cpp
 	position/Zobrist.cpp
 	record/CsaReader.cpp
+    record/SfenParser.cpp
 )

@@ -212,4 +212,18 @@ TEST(PieceTest, testParse) {
   ASSERT_EQ(Piece::empty(), Piece::parse("hoge"));
 }
 
+TEST(PieceTest, testToStringSFEN) {
+  {
+    ASSERT_EQ("P", Piece::blackPawn().toStringSFEN());
+    ASSERT_EQ("+r", Piece::whiteDragon().toStringSFEN());
+    ASSERT_EQ("102", Piece(102).toStringSFEN());
+  }
+}
+
+TEST(PieceTest, testParseSFEN) {
+  ASSERT_EQ(Piece::blackPawn(), Piece::parseSFEN("P"));
+  ASSERT_EQ(Piece::whiteDragon(), Piece::parseSFEN("+r"));
+  ASSERT_EQ(Piece::empty(), Piece::parseSFEN("hoge"));
+}
+
 #endif // !defined(NDEBUG)

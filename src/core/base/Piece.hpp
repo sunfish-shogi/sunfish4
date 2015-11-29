@@ -352,14 +352,24 @@ public:
   }
 
   /**
-   * Get a piece name(CSA format).
+   * Get a piece name of CSA format.
    */
   std::string toString() const;
 
   /**
-   * Get piece from the specified piece name(CSA format).
+   * Get a piece object from the specified piece name of CSA format.
    */
   static Piece parse(const char* str);
+
+  /**
+   * Get a piece name of SFEN.
+   */
+  std::string toStringSFEN() const;
+
+  /**
+   * Get a piece object from the specified piece name of SFEN format.
+   */
+  static Piece parseSFEN(const char* str);
 
 };
 

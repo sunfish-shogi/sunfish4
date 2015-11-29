@@ -17,12 +17,13 @@ add_executable(sunfish_test
 	Main.cpp
 	core/BitboardTest.cpp
 	core/CsaReaderTest.cpp
-	core/MoveTest.cpp
 	core/MoveGeneratorTest.cpp
 	core/MovesTest.cpp
 	core/MoveTablesTest.cpp
+	core/MoveTest.cpp
 	core/PieceTest.cpp
 	core/PositionTest.cpp
+    core/SfenParserTest.cpp
 	core/SquareTest.cpp
 )
 

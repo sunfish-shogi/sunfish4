@@ -267,6 +267,21 @@ TEST(SquareTest, testParse) {
   }
 }
 
+TEST(SquareTest, testToStringSFEN) {
+  {
+    ASSERT_EQ("1a", Square::s11().toStringSFEN());
+    ASSERT_EQ("7f", Square::s76().toStringSFEN());
+  }
+}
+
+TEST(SquareTest, testParseSFEN) {
+  {
+    ASSERT_EQ(Square::s36(), Square::parseSFEN("3f"));
+    ASSERT_EQ(Square::s88(), Square::parseSFEN("8h"));
+    ASSERT_EQ(false, Square::parseSFEN("hoge").isValid());
+  }
+}
+
 TEST(SquareTest, testReversedDir) {
   ASSERT_EQ(Direction::LeftUp, getReversedDir(Direction::RightDown));
   ASSERT_EQ(Direction::Up, getReversedDir(Direction::Down));

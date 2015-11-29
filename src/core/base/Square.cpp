@@ -120,15 +120,26 @@ Direction Square::dir(const Square& to) const {
 
 std::string Square::toString() const {
   std::ostringstream oss;
-
   oss << (int)getFile() << (int)getRank();
-
   return oss.str();
 }
 
 Square Square::parse(const char* str) {
   if (str[0] >= '1' && str[0] <= '9' && str[1] >= '1' && str[1] <= '9') {
     return Square(str[0] - '0', str[1] - '0');
+  }
+  return Square::invalid();
+}
+
+std::string Square::toStringSFEN() const {
+  std::ostringstream oss;
+  oss << (int)getFile() << (char)(('a' - 1) + getRank());
+  return oss.str();
+}
+
+Square Square::parseSFEN(const char* str) {
+  if (str[0] >= '1' && str[0] <= '9' && str[1] >= 'a' && str[1] <= 'i') {
+    return Square(str[0] - '0', str[1] - ('a' - 1));
   }
   return Square::invalid();
 }

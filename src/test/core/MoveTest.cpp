@@ -148,4 +148,13 @@ TEST(MoveTest, testToString) {
   }
 }
 
+TEST(MoveTest, testToStringSFEN) {
+  {
+    ASSERT_EQ("3g3f", Move(Piece::blackPawn(), Square::s37(), Square::s36(), false).toStringSFEN());
+    ASSERT_EQ("5a6b", Move(Piece::whiteKing(), Square::s51(), Square::s62(), false).toStringSFEN());
+    ASSERT_EQ("2h2b+", Move(Piece::blackRook(), Square::s28(), Square::s22(), true).toStringSFEN());
+    ASSERT_EQ("B*6e", Move(Piece::whiteBishop(), Square::s65()).toStringSFEN());
+  }
+}
+
 #endif // !defined(NDEBUG)

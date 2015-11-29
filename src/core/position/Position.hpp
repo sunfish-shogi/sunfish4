@@ -355,6 +355,11 @@ public:
    */
   std::string toString() const;
 
+  /**
+   * Get a string of SFEN format
+   */
+  std::string toStringSFEN() const;
+
 private:
 
   Bitboard& getBitboard(Piece piece);

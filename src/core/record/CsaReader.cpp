@@ -33,7 +33,7 @@ bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* i
   bool ok = readPosition(is, mp, info);
 
   if (ok) {
-    position.initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
+    position.initialize(mp);
   }
 
   return ok;

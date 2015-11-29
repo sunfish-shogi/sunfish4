@@ -713,6 +713,16 @@ public:
    */
   static Square parse(const char* str);
 
+  /**
+   * Get a string of SFEN format representing the square.
+   */
+  std::string toStringSFEN() const;
+
+  /**
+   * Get square object from the specified string of SFEN format.
+   */
+  static Square parseSFEN(const char* str);
+
 private:
 
   static const uint8_t rotate90Table[81];

@@ -184,6 +184,18 @@ TEST(PositionTest, testToString) {
     "+\n", pos.toString());
 }
 
+TEST(PositionTest, testToStringSFEN) {
+  {
+    Position pos(Position::Handicap::Even);
+    ASSERT_EQ("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1", pos.toStringSFEN());
+  }
+
+  {
+    Position pos(Position::Handicap::TwoPieces);
+    ASSERT_EQ("lnsgkgsnl/9/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 1", pos.toStringSFEN());
+  }
+}
+
 TEST(PositionTest, testMakeMove) {
   {
     Position pos = PositionUtil::createPositionFromCsaString(

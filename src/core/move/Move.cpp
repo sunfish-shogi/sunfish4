@@ -66,4 +66,22 @@ std::string Move::toString() const {
   return oss.str();
 }
 
+std::string Move::toStringSFEN() const {
+  std::ostringstream oss;
+
+  if (isDrop()) {
+    oss << piece().type().black().toStringSFEN();
+    oss << '*';
+    oss << to().toStringSFEN();
+  } else {
+    oss << from().toStringSFEN();
+    oss << to().toStringSFEN();
+    if (isPromotion()) {
+      oss << '+';
+    }
+  }
+
+  return oss.str();
+}
+
 } // namespace sunfish

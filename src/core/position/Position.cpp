@@ -1297,4 +1297,72 @@ std::string Position::toString() const {
   return oss.str();
 }
 
+std::string Position::toStringSFEN() const {
+  std::ostringstream oss;
+
+  for (int rank = 1; rank <= 9; rank++) {
+    int emptyCount = 0;
+    for (int file = 9; file >= 1; file--) {
+      auto piece = getPieceOnBoard(Square(file, rank));
+      if (!piece.isEmpty()) {
+        if (emptyCount != 0) {
+          oss << emptyCount;
+          emptyCount = 0;
+        }
+        oss << piece.toStringSFEN();
+      } else {
+        emptyCount++;
+      }
+    }
+
+    if (emptyCount != 0) {
+      oss << emptyCount;
+    }
+
+    if (rank != 9) {
+      oss << '/';
+    }
+  }
+
+  oss << ' ';
+
+  oss << (turn_ == Turn::Black ? 'b' : 'w');
+
+  oss << ' ';
+
+  bool handIsEmpty = true;
+
+  HAND_EACH(pieceType) {
+    int handNum = blackHand_.get(pieceType);
+    if (handNum >= 1) {
+      handIsEmpty = false;
+      if (handNum != 1) {
+        oss << handNum;
+      }
+      oss << pieceType.black().toStringSFEN();
+    }
+  }
+
+  HAND_EACH(pieceType) {
+    int handNum = whiteHand_.get(pieceType);
+    if (handNum >= 1) {
+      handIsEmpty = false;
+      if (handNum != 1) {
+        oss << handNum;
+      }
+      oss << pieceType.white().toStringSFEN();
+    }
+  }
+
+  if (handIsEmpty) {
+    oss << '-';
+  }
+
+  oss << ' ';
+
+  oss << '1';
+
+  return oss.str();
+}
+
 }

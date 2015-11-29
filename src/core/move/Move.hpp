@@ -200,6 +200,11 @@ public:
    */
   std::string toString() const;
 
+  /**
+   * Get a string of SFEN format.
+   */
+  std::string toStringSFEN() const;
+
 private:
 
   RawType move_;
