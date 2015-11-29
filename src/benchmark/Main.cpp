@@ -43,18 +43,16 @@ int main(int argc, char** argv, char**) {
   }
 
   // the name of the result file
-  std::string resultFileName;
+  std::ofstream fout;
   if (po.has("out")) {
-    resultFileName = po.getValue("out");
-  }
+    std::string resultFileName = po.getValue("out");
 
-  // output file
-  if (resultFileName.length() != 0) {
-    std::ofstream fout(resultFileName, std::ios::out);
+    fout.open(resultFileName, std::ios::out);
     if (!fout) {
       Loggers::error << "Could not open output file: " << resultFileName;
       return 1;
     }
+
     Loggers::message.addStream(fout);
   }
 
