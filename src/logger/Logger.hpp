@@ -31,7 +31,29 @@ public:
 };
 
 class Logger {
+private:
+
+  struct Stream {
+    std::ostream* pout;
+    bool timestamp;
+    bool loggerName;
+    const char* before;
+    const char* after;
+  };
+
+  enum class LineState {
+    Top,
+    Normal,
+    End,
+    All,
+  };
+
+  static std::mutex mutex_;
+  const char* name_;
+  std::vector<Stream> os_;
+
 public:
+
   class SubLogger {
   private:
     struct Data {
@@ -40,7 +62,7 @@ public:
       Data(Logger* plogger, std::mutex& mutex) : plogger(plogger), lock(mutex) {
       }
       ~Data() {
-        plogger->printNoLock("\n");
+        plogger->printNoLock<LineState::End>("");
       }
     };
     std::shared_ptr<Data> data;
@@ -52,25 +74,13 @@ public:
     }
     template <class T>
     SubLogger& operator<<(T&& t) {
-      data->plogger->printNoLock(std::forward<T>(t));
+      data->plogger->printNoLock<LineState::Normal>(std::forward<T>(t));
       return *this;
     }
   };
 
-private:
-  struct Stream {
-    std::ostream* pout;
-    bool timestamp;
-    bool loggerName;
-    const char* before;
-    const char* after;
-  };
-
-  static std::mutex mutex_;
-  const char* name_;
-  std::vector<Stream> os_;
-
 public:
+
   Logger(const char* name = nullptr) : name_(name) {
   }
   Logger(const Logger& logger) = delete;
@@ -91,38 +101,55 @@ public:
     addStream(o, false, false, nullptr, nullptr);
   }
 
-  template <class T> void printNoLock(T&& t, bool top = false) {
-    std::vector<Stream>::iterator it;
-    for (it = os_.begin(); it != os_.end(); it++) {
-      if (it->before != nullptr) {
-        *(it->pout) << it->before;
-      }
-      if (top) {
-        if (it->timestamp) {
-          *(it->pout) << LoggerUtil::getIso8601();
-        }
-        if (it->loggerName && name_) {
-          *(it->pout) << name_ << ' ';
-        }
-      }
-      *(it->pout) << std::forward<T>(t);
-      if (it->after != nullptr) {
-        *(it->pout) << it->after;
-      }
-      it->pout->flush();
-    }
-  }
-
   template <class T> void print(T&& t) {
     std::lock_guard<std::mutex> lock(mutex_);
-    printNoLock(std::forward<T>(t));
+    printNoLock<LineState::All>(std::forward<T>(t));
   }
 
   template <class T>
   SubLogger operator<<(T&& t) {
     SubLogger s(this, mutex_);
-    printNoLock(std::forward<T>(t), true);
+    printNoLock<LineState::Top>(std::forward<T>(t));
     return s;
+  }
+
+private:
+
+  template <LineState ls, class T>
+  void printNoLock(T&& t) {
+    std::vector<Stream>::iterator it;
+    for (it = os_.begin(); it != os_.end(); it++) {
+      if (ls == LineState::Top || ls == LineState::All) {
+        // prefix
+        if (it->before != nullptr) {
+          *(it->pout) << it->before;
+        }
+
+        // timestamp
+        if (it->timestamp) {
+          *(it->pout) << LoggerUtil::getIso8601();
+        }
+
+        // logger name
+        if (it->loggerName && name_) {
+          *(it->pout) << name_ << ' ';
+        }
+      }
+
+      // main data
+      *(it->pout) << std::forward<T>(t);
+
+      if (ls == LineState::End || ls == LineState::All) {
+        // suffix
+        if (it->after != nullptr) {
+          *(it->pout) << it->after;
+        }
+
+        // flush
+        *(it->pout) << '\n';
+        it->pout->flush();
+      }
+    }
   }
 
 };
