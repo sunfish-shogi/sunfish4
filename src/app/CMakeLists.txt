@@ -12,12 +12,8 @@ add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish
-  Main.cpp
+    Main.cpp
 )
 
 target_link_libraries(sunfish core)
 target_link_libraries(sunfish logger)
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  target_link_libraries(sunfish wsock32)
-endif()
