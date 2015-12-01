@@ -30,13 +30,10 @@ Build
 make release
 
 # parallel
-make release -j
+make release -j 2
 
 # clean
 make clean
-
-# unit test
-make test
 ```
 
 ### Xcode
@@ -51,22 +48,25 @@ cmake -G Xcode ../../src/app
 
 Set parameters into CMake as follows.
 
-| Name                        | Value                  |
-|:----------------------------|-----------------------:|
-| Where is the source code    | path/to/sunfish4/src   |
-| Where to build the binaries | path/to/sunfish4/build |
+| Name                        | Value                   |
+|:----------------------------|------------------------:|
+| Where is the source code    | path/to/sunfish4/src    |
+| Where to build the binaries | path/to/build_directory |
 
 Usage
 -----
 
-### Execute
+### Run unit tests
 
 ```
-# CUI application
-./sunfish
+make test
+```
 
-# unit test
-./sunfish_test
+### Run benchmark tests
+
+```
+make benchmark
+./sunfish_bm
 ```
 
 License
