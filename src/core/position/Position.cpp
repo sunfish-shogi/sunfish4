@@ -447,6 +447,7 @@ Bitboard& Position::getBitboard(Piece piece) {
   }
 
   assert(false);
+  return *static_cast<Bitboard*>(nullptr);
 }
 
 template <Turn turn>
