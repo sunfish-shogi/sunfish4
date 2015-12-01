@@ -13,9 +13,6 @@
 using namespace sunfish;
 
 int main(int argc, char** argv, char**) {
-  // initialize static objects
-  CoreUtil::initialize();
-
   // program options
   ProgramOptions po;
   po.addOption("gen-zobrist", "generate Zobrist.cpp", true);
