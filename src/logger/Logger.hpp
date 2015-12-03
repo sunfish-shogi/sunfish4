@@ -48,10 +48,6 @@ private:
     All,
   };
 
-  static std::mutex mutex_;
-  const char* name_;
-  std::vector<Stream> os_;
-
 public:
 
   class SubLogger {
@@ -78,8 +74,6 @@ public:
       return *this;
     }
   };
-
-public:
 
   Logger(const char* name = nullptr) : name_(name) {
   }
@@ -132,7 +126,7 @@ private:
 
         // logger name
         if (it->loggerName && name_) {
-          *(it->pout) << name_ << ' ';
+          *(it->pout) << '[' << name_ << "] ";
         }
       }
 
@@ -151,6 +145,10 @@ private:
       }
     }
   }
+
+  static std::mutex mutex_;
+  const char* name_;
+  std::vector<Stream> os_;
 
 };
 
