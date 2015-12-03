@@ -47,12 +47,13 @@ TEST(MovesTest, test) {
     moves.add(Move(Piece::blackBishop(), Square::s77(), Square::s22(), false));
     moves.add(Move(Piece::blackLance(), Square::s19(), Square::s18(), false));
 
-    moves.remove(moves.end()-1);
+    auto ite = moves.remove(moves.end()-2);
 
     ASSERT_EQ(3, moves.size());
     ASSERT_EQ(Piece::blackPawn(), moves[0].piece());
     ASSERT_EQ(Piece::blackRook(), moves[1].piece());
-    ASSERT_EQ(Piece::blackBishop(), moves[2].piece());
+    ASSERT_EQ(Piece::blackLance(), moves[2].piece());
+    ASSERT_EQ(moves.end()-1, ite);
   }
 
   {
@@ -104,12 +105,13 @@ TEST(MovesTest, test) {
     moves.add(Move(Piece::blackBishop(), Square::s77(), Square::s22(), false));
     moves.add(Move(Piece::blackLance(), Square::s19(), Square::s18(), false));
 
-    moves.removeStable(moves.begin()+1);
+    auto ite = moves.removeStable(moves.begin()+1);
 
     ASSERT_EQ(3, moves.size());
     ASSERT_EQ(Piece::blackPawn(), moves[0].piece());
     ASSERT_EQ(Piece::blackBishop(), moves[1].piece());
     ASSERT_EQ(Piece::blackLance(), moves[2].piece());
+    ASSERT_EQ(moves.begin() + 1, ite);
   }
 }
 

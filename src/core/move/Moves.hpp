@@ -9,6 +9,7 @@
 #include "common/Def.hpp"
 #include "core/move/Move.hpp"
 #include <array>
+#include <sstream>
 #include <cstdint>
 
 namespace sunfish {
@@ -172,6 +173,17 @@ public:
     return moves_.cbegin() + size_;
   }
 
+  std::string toString() const {
+    std::ostringstream oss;
+    for (auto ite = cbegin(); ite != cend(); ite++) {
+      if (ite != cbegin()) {
+        oss << ' ';
+      }
+      oss << ite->toString();
+    }
+    return oss.str();
+  }
+
 private:
 
   InternalContainerType moves_;
@@ -181,6 +193,6 @@ private:
 
 using Moves = MoveArray<1024>;
 
-}
+} // namespace sunfish
 
 #endif // SUNFISH_CORE_MOVE_MOVES_HPP__

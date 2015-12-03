@@ -312,10 +312,6 @@ template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::Ge
 template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::Capturing, false>(const Position&, Moves&, const Bitboard&);
 template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::NotCapturing, false>(const Position&, Moves&, const Bitboard&);
 template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::NotCapturing, false>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::Capturing, true>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::Capturing, true>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::NotCapturing, true>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::NotCapturing, true>(const Position&, Moves&, const Bitboard&);
 
 template <Turn turn>
 void MoveGenerator::generateDrops(const Position& pos, Moves& moves, const Bitboard& mask) {

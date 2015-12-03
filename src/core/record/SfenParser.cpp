@@ -13,20 +13,31 @@
 namespace sunfish {
 
 bool SfenParser::parsePosition(const char* data, Position& position) {
-  MutablePosition mp;
-
   auto tokens = StringUtil::split(data, [](char c) { return isspace(c); });
 
-  if (tokens.size() < 3) {
+  if (tokens.size() < 4) {
     Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
     return false;
   }
 
+  return parsePosition(tokens[0],
+                       tokens[1],
+                       tokens[2],
+                       tokens[3],
+                       position);
+}
+
+bool SfenParser::parsePosition(const char* arg1,
+                               const char* arg2,
+                               const char* arg3,
+                               const char* /*arg4*/,
+                               Position& position) {
+  MutablePosition mp;
+
   {
-    const auto& token = tokens[0];
     int file = 9;
     int rank = 1;
-    for (const char* p = token.c_str(); p[0] != '\0'; p++) {
+    for (const char* p = arg1; p[0] != '\0'; p++) {
       if (p[0] == '/') {
         if (file != 0) {
           Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
@@ -71,10 +82,9 @@ bool SfenParser::parsePosition(const char* data, Position& position) {
   }
 
   {
-    const auto& token = tokens[1];
-    if (token == "b") {
+    if (strcmp(arg2, "b") == 0) {
       mp.turn = Turn::Black;
-    } else if (token == "w") {
+    } else if (strcmp(arg2, "w") == 0) {
       mp.turn = Turn::White;
     } else {
       Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
@@ -83,14 +93,13 @@ bool SfenParser::parsePosition(const char* data, Position& position) {
   }
 
   {
-    const auto& token = tokens[2];
     HAND_EACH(piece) {
       mp.blackHand.set(piece, 0);
       mp.whiteHand.set(piece, 0);
     }
 
-    if (token != "-") {
-      for (const char* p = token.c_str(); p[0] != '\0'; p++) {
+    if (strcmp(arg3, "-") != 0) {
+      for (const char* p = arg3; p[0] != '\0'; p++) {
         int num = 1;
         if (isdigit(p[0])) {
           num = strtol(p, nullptr, 10);

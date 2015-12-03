@@ -27,13 +27,7 @@ Build
 ### GNU Make
 
 ```
-make release
-
-# parallel
-make release -j 2
-
-# clean
-make clean
+make TARGET
 ```
 
 ### Xcode
@@ -56,6 +50,17 @@ Set parameters into CMake as follows.
 Usage
 -----
 
+### USI Engine
+
+Build `src/usi`.
+If you use `make`, execute with `usi` target as follows:
+
+```
+make usi
+```
+
+Register `sunfish_usi.exe` or `sunfish_usi` into the GUI application.
+
 ### Run unit tests
 
 ```
@@ -65,8 +70,15 @@ make test
 ### Run benchmark tests
 
 ```
-make benchmark
+make bm
 ./sunfish_bm
+```
+
+### Run development tool
+
+```
+make dev
+./sunfish_dev
 ```
 
 License
