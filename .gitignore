@@ -24,6 +24,8 @@ build
 *.org
 *.tar.gz
 
+!LICENSE.txt
+
 # CMake
 !CMakeLists.txt
 
