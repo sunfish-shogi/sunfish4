@@ -411,7 +411,7 @@ template void MoveGenerator::generateDrops<Turn::White>(const Position&, Moves&,
 
 template <Turn turn>
 void MoveGenerator::generateEvasions(const Position& pos, CheckState checkState, Moves& moves) {
-  assert(checkState.from1.isValid());
+  assert(isChecking(checkState));
 
   auto kingSquare = turn == Turn::Black ? pos.getBlackKingSquare() : pos.getWhiteKingSquare();
 

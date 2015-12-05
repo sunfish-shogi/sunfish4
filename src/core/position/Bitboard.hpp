@@ -156,6 +156,11 @@ public:
 
   std::string toString() const;
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Bitboard& bb) {
+    os << bb.toString();
+    return os;
+  }
+
 private:
 
   static std::array<Bitboard, NUMBER_OF_SQUARES> Mask;
@@ -182,19 +187,14 @@ public:
 
   std::string toString() const;
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::RotatedBitboard& bb) {
+    os << bb.toString();
+    return os;
+  }
+
 };
 
 } // namespace sunfish
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::Bitboard& bb) {
-  os << bb.toString();
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::RotatedBitboard& bb) {
-  os << bb.toString();
-  return os;
-}
 
 #define BB_EACH(square, bb) for (sunfish::Square square(bb.pickFirst()); square.isValid(); square = Square(bb.pickFirst()))
 

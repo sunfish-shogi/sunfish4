@@ -7,6 +7,7 @@
 #define SUNFISH_USI_CLIENT_USICLIENT_HPP__
 
 #include "core/position/Position.hpp"
+#include "search/Searcher.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -87,12 +88,10 @@ private:
   static std::string toString(State state);
 
   State state_;
-
   SearchConfig config_;
-
   bool positionIsInitialized_;
-
   Position position_;
+  Searcher searcher_;
 
 };
 

@@ -6,7 +6,7 @@
 #include "usi/client/UsiClient.hpp"
 #include "common/util/StringUtil.hpp"
 #include "core/record/SfenParser.hpp"
-#include "search/RandomSearcher.hpp"
+#include "search/eval/Material.hpp"
 #include "logger/Logger.hpp"
 #include <sstream>
 #include <utility>
@@ -261,16 +261,45 @@ bool UsiClient::onStop(const CommandArguments&) {
 }
 
 void UsiClient::search() {
-  RandomSearcher searcher;
-  Move move;
-  bool searchOk = searcher.search(position_, move);
+  int depth = 3;
+
+  bool searchOk = searcher_.search(position_, depth * Searcher::Depth1Ply);
 
   if (!searchOk) {
     send("bestmove", "resign");
     return;
   }
 
-  send("bestmove", move.toStringSFEN());
+  const auto& info = searcher_.getInfo();
+
+  Loggers::message << std::move(info.value);
+
+  if (info.value > -Value::mate() && info.value < Value::mate()) {
+    int valueCentiPawn = info.value.raw() * 100.0 / material::Pawn;
+
+    send("info",
+         "depth", depth,
+         "currmove", info.move.toStringSFEN(),
+         "score", "cp", valueCentiPawn,
+         "pv", info.pv.toStringSFEN());
+
+  } else {
+    int plyToMate;
+    if (info.value >= 0) {
+      plyToMate = (Value::infinity() - info.value).raw();
+    } else {
+      plyToMate = (Value::infinity() + info.value).raw();
+    }
+
+    send("info",
+         "depth", depth,
+         "currmove", info.move.toStringSFEN(),
+         "score", "mate", plyToMate,
+         "pv", info.pv.toStringSFEN());
+
+  }
+
+  send("bestmove", info.move.toStringSFEN());
 
 }
 

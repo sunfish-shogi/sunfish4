@@ -6,8 +6,8 @@
 #ifndef SUNFISH_CORE_MOVE_MOVEGENERATOR_HPP__
 #define SUNFISH_CORE_MOVE_MOVEGENERATOR_HPP__
 
-#include "core/position/Position.hpp"
 #include "core/move/Moves.hpp"
+#include "core/position/Position.hpp"
 
 namespace sunfish {
 

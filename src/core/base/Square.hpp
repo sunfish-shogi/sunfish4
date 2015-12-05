@@ -723,6 +723,11 @@ public:
    */
   static Square parseSFEN(const char* str);
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {
+    os << square.toString();
+    return os;
+  }
+
 private:
 
   static const uint8_t rotate90Table[81];
@@ -743,11 +748,6 @@ inline bool operator==(uint8_t lhs, const sunfish::Square& rhs) {
 
 inline bool operator!=(uint8_t lhs, const sunfish::Square& rhs) {
   return lhs != rhs.raw();
-}
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {
-  os << square.toString();
-  return os;
 }
 
 #endif // SUNFISH_CORE_BASE_SQUARE_HPP__

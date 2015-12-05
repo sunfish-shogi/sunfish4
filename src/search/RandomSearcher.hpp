@@ -1,5 +1,5 @@
 /* RandomSearcher.hpp
- * 
+ *
  * Kubo Ryosuke
  */
 

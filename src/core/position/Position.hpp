@@ -31,6 +31,10 @@ struct CheckState {
   Square from2;
 };
 
+inline bool isChecking(const CheckState& cs) {
+  return cs.from1.isValid();
+}
+
 class Position {
 public:
 
@@ -319,8 +323,7 @@ public:
    */
   bool isMate() const {
     CheckState checkState = getCheckState();
-    if (!checkState.from1.isValid() &&
-        !checkState.from2.isValid()) {
+    if (!isChecking(checkState)) {
       return false;
     }
     return isMate(checkState);
@@ -359,6 +362,11 @@ public:
    * Get a string of SFEN format
    */
   std::string toStringSFEN() const;
+
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Position& position) {
+    os << position.toString();
+    return os;
+  }
 
 private:
 
@@ -510,11 +518,6 @@ private:
 
 };
 
-}
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::Position& position) {
-  os << position.toString();
-  return os;
 }
 
 #endif // SUNFISH_CORE_POSITION_POSITION_HPP__

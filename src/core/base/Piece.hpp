@@ -251,6 +251,11 @@ public:
    */
   static PieceType parse(const char* str);
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::PieceType& piece) {
+    os << piece.toString();
+    return os;
+  }
+
 };
 
 template <class T>
@@ -371,6 +376,11 @@ public:
    */
   static Piece parseSFEN(const char* str);
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Piece& piece) {
+    os << piece.toString();
+    return os;
+  }
+
 };
 
 template <class T>
@@ -390,15 +400,5 @@ CONSTEXPR Piece AbstractPieceType<T>::white() const {
 #define PIECE_EACH(piece)        for (sunfish::Piece (piece) = sunfish::PieceNumber::Begin; (piece) != sunfish::PieceNumber::End; (piece) = (piece).next())
 #define PIECE_TYPE_EACH(piece)   for (sunfish::PieceType (piece) = sunfish::PieceNumber::TypeBegin; (piece) != sunfish::PieceNumber::TypeEnd; (piece) = (piece).next())
 #define HAND_EACH(piece)         for (sunfish::PieceType (piece) = sunfish::PieceNumber::HandBegin; (piece) != sunfish::PieceNumber::HandEnd; (piece) = (piece).nextUnsafe())
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::PieceType& piece) {
-  os << piece.toString();
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::Piece& piece) {
-  os << piece.toString();
-  return os;
-}
 
 #endif // SUNFISH_CORE_BASE_PIECE__

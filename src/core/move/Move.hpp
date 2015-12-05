@@ -205,6 +205,11 @@ public:
    */
   std::string toStringSFEN() const;
 
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Move& move) {
+    os << move.toString();
+    return os;
+  }
+
 private:
 
   RawType move_;
@@ -212,10 +217,5 @@ private:
 };
 
 } // namespace sunfish
-
-inline std::ostream& operator<<(std::ostream& os, const sunfish::Move& move) {
-  os << move.toString();
-  return os;
-}
 
 #endif // SUNFISH_CORE_MOVE_MOVE_HPP__
