@@ -82,7 +82,7 @@ bool UsiClient::runCommandLoop() {
     { "gameover", MAKE_COMMAND_HANDLER(onGameOver) },
   };
 
-  while (true) {
+  for (;;) {
     auto command = receive();
 
     auto isSpaceFunc = [](char c) {
@@ -288,7 +288,7 @@ void UsiClient::search() {
     if (info.value >= 0) {
       plyToMate = (Value::infinity() - info.value).raw();
     } else {
-      plyToMate = (Value::infinity() + info.value).raw();
+      plyToMate = -(Value::infinity() + info.value).raw();
     }
 
     send("info",

@@ -49,10 +49,13 @@ public:
 private:
 
   Value search(Tree& tree,
-               int ply,
                int depth,
                Value alpha,
                Value beta);
+
+  Value quies(Tree& tree,
+              Value alpha,
+              Value beta);
 
   Move nextMove(Node& node);
 

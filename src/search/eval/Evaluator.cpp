@@ -15,7 +15,9 @@ Evaluator::Evaluator() {
 Value Evaluator::evaluateMaterial(const Position& position) const {
   Value value = Value::zero();
 
-  SQUARE_EACH(square) {
+  Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
+
+  BB_EACH(square, occ) {
     Piece piece = position.getPieceOnBoard(square);
 
     if (piece.type() == PieceType::king()) {
