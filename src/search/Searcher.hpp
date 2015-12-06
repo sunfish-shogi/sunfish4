@@ -54,6 +54,8 @@ private:
                Value alpha,
                Value beta);
 
+  Move nextMove(Node& node);
+
   Random random_;
 
   Evaluator evaluator_;

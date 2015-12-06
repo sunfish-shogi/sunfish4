@@ -15,6 +15,7 @@ namespace sunfish {
 struct Node {
   CheckState checkState;
   Moves moves;
+  Moves::iterator currentMove;
   PV pv;
 };
 

@@ -37,7 +37,12 @@ bool Searcher::search(const Position& pos,
 
   Move bestMove = Move::empty();
 
-  for (Move& move : node.moves) {
+  for (;;) {
+    Move move = nextMove(node);
+    if (move.isEmpty()) {
+      break;
+    }
+
     bool moveOk = tree.position.doMove(move);
     if (!moveOk) {
       continue;
@@ -99,7 +104,12 @@ Value Searcher::search(Tree& tree,
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 
-  for (Move& move : node.moves) {
+  for (;;) {
+    Move move = nextMove(node);
+    if (move.isEmpty()) {
+      break;
+    }
+
     bool moveOk = tree.position.doMove(move);
     if (!moveOk) {
       continue;
@@ -126,6 +136,14 @@ Value Searcher::search(Tree& tree,
   }
 
   return alpha;
+}
+
+Move Searcher::nextMove(Node& node) {
+  if (node.currentMove == node.moves.end()) {
+    return Move::empty();
+  }
+
+  return *(node.currentMove++);
 }
 
 } // namespace sunfish
