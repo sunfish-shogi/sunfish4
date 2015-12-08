@@ -31,6 +31,13 @@ public:
     PV pv;
   };
 
+  class Handler {
+  public:
+    virtual void onUpdatePV(const PV& pv, int depth, Value value) = 0;
+    virtual void onFailLow(const PV& pv, int depth, Value value) = 0;
+    virtual void onFailHigh(const PV& pv, int depth, Value value) = 0;
+  };
+
   Searcher();
 
   bool search(const Position& pos,
@@ -58,6 +65,10 @@ public:
 
   void interrupt() {
     interrupted_ = true;
+  }
+
+  void setHandler(Handler* handler) {
+    handler_ = handler;
   }
 
 private:
@@ -90,6 +101,8 @@ private:
   Info info_;
 
   std::atomic<bool> interrupted_;
+
+  Handler* handler_;
 
 };
 

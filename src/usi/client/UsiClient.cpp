@@ -26,8 +26,9 @@ const char* Author = "Kubo Ryosuke";
 namespace sunfish {
 
 UsiClient::UsiClient() :
-  state_(State::None),
-  positionIsInitialized_(false) {
+    state_(State::None),
+    positionIsInitialized_(false) {
+  searcher_.setHandler(this);
 }
 
 bool UsiClient::start() {
@@ -264,39 +265,9 @@ bool UsiClient::onStop(const CommandArguments&) {
 void UsiClient::search() {
   Loggers::message << "search thread is started. tid=" << std::this_thread::get_id();
 
-  int depth = 3;
+  int depth = 5;
 
   searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
-
-  const auto& info = searcher_.getInfo();
-
-  // TODO
-  if (!info.move.isEmpty()) {
-    if (info.value > -Value::mate() && info.value < Value::mate()) {
-      int valueCentiPawn = info.value.raw() * 100.0 / material::Pawn;
-
-      send("info",
-           "depth", depth,
-           "currmove", info.move.toStringSFEN(),
-           "score", "cp", valueCentiPawn,
-           "pv", info.pv.toStringSFEN());
-
-    } else {
-      int plyToMate;
-      if (info.value >= 0) {
-        plyToMate = (Value::infinity() - info.value).raw();
-      } else {
-        plyToMate = -(Value::infinity() + info.value).raw();
-      }
-
-      send("info",
-           "depth", depth,
-           "currmove", info.move.toStringSFEN(),
-           "score", "mate", plyToMate,
-           "pv", info.pv.toStringSFEN());
-
-    }
-  }
 
   if (!config_.infinite) {
     sendBestMove();
@@ -305,6 +276,47 @@ void UsiClient::search() {
   changeState(State::Ready);
 
   Loggers::message << "search thread is stopped. tid=" << std::this_thread::get_id();
+}
+
+void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
+  if (pv.size() == 0) {
+    Loggers::warning << "PV is empty: " << __FILE__ << ':' << __LINE__;
+    return;
+  }
+
+  if (value > -Value::mate() && value < Value::mate()) {
+    int valueCentiPawn = value.raw() * 100.0 / material::Pawn;
+
+    send("info",
+         "depth", depth,
+         "currmove", pv.get(0).toStringSFEN(),
+         "score", "cp", valueCentiPawn,
+         "pv", pv.toStringSFEN());
+
+  } else {
+    int plyToMate;
+    if (value >= 0) {
+      plyToMate = (Value::infinity() - value).raw();
+    } else {
+      plyToMate = -(Value::infinity() + value).raw();
+    }
+
+    send("info",
+         "depth", depth,
+         "currmove", pv.get(0).toStringSFEN(),
+         "score", "mate", plyToMate,
+         "pv", pv.toStringSFEN());
+  }
+}
+
+void UsiClient::onFailLow(const PV& pv, int depth, Value value) {
+  onUpdatePV(pv, depth, value);
+  send("info", "string", "fail-low");
+}
+
+void UsiClient::onFailHigh(const PV& pv, int depth, Value value) {
+  onUpdatePV(pv, depth, value);
+  send("info", "string", "fail-high");
 }
 
 void UsiClient::stopSearchIfRunning() {

@@ -8,9 +8,18 @@
 #include "logger/Logger.hpp"
 #include <algorithm>
 
+namespace {
+
+using namespace sunfish;
+
+CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
+
+}
+
 namespace sunfish {
 
-Searcher::Searcher() {
+Searcher::Searcher() :
+  handler_(nullptr) {
 }
 
 void Searcher::onSearchStarted() {
@@ -163,7 +172,7 @@ bool Searcher::aspsearch(Tree& tree,
     return false;
   }
 
-  Value bestValue = -Value::infinity();
+  bool doAsp = depth >= AspirationSearchMinDepth;
 
   Value prevValue = values[0];
   Value alphas[] = {
@@ -176,8 +185,10 @@ bool Searcher::aspsearch(Tree& tree,
     prevValue + 256,
     Value::infinity()
   };
-  int alphaIndex = 0;
-  int betaIndex = 0;
+  int alphaIndex = doAsp ? 0 : 2;
+  int betaIndex = doAsp ? 0 : 2;
+
+  Value bestValue = -Value::infinity();
 
   for (size_t i = 0; i < node.moves.size();) {
     Value alpha = std::max(alphas[alphaIndex], bestValue);
@@ -211,8 +222,9 @@ bool Searcher::aspsearch(Tree& tree,
     if (value <= alphas[alphaIndex] && value >= bestValue) {
       alphaIndex++;
       pv.set(move, node.pv);
-      Loggers::message << "fail-low";
-      Loggers::message << pv;
+      if (handler_ != nullptr) {
+        handler_->onFailLow(pv, depth, value);
+      }
       continue;
     }
 
@@ -220,15 +232,18 @@ bool Searcher::aspsearch(Tree& tree,
     if (value >= beta && beta != Value::infinity()) {
       betaIndex++;
       pv.set(move, node.pv);
-      Loggers::message << "fail-high";
-      Loggers::message << pv;
+      if (handler_ != nullptr) {
+        handler_->onFailHigh(pv, depth, value);
+      }
       continue;
     }
 
     if (value > bestValue) {
       bestValue = value;
       pv.set(move, node.pv);
-      Loggers::message << pv;
+      if (handler_ != nullptr) {
+        handler_->onUpdatePV(pv, depth, value);
+      }
     }
 
     values[i] = value;

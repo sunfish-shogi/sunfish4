@@ -18,7 +18,7 @@
 
 namespace sunfish {
 
-class UsiClient {
+class UsiClient : public Searcher::Handler{
 private:
 
   using CommandArguments = std::vector<std::string>;
@@ -63,6 +63,12 @@ private:
   bool onStop(const CommandArguments&);
 
   void search();
+
+  void onUpdatePV(const PV& pv, int depth, Value value) override;
+
+  void onFailLow(const PV& pv, int depth, Value value) override;
+
+  void onFailHigh(const PV& pv, int depth, Value value) override;
 
   void stopSearchIfRunning();
 
