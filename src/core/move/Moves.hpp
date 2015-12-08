@@ -12,6 +12,8 @@
 #include <sstream>
 #include <cstdint>
 
+#define MAX_NUMBER_OF_MOVES 1024
+
 namespace sunfish {
 
 template <uint32_t capacity>
@@ -191,7 +193,7 @@ private:
 
 };
 
-using Moves = MoveArray<1024>;
+using Moves = MoveArray<MAX_NUMBER_OF_MOVES>;
 
 } // namespace sunfish
 

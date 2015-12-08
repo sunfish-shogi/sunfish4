@@ -15,6 +15,25 @@ Searcher::Searcher() {
 
 void Searcher::onSearchStarted() {
   interrupted_ = false;
+  info_.move = Move::empty();
+  info_.value = Value::zero();
+  info_.pv.clear();
+}
+
+void Searcher::generateMovesOnRoot(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  node.checkState = tree.position.getCheckState();
+
+  // generate moves
+  if (!isChecking(node.checkState)) {
+    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
+  } else {
+    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+  }
+
+  random_.shuffle(node.moves.begin(), node.moves.end());
 }
 
 bool Searcher::search(const Position& pos,
@@ -29,17 +48,7 @@ bool Searcher::search(const Position& pos,
   auto& node = tree.nodes[tree.ply];
   arrive(node);
 
-  node.checkState = tree.position.getCheckState();
-
-  // generate moves
-  if (!isChecking(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-  }
-
-  random_.shuffle(node.moves.begin(), node.moves.end());
+  generateMovesOnRoot(tree);
 
   Move bestMove = Move::empty();
   PV pv;
@@ -85,6 +94,164 @@ bool Searcher::search(const Position& pos,
   info_.pv = pv;
 
   return hasBestMove;
+}
+
+bool Searcher::idsearch(const Position& pos,
+                        int depth) {
+  onSearchStarted();
+
+  auto& tree = treeOnMainThread_;
+  initializeTree(tree, pos);
+
+  auto& node = tree.nodes[tree.ply];
+  arrive(node);
+
+  generateMovesOnRoot(tree);
+
+  bool ok = false;
+  PV pv;
+  ValueArray values;
+
+  for (size_t i = 0; i < node.moves.size();) {
+    Move move = node.moves[i];
+
+    bool moveOk = doMove(tree, move);
+    if (!moveOk) {
+      node.moves.remove(i);
+      continue;
+    }
+
+    values[i] = quies(tree,
+                      -Value::infinity(),
+                      Value::infinity());
+
+    undoMove(tree, move);
+
+    i++;
+  }
+
+  if (node.moves.size() == 0) {
+    return false;
+  }
+
+  for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
+    ok = aspsearch(tree, currDepth, pv, values);
+
+    if (!ok) {
+      break;
+    }
+
+    if (currDepth >= depth) {
+      break;
+    }
+  }
+
+  info_.move = node.moves[0];
+  info_.value = values[0];
+  info_.pv = pv;
+
+  return ok;
+}
+
+bool Searcher::aspsearch(Tree& tree,
+                         int depth,
+                         PV& pv,
+                         ValueArray& values) {
+  auto& node = tree.nodes[tree.ply];
+
+  if (node.moves.size() == 0) {
+    return false;
+  }
+
+  Value bestValue = -Value::infinity();
+
+  Value prevValue = values[0];
+  Value alphas[] = {
+    prevValue - 128,
+    prevValue - 256,
+    -Value::infinity()
+  };
+  Value betas[] = {
+    prevValue + 128,
+    prevValue + 256,
+    Value::infinity()
+  };
+  int alphaIndex = 0;
+  int betaIndex = 0;
+
+  for (size_t i = 0; i < node.moves.size();) {
+    Value alpha = std::max(alphas[alphaIndex], bestValue);
+    Value beta = betas[betaIndex];
+
+    if (bestValue >= beta) {
+      Loggers::warning << "invalid state: " << __FILE__ << ':' << __LINE__;
+    }
+
+    Move move = node.moves[i];
+
+    bool moveOk = doMove(tree, move);
+    if (!moveOk) {
+      Loggers::warning << "invalid state: " << __FILE__ << ':' << __LINE__;
+      i++;
+      continue;
+    }
+
+    Value value = -search(tree,
+                          depth - Depth1Ply,
+                          -beta,
+                          -alpha);
+
+    undoMove(tree, move);
+
+    if (interrupted_) {
+      break;
+    }
+
+    // fail-low
+    if (value <= alphas[alphaIndex] && value >= bestValue) {
+      alphaIndex++;
+      pv.set(move, node.pv);
+      Loggers::message << "fail-low";
+      Loggers::message << pv;
+      continue;
+    }
+
+    // fail-high
+    if (value >= beta && beta != Value::infinity()) {
+      betaIndex++;
+      pv.set(move, node.pv);
+      Loggers::message << "fail-high";
+      Loggers::message << pv;
+      continue;
+    }
+
+    if (value > bestValue) {
+      bestValue = value;
+      pv.set(move, node.pv);
+      Loggers::message << pv;
+    }
+
+    values[i] = value;
+
+    // insertion
+    for (int j = i - 1; j >= 0; j--) {
+      if (values[j] >= values[j+1]) {
+        break;
+      }
+
+      Move tm = node.moves[j];
+      node.moves[j] = node.moves[j+1];
+      node.moves[j+1] = tm;
+
+      Value tv = values[j];
+      values[j] = values[j+1];
+      values[j+1] = tv;
+    }
+
+    i++;
+  }
+
+  return bestValue > -Value::mate() && bestValue < Value::mate();
 }
 
 Value Searcher::search(Tree& tree,

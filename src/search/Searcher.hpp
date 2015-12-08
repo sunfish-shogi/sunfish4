@@ -11,6 +11,7 @@
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
 #include <atomic>
+#include <array>
 
 namespace sunfish {
 
@@ -19,6 +20,8 @@ class Move;
 
 class Searcher {
 public:
+
+  using ValueArray = std::array<Value, MAX_NUMBER_OF_MOVES>;
 
   static CONSTEXPR_CONST int Depth1Ply = 8;
 
@@ -43,6 +46,12 @@ public:
               Value alpha,
               Value beta);
 
+  /**
+   * iterative deepening search.
+   */
+  bool idsearch(const Position& pos,
+                int depth);
+
   const Info& getInfo() {
     return info_;
   }
@@ -54,6 +63,13 @@ public:
 private:
 
   void onSearchStarted();
+
+  void generateMovesOnRoot(Tree& tree);
+
+  bool aspsearch(Tree& tree,
+                 int depth,
+                 PV& pv,
+                 ValueArray& values);
 
   Value search(Tree& tree,
                int depth,

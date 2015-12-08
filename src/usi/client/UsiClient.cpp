@@ -190,7 +190,7 @@ bool UsiClient::onPosition(const CommandArguments& args) {
     }
   }
 
-  Loggers::message << position_.toString();
+  Loggers::message << position_;
  
   return true;
 }
@@ -266,11 +266,9 @@ void UsiClient::search() {
 
   int depth = 3;
 
-  searcher_.search(position_, depth * Searcher::Depth1Ply);
+  searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
 
   const auto& info = searcher_.getInfo();
-
-  Loggers::message << std::move(info.value);
 
   // TODO
   if (!info.move.isEmpty()) {
