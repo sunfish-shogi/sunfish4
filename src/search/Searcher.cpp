@@ -289,6 +289,9 @@ Value Searcher::search(Tree& tree,
                  beta);
   }
 
+  auto& node = tree.nodes[tree.ply];
+  arrive(node);
+
   // static evaluation
   if (tree.ply >= Tree::StackSize) {
     Value standPat = evaluator_.evaluateMaterial(tree.position);
@@ -307,9 +310,6 @@ Value Searcher::search(Tree& tree,
       return upperValue;
     }
   }
-
-  auto& node = tree.nodes[tree.ply];
-  arrive(node);
 
   node.checkState = tree.position.getCheckState();
 
@@ -363,6 +363,9 @@ Value Searcher::search(Tree& tree,
 Value Searcher::quies(Tree& tree,
                       Value alpha,
                       Value beta) {
+  auto& node = tree.nodes[tree.ply];
+  arrive(node);
+
   Turn turn = tree.position.getTurn();
 
   Value standPat = evaluator_.evaluateMaterial(tree.position);
@@ -373,9 +376,6 @@ Value Searcher::quies(Tree& tree,
   }
 
   alpha = std::max(alpha, standPat);
-
-  auto& node = tree.nodes[tree.ply];
-  arrive(node);
 
   node.checkState = tree.position.getCheckState();
 
