@@ -96,6 +96,7 @@ bool UsiClient::runCommandLoop() {
     }
 
     if (args[0] == "quit") {
+      stopSearchIfRunning();
       Loggers::message << "quit";
       return true;
     }
@@ -321,6 +322,7 @@ void UsiClient::onFailHigh(const PV& pv, int depth, Value value) {
 
 void UsiClient::stopSearchIfRunning() {
   if (searchThread_.get() && searchThread_->joinable()) {
+    Loggers::message << "stopping search thread..";
     searcher_.interrupt();
     searchThread_->join();
   }
