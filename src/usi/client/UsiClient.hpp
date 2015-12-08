@@ -11,6 +11,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
+#include <thread>
+#include <mutex>
+#include <cstdint>
 
 namespace sunfish {
 
@@ -19,7 +23,7 @@ private:
 
   using CommandArguments = std::vector<std::string>;
 
-  enum class State {
+  enum class State : uint8_t {
     None,
     Ready,
     Ponder,
@@ -60,6 +64,10 @@ private:
 
   void search();
 
+  void stopSearchIfRunning();
+
+  void sendBestMove();
+
   bool onPonderhit(const CommandArguments&);
 
   bool onGameOver(const CommandArguments&);
@@ -87,11 +95,16 @@ private:
 
   static std::string toString(State state);
 
-  State state_;
-  SearchConfig config_;
+  std::atomic<State> state_;
+
   bool positionIsInitialized_;
   Position position_;
+
+  SearchConfig config_;
   Searcher searcher_;
+
+  std::unique_ptr<std::thread> searchThread_;
+  std::mutex sendMutex_;
 
 };
 

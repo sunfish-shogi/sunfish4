@@ -85,10 +85,9 @@ bool UsiClient::runCommandLoop() {
   for (;;) {
     auto command = receive();
 
-    auto isSpaceFunc = [](char c) {
+    auto args = StringUtil::split(command, [](char c) {
       return isspace(c);
-    };
-    auto args = StringUtil::split(command, isSpaceFunc);
+    });
 
     if (args.empty()) {
       Loggers::warning << "empty line is received.";
@@ -241,66 +240,90 @@ bool UsiClient::onGo(const CommandArguments& args) {
   Loggers::message << "byoyomi   = " << config_.byoyomiMilliSeconds;
   Loggers::message << "inifinite = " << (config_.infinite ? "true" : "false");
 
-  if (config_.infinite) {
-    return true;
-  }
+  stopSearchIfRunning();
 
-  search();
+  changeState(State::Search);
+
+  searchThread_.reset(new std::thread([this]() {
+    search();
+  }));
  
   return true;
 }
 
 bool UsiClient::onStop(const CommandArguments&) {
-  if (!checkStateIn(State::Ponder, State::Search)) {
-    Loggers::warning << "invalid state: " << toString(state_);
-  }
+  stopSearchIfRunning();
 
-  search();
+  if (config_.infinite) {
+    sendBestMove();
+  }
  
   return true;
 }
 
 void UsiClient::search() {
+  Loggers::message << "search thread is started. tid=" << std::this_thread::get_id();
+
   int depth = 3;
 
-  bool searchOk = searcher_.search(position_, depth * Searcher::Depth1Ply);
-
-  if (!searchOk) {
-    send("bestmove", "resign");
-    return;
-  }
+  searcher_.search(position_, depth * Searcher::Depth1Ply);
 
   const auto& info = searcher_.getInfo();
 
   Loggers::message << std::move(info.value);
 
-  if (info.value > -Value::mate() && info.value < Value::mate()) {
-    int valueCentiPawn = info.value.raw() * 100.0 / material::Pawn;
+  // TODO
+  if (!info.move.isEmpty()) {
+    if (info.value > -Value::mate() && info.value < Value::mate()) {
+      int valueCentiPawn = info.value.raw() * 100.0 / material::Pawn;
 
-    send("info",
-         "depth", depth,
-         "currmove", info.move.toStringSFEN(),
-         "score", "cp", valueCentiPawn,
-         "pv", info.pv.toStringSFEN());
+      send("info",
+           "depth", depth,
+           "currmove", info.move.toStringSFEN(),
+           "score", "cp", valueCentiPawn,
+           "pv", info.pv.toStringSFEN());
 
-  } else {
-    int plyToMate;
-    if (info.value >= 0) {
-      plyToMate = (Value::infinity() - info.value).raw();
     } else {
-      plyToMate = -(Value::infinity() + info.value).raw();
+      int plyToMate;
+      if (info.value >= 0) {
+        plyToMate = (Value::infinity() - info.value).raw();
+      } else {
+        plyToMate = -(Value::infinity() + info.value).raw();
+      }
+
+      send("info",
+           "depth", depth,
+           "currmove", info.move.toStringSFEN(),
+           "score", "mate", plyToMate,
+           "pv", info.pv.toStringSFEN());
+
     }
-
-    send("info",
-         "depth", depth,
-         "currmove", info.move.toStringSFEN(),
-         "score", "mate", plyToMate,
-         "pv", info.pv.toStringSFEN());
-
   }
 
-  send("bestmove", info.move.toStringSFEN());
+  if (!config_.infinite) {
+    sendBestMove();
+  }
 
+  changeState(State::Ready);
+
+  Loggers::message << "search thread is stopped. tid=" << std::this_thread::get_id();
+}
+
+void UsiClient::stopSearchIfRunning() {
+  if (searchThread_.get() && searchThread_->joinable()) {
+    searcher_.interrupt();
+    searchThread_->join();
+  }
+}
+
+void UsiClient::sendBestMove() {
+  const auto& info = searcher_.getInfo();
+
+  if (!info.move.isEmpty()) {
+    send("bestmove", info.move.toStringSFEN());
+  } else {
+    send("bestmove", "resign");
+  }
 }
 
 bool UsiClient::onPonderhit(const CommandArguments&) {
@@ -324,6 +347,8 @@ std::string UsiClient::receive() {
 
 template <class T>
 void UsiClient::send(T&& command) {
+  std::lock_guard<std::mutex> lock(sendMutex_);
+
   std::cout << command << std::endl;
   Loggers::send << command;
 }

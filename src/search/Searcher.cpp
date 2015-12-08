@@ -13,10 +13,16 @@ namespace sunfish {
 Searcher::Searcher() {
 }
 
+void Searcher::onSearchStarted() {
+  interrupted_ = false;
+}
+
 bool Searcher::search(const Position& pos,
                       int depth,
                       Value alpha,
                       Value beta) {
+  onSearchStarted();
+
   auto& tree = treeOnMainThread_;
   initializeTree(tree, pos);
 
@@ -56,6 +62,10 @@ bool Searcher::search(const Position& pos,
                           -alpha);
 
     undoMove(tree, move);
+
+    if (interrupted_) {
+      break;
+    }
 
     if (value > alpha) {
       alpha = value;
@@ -147,6 +157,10 @@ Value Searcher::search(Tree& tree,
                           -alpha);
 
     undoMove(tree, move);
+
+    if (interrupted_) {
+      return Value::zero();
+    }
 
     if (value > alpha) {
       alpha = value;

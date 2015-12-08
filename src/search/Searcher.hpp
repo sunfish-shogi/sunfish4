@@ -10,6 +10,7 @@
 #include "search/tree/Tree.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
+#include <atomic>
 
 namespace sunfish {
 
@@ -46,7 +47,13 @@ public:
     return info_;
   }
 
+  void interrupt() {
+    interrupted_ = true;
+  }
+
 private:
+
+  void onSearchStarted();
 
   Value search(Tree& tree,
                int depth,
@@ -65,6 +72,8 @@ private:
   Tree treeOnMainThread_;
 
   Info info_;
+
+  std::atomic<bool> interrupted_;
 
 };
 
