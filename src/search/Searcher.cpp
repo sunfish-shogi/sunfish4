@@ -404,7 +404,7 @@ Value Searcher::search(Tree& tree,
                       -(alpha + 1),
                       -alpha);
 
-      if (!interrupted_ && value > alpha && value < beta && isNullWindow) {
+      if (!interrupted_ && value > alpha && value < beta && !isNullWindow) {
         value = -search(tree,
                         newDepth,
                         -beta,
