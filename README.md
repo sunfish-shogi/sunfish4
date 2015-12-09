@@ -1,19 +1,20 @@
 Sunfish
 ========
 
-Sunfish is computer Shogi program. This is 4th version of Sunfish.
+Sunfish is computer Shogi(Jpanese Chess) program. This is 4th version of Sunfish.
 
 ##### Older Versions
 
 - [Sunfish](https://github.com/sunfish-shogi/sunfish)
  + 2008 ~ 2012
- + Participated in WCSC2011 and WCSC2012(Rookie Award).
+ + Participated in [WCSC(World Computer Shogi Championship)2011](http://www.computer-shogi.org/wcsc21/) and [WCSC2012](http://www.computer-shogi.org/wcsc22/).
+ + Rookie Award in WCSC2012
 - [Sunfish2](https://github.com/sunfish-shogi/sunfish2)
  + 2012 ~ 2013
- + Participated in WCSC2013
+ + Participated in [WCSC2013](http://www.computer-shogi.org/wcsc23/)
 - [Sunfish3](https://github.com/sunfish-shogi/sunfish3)
  + 2014 ~ 2015
- + Participated in WCSC2015
+ + Participated in [WCSC2015](http://www.computer-shogi.org/wcsc25/)
 
 Requirement
 -----------
@@ -52,6 +53,9 @@ Usage
 
 ### USI Engine
 
+USI(Universal Shogi Interface) is a protocol used for communication between Shogi engine and GUI application.
+See [About USI Protocol](http://www.geocities.jp/shogidokoro/usi.html).
+
 Build `src/usi`.
 If you use `make`, execute with `usi` target as follows:
 
@@ -61,24 +65,24 @@ make usi
 
 Register `sunfish_usi.exe` or `sunfish_usi` into the GUI application.
 
-### Run unit tests
+### Unit tests
 
 ```
 make test
 ```
 
-### Run benchmark tests
+### Benchmark tests
 
 ```
 make bm
 ./sunfish_bm
 ```
 
-### Run development tool
+### Development tool
 
 ```
 make dev
-./sunfish_dev
+./sunfish_dev OPTION
 ```
 
 License
