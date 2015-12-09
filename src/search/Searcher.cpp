@@ -15,7 +15,7 @@ using namespace sunfish;
 
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
-}
+} // namespace
 
 namespace sunfish {
 
@@ -42,22 +42,6 @@ void Searcher::updateInfo() {
   mergeSearchInfo(info_, workerOnMainThread_.info);
 }
 
-void Searcher::generateMovesOnRoot(Tree& tree) {
-  auto& node = tree.nodes[tree.ply];
-
-  node.checkState = tree.position.getCheckState();
-
-  // generate moves
-  if (!isChecking(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-  }
-
-  random_.shuffle(node.moves.begin(), node.moves.end());
-}
-
 bool Searcher::search(const Position& pos,
                       int depth,
                       Score alpha,
@@ -79,7 +63,7 @@ bool Searcher::search(const Position& pos,
 
   // expand the branches
   for (;;) {
-    Move move = nextMove(node);
+    Move move = nextMoveOnRoot(node);
     if (move.isEmpty()) {
       break;
     }
@@ -309,10 +293,6 @@ bool Searcher::aspsearch(Tree& tree,
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, childNode.pv);
-
-      if (handler_ != nullptr) {
-        handler_->onUpdatePV(node.pv, depth, score);
-      }
     }
 
     scores[i] = score;
@@ -335,6 +315,10 @@ bool Searcher::aspsearch(Tree& tree,
     i++;
 
     isFirst = false;
+  }
+
+  if (handler_ != nullptr && node.pv.size() != 0) {
+    handler_->onUpdatePV(node.pv, depth, bestScore);
   }
 
   return bestScore > -Score::mate() && bestScore < Score::mate();
@@ -385,15 +369,7 @@ Score Searcher::search(Tree& tree,
     }
   }
 
-  node.checkState = tree.position.getCheckState();
-
-  // generate moves
-  if (!isChecking(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-  }
+  generateMoves(tree);
 
   bool isNullWindow = alpha + 1 == beta;
 
@@ -401,7 +377,7 @@ Score Searcher::search(Tree& tree,
 
   // expand the branches
   for (;;) {
-    Move move = nextMove(node);
+    Move move = nextMove(tree);
     if (move.isEmpty()) {
       break;
     }
@@ -478,18 +454,11 @@ Score Searcher::quies(Tree& tree,
 
   alpha = std::max(alpha, standPat);
 
-  node.checkState = tree.position.getCheckState();
-
-  // generate moves
-  if (!isChecking(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-  }
+  generateMovesOnQuies(tree);
 
   // expand the branches
   for (;;) {
-    Move move = nextMove(node);
+    Move move = nextMoveOnQuies(node);
     if (move.isEmpty()) {
       break;
     }
@@ -521,7 +490,88 @@ Score Searcher::quies(Tree& tree,
   return alpha;
 }
 
-Move Searcher::nextMove(Node& node) {
+void Searcher::generateMovesOnRoot(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  node.checkState = tree.position.getCheckState();
+
+  // generate moves
+  if (!isChecking(node.checkState)) {
+    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
+  } else {
+    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+  }
+
+  random_.shuffle(node.moves.begin(), node.moves.end());
+}
+
+Move Searcher::nextMoveOnRoot(Node& node) {
+  if (node.currentMove == node.moves.end()) {
+    return Move::empty();
+  }
+
+  return *(node.currentMove++);
+}
+
+void Searcher::generateMoves(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  node.checkState = tree.position.getCheckState();
+
+  // generate moves
+  if (!isChecking(node.checkState)) {
+    node.genPhase = GenPhase::CapturingMoves;
+  } else {
+    node.genPhase = GenPhase::Evasions;
+  }
+}
+
+Move Searcher::nextMove(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  for (;;) {
+    if (node.currentMove != node.moves.end()) {
+      return *(node.currentMove++);
+    }
+
+    switch (node.genPhase) {
+    case GenPhase::CapturingMoves:
+      MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+      node.genPhase = GenPhase::NotCapturingMoves;
+      break;
+
+    case GenPhase::NotCapturingMoves:
+      MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
+      node.genPhase = GenPhase::End;
+      break;
+
+    case GenPhase::Evasions:
+      MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+      node.genPhase = GenPhase::End;
+      break;
+
+    case GenPhase::End:
+      return Move::empty();
+
+    }
+  }
+}
+
+void Searcher::generateMovesOnQuies(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  node.checkState = tree.position.getCheckState();
+
+  // generate moves
+  if (!isChecking(node.checkState)) {
+    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+  } else {
+    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+  }
+}
+
+Move Searcher::nextMoveOnQuies(Node& node) {
   if (node.currentMove == node.moves.end()) {
     return Move::empty();
   }

@@ -12,9 +12,17 @@
 
 namespace sunfish {
 
+enum GenPhase {
+  CapturingMoves,
+  NotCapturingMoves,
+  Evasions,
+  End,
+};
+
 struct Node {
   CheckState checkState;
   Moves moves;
+  GenPhase genPhase;
   Moves::iterator currentMove;
   PV pv;
 };

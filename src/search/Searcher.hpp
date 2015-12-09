@@ -72,8 +72,6 @@ private:
 
   void updateInfo();
 
-  void generateMovesOnRoot(Tree& tree);
-
   bool aspsearch(Tree& tree,
                  int depth,
                  ScoreArray& scores);
@@ -87,7 +85,17 @@ private:
               Score alpha,
               Score beta);
 
-  Move nextMove(Node& node);
+  void generateMovesOnRoot(Tree& tree);
+
+  Move nextMoveOnRoot(Node& node);
+
+  void generateMoves(Tree& tree);
+
+  Move nextMove(Tree& tree);
+
+  void generateMovesOnQuies(Tree& tree);
+
+  Move nextMoveOnQuies(Node& node);
 
   Random random_;
 
