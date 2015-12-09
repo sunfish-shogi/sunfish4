@@ -246,9 +246,13 @@ bool UsiClient::onGo(const CommandArguments& args) {
 
   changeState(State::Search);
 
+  searcherIsStarted_ = false;
+
   searchThread_.reset(new std::thread([this]() {
     search();
   }));
+
+  waitForSearcherIsStarted();
  
   return true;
 }
@@ -277,6 +281,17 @@ void UsiClient::search() {
   changeState(State::Ready);
 
   Loggers::message << "search thread is stopped. tid=" << std::this_thread::get_id();
+}
+
+void UsiClient::waitForSearcherIsStarted() {
+  while (true) {
+    std::this_thread::yield();
+    if (searcherIsStarted_) { break; }
+  }
+}
+
+void UsiClient::onStart() {
+  searcherIsStarted_ = true;
 }
 
 void UsiClient::onUpdatePV(const PV& pv, int depth, Score score) {

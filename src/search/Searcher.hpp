@@ -9,6 +9,7 @@
 #include "eval/Score.hpp"
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
+#include "search/SearchHandler.hpp"
 #include "search/tree/Tree.hpp"
 #include "search/tree/Worker.hpp"
 #include "search/eval/Evaluator.hpp"
@@ -27,13 +28,6 @@ public:
   using ScoreArray = std::array<Score, MAX_NUMBER_OF_MOVES>;
 
   static CONSTEXPR_CONST int Depth1Ply = 8;
-
-  class Handler {
-  public:
-    virtual void onUpdatePV(const PV& pv, int depth, Score score) = 0;
-    virtual void onFailLow(const PV& pv, int depth, Score score) = 0;
-    virtual void onFailHigh(const PV& pv, int depth, Score score) = 0;
-  };
 
   Searcher();
 
@@ -68,7 +62,7 @@ public:
     interrupted_ = true;
   }
 
-  void setHandler(Handler* handler) {
+  void setHandler(SearchHandler* handler) {
     handler_ = handler;
   }
 
@@ -107,7 +101,7 @@ private:
 
   std::atomic<bool> interrupted_;
 
-  Handler* handler_;
+  SearchHandler* handler_;
 
 };
 

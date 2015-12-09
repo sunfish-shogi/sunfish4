@@ -31,6 +31,10 @@ void Searcher::onSearchStarted() {
   result_.pv.clear();
 
   initializeWorker(workerOnMainThread_);
+
+  if (handler_ != nullptr) {
+    handler_->onStart();
+  }
 }
 
 void Searcher::updateInfo() {

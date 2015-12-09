@@ -18,7 +18,7 @@
 
 namespace sunfish {
 
-class UsiClient : public Searcher::Handler{
+class UsiClient : public SearchHandler{
 private:
 
   using CommandArguments = std::vector<std::string>;
@@ -64,6 +64,10 @@ private:
 
   void search();
 
+  void waitForSearcherIsStarted();
+
+  void onStart() override;
+
   void onUpdatePV(const PV& pv, int depth, Score score) override;
 
   void onFailLow(const PV& pv, int depth, Score score) override;
@@ -108,6 +112,7 @@ private:
 
   SearchConfig config_;
   Searcher searcher_;
+  std::atomic<bool> searcherIsStarted_;
 
   std::unique_ptr<std::thread> searchThread_;
   std::mutex sendMutex_;
