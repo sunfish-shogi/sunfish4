@@ -79,7 +79,6 @@ private:
 
   bool aspsearch(Tree& tree,
                  int depth,
-                 PV& pv,
                  ValueArray& values);
 
   Value search(Tree& tree,

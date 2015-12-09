@@ -289,7 +289,7 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
     int valueCentiPawn = value.raw() * 100.0 / material::Pawn;
 
     send("info",
-         "depth", depth,
+         "depth", depth / Searcher::Depth1Ply,
          "currmove", pv.get(0).toStringSFEN(),
          "score", "cp", valueCentiPawn,
          "pv", pv.toStringSFEN());
@@ -303,7 +303,7 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
     }
 
     send("info",
-         "depth", depth,
+         "depth", depth / Searcher::Depth1Ply,
          "currmove", pv.get(0).toStringSFEN(),
          "score", "mate", plyToMate,
          "pv", pv.toStringSFEN());

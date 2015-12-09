@@ -60,7 +60,8 @@ bool Searcher::search(const Position& pos,
   generateMovesOnRoot(tree);
 
   Move bestMove = Move::empty();
-  PV pv;
+
+  bool isFirst = true;
 
   // expand the branches
   for (;;) {
@@ -74,10 +75,28 @@ bool Searcher::search(const Position& pos,
       continue;
     }
 
-    Value value = -search(tree,
-                          depth - Depth1Ply,
-                          -beta,
-                          -alpha);
+    int newDepth = depth - Depth1Ply;
+
+    Value value;
+    if (isFirst) {
+      value = -search(tree,
+                      newDepth,
+                      -beta,
+                      -alpha);
+    } else {
+      // nega-scout
+      value = -search(tree,
+                      newDepth,
+                      -(alpha + 1),
+                      -alpha);
+
+      if (!interrupted_ && value > alpha && value < beta) {
+        value = -search(tree,
+                        newDepth,
+                        -beta,
+                        -alpha);
+      }
+    }
 
     undoMove(tree, move);
 
@@ -88,19 +107,22 @@ bool Searcher::search(const Position& pos,
     if (value > alpha) {
       alpha = value;
       bestMove = move;
-      pv.set(move, node.pv);
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
 
       if (value >= beta) {
         break;
       }
     }
+
+    isFirst = false;
   }
 
   bool hasBestMove = !bestMove.isEmpty();
 
   info_.move = bestMove;
   info_.value = alpha;
-  info_.pv = pv;
+  info_.pv = node.pv;
 
   return hasBestMove;
 }
@@ -118,7 +140,6 @@ bool Searcher::idsearch(const Position& pos,
   generateMovesOnRoot(tree);
 
   bool ok = false;
-  PV pv;
   ValueArray values;
 
   for (size_t i = 0; i < node.moves.size();) {
@@ -144,7 +165,7 @@ bool Searcher::idsearch(const Position& pos,
   }
 
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
-    ok = aspsearch(tree, currDepth, pv, values);
+    ok = aspsearch(tree, currDepth, values);
 
     if (!ok) {
       break;
@@ -157,14 +178,13 @@ bool Searcher::idsearch(const Position& pos,
 
   info_.move = node.moves[0];
   info_.value = values[0];
-  info_.pv = pv;
+  info_.pv = node.pv;
 
   return ok;
 }
 
 bool Searcher::aspsearch(Tree& tree,
                          int depth,
-                         PV& pv,
                          ValueArray& values) {
   auto& node = tree.nodes[tree.ply];
 
@@ -190,6 +210,9 @@ bool Searcher::aspsearch(Tree& tree,
 
   Value bestValue = -Value::infinity();
 
+  bool isFirst = true;
+
+  // expand the branches
   for (size_t i = 0; i < node.moves.size();) {
     Value alpha = std::max(alphas[alphaIndex], bestValue);
     Value beta = betas[betaIndex];
@@ -207,10 +230,28 @@ bool Searcher::aspsearch(Tree& tree,
       continue;
     }
 
-    Value value = -search(tree,
-                          depth - Depth1Ply,
-                          -beta,
-                          -alpha);
+    int newDepth = depth - Depth1Ply;
+
+    Value value;
+    if (isFirst) {
+      value = -search(tree,
+                      newDepth,
+                      -beta,
+                      -alpha);
+    } else {
+      // nega-scout
+      value = -search(tree,
+                      newDepth,
+                      -(alpha + 1),
+                      -alpha);
+
+      if (!interrupted_ && value > alpha && value < beta) {
+        value = -search(tree,
+                        newDepth,
+                        -beta,
+                        -alpha);
+      }
+    }
 
     undoMove(tree, move);
 
@@ -221,9 +262,12 @@ bool Searcher::aspsearch(Tree& tree,
     // fail-low
     if (value <= alphas[alphaIndex] && value >= bestValue) {
       alphaIndex++;
-      pv.set(move, node.pv);
+
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
+
       if (handler_ != nullptr) {
-        handler_->onFailLow(pv, depth, value);
+        handler_->onFailLow(node.pv, depth, value);
       }
       continue;
     }
@@ -231,18 +275,24 @@ bool Searcher::aspsearch(Tree& tree,
     // fail-high
     if (value >= beta && beta != Value::infinity()) {
       betaIndex++;
-      pv.set(move, node.pv);
+
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
+
       if (handler_ != nullptr) {
-        handler_->onFailHigh(pv, depth, value);
+        handler_->onFailHigh(node.pv, depth, value);
       }
       continue;
     }
 
     if (value > bestValue) {
       bestValue = value;
-      pv.set(move, node.pv);
+
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
+
       if (handler_ != nullptr) {
-        handler_->onUpdatePV(pv, depth, value);
+        handler_->onUpdatePV(node.pv, depth, value);
       }
     }
 
@@ -264,6 +314,8 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     i++;
+
+    isFirst = false;
   }
 
   return bestValue > -Value::mate() && bestValue < Value::mate();
@@ -321,6 +373,10 @@ Value Searcher::search(Tree& tree,
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 
+  bool isNullWindow = alpha + 1 == beta;
+
+  bool isFirst = true;
+
   // expand the branches
   for (;;) {
     Move move = nextMove(node);
@@ -333,10 +389,28 @@ Value Searcher::search(Tree& tree,
       continue;
     }
 
-    Value value = -search(tree,
-                          depth - Depth1Ply,
-                          -beta,
-                          -alpha);
+    int newDepth = depth - Depth1Ply;
+
+    Value value;
+    if (isFirst) {
+      value = -search(tree,
+                      newDepth,
+                      -beta,
+                      -alpha);
+    } else {
+      // nega-scout
+      value = -search(tree,
+                      newDepth,
+                      -(alpha + 1),
+                      -alpha);
+
+      if (!interrupted_ && value > alpha && value < beta && isNullWindow) {
+        value = -search(tree,
+                        newDepth,
+                        -beta,
+                        -alpha);
+      }
+    }
 
     undoMove(tree, move);
 
@@ -347,14 +421,16 @@ Value Searcher::search(Tree& tree,
     if (value > alpha) {
       alpha = value;
 
-      auto& frontierNode = tree.nodes[tree.ply-1];
-      frontierNode.pv.set(move, node.pv);
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
 
       // beta cut
       if (value >= beta) {
         break;
       }
     }
+
+    isFirst = false;
   }
 
   return alpha;
@@ -407,8 +483,8 @@ Value Searcher::quies(Tree& tree,
     if (value > alpha) {
       alpha = value;
 
-      auto& frontierNode = tree.nodes[tree.ply-1];
-      frontierNode.pv.set(move, node.pv);
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.pv.set(move, childNode.pv);
 
       // beta cut
       if (value >= beta) {
