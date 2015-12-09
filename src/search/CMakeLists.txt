@@ -4,6 +4,8 @@ add_library(search STATIC
     eval/Evaluator.cpp
     tree/Node.cpp
     tree/Tree.cpp
+    tree/Worker.cpp
     RandomSearcher.cpp
     Searcher.cpp
+    SearchInfo.cpp
 )

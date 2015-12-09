@@ -13,15 +13,20 @@
 
 namespace sunfish {
 
+struct Worker;
+
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
   Position position;
   int ply;
   Node nodes[StackSize];
+  Worker* worker;
 };
 
-void initializeTree(Tree& tree, const Position& position);
+void initializeTree(Tree& tree,
+                    const Position& position,
+                    Worker* worker);
 
 bool doMove(Tree& tree, Move& move);
 

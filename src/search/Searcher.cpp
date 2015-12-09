@@ -7,6 +7,7 @@
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
+#include <cstring>
 
 namespace {
 
@@ -24,9 +25,17 @@ Searcher::Searcher() :
 
 void Searcher::onSearchStarted() {
   interrupted_ = false;
-  info_.move = Move::empty();
-  info_.value = Value::zero();
-  info_.pv.clear();
+
+  result_.move = Move::empty();
+  result_.value = Value::zero();
+  result_.pv.clear();
+
+  initializeWorker(workerOnMainThread_);
+}
+
+void Searcher::updateInfo() {
+  initializeSearchInfo(info_);
+  mergeSearchInfo(info_, workerOnMainThread_.info);
 }
 
 void Searcher::generateMovesOnRoot(Tree& tree) {
@@ -52,7 +61,8 @@ bool Searcher::search(const Position& pos,
   onSearchStarted();
 
   auto& tree = treeOnMainThread_;
-  initializeTree(tree, pos);
+  auto& worker = workerOnMainThread_;
+  initializeTree(tree, pos, &worker);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -100,6 +110,8 @@ bool Searcher::search(const Position& pos,
 
     undoMove(tree, move);
 
+    updateInfo();
+
     if (interrupted_) {
       break;
     }
@@ -120,9 +132,9 @@ bool Searcher::search(const Position& pos,
 
   bool hasBestMove = !bestMove.isEmpty();
 
-  info_.move = bestMove;
-  info_.value = alpha;
-  info_.pv = node.pv;
+  result_.move = bestMove;
+  result_.value = alpha;
+  result_.pv = node.pv;
 
   return hasBestMove;
 }
@@ -132,7 +144,8 @@ bool Searcher::idsearch(const Position& pos,
   onSearchStarted();
 
   auto& tree = treeOnMainThread_;
-  initializeTree(tree, pos);
+  auto& worker = workerOnMainThread_;
+  initializeTree(tree, pos, &worker);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -176,9 +189,9 @@ bool Searcher::idsearch(const Position& pos,
     }
   }
 
-  info_.move = node.moves[0];
-  info_.value = values[0];
-  info_.pv = node.pv;
+  result_.move = node.moves[0];
+  result_.value = values[0];
+  result_.pv = node.pv;
 
   return ok;
 }
@@ -254,6 +267,8 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     undoMove(tree, move);
+
+    updateInfo();
 
     if (interrupted_) {
       break;
@@ -332,8 +347,6 @@ Value Searcher::search(Tree& tree,
   }
 #endif
 
-  Turn turn = tree.position.getTurn();
-
   // quiesence search
   if (depth <= 0) {
     return quies(tree,
@@ -343,6 +356,11 @@ Value Searcher::search(Tree& tree,
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
+
+  auto& worker = *tree.worker;
+  worker.info.nodes++;
+
+  Turn turn = tree.position.getTurn();
 
   // static evaluation
   if (tree.ply >= Tree::StackSize) {
@@ -441,6 +459,9 @@ Value Searcher::quies(Tree& tree,
                       Value beta) {
   auto& node = tree.nodes[tree.ply];
   arrive(node);
+
+  auto& worker = *tree.worker;
+  worker.info.nodes++;
 
   Turn turn = tree.position.getTurn();
 

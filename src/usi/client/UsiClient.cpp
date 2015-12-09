@@ -285,29 +285,28 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
     return;
   }
 
+  auto& info = searcher_.getInfo();
+
+  const char* scoreKey;
+  int score;
   if (value > -Value::mate() && value < Value::mate()) {
-    int valueCentiPawn = value.raw() * 100.0 / material::Pawn;
-
-    send("info",
-         "depth", depth / Searcher::Depth1Ply,
-         "currmove", pv.get(0).toStringSFEN(),
-         "score", "cp", valueCentiPawn,
-         "pv", pv.toStringSFEN());
-
+    scoreKey = "cp";
+    score = value.raw() * 100.0 / material::Pawn;
   } else {
-    int plyToMate;
+    scoreKey = "mate";
     if (value >= 0) {
-      plyToMate = (Value::infinity() - value).raw();
+      score = (Value::infinity() - value).raw();
     } else {
-      plyToMate = -(Value::infinity() + value).raw();
+      score = -(Value::infinity() + value).raw();
     }
-
-    send("info",
-         "depth", depth / Searcher::Depth1Ply,
-         "currmove", pv.get(0).toStringSFEN(),
-         "score", "mate", plyToMate,
-         "pv", pv.toStringSFEN());
   }
+
+  send("info",
+       "depth", depth / Searcher::Depth1Ply,
+       "nodes", info.nodes,
+       "currmove", pv.get(0).toStringSFEN(),
+       "score", scoreKey, score,
+       "pv", pv.toStringSFEN());
 }
 
 void UsiClient::onFailLow(const PV& pv, int depth, Value value) {
@@ -329,10 +328,10 @@ void UsiClient::stopSearchIfRunning() {
 }
 
 void UsiClient::sendBestMove() {
-  const auto& info = searcher_.getInfo();
+  const auto& result = searcher_.getResult();
 
-  if (!info.move.isEmpty()) {
-    send("bestmove", info.move.toStringSFEN());
+  if (!result.move.isEmpty()) {
+    send("bestmove", result.move.toStringSFEN());
   } else {
     send("bestmove", "resign");
   }

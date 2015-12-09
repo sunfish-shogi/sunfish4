@@ -9,9 +9,11 @@
 namespace sunfish {
 
 void initializeTree(Tree& tree,
-                    const Position& position) {
+                    const Position& position,
+                    Worker* worker) {
   tree.position = position;
   tree.ply = 0;
+  tree.worker = worker;
 }
 
 std::string getPath(const Tree& tree, int ply) {

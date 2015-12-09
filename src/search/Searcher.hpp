@@ -7,7 +7,10 @@
 #define SUNFISH_SEARCH_SEARCHER_HPP__
 
 #include "eval/Value.hpp"
+#include "search/SearchInfo.hpp"
+#include "search/SearchResult.hpp"
 #include "search/tree/Tree.hpp"
+#include "search/tree/Worker.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
 #include <atomic>
@@ -24,12 +27,6 @@ public:
   using ValueArray = std::array<Value, MAX_NUMBER_OF_MOVES>;
 
   static CONSTEXPR_CONST int Depth1Ply = 8;
-
-  struct Info {
-    Move move;
-    Value value;
-    PV pv;
-  };
 
   class Handler {
   public:
@@ -59,7 +56,11 @@ public:
   bool idsearch(const Position& pos,
                 int depth);
 
-  const Info& getInfo() {
+  const SearchResult& getResult() {
+    return result_;
+  }
+
+  const SearchInfo& getInfo() {
     return info_;
   }
 
@@ -74,6 +75,8 @@ public:
 private:
 
   void onSearchStarted();
+
+  void updateInfo();
 
   void generateMovesOnRoot(Tree& tree);
 
@@ -95,9 +98,12 @@ private:
   Random random_;
 
   Evaluator evaluator_;
-  Tree treeOnMainThread_;
 
-  Info info_;
+  Tree treeOnMainThread_;
+  Worker workerOnMainThread_;
+
+  SearchResult result_;
+  SearchInfo info_;
 
   std::atomic<bool> interrupted_;
 
