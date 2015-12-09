@@ -64,11 +64,11 @@ private:
 
   void search();
 
-  void onUpdatePV(const PV& pv, int depth, Value value) override;
+  void onUpdatePV(const PV& pv, int depth, Score score) override;
 
-  void onFailLow(const PV& pv, int depth, Value value) override;
+  void onFailLow(const PV& pv, int depth, Score score) override;
 
-  void onFailHigh(const PV& pv, int depth, Value value) override;
+  void onFailHigh(const PV& pv, int depth, Score score) override;
 
   void stopSearchIfRunning();
 

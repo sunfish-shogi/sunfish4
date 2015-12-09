@@ -7,7 +7,7 @@
 #define SUNFISH_SEARCH_EVAL_EVALUATOR_HPP__
 
 #include "common/Def.hpp"
-#include "search/eval/Value.hpp"
+#include "search/eval/Score.hpp"
 
 namespace sunfish {
 
@@ -18,7 +18,7 @@ public:
 
   Evaluator();
 
-  Value evaluateMaterial(const Position& position) const;
+  Score evaluateMaterial(const Position& position) const;
 
 private:
 

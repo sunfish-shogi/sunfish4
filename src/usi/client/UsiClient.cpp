@@ -279,7 +279,7 @@ void UsiClient::search() {
   Loggers::message << "search thread is stopped. tid=" << std::this_thread::get_id();
 }
 
-void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
+void UsiClient::onUpdatePV(const PV& pv, int depth, Score score) {
   if (pv.size() == 0) {
     Loggers::warning << "PV is empty: " << __FILE__ << ':' << __LINE__;
     return;
@@ -288,16 +288,16 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
   auto& info = searcher_.getInfo();
 
   const char* scoreKey;
-  int score;
-  if (value > -Value::mate() && value < Value::mate()) {
+  int scoreValue;
+  if (score > -Score::mate() && score < Score::mate()) {
     scoreKey = "cp";
-    score = value.raw() * 100.0 / material::Pawn;
+    scoreValue = score.raw() * 100.0 / material::Pawn;
   } else {
     scoreKey = "mate";
-    if (value >= 0) {
-      score = (Value::infinity() - value).raw();
+    if (score >= 0) {
+      scoreValue = (Score::infinity() - score).raw();
     } else {
-      score = -(Value::infinity() + value).raw();
+      scoreValue = -(Score::infinity() + score).raw();
     }
   }
 
@@ -305,17 +305,17 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Value value) {
        "depth", depth / Searcher::Depth1Ply,
        "nodes", info.nodes,
        "currmove", pv.get(0).toStringSFEN(),
-       "score", scoreKey, score,
+       "score", scoreKey, scoreValue,
        "pv", pv.toStringSFEN());
 }
 
-void UsiClient::onFailLow(const PV& pv, int depth, Value value) {
-  onUpdatePV(pv, depth, value);
+void UsiClient::onFailLow(const PV& pv, int depth, Score score) {
+  onUpdatePV(pv, depth, score);
   send("info", "string", "fail-low");
 }
 
-void UsiClient::onFailHigh(const PV& pv, int depth, Value value) {
-  onUpdatePV(pv, depth, value);
+void UsiClient::onFailHigh(const PV& pv, int depth, Score score) {
+  onUpdatePV(pv, depth, score);
   send("info", "string", "fail-high");
 }
 

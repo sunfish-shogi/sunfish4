@@ -6,7 +6,7 @@
 #ifndef SUNFISH_SEARCH_SEARCHER_HPP__
 #define SUNFISH_SEARCH_SEARCHER_HPP__
 
-#include "eval/Value.hpp"
+#include "eval/Score.hpp"
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
 #include "search/tree/Tree.hpp"
@@ -24,15 +24,15 @@ class Move;
 class Searcher {
 public:
 
-  using ValueArray = std::array<Value, MAX_NUMBER_OF_MOVES>;
+  using ScoreArray = std::array<Score, MAX_NUMBER_OF_MOVES>;
 
   static CONSTEXPR_CONST int Depth1Ply = 8;
 
   class Handler {
   public:
-    virtual void onUpdatePV(const PV& pv, int depth, Value value) = 0;
-    virtual void onFailLow(const PV& pv, int depth, Value value) = 0;
-    virtual void onFailHigh(const PV& pv, int depth, Value value) = 0;
+    virtual void onUpdatePV(const PV& pv, int depth, Score score) = 0;
+    virtual void onFailLow(const PV& pv, int depth, Score score) = 0;
+    virtual void onFailHigh(const PV& pv, int depth, Score score) = 0;
   };
 
   Searcher();
@@ -41,14 +41,14 @@ public:
               int depth) {
     return search(pos,
                   depth,
-                  -Value::infinity(),
-                  Value::infinity());
+                  -Score::infinity(),
+                  Score::infinity());
   }
 
   bool search(const Position& pos,
               int depth,
-              Value alpha,
-              Value beta);
+              Score alpha,
+              Score beta);
 
   /**
    * iterative deepening search.
@@ -82,16 +82,16 @@ private:
 
   bool aspsearch(Tree& tree,
                  int depth,
-                 ValueArray& values);
+                 ScoreArray& scores);
 
-  Value search(Tree& tree,
+  Score search(Tree& tree,
                int depth,
-               Value alpha,
-               Value beta);
+               Score alpha,
+               Score beta);
 
-  Value quies(Tree& tree,
-              Value alpha,
-              Value beta);
+  Score quies(Tree& tree,
+              Score alpha,
+              Score beta);
 
   Move nextMove(Node& node);
 

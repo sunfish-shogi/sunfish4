@@ -12,8 +12,8 @@ namespace sunfish {
 Evaluator::Evaluator() {
 }
 
-Value Evaluator::evaluateMaterial(const Position& position) const {
-  Value value = Value::zero();
+Score Evaluator::evaluateMaterial(const Position& position) const {
+  Score score = Score::zero();
 
   Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
 
@@ -25,31 +25,31 @@ Value Evaluator::evaluateMaterial(const Position& position) const {
     }
 
     if (piece.isBlack()) {
-      value += material::piece(piece);
+      score += material::piece(piece);
     } else {
-      value -= material::piece(piece);
+      score -= material::piece(piece);
     }
   }
 
   auto& blackHand = position.getBlackHand();
-  value += material::Pawn   * blackHand.get(PieceType::pawn());
-  value += material::Lance  * blackHand.get(PieceType::lance());
-  value += material::Knight * blackHand.get(PieceType::knight());
-  value += material::Silver * blackHand.get(PieceType::silver());
-  value += material::Gold   * blackHand.get(PieceType::gold());
-  value += material::Bishop * blackHand.get(PieceType::bishop());
-  value += material::Rook   * blackHand.get(PieceType::rook());
+  score += material::Pawn   * blackHand.get(PieceType::pawn());
+  score += material::Lance  * blackHand.get(PieceType::lance());
+  score += material::Knight * blackHand.get(PieceType::knight());
+  score += material::Silver * blackHand.get(PieceType::silver());
+  score += material::Gold   * blackHand.get(PieceType::gold());
+  score += material::Bishop * blackHand.get(PieceType::bishop());
+  score += material::Rook   * blackHand.get(PieceType::rook());
 
   auto& whiteHand = position.getWhiteHand();
-  value -= material::Pawn   * whiteHand.get(PieceType::pawn());
-  value -= material::Lance  * whiteHand.get(PieceType::lance());
-  value -= material::Knight * whiteHand.get(PieceType::knight());
-  value -= material::Silver * whiteHand.get(PieceType::silver());
-  value -= material::Gold   * whiteHand.get(PieceType::gold());
-  value -= material::Bishop * whiteHand.get(PieceType::bishop());
-  value -= material::Rook   * whiteHand.get(PieceType::rook());
+  score -= material::Pawn   * whiteHand.get(PieceType::pawn());
+  score -= material::Lance  * whiteHand.get(PieceType::lance());
+  score -= material::Knight * whiteHand.get(PieceType::knight());
+  score -= material::Silver * whiteHand.get(PieceType::silver());
+  score -= material::Gold   * whiteHand.get(PieceType::gold());
+  score -= material::Bishop * whiteHand.get(PieceType::bishop());
+  score -= material::Rook   * whiteHand.get(PieceType::rook());
 
-  return value;
+  return score;
 }
 
 } // namespace sunfish
