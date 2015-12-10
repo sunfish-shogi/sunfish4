@@ -40,7 +40,9 @@ public:
 
   void set(const Move& move, const PV& pv) {
     moves_[0] = move;
-    num_ = std::min(pv.num_ + 1, StackSize);
+    // static_cast is required on Clang.
+    // See https://trello.com/c/iJqg1GqN
+    num_ = std::min(pv.num_ + 1, static_cast<SizeType>(StackSize));
     memcpy(&moves_[1], pv.moves_, sizeof(moves_[0]) * (num_ - 1));
   }
 
