@@ -213,23 +213,23 @@ bool UsiClient::onGo(const CommandArguments& args) {
     return true;
   }
 
-  config_.blackTimeMilliSeconds = 0;
-  config_.whiteTimeMilliSeconds = 0;
-  config_.byoyomiMilliSeconds = 0;
-  config_.infinite = false;
+  blackTimeMilliSeconds_ = 0;
+  whiteTimeMilliSeconds_ = 0;
+  byoyomiMilliSeconds_ = 0;
+  isInfinite_ = false;
 
   for (size_t i = 1; i < args.size(); i++) {
     if (args[i] == "btime") {
-      config_.blackTimeMilliSeconds = strtol(args[++i].c_str(), nullptr, 10);
+      blackTimeMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "wtime") {
-      config_.whiteTimeMilliSeconds = strtol(args[++i].c_str(), nullptr, 10);
+      whiteTimeMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "byoyomi") {
-      config_.byoyomiMilliSeconds = strtol(args[++i].c_str(), nullptr, 10);
+      byoyomiMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "infinite") {
-      config_.infinite = true;
+      isInfinite_ = true;
 
     } else if (args[i] == "mate") {
       Loggers::error << "mate option is not supported";
@@ -237,10 +237,10 @@ bool UsiClient::onGo(const CommandArguments& args) {
     }
   }
 
-  Loggers::message << "btime     = " << config_.blackTimeMilliSeconds;
-  Loggers::message << "wtime     = " << config_.whiteTimeMilliSeconds;
-  Loggers::message << "byoyomi   = " << config_.byoyomiMilliSeconds;
-  Loggers::message << "inifinite = " << (config_.infinite ? "true" : "false");
+  Loggers::message << "btime     = " << blackTimeMilliSeconds_;
+  Loggers::message << "wtime     = " << whiteTimeMilliSeconds_;
+  Loggers::message << "byoyomi   = " << byoyomiMilliSeconds_;
+  Loggers::message << "inifinite = " << (isInfinite_ ? "true" : "false");
 
   stopSearchIfRunning();
 
@@ -260,7 +260,7 @@ bool UsiClient::onGo(const CommandArguments& args) {
 bool UsiClient::onStop(const CommandArguments&) {
   stopSearchIfRunning();
 
-  if (config_.infinite) {
+  if (isInfinite_) {
     sendBestMove();
   }
  
@@ -270,11 +270,11 @@ bool UsiClient::onStop(const CommandArguments&) {
 void UsiClient::search() {
   Loggers::message << "search thread is started. tid=" << std::this_thread::get_id();
 
-  int depth = 5;
+  int depth = 9;
 
   searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
 
-  if (!config_.infinite) {
+  if (!isInfinite_) {
     sendBestMove();
   }
 
@@ -294,13 +294,17 @@ void UsiClient::onStart() {
   searcherIsStarted_ = true;
 }
 
-void UsiClient::onUpdatePV(const PV& pv, int depth, Score score) {
+void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) {
   if (pv.size() == 0) {
     Loggers::warning << "PV is empty: " << __FILE__ << ':' << __LINE__;
     return;
   }
 
   auto& info = searcher_.getInfo();
+
+  auto timeMilliSeconds = static_cast<uint32_t>(elapsed * 1e3);
+  auto realDepth = depth / Searcher::Depth1Ply;
+  auto nps = info.nodes / elapsed;
 
   const char* scoreKey;
   int scoreValue;
@@ -317,20 +321,22 @@ void UsiClient::onUpdatePV(const PV& pv, int depth, Score score) {
   }
 
   send("info",
-       "depth", depth / Searcher::Depth1Ply,
+       "time", timeMilliSeconds,
+       "depth", realDepth,
        "nodes", info.nodes,
+       "nps", nps,
        "currmove", pv.get(0).toStringSFEN(),
        "score", scoreKey, scoreValue,
        "pv", pv.toStringSFEN());
 }
 
-void UsiClient::onFailLow(const PV& pv, int depth, Score score) {
-  onUpdatePV(pv, depth, score);
+void UsiClient::onFailLow(const PV& pv, float elapsed, int depth, Score score) {
+  onUpdatePV(pv, elapsed, depth, score);
   send("info", "string", "fail-low");
 }
 
-void UsiClient::onFailHigh(const PV& pv, int depth, Score score) {
-  onUpdatePV(pv, depth, score);
+void UsiClient::onFailHigh(const PV& pv, float elapsed, int depth, Score score) {
+  onUpdatePV(pv, elapsed, depth, score);
   send("info", "string", "fail-high");
 }
 

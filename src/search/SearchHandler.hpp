@@ -14,9 +14,9 @@ namespace sunfish {
 class SearchHandler {
 public:
   virtual void onStart() = 0;
-  virtual void onUpdatePV(const PV& pv, int depth, Score score) = 0;
-  virtual void onFailLow(const PV& pv, int depth, Score score) = 0;
-  virtual void onFailHigh(const PV& pv, int depth, Score score) = 0;
+  virtual void onUpdatePV(const PV& pv, float elapsed, int depth, Score score) = 0;
+  virtual void onFailLow(const PV& pv, float elapsed, int depth, Score score) = 0;
+  virtual void onFailHigh(const PV& pv, float elapsed, int depth, Score score) = 0;
 };
 
 } // namespace sunfish

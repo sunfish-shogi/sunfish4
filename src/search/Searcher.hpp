@@ -7,6 +7,7 @@
 #define SUNFISH_SEARCH_SEARCHER_HPP__
 
 #include "eval/Score.hpp"
+#include "search/SearchConfig.hpp"
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
 #include "search/SearchHandler.hpp"
@@ -14,6 +15,7 @@
 #include "search/tree/Worker.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
+#include "common/time/Timer.hpp"
 #include <atomic>
 #include <array>
 
@@ -50,11 +52,19 @@ public:
   bool idsearch(const Position& pos,
                 int depth);
 
-  const SearchResult& getResult() {
+  const SearchConfig& getConfig() const {
+    return config_;
+  }
+
+  void setConfig(const SearchConfig& config) {
+    config_ = config;
+  }
+
+  const SearchResult& getResult() const {
     return result_;
   }
 
-  const SearchInfo& getInfo() {
+  const SearchInfo& getInfo() const {
     return info_;
   }
 
@@ -97,17 +107,31 @@ private:
 
   Move nextMoveOnQuies(Node& node);
 
-  Random random_;
+  bool isInterrupted() const {
+    if (interrupted_) {
+      return true;
+    }
+
+    if (timer_.getElapsedInt() >= config_.maximumTimeSeconds) {
+      return true;
+    }
+
+    return false;
+  }
 
   Evaluator evaluator_;
 
   Tree treeOnMainThread_;
   Worker workerOnMainThread_;
 
+  SearchConfig config_;
   SearchResult result_;
   SearchInfo info_;
 
   std::atomic<bool> interrupted_;
+  Timer timer_;
+
+  Random random_;
 
   SearchHandler* handler_;
 

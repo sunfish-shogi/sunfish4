@@ -13,34 +13,44 @@ namespace sunfish {
 class Timer {
 public:
 
-  Timer(bool roundup = false) : roundup_(roundup) {
-  }
-
   /**
-   * set current time to base
+   * Set current time to a reference point.
    */
-  void set() {
+  void start() {
     base_ = std::chrono::system_clock::now();
   }
 
   /**
-   * get current time(sec) from base
+   * Get a real value representing a elapsed time from the reference point.
    */
-  float get() const {
+  float getElapsed(bool roundup = false) const {
     auto now = std::chrono::system_clock::now();
     auto elapsed = now - base_;
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
     auto count = milliseconds.count();
-    if (roundup_) {
+    if (roundup) {
       count += static_cast<std::chrono::milliseconds::rep>(1);
     }
     return count * 1.0e-3f;
   }
 
+  /**
+   * Get an integer value representing a elapsed time from the reference point.
+   */
+  uint32_t getElapsedInt(bool roundup = false) const {
+    auto now = std::chrono::system_clock::now();
+    auto elapsed = now - base_;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+    auto count = milliseconds.count();
+    if (roundup) {
+      count += static_cast<std::chrono::milliseconds::rep>(500);
+    }
+    return count / 1000;
+  }
+
 private:
 
   std::chrono::time_point<std::chrono::system_clock> base_;
-  bool roundup_;
 
 };
 

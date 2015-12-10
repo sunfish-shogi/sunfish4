@@ -20,6 +20,7 @@ CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 namespace sunfish {
 
 Searcher::Searcher() :
+  config_ (getDefaultSearchConfig()),
   handler_(nullptr) {
 }
 
@@ -31,6 +32,8 @@ void Searcher::onSearchStarted() {
   result_.pv.clear();
 
   initializeWorker(workerOnMainThread_);
+
+  timer_.start();
 
   if (handler_ != nullptr) {
     handler_->onStart();
@@ -88,7 +91,7 @@ bool Searcher::search(const Position& pos,
                       -(alpha + 1),
                       -alpha);
 
-      if (!interrupted_ && score > alpha && score < beta) {
+      if (!isInterrupted() && score > alpha && score < beta) {
         score = -search(tree,
                         newDepth,
                         -beta,
@@ -100,7 +103,7 @@ bool Searcher::search(const Position& pos,
 
     updateInfo();
 
-    if (interrupted_) {
+    if (isInterrupted()) {
       break;
     }
 
@@ -165,14 +168,14 @@ bool Searcher::idsearch(const Position& pos,
     return false;
   }
 
+  if (isInterrupted()) {
+    return false;
+  }
+
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
     ok = aspsearch(tree, currDepth, scores);
 
-    if (!ok) {
-      break;
-    }
-
-    if (currDepth >= depth) {
+    if (!ok || isInterrupted() || currDepth >= depth) {
       break;
     }
   }
@@ -246,7 +249,7 @@ bool Searcher::aspsearch(Tree& tree,
                       -(alpha + 1),
                       -alpha);
 
-      if (!interrupted_ && score > alpha && score < beta) {
+      if (!isInterrupted() && score > alpha && score < beta) {
         score = -search(tree,
                         newDepth,
                         -beta,
@@ -258,7 +261,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     updateInfo();
 
-    if (interrupted_) {
+    if (isInterrupted()) {
       break;
     }
 
@@ -270,7 +273,7 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, childNode.pv);
 
       if (handler_ != nullptr) {
-        handler_->onFailLow(node.pv, depth, score);
+        handler_->onFailLow(node.pv, timer_.getElapsed(), depth, score);
       }
       continue;
     }
@@ -283,7 +286,7 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, childNode.pv);
 
       if (handler_ != nullptr) {
-        handler_->onFailHigh(node.pv, depth, score);
+        handler_->onFailHigh(node.pv, timer_.getElapsed(), depth, score);
       }
       continue;
     }
@@ -317,8 +320,10 @@ bool Searcher::aspsearch(Tree& tree,
     isFirst = false;
   }
 
-  if (handler_ != nullptr && node.pv.size() != 0) {
-    handler_->onUpdatePV(node.pv, depth, bestScore);
+  if (handler_ != nullptr &&
+      node.pv.size() != 0 &&
+      bestScore != -Score::infinity()) {
+    handler_->onUpdatePV(node.pv, timer_.getElapsed(), depth, bestScore);
   }
 
   return bestScore > -Score::mate() && bestScore < Score::mate();
@@ -402,7 +407,7 @@ Score Searcher::search(Tree& tree,
                       -(alpha + 1),
                       -alpha);
 
-      if (!interrupted_ && score > alpha && score < beta && !isNullWindow) {
+      if (!isInterrupted() && score > alpha && score < beta && !isNullWindow) {
         score = -search(tree,
                         newDepth,
                         -beta,
@@ -412,7 +417,7 @@ Score Searcher::search(Tree& tree,
 
     undoMove(tree, move);
 
-    if (interrupted_) {
+    if (isInterrupted()) {
       return Score::zero();
     }
 

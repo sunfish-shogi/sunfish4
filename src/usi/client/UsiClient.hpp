@@ -31,13 +31,6 @@ private:
     Mate,
   };
 
-  struct SearchConfig {
-    uint32_t blackTimeMilliSeconds;
-    uint32_t whiteTimeMilliSeconds;
-    uint32_t byoyomiMilliSeconds;
-    bool infinite;
-  };
-
 public:
 
   UsiClient();
@@ -68,11 +61,11 @@ private:
 
   void onStart() override;
 
-  void onUpdatePV(const PV& pv, int depth, Score score) override;
+  void onUpdatePV(const PV& pv, float elapsed, int depth, Score score) override;
 
-  void onFailLow(const PV& pv, int depth, Score score) override;
+  void onFailLow(const PV& pv, float elapsed, int depth, Score score) override;
 
-  void onFailHigh(const PV& pv, int depth, Score score) override;
+  void onFailHigh(const PV& pv, float elapsed, int depth, Score score) override;
 
   void stopSearchIfRunning();
 
@@ -110,7 +103,11 @@ private:
   bool positionIsInitialized_;
   Position position_;
 
-  SearchConfig config_;
+  uint32_t blackTimeMilliSeconds_;
+  uint32_t whiteTimeMilliSeconds_;
+  uint32_t byoyomiMilliSeconds_;
+  bool isInfinite_;
+
   Searcher searcher_;
   std::atomic<bool> searcherIsStarted_;
 
