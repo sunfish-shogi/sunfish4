@@ -1176,6 +1176,27 @@ TEST(PositionTest, testGetCheckState) {
   }
 
   {
+    // checked by rook
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  * +UM *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  * -GI+OU *  *  *  *  * \n"
+      "P8 *  *  * -HI *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Square::s68(), state.from1);
+    ASSERT_EQ(Square::invalid(), state.from2);
+  }
+
+  {
     // checked by bishop and promoted silver
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  * -OU *  *  *  * \n"
@@ -1424,6 +1445,27 @@ TEST(PositionTest, testGetCheckState) {
 
     auto state = pos.getCheckState();
     ASSERT_EQ(Square::s67(), state.from1);
+    ASSERT_EQ(Square::invalid(), state.from2);
+  }
+
+  {
+    // checked by lance
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * -OU *  *  *  *  * \n"
+      "P3 *  *  * +KY+FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 * +UM *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+
+    auto state = pos.getCheckState();
+    ASSERT_EQ(Square::s63(), state.from1);
     ASSERT_EQ(Square::invalid(), state.from2);
   }
 

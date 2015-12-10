@@ -478,6 +478,33 @@ TEST(MoveGeneratorTest, testEvasions) {
       "P1 *  *  *  * -OU *  *  *  * \n"
       "P2 *  *  *  *  *  *  *  *  * \n"
       "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  * -KI *  *  *  *  * \n"
+      "P9 *  *  * +GI+OU *  *  *  * \n"
+      "P+00FU00FU00GI00KA00HI\n"
+      "P-\n"
+      "+\n");
+
+    Moves evasions;
+    MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
+    sortMoves(evasions);
+    ASSERT_EQ(5, evasions.size());
+    ASSERT_EQ(Move(Piece::blackSilver(), Square::s69(), Square::s68(), false), evasions[0]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s59(), Square::s48(), false), evasions[1]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s59(), Square::s49(), false), evasions[2]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s59(), Square::s58(), false), evasions[3]);
+    ASSERT_EQ(Move(Piece::blackKing(),   Square::s59(), Square::s68(), false), evasions[4]);
+  }
+
+  {
+    // black
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
       "P4 *  * +RY * -KA *  *  *  * \n"
       "P5 *  *  *  *  *  *  *  *  * \n"
       "P6 *  *  *  *  *  *  * -HI * \n"
@@ -506,6 +533,33 @@ TEST(MoveGeneratorTest, testEvasions) {
     ASSERT_EQ(Move(Piece::blackPawn(),   Square::s65()),                       evasions[11]);
     ASSERT_EQ(Move(Piece::blackGold(),   Square::s65()),                       evasions[12]);
     ASSERT_EQ(Move(Piece::blackGold(),   Square::s76()),                       evasions[13]);
+  }
+
+  {
+    // white
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -GI-OU *  *  * \n"
+      "P2 *  *  *  *  * +HI *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  * +KA *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-00FU00FU00GI00KA00HI\n"
+      "-\n");
+
+    Moves evasions;
+    MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
+    sortMoves(evasions);
+    ASSERT_EQ(5, evasions.size());
+    ASSERT_EQ(Move(Piece::whiteSilver(), Square::s51(), Square::s42(), false), evasions[0]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s41(), Square::s31(), false), evasions[1]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s41(), Square::s32(), false), evasions[2]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s41(), Square::s42(), false), evasions[3]);
+    ASSERT_EQ(Move(Piece::whiteKing(),   Square::s41(), Square::s52(), false), evasions[4]);
   }
 
   {

@@ -141,21 +141,23 @@ enum class LongEffectType {
 template <Turn turn, LongEffectType type>
 static Square detectLongEffect(const Position& pos, const Square& to) {
   const auto& board = pos.getBoard();
-  const Bitboard& attacher = turn == Turn::Black ? pos.getBOccupiedBitboard() : pos.getWOccupiedBitboard();
+  const auto& attacher = turn == Turn::Black ? pos.getBOccupiedBitboard()
+                                             : pos.getWOccupiedBitboard();
+  const auto& maskShort = MoveTables::king(to);
   Bitboard bb;
 
   if (type == LongEffectType::Ver) {
     const auto& occ = pos.getBOccupiedBitboard() | pos.getWOccupiedBitboard();
-    bb = MoveTables::ver(occ, to) & attacher;
+    bb = maskShort.andNot(MoveTables::ver(occ, to) & attacher);
   } else if (type == LongEffectType::Hor) {
     const auto& bbRotated90 = pos.get90RotatedBitboard();
-    bb = MoveTables::hor(bbRotated90, to) & attacher;
+    bb = maskShort.andNot(MoveTables::hor(bbRotated90, to) & attacher);
   } else if (type == LongEffectType::DiagRight) {
     const auto& bbRotatedR45 = pos.getRight45RotatedBitboard();
-    bb = MoveTables::diagR45(bbRotatedR45, to) & attacher;
+    bb = maskShort.andNot(MoveTables::diagR45(bbRotatedR45, to) & attacher);
   } else if (type == LongEffectType::DiagLeft) {
     const auto& bbRotatedL45 = pos.getLeft45RotatedBitboard();
-    bb = MoveTables::diagL45(bbRotatedL45, to) & attacher;
+    bb = maskShort.andNot(MoveTables::diagL45(bbRotatedL45, to) & attacher);
   }
 
   BB_EACH(from, bb) {
