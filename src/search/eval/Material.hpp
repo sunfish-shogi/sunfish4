@@ -56,7 +56,7 @@ CONSTEXPR_CONST int16_t Pro_silverEx = Pro_silver + Silver;
 CONSTEXPR_CONST int16_t HorseEx      = Horse + Bishop;
 CONSTEXPR_CONST int16_t DragonEx     = Dragon + Rook;
 
-inline Score piece(const Piece& piece) {
+inline Score pieceScore(const Piece& piece) {
   static const Score scores[] = {
     /*  0 */ material::Pawn,
     /*  1 */ material::Lance,
@@ -94,7 +94,7 @@ inline Score piece(const Piece& piece) {
   return scores[piece.raw()];
 }
 
-inline Score pieceExchange(const Piece& piece) {
+inline Score pieceExchangeScore(const Piece& piece) {
   static const Score scores[] = {
     /*  0 */ material::PawnEx,
     /*  1 */ material::LanceEx,
@@ -132,7 +132,7 @@ inline Score pieceExchange(const Piece& piece) {
   return scores[piece.raw()];
 }
 
-inline Score piecePromote(const Piece& piece) {
+inline Score piecePromotionScore(const Piece& piece) {
   static const Score scores[] = {
     /*  0 */ material::Tokin - material::Pawn,
     /*  1 */ material::Pro_lance - material::Lance,

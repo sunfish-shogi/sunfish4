@@ -4,6 +4,7 @@
  */
 
 #include "search/Searcher.hpp"
+#include "search/see/SEE.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
@@ -146,7 +147,7 @@ bool Searcher::idsearch(const Position& pos,
   bool ok = false;
   ScoreArray scores;
 
-  for (size_t i = 0; i < node.moves.size();) {
+  for (Moves::size_type i = 0; i < node.moves.size();) {
     Move move = node.moves[i];
 
     bool moveOk = doMove(tree, move);
@@ -155,9 +156,9 @@ bool Searcher::idsearch(const Position& pos,
       continue;
     }
 
-    scores[i] = quies(tree,
-                      -Score::infinity(),
-                      Score::infinity());
+    scores[i] = -quies(tree,
+                       -Score::infinity(),
+                       Score::infinity());
 
     undoMove(tree, move);
 
@@ -217,7 +218,7 @@ bool Searcher::aspsearch(Tree& tree,
   bool isFirst = true;
 
   // expand the branches
-  for (size_t i = 0; i < node.moves.size();) {
+  for (Moves::size_type i = 0; i < node.moves.size();) {
     Score alpha = std::max(alphas[alphaIndex], bestScore);
     Score beta = betas[betaIndex];
 
@@ -298,22 +299,18 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, childNode.pv);
     }
 
-    scores[i] = score;
-
     // insertion
-    for (int j = i - 1; j >= 0; j--) {
-      if (scores[j] >= scores[j+1]) {
+    int j;
+    for (j = i - 1; j >= 0; j--) {
+      if (scores[j] >= score) {
         break;
       }
 
-      Move tm = node.moves[j];
-      node.moves[j] = node.moves[j+1];
-      node.moves[j+1] = tm;
-
-      Score tv = scores[j];
-      scores[j] = scores[j+1];
-      scores[j+1] = tv;
+      node.moves[j+1] = node.moves[j];
+      scores[j+1] = scores[j];
     }
+    node.moves[j+1] = move;
+    scores[j+1] = score;
 
     i++;
 
@@ -335,7 +332,7 @@ Score Searcher::search(Tree& tree,
                        Score beta) {
 #if 0
   bool isDebug = false;
-  if (getPath(tree, ply) == "-0068KA +5968OU -9394FU") {
+  if (getPath(tree, tree.ply) == "-0068KA +5968OU -9394FU") {
     isDebug = true;
   }
 #endif
@@ -512,11 +509,11 @@ void Searcher::generateMovesOnRoot(Tree& tree) {
 }
 
 Move Searcher::nextMoveOnRoot(Node& node) {
-  if (node.currentMove == node.moves.end()) {
+  if (node.moveIterator == node.moves.end()) {
     return Move::empty();
   }
 
-  return *(node.currentMove++);
+  return *(node.moveIterator++);
 }
 
 void Searcher::generateMoves(Tree& tree) {
@@ -536,13 +533,14 @@ Move Searcher::nextMove(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
   for (;;) {
-    if (node.currentMove != node.moves.end()) {
-      return *(node.currentMove++);
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
     }
 
     switch (node.genPhase) {
     case GenPhase::CapturingMoves:
       MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+      SEE::sortMoves(tree);
       node.genPhase = GenPhase::NotCapturingMoves;
       break;
 
@@ -571,17 +569,18 @@ void Searcher::generateMovesOnQuies(Tree& tree) {
   // generate moves
   if (!isChecking(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+    SEE::sortMoves(tree);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 }
 
 Move Searcher::nextMoveOnQuies(Node& node) {
-  if (node.currentMove == node.moves.end()) {
+  if (node.moveIterator == node.moves.end()) {
     return Move::empty();
   }
 
-  return *(node.currentMove++);
+  return *(node.moveIterator++);
 }
 
 } // namespace sunfish

@@ -16,24 +16,9 @@ void initializeTree(Tree& tree,
   tree.worker = worker;
 }
 
-std::string getPath(const Tree& tree, int ply) {
-  std::ostringstream oss;
-
-  for (int i = 0; i < ply; i++) {
-    if (i != 0) {
-      oss << ' ';
-    }
-
-    auto ite = tree.nodes[i].currentMove-1;
-    Move move = *ite;
-    oss << move.toString();
-  }
-
-  return oss.str();
-}
-
 bool doMove(Tree& tree, Move& move) {
   if (tree.position.doMove(move)) {
+    tree.nodes[tree.ply].move = move;
     tree.ply++;
     return true;
   }
@@ -43,6 +28,20 @@ bool doMove(Tree& tree, Move& move) {
 void undoMove(Tree& tree, Move move) {
   tree.position.undoMove(move);
   tree.ply--;
+}
+
+std::string getPath(const Tree& tree, int ply) {
+  std::ostringstream oss;
+
+  for (int i = 0; i < ply; i++) {
+    if (i != 0) {
+      oss << ' ';
+    }
+
+    oss << tree.nodes[i].move.toString();
+  }
+
+  return oss.str();
 }
 
 } // namespace sunfish
