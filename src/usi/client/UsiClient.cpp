@@ -304,7 +304,7 @@ void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) 
 
   auto timeMilliSeconds = static_cast<uint32_t>(elapsed * 1e3);
   auto realDepth = depth / Searcher::Depth1Ply;
-  auto nps = info.nodes / elapsed;
+  auto nps = static_cast<uint32_t>(info.nodes / elapsed);
 
   const char* scoreKey;
   int scoreValue;
