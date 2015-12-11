@@ -32,7 +32,8 @@ private:
   static CONSTEXPR_CONST RawType PromoteMask = 0x00004000;
   static CONSTEXPR_CONST RawType PieceMask   = 0x000f8000;
   static CONSTEXPR_CONST RawType CaptureMask = 0x01f00000;
-  static CONSTEXPR_CONST RawType UnusedMask  = 0xfe000000;
+  static CONSTEXPR_CONST RawType UnusedMask  = 0x7e000000;
+  static CONSTEXPR_CONST RawType Drop        = 0x80000000;
   static CONSTEXPR_CONST RawType Empty       = 0xffffffff;
 
   static CONSTEXPR_CONST int ToOffset = 7;
@@ -58,7 +59,7 @@ public:
     assert(piece.isUnpromoted() || !promote);
     assert(from.isValid());
     assert(to.isValid());
-    move_ = (static_cast<RawType>(from.raw()) + 1)
+    move_ = (static_cast<RawType>(from.raw()))
           | (static_cast<RawType>(to.raw()) << ToOffset)
           | (static_cast<RawType>(piece.raw()) << PieceOffset);
     if (promote) {
@@ -73,7 +74,8 @@ public:
     assert(!piece.isEmpty());
     assert(piece == piece.unpromote());
     move_ = (static_cast<RawType>(to.raw()) << ToOffset)
-          | (static_cast<RawType>(piece.raw()) << PieceOffset);
+          | (static_cast<RawType>(piece.raw()) << PieceOffset)
+          | Drop;
   }
 
   /**
@@ -94,7 +96,7 @@ public:
    * Get the starting square
    */
   Square from() const {
-    return Square((move_ & FromMask) - 1);
+    return Square(move_ & FromMask);
   }
 
   /**
@@ -145,7 +147,7 @@ public:
    * Check this is dropping move.
    */
   bool isDrop() const {
-    return !(move_ & FromMask);
+    return move_ & Drop;
   }
 
   /**
@@ -166,7 +168,7 @@ public:
    * Serialize
    */
   static uint32_t serialize(const Move& obj) {
-    return obj.move_ & (FromMask | ToMask | PromoteMask | PieceMask);
+    return obj.move_ & (FromMask | ToMask | PromoteMask | PieceMask | Drop);
   }
 
   /**

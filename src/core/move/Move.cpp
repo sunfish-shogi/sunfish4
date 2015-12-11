@@ -8,6 +8,7 @@ namespace sunfish {
 uint16_t Move::serialize16(const Move& obj) {
   if (obj.isEmpty()) {
     return S16Empty;
+
   } else if (obj.isDrop()) {
     assert(!(obj.piece().isPromoted()));
     uint32_t masked = obj.move_ & (ToMask | PieceMask);
@@ -16,31 +17,37 @@ uint16_t Move::serialize16(const Move& obj) {
     uint16_t data = (uint16_t)(shifted | S16Hand);
     assert(((uint32_t)data & ~S16Hand) < 0x0800);
     return data;
+
   } else {
     uint32_t masked = obj.move_ & (FromMask | ToMask | PromoteMask);
     assert(masked < S16Hand);
     uint16_t data = (uint16_t)masked;
     assert(!(data & S16Hand));
     return data;
+
   }
 }
 
 Move Move::deserialize16(uint16_t value, const Position& position) {
   if (value == S16Empty) {
     return empty();
+
   } else if (value & S16Hand) {
     Move obj;
     uint32_t masked = (uint32_t)value & ~S16Hand;
     assert(masked < 0x0800);
     obj.move_ = masked << S16HandOffset;
+    obj.move_ |= Drop;
     assert(!obj.piece().isPromoted());
     return obj;
+
   } else {
     Move obj;
     obj.move_ = value;
     Piece piece = position.getPieceOnBoard(obj.from());
     obj.move_ = (obj.move_ & ~PieceMask) | static_cast<RawType>(piece.type().raw()) << PieceOffset;
     return obj;
+
   }
 }
 
