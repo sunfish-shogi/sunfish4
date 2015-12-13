@@ -27,7 +27,8 @@ bool RandomSearcher::search(const Position& pos, Move& move) {
   }
 
   for (auto ite = moves.begin(); ite != moves.end(); ) {
-    if (Position(pos).doMove(*ite)) {
+    Piece captured;
+    if (Position(pos).doMove(*ite, captured)) {
       ite++;
     } else {
       ite = moves.remove(ite);

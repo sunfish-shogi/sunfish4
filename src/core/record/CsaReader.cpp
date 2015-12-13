@@ -213,21 +213,20 @@ bool CsaReader::readMove(const char* line, const Position& position, Move& move)
 
   Square to = Square::parse(&line[3]);
   PieceType pieceType = PieceType::parse(&line[5]);
-  Piece piece = (turn == Turn::Black) ? pieceType.black() : pieceType.white();
   if (line[1] == '0' && line[2] == '0') {
-    move = Move(piece, to);
+    move = Move(pieceType, to);
   } else {
     Square from = Square::parse(&line[1]);
     Piece pieceOrg = position.getPieceOnBoard(from);
     bool promote;
-    if (piece == pieceOrg) {
+    if (pieceType == pieceOrg.type()) {
       promote = false;
-    } else if (piece == pieceOrg.promote()) {
+    } else if (pieceType == pieceOrg.type().promote()) {
       promote = true;
     } else {
       return false;
     }
-    move = Move(pieceOrg, from, to, promote);
+    move = Move(from, to, promote);
   }
 
   return true;

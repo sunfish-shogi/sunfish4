@@ -22,7 +22,13 @@ private:
 
 public:
 
-  static std::string stringify(unsigned u32) {
+  static std::string stringify(uint16_t u16) {
+    std::ostringstream oss;
+    oss << std::setw(4) << std::setfill('0') << std::hex << u16;
+    return oss.str();
+  }
+
+  static std::string stringify(uint32_t u32) {
     std::ostringstream oss;
     oss << std::setw(8) << std::setfill('0') << std::hex << u32;
     return oss.str();

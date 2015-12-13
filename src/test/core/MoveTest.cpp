@@ -15,145 +15,152 @@ using namespace sunfish;
 
 TEST(MoveTest, test) {
   {
-    Move move(Piece::blackPawn(), Square::s57(), Square::s56(), false);
+    Move move(Square::s57(), Square::s56(), false);
     ASSERT_EQ(Square::s57(), move.from().raw());
     ASSERT_EQ(Square::s56(), move.to().raw());
     ASSERT_EQ(false, move.isPromotion());
-    ASSERT_EQ(Piece::blackPawn(), move.piece());
     ASSERT_EQ(false, move.isDrop());
+    ASSERT_EQ(0, move.extData());
   }
 
   {
-    Move move(Piece::whitePawn(), Square::s53(), Square::s54(), false);
-    ASSERT_EQ(Square::s53(), move.from().raw());
-    ASSERT_EQ(Square::s54(), move.to().raw());
-    ASSERT_EQ(false, move.isPromotion());
-    ASSERT_EQ(Piece::whitePawn(), move.piece());
-    ASSERT_EQ(false, move.isDrop());
-  }
-
-  {
-    Move move(Piece::blackPawn(), Square::s54(), Square::s53(), true);
+    Move move(Square::s54(), Square::s53(), true);
     ASSERT_EQ(Square::s54(), move.from().raw());
     ASSERT_EQ(Square::s53(), move.to().raw());
     ASSERT_EQ(true, move.isPromotion());
-    ASSERT_EQ(Piece::blackPawn(), move.piece());
     ASSERT_EQ(false, move.isDrop());
+    ASSERT_EQ(0, move.extData());
   }
 
   {
-    Move move(Piece::blackPawn(), Square::s55());
+    Move move(PieceType::pawn(), Square::s55());
     ASSERT_EQ(Square::s55(), move.to().raw());
     ASSERT_EQ(false, move.isPromotion());
-    ASSERT_EQ(Piece::blackPawn(), move.piece());
+    ASSERT_EQ(PieceType::pawn(), move.droppingPieceType());
     ASSERT_EQ(true, move.isDrop());
+    ASSERT_EQ(0, move.extData());
+  }
+
+  {
+    Move move(Square::s57(), Square::s56(), false);
+    move.setExtData(55555);
+    ASSERT_EQ(Square::s57(), move.from().raw());
+    ASSERT_EQ(Square::s56(), move.to().raw());
+    ASSERT_EQ(false, move.isPromotion());
+    ASSERT_EQ(false, move.isDrop());
+    ASSERT_EQ(55555, move.extData());
+
+    move = move.excludeExtData();
+    ASSERT_EQ(Square::s57(), move.from().raw());
+    ASSERT_EQ(Square::s56(), move.to().raw());
+    ASSERT_EQ(false, move.isPromotion());
+    ASSERT_EQ(false, move.isDrop());
+    ASSERT_EQ(0, move.extData());
   }
 }
 
-TEST(MoveTest, testSerialization) {
+TEST(MoveTest, testSerialize) {
   {
-    Move in(Piece::blackPawn(), Square::s77(), Square::s76(), false);
-    uint32_t data = Move::serialize(in);
-    Move out = Move::deserialize(data);
-    ASSERT_EQ(in, out);
+    Move move(Square::s57(), Square::s56(), false);
+    auto rawValue = move.serialize();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 
   {
-    Move in(Piece::whiteKnight(), Square::s33(), Square::s41(), true);
-    uint32_t data = Move::serialize(in);
-    Move out = Move::deserialize(data);
-    ASSERT_EQ(in, out);
+    Move move(Square::s14(), Square::s89(), true);
+    auto rawValue = move.serialize();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 
   {
-    Move in(Piece::blackRook(), Square::s45(), Square::s75(), false);
-    in.setCapturedPiece(Piece::whitePawn());
-    uint32_t data = Move::serialize(in);
-    Move out = Move::deserialize(data);
-    ASSERT_EQ(in, out);
-  }
-
-  {
-    Move in(Piece::whitePawn(), Square::s54());
-    uint32_t data = Move::serialize(in);
-    Move out = Move::deserialize(data);
-    ASSERT_EQ(in, out);
+    Move move(PieceType::lance(), Square::s28());
+    auto rawValue = move.serialize();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 }
 
-TEST(MoveTest, testSerialization16) {
-  Position pos = PositionUtil::createPositionFromCsaString(
-    "P1 *  *  *  * -OU *  *  *  * \n"
-    "P2 *  *  *  *  *  *  *  *  * \n"
-    "P3 *  *  *  *  *  * +KE *  * \n"
-    "P4 *  *  *  * +FU *  *  *  * \n"
-    "P5 *  * -FU *  * +HI *  *  * \n"
-    "P6 *  *  *  *  *  *  *  *  * \n"
-    "P7 *  * +FU *  *  *  *  *  * \n"
-    "P8 *  *  *  *  *  *  *  *  * \n"
-    "P9 *  *  *  * +OU *  *  *  * \n"
-    "P+\n"
-    "P-\n"
-    "+\n");
-
+TEST(MoveTest, testSerialize16) {
   {
-    Move in(Piece::blackPawn(), Square::s77(), Square::s76(), false);
-    uint16_t data = Move::serialize16(in);
-    Move out = Move::deserialize16(data, pos);
-    ASSERT_EQ(in, out);
+    Move move(Square::s57(), Square::s56(), false);
+    auto rawValue = move.serialize16();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 
   {
-    Move in(Piece::blackKnight(), Square::s33(), Square::s41(), true);
-    uint16_t data = Move::serialize16(in);
-    Move out = Move::deserialize16(data, pos);
-    ASSERT_EQ(in, out);
+    Move move(Square::s14(), Square::s89(), true);
+    auto rawValue = move.serialize16();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 
   {
-    Move in(Piece::blackRook(), Square::s45(), Square::s75(), false);
-    in.setCapturedPiece(Piece::whitePawn());
-    uint16_t data = Move::serialize16(in);
-    Move out = Move::deserialize16(data, pos);
-    ASSERT_EQ(in, out);
-  }
-
-  {
-    Move in(Piece::blackPawn(), Square::s54());
-    uint16_t data = Move::serialize16(in);
-    Move out = Move::deserialize16(data, pos);
-    ASSERT_EQ(in, out);
-  }
-
-  {
-    Move in = Move::empty();
-    uint16_t data = Move::serialize16(in);
-    Move out = Move::deserialize16(data, pos);
-    ASSERT_EQ(in, out);
+    Move move(PieceType::lance(), Square::s28());
+    auto rawValue = move.serialize16();
+    ASSERT_EQ(move, Move::deserialize(rawValue));
   }
 }
 
 TEST(MoveTest, testToString) {
   {
-    ASSERT_EQ("+3736FU", Move(Piece::blackPawn(), Square::s37(), Square::s36(), false).toString());
-    ASSERT_EQ("-5162OU", Move(Piece::whiteKing(), Square::s51(), Square::s62(), false).toString());
-    ASSERT_EQ("+2822RY", Move(Piece::blackRook(), Square::s28(), Square::s22(), true).toString());
-    ASSERT_EQ("-0065KA", Move(Piece::whiteBishop(), Square::s65()).toString());
+    ASSERT_EQ("3736", Move(Square::s37(), Square::s36(), false).toString());
+    ASSERT_EQ("2822+", Move(Square::s28(), Square::s22(), true).toString());
+    ASSERT_EQ("63KE", Move(PieceType::knight(), Square::s63()).toString());
   }
 
   {
     std::ostringstream oss;
-    oss << Move(Piece::whiteKing(), Square::s51(), Square::s62(), false);
-    ASSERT_EQ("-5162OU", oss.str());
+    Move move(Square::s37(), Square::s36(), false);
+    move.setExtData(12548);
+    oss << move;
+    ASSERT_EQ("3736(12548)", oss.str());
+  }
+}
+
+TEST(MoveTest, testToStringCsa) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  * -GI * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  * +FU *  * \n"
+      "P8-KA *  *  *  *  *  * +HI * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00KI00KE00FU\n"
+      "P-00KA00FU\n"
+      "+\n");
+    ASSERT_EQ("+3736FU", Move(Square::s37(), Square::s36(), false).toString(pos));
+    ASSERT_EQ("+2822RY", Move(Square::s28(), Square::s22(), true).toString(pos));
+    ASSERT_EQ("+0063KE", Move(PieceType::knight(), Square::s63()).toString(pos));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  * -GI * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  * +FU *  * \n"
+      "P8-KA *  *  *  *  *  * +HI * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00KI00KE00FU\n"
+      "P-00KA00FU\n"
+      "-\n");
+    ASSERT_EQ("-5162OU", Move(Square::s51(), Square::s62(), false).toString(pos));
+    ASSERT_EQ("-9854UM", Move(Square::s98(), Square::s54(), true).toString(pos));
+    ASSERT_EQ("-0065KA", Move(PieceType::bishop(), Square::s65()).toString(pos));
   }
 }
 
 TEST(MoveTest, testToStringSFEN) {
   {
-    ASSERT_EQ("3g3f", Move(Piece::blackPawn(), Square::s37(), Square::s36(), false).toStringSFEN());
-    ASSERT_EQ("5a6b", Move(Piece::whiteKing(), Square::s51(), Square::s62(), false).toStringSFEN());
-    ASSERT_EQ("2h2b+", Move(Piece::blackRook(), Square::s28(), Square::s22(), true).toStringSFEN());
-    ASSERT_EQ("B*6e", Move(Piece::whiteBishop(), Square::s65()).toStringSFEN());
+    ASSERT_EQ("3g3f", Move(Square::s37(), Square::s36(), false).toStringSFEN());
+    ASSERT_EQ("5a6b", Move(Square::s51(), Square::s62(), false).toStringSFEN());
+    ASSERT_EQ("2h2b+", Move(Square::s28(), Square::s22(), true).toStringSFEN());
+    ASSERT_EQ("B*6e", Move(PieceType::bishop(), Square::s65()).toStringSFEN());
   }
 }
 

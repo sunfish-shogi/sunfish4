@@ -277,22 +277,22 @@ public:
   /**
    * Make move
    */
-  bool doMove(Move& move) {
+  bool doMove(const Move& move, Piece& capturedPiece) {
     if (turn_ == Turn::Black) {
-      return doMove<Turn::Black>(move);
+      return doMove<Turn::Black>(move, capturedPiece);
     } else {
-      return doMove<Turn::White>(move);
+      return doMove<Turn::White>(move, capturedPiece);
     }
   }
 
   /**
    * Undo move
    */
-  void undoMove(const Move& move) {
+  void undoMove(const Move& move, const Piece& capturedPiece) {
     if (turn_ == Turn::Black) {
-      undoMove<Turn::White>(move);
+      undoMove<Turn::White>(move, capturedPiece);
     } else {
-      undoMove<Turn::Black>(move);
+      undoMove<Turn::Black>(move, capturedPiece);
     }
   }
 
@@ -439,10 +439,10 @@ private:
   void onChanged();
 
   template <Turn turn>
-  bool doMove(Move& move);
+  bool doMove(Move move, Piece& wbCaptured);
 
   template <Turn turn>
-  void undoMove(const Move& move);
+  void undoMove(Move move, Piece captured);
 
   template <Turn turn>
   std::tuple<Square, Square> detectLongEffects(const Square& square, Square) const;

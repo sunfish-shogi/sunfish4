@@ -12,7 +12,7 @@
 #include <sstream>
 #include <cstdint>
 
-#define MAX_NUMBER_OF_MOVES 1024
+#define MAX_NUMBER_OF_MOVES 900
 
 namespace sunfish {
 
@@ -188,8 +188,8 @@ public:
 
 private:
 
-  InternalContainerType moves_;
   size_type size_;
+  InternalContainerType moves_;
 
 };
 

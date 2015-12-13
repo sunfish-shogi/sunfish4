@@ -38,10 +38,10 @@ public:
                          position);
   }
 
-  static bool parseMove(const char* data, const Position& position, Move& move);
+  static bool parseMove(const char* data, Move& move);
 
-  static bool parseMove(const std::string& data, const Position& position, Move& move) {
-    return parseMove(data.c_str(), position, move);
+  static bool parseMove(const std::string& data, Move& move) {
+    return parseMove(data.c_str(), move);
   }
 
 private:

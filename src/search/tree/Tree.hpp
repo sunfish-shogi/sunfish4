@@ -30,7 +30,7 @@ void initializeTree(Tree& tree,
 
 bool doMove(Tree& tree, Move& move);
 
-void undoMove(Tree& tree, Move move);
+void undoMove(Tree& tree);
 
 std::string getPath(const Tree& tree, int ply);
 

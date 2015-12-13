@@ -126,7 +126,7 @@ bool SfenParser::parsePosition(const char* arg1,
   return true;
 }
 
-bool SfenParser::parseMove(const char* data, const Position& position, Move& move) {
+bool SfenParser::parseMove(const char* data, Move& move) {
   if (strlen(data) < 4) {
     Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
     return false;
@@ -142,14 +142,7 @@ bool SfenParser::parseMove(const char* data, const Position& position, Move& mov
       return false;
     }
 
-    Piece piece = position.getPieceOnBoard(from);
-
-    if (piece.isEmpty()) {
-      Loggers::warning << "illegal move: " << __FILE__ << "(" << __LINE__ << ")";
-      return false;
-    }
-
-    move = Move(piece, from, to, prom);
+    move = Move(from, to, prom);
 
   } else {
     if (data[1] != '*') {
@@ -165,12 +158,7 @@ bool SfenParser::parseMove(const char* data, const Position& position, Move& mov
       return false;
     }
 
-    if (position.getTurn() == Turn::Black) {
-      move = Move(pieceType.black(), to);
-    } else {
-      move = Move(pieceType.white(), to);
-    }
-
+    move = Move(pieceType, to);
   }
 
   return true;

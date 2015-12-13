@@ -453,16 +453,16 @@ Bitboard& Position::getBitboard(Piece piece) {
 }
 
 template <Turn turn>
-bool Position::doMove(Move& move) {
+bool Position::doMove(Move move, Piece& wbCaptured) {
   bool isDrop = move.isDrop();
-  Piece piece = move.piece();
   Square to = move.to();
-
-  assert(!piece.isEmpty());
-  assert(piece.isBlack() == (turn == Turn::Black));
-  assert(piece.isWhite() == (turn == Turn::White));
+  Piece captured;
 
   if (isDrop) {
+    PieceType pieceType = move.droppingPieceType();
+    Piece piece = turn == Turn::Black ? pieceType.black() : pieceType.white();
+    captured = Piece::empty();
+
     // update piece number array
     board_[to.raw()] = piece;
 
@@ -480,7 +480,6 @@ bool Position::doMove(Move& move) {
     bbRotatedR45_.set(to.rotateRight45());
     bbRotatedL45_.set(to.rotateLeft45());
 
-    PieceType pieceType = piece.type();
     Hand::Type handNum;
 
     // update count of pieces in hand
@@ -499,11 +498,11 @@ bool Position::doMove(Move& move) {
     }
 
   } else {
-    Piece captured = board_[to.raw()];
+    Square from = move.from();
+    Piece piece = board_[from.raw()];
+    captured = board_[to.raw()];
 
     if (!captured.isEmpty()) {
-      move.setCapturedPiece(captured);
-
       int handNum;
       PieceType handType = captured.type().unpromote();
 
@@ -514,7 +513,6 @@ bool Position::doMove(Move& move) {
         handNum = whiteHand_.incUnsafe(handType);
       }
 
-      Square from = move.from();
       Piece pieceAfter = move.isPromotion() ? piece.promote() : piece;
 
       // update piece number array
@@ -564,9 +562,6 @@ bool Position::doMove(Move& move) {
       }
 
     } else {
-      assert(!move.isCapturing());
-
-      Square from = move.from();
       Piece pieceAfter = move.isPromotion() ? piece.promote() : piece;
 
       // update piece number array
@@ -620,26 +615,26 @@ bool Position::doMove(Move& move) {
   turn_ = turn == Turn::Black ? Turn::White : Turn::Black;
 
   if (inCheck<turn>()) {
-    undoMove(move);
+    undoMove(move, captured);
     return false;
   }
 
+  wbCaptured = captured;
+
   return true;
 }
-template bool Position::doMove<Turn::Black>(Move&);
-template bool Position::doMove<Turn::White>(Move&);
+template bool Position::doMove<Turn::Black>(Move, Piece&);
+template bool Position::doMove<Turn::White>(Move, Piece&);
 
 template <Turn turn>
-void Position::undoMove(const Move& move) {
+void Position::undoMove(Move move, Piece captured) {
   bool isDrop = move.isDrop();
-  Piece piece = move.piece();
   Square to = move.to();
 
-  assert(!piece.isEmpty());
-  assert(piece.isBlack() == (turn == Turn::Black));
-  assert(piece.isWhite() == (turn == Turn::White));
-
   if (isDrop) {
+    PieceType pieceType = move.droppingPieceType();
+    Piece piece = turn == Turn::Black ? pieceType.black() : pieceType.white();
+
     // update piece number array
     board_[to.raw()] = Piece::empty();
 
@@ -657,7 +652,6 @@ void Position::undoMove(const Move& move) {
     bbRotatedR45_.unset(to.rotateRight45());
     bbRotatedL45_.unset(to.rotateLeft45());
 
-    PieceType pieceType = piece.type();
     Hand::Type handNum;
 
     // update count of pieces in hand
@@ -676,8 +670,10 @@ void Position::undoMove(const Move& move) {
     }
 
   } else {
+    bool isPromotion = move.isPromotion();
     Square from = move.from();
-    Piece captured = move.capturedPiece();
+    Piece pieceAfter = board_[to.raw()];
+    Piece piece = isPromotion ? pieceAfter.unpromote() : pieceAfter;
 
     if (!captured.isEmpty()) {
       int handNum;
@@ -690,8 +686,6 @@ void Position::undoMove(const Move& move) {
         handNum = whiteHand_.decUnsafe(handType);
       }
 
-      Piece pieceAfter = board_[to.raw()];
-
       // update piece number array
       board_[from.raw()] = piece;
       board_[to.raw()] = captured;
@@ -699,7 +693,7 @@ void Position::undoMove(const Move& move) {
       // update occupied bitboard
       auto maskFrom = Bitboard::mask(from);
       auto maskTo = Bitboard::mask(to);
-      if (piece == pieceAfter) {
+      if (!isPromotion) {
         operateBitboard(piece, [&maskFrom, &maskTo](Bitboard& bb) {
           bb |= maskFrom;
           bb = maskTo.andNot(bb);
@@ -748,7 +742,7 @@ void Position::undoMove(const Move& move) {
       // update occupied bitboard
       auto maskFrom = Bitboard::mask(from);
       auto maskTo = Bitboard::mask(to);
-      if (piece == pieceAfter) {
+      if (!isPromotion) {
         operateBitboard(piece, [&maskFrom, &maskTo](Bitboard& bb) {
           bb |= maskFrom;
           bb = maskTo.andNot(bb);
@@ -790,10 +784,9 @@ void Position::undoMove(const Move& move) {
   }
 
   turn_ = turn;
-
 }
-template void Position::undoMove<Turn::Black>(const Move&);
-template void Position::undoMove<Turn::White>(const Move&);
+template void Position::undoMove<Turn::Black>(Move, Piece);
+template void Position::undoMove<Turn::White>(Move, Piece);
 
 template <Turn turn>
 std::tuple<Square, Square> Position::detectLongEffects(const Square& square, Square from1) const {

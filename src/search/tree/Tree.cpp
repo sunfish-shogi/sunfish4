@@ -17,17 +17,21 @@ void initializeTree(Tree& tree,
 }
 
 bool doMove(Tree& tree, Move& move) {
-  if (tree.position.doMove(move)) {
-    tree.nodes[tree.ply].move = move;
+  auto& node = tree.nodes[tree.ply];
+  if (tree.position.doMove(move, node.captured)) {
+    node.move = move;
     tree.ply++;
+
     return true;
   }
+
   return false;
 }
 
-void undoMove(Tree& tree, Move move) {
-  tree.position.undoMove(move);
+void undoMove(Tree& tree) {
   tree.ply--;
+  auto& node = tree.nodes[tree.ply];
+  tree.position.undoMove(node.move, node.captured);
 }
 
 std::string getPath(const Tree& tree, int ply) {

@@ -27,8 +27,6 @@ class Move;
 class Searcher {
 public:
 
-  using ScoreArray = std::array<Score, MAX_NUMBER_OF_MOVES>;
-
   static CONSTEXPR_CONST int Depth1Ply = 8;
 
   Searcher();
@@ -83,8 +81,7 @@ private:
   void updateInfo();
 
   bool aspsearch(Tree& tree,
-                 int depth,
-                 ScoreArray& scores);
+                 int depth);
 
   Score search(Tree& tree,
                int depth,

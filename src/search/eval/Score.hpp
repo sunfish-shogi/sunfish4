@@ -7,6 +7,7 @@
 #define SUNFISH_SEARCH_EVAL_SCORE_HPP__
 
 #include "common/Def.hpp"
+#include "core/move/Move.hpp"
 #include <iostream>
 #include <cstdint>
 
@@ -130,6 +131,14 @@ private:
   RawType score_;
 
 };
+
+inline void setScoreToMove(Move& move, const Score& score) {
+  move.setExtData(static_cast<Move::RawType16>(score.raw()));
+}
+
+inline Score moveToScore(const Move& move) {
+  return Score(static_cast<Score::RawType>(move.extData()));
+}
 
 } // namespace sunfish
 

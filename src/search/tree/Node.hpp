@@ -23,6 +23,7 @@ struct Node {
   CheckState checkState;
   GenPhase genPhase;
   Move move;
+  Piece captured;
   Moves::iterator moveIterator;
   Moves moves;
   PV pv;

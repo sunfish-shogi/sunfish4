@@ -100,7 +100,7 @@ bool Searcher::search(const Position& pos,
       }
     }
 
-    undoMove(tree, move);
+    undoMove(tree);
 
     updateInfo();
 
@@ -145,7 +145,6 @@ bool Searcher::idsearch(const Position& pos,
   generateMovesOnRoot(tree);
 
   bool ok = false;
-  ScoreArray scores;
 
   for (Moves::size_type i = 0; i < node.moves.size();) {
     Move move = node.moves[i];
@@ -156,11 +155,12 @@ bool Searcher::idsearch(const Position& pos,
       continue;
     }
 
-    scores[i] = -quies(tree,
-                       -Score::infinity(),
-                       Score::infinity());
+    Score score = -quies(tree,
+                         -Score::infinity(),
+                         Score::infinity());
+    setScoreToMove(node.moves[i], score);
 
-    undoMove(tree, move);
+    undoMove(tree);
 
     i++;
   }
@@ -173,24 +173,27 @@ bool Searcher::idsearch(const Position& pos,
     return false;
   }
 
+  std::sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
+    return moveToScore(lhs) > moveToScore(rhs);
+  });
+
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
-    ok = aspsearch(tree, currDepth, scores);
+    ok = aspsearch(tree, currDepth);
 
     if (!ok || isInterrupted() || currDepth >= depth) {
       break;
     }
   }
 
-  result_.move = node.moves[0];
-  result_.score = scores[0];
+  result_.move = node.moves[0].excludeExtData();
+  result_.score = moveToScore(node.moves[0]);
   result_.pv = node.pv;
 
   return ok;
 }
 
 bool Searcher::aspsearch(Tree& tree,
-                         int depth,
-                         ScoreArray& scores) {
+                         int depth) {
   auto& node = tree.nodes[tree.ply];
 
   if (node.moves.size() == 0) {
@@ -199,7 +202,7 @@ bool Searcher::aspsearch(Tree& tree,
 
   bool doAsp = depth >= AspirationSearchMinDepth;
 
-  Score prevScore = scores[0];
+  Score prevScore = moveToScore(node.moves[0]);
   Score alphas[] = {
     prevScore - 128,
     prevScore - 256,
@@ -231,7 +234,7 @@ bool Searcher::aspsearch(Tree& tree,
     bool moveOk = doMove(tree, move);
     if (!moveOk) {
       Loggers::warning << "invalid state: " << __FILE__ << ':' << __LINE__;
-      i++;
+      node.moves.remove(i);
       continue;
     }
 
@@ -258,7 +261,7 @@ bool Searcher::aspsearch(Tree& tree,
       }
     }
 
-    undoMove(tree, move);
+    undoMove(tree);
 
     updateInfo();
 
@@ -302,15 +305,11 @@ bool Searcher::aspsearch(Tree& tree,
     // insertion
     int j;
     for (j = i - 1; j >= 0; j--) {
-      if (scores[j] >= score) {
-        break;
-      }
-
+      if (moveToScore(node.moves[j]) >= score) { break; }
       node.moves[j+1] = node.moves[j];
-      scores[j+1] = scores[j];
     }
     node.moves[j+1] = move;
-    scores[j+1] = score;
+    setScoreToMove(node.moves[j+1], score);
 
     i++;
 
@@ -332,7 +331,8 @@ Score Searcher::search(Tree& tree,
                        Score beta) {
 #if 0
   bool isDebug = false;
-  if (getPath(tree, tree.ply) == "-0068KA +5968OU -9394FU") {
+  if (getPath(tree, tree.ply) == "9394 9796") {
+    Loggers::message << "debugging node :" << __FILE__ << ':' << __LINE__;
     isDebug = true;
   }
 #endif
@@ -412,7 +412,7 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-    undoMove(tree, move);
+    undoMove(tree);
 
     if (isInterrupted()) {
       return Score::zero();
@@ -474,7 +474,7 @@ Score Searcher::quies(Tree& tree,
                          -beta,
                          -alpha);
 
-    undoMove(tree, move);
+    undoMove(tree);
 
     if (score > alpha) {
       alpha = score;
@@ -505,7 +505,9 @@ void Searcher::generateMovesOnRoot(Tree& tree) {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 
+#if 1
   random_.shuffle(node.moves.begin(), node.moves.end());
+#endif
 }
 
 Move Searcher::nextMoveOnRoot(Node& node) {

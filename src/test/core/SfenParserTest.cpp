@@ -57,65 +57,26 @@ TEST(SfenParserTest, parsePosition) {
 TEST(SfenParserTest, parseMove) {
   {
     const char* data = "7g7f";
-    Position pos = PositionUtil::createPositionFromCsaString(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * -KA * \n"
-      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
-      "P4 *  *  *  *  *  *  *  *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  *  *  *  *  *  *  *  * \n"
-      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
-      "P8 * +KA *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+\n"
-      "P-\n"
-      "+\n");
     Move move;
-    bool ok = SfenParser::parseMove(data, pos, move);
+    bool ok = SfenParser::parseMove(data, move);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Move(Piece::blackPawn(), Square::s77(), Square::s76(), false), move);
+    ASSERT_EQ(Move(Square::s77(), Square::s76(), false), move);
   }
 
   {
     const char* data = "2b8h";
-    Position pos = PositionUtil::createPositionFromCsaString(
-      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-      "P2 * -HI *  *  *  *  * -KA * \n"
-      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
-      "P4 *  *  *  *  *  * -FU *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  * +FU *  *  *  * +FU * \n"
-      "P7+FU+FU * +FU+FU+FU+FU * +FU\n"
-      "P8 * +KA *  *  *  *  * +HI * \n"
-      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-      "P+\n"
-      "P-\n"
-      "-\n");
     Move move;
-    bool ok = SfenParser::parseMove(data, pos, move);
+    bool ok = SfenParser::parseMove(data, move);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Move(Piece::whiteBishop(), Square::s22(), Square::s88(), false), move);
+    ASSERT_EQ(Move(Square::s22(), Square::s88(), false), move);
   }
 
   {
     const char* data = "G*4e";
-    Position pos = PositionUtil::createPositionFromCsaString(
-      "P1 *  *  *  * -OU *  *  *  * \n"
-      "P2 *  *  *  *  *  *  *  *  * \n"
-      "P3 *  *  *  *  *  *  *  *  * \n"
-      "P4 *  *  *  *  *  *  *  *  * \n"
-      "P5 *  *  *  *  *  *  *  *  * \n"
-      "P6 *  *  *  *  *  *  *  *  * \n"
-      "P7 *  *  *  *  *  *  *  *  * \n"
-      "P8 *  *  *  *  *  *  *  *  * \n"
-      "P9 *  *  *  * +OU *  *  *  * \n"
-      "P+00KA\n"
-      "P-00KI\n"
-      "-\n");
     Move move;
-    bool ok = SfenParser::parseMove(data, pos, move);
+    bool ok = SfenParser::parseMove(data, move);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Move(Piece::whiteGold(), Square::s45()), move);
+    ASSERT_EQ(Move(PieceType::gold(), Square::s45()), move);
   }
 }
 

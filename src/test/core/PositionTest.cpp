@@ -196,7 +196,7 @@ TEST(PositionTest, testToStringSFEN) {
   }
 }
 
-TEST(PositionTest, testMakeMove) {
+TEST(PositionTest, testDoMove) {
   {
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
@@ -226,11 +226,12 @@ TEST(PositionTest, testMakeMove) {
       "P-\n"
       "-\n");
 
-    Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
+    Move move(Square::s77(), Square::s76(), false);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    ASSERT_EQ(Piece::empty(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -263,11 +264,12 @@ TEST(PositionTest, testMakeMove) {
       "P-\n"
       "+\n");
 
-    Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
+    Move move(Square::s33(), Square::s34(), false);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    ASSERT_EQ(Piece::empty(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -300,11 +302,12 @@ TEST(PositionTest, testMakeMove) {
       "P-\n"
       "-\n");
 
-    Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
+    Move move(Square::s88(), Square::s22(), true);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::whiteBishop(), move.capturedPiece());
+    ASSERT_EQ(Piece::whiteBishop(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -337,11 +340,12 @@ TEST(PositionTest, testMakeMove) {
       "P-00KA\n"
       "+\n");
 
-    Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
+    Move move(Square::s31(), Square::s22(), false);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::blackHorse(), move.capturedPiece());
+    ASSERT_EQ(Piece::blackHorse(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -374,11 +378,12 @@ TEST(PositionTest, testMakeMove) {
       "P-00KA\n"
       "-\n");
 
-    Move move(Piece::blackBishop(), Square::s45());
+    Move move(PieceType::bishop(), Square::s45());
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    ASSERT_EQ(Piece::empty(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -411,11 +416,12 @@ TEST(PositionTest, testMakeMove) {
       "P-\n"
       "-\n");
 
-    Move move(Piece::blackKing(), Square::s59(), Square::s68(), false);
+    Move move(Square::s59(), Square::s68(), false);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    ASSERT_EQ(Piece::empty(), captured);
     assertEq(expectPos, pos);
   }
 
@@ -448,16 +454,17 @@ TEST(PositionTest, testMakeMove) {
       "P-\n"
       "+\n");
 
-    Move move(Piece::whiteKing(), Square::s51(), Square::s52(), false);
+    Move move(Square::s51(), Square::s52(), false);
 
-    bool ok = pos.doMove(move);
+    Piece captured;
+    bool ok = pos.doMove(move, captured);
     ASSERT_EQ(true, ok);
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    ASSERT_EQ(Piece::empty(), captured);
     assertEq(expectPos, pos);
   }
 
   {
-    Position pos = PositionUtil::createPositionFromCsaString(
+    const char* posStr =
       "P1 *  *  *  * -OU *  *  *  * \n"
       "P2 *  *  *  *  *  *  *  *  * \n"
       "P3 *  *  *  *  *  *  *  *  * \n"
@@ -469,25 +476,56 @@ TEST(PositionTest, testMakeMove) {
       "P9 *  *  *  *  *  *  *  *  * \n"
       "P+\n"
       "P-\n"
-      "+\n");
+      "+\n";
+    Position pos = PositionUtil::createPositionFromCsaString(posStr);
 
-    Move king57(Piece::blackKing(), Square::s67(), Square::s57(), false);
-    Move king58(Piece::blackKing(), Square::s67(), Square::s58(), false);
-    Move king68(Piece::blackKing(), Square::s67(), Square::s68(), false);
-    Move king76(Piece::blackKing(), Square::s67(), Square::s76(), false);
-    Move king78(Piece::blackKing(), Square::s67(), Square::s78(), false);
-    Move king56(Piece::blackKing(), Square::s67(), Square::s56(), false);
-    Move king66(Piece::blackKing(), Square::s67(), Square::s66(), false);
-    Move king77(Piece::blackKing(), Square::s67(), Square::s77(), false);
+    Move king57(Square::s67(), Square::s57(), false);
+    Move king58(Square::s67(), Square::s58(), false);
+    Move king68(Square::s67(), Square::s68(), false);
+    Move king76(Square::s67(), Square::s76(), false);
+    Move king78(Square::s67(), Square::s78(), false);
+    Move king56(Square::s67(), Square::s56(), false);
+    Move king66(Square::s67(), Square::s66(), false);
+    Move king77(Square::s67(), Square::s77(), false);
 
-    ASSERT_EQ(true,  Position(pos).doMove(king57));
-    ASSERT_EQ(true,  Position(pos).doMove(king58));
-    ASSERT_EQ(true,  Position(pos).doMove(king68));
-    ASSERT_EQ(true,  Position(pos).doMove(king76));
-    ASSERT_EQ(true,  Position(pos).doMove(king78));
-    ASSERT_EQ(false, Position(pos).doMove(king56));
-    ASSERT_EQ(false, Position(pos).doMove(king66));
-    ASSERT_EQ(false, Position(pos).doMove(king77));
+    Piece captured;
+
+    bool ok = pos.doMove(king57, captured);
+    ASSERT_EQ(true, ok);
+    pos.undoMove(king57, captured);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king58, captured);
+    ASSERT_EQ(true, ok);
+    pos.undoMove(king58, captured);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king68, captured);
+    ASSERT_EQ(true, ok);
+    pos.undoMove(king68, captured);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king76, captured);
+    ASSERT_EQ(true, ok);
+    pos.undoMove(king76, captured);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king78, captured);
+    ASSERT_EQ(true, ok);
+    pos.undoMove(king78, captured);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king56, captured);
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king66, captured);
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ(posStr, pos.toString());
+
+    ok = pos.doMove(king77, captured);
+    ASSERT_EQ(false, ok);
+    ASSERT_EQ(posStr, pos.toString());
   }
 }
 
@@ -521,11 +559,9 @@ TEST(PositionTest, testUndoMove) {
       "P-\n"
       "+\n");
 
-    Move move(Piece::blackPawn(), Square::s77(), Square::s76(), false);
+    Move move(Square::s77(), Square::s76(), false);
 
-    pos.undoMove(move);
-
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    pos.undoMove(move, Piece::empty());
 
     assertEq(expectPos, pos);
   }
@@ -559,11 +595,9 @@ TEST(PositionTest, testUndoMove) {
       "P-\n"
       "-\n");
 
-    Move move(Piece::whitePawn(), Square::s33(), Square::s34(), false);
+    Move move(Square::s33(), Square::s34(), false);
 
-    pos.undoMove(move);
-
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    pos.undoMove(move, Piece::empty());
 
     assertEq(expectPos, pos);
   }
@@ -597,12 +631,9 @@ TEST(PositionTest, testUndoMove) {
       "P-\n"
       "+\n");
 
-    Move move(Piece::blackBishop(), Square::s88(), Square::s22(), true);
-    move.setCapturedPiece(Piece::whiteBishop());
+    Move move(Square::s88(), Square::s22(), true);
 
-    pos.undoMove(move);
-
-    ASSERT_EQ(Piece::whiteBishop(), move.capturedPiece());
+    pos.undoMove(move, Piece::whiteBishop());
 
     assertEq(expectPos, pos);
   }
@@ -636,12 +667,9 @@ TEST(PositionTest, testUndoMove) {
       "P-\n"
       "-\n");
 
-    Move move(Piece::whiteSilver(), Square::s31(), Square::s22(), false);
-    move.setCapturedPiece(Piece::blackHorse());
+    Move move(Square::s31(), Square::s22(), false);
 
-    pos.undoMove(move);
-
-    ASSERT_EQ(Piece::blackHorse(), move.capturedPiece());
+    pos.undoMove(move, Piece::blackHorse());
 
     assertEq(expectPos, pos);
   }
@@ -675,11 +703,9 @@ TEST(PositionTest, testUndoMove) {
       "P-00KA\n"
       "+\n");
 
-    Move move(Piece::blackBishop(), Square::s45());
+    Move move(PieceType::bishop(), Square::s45());
 
-    pos.undoMove(move);
-
-    ASSERT_EQ(Piece::empty(), move.capturedPiece());
+    pos.undoMove(move, Piece::empty());
 
     assertEq(expectPos, pos);
   }

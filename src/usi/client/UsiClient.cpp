@@ -179,13 +179,14 @@ bool UsiClient::onPosition(const CommandArguments& args) {
 
   for (auto i = nextIndex + 1; i < args.size(); i++) {
     Move move;
-    bool parseOk = SfenParser::parseMove(args[i], position_, move);
+    bool parseOk = SfenParser::parseMove(args[i], move);
     if (!parseOk) {
       Loggers::error << "illegal arguments";
       return false;
     }
 
-    bool moveOk = position_.doMove(move);
+    Piece captured;
+    bool moveOk = position_.doMove(move, captured);
     if (!moveOk) {
       Loggers::error << "illegal move";
       return false;
@@ -270,7 +271,7 @@ bool UsiClient::onStop(const CommandArguments&) {
 void UsiClient::search() {
   Loggers::message << "search thread is started. tid=" << std::this_thread::get_id();
 
-  int depth = 9;
+  int depth = 32;
 
   searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
 

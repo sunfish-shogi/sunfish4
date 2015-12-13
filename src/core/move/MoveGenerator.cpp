@@ -32,13 +32,8 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
     }
 
     BB_EACH(from, fbb) {
-      if (turn == Turn::Black) {
-        Square to = from.up();
-        moves.add(Move(Piece::blackPawn(), from, to, to.isPromotable<turn>()));
-      } else {
-        Square to = from.down();
-        moves.add(Move(Piece::whitePawn(), from, to, to.isPromotable<turn>()));
-      }
+      Square to = turn == Turn::Black ? from.up() : from.down();
+      moves.add(Move(from, to, to.isPromotable<turn>()));
     }
   }
 
@@ -58,22 +53,21 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackSilver() : Piece::whiteSilver();
         if (from.isPromotable<turn>() || to.isPromotable<turn>()) {
           if (type == GenerationType::Capturing) {
-            moves.add(Move(piece, from, to, true));
+            moves.add(Move(from, to, true));
             if (cap.check(to)) {
-              moves.add(Move(piece, from, to, false));
+              moves.add(Move(from, to, false));
             }
           } else if (type == GenerationType::NotCapturing) {
-            moves.add(Move(piece, from, to, false));
+            moves.add(Move(from, to, false));
           } else {
-            moves.add(Move(piece, from, to, true));
-            moves.add(Move(piece, from, to, false));
+            moves.add(Move(from, to, true));
+            moves.add(Move(from, to, false));
           }
 
         } else {
-          moves.add(Move(piece, from, to, false));
+          moves.add(Move(from, to, false));
         }
       }
     }
@@ -94,9 +88,8 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
         tbb &= mask;
       }
 
-      auto piece = pos.getPieceOnBoard(from);
       BB_EACH(to, tbb) {
-        moves.add(Move(piece, from, to, false));
+        moves.add(Move(from, to, false));
       }
     }
   }
@@ -114,8 +107,7 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
     }
 
     BB_EACH(to, tbb) {
-      auto piece = turn == Turn::Black ? Piece::blackKing() : Piece::whiteKing();
-      moves.add(Move(piece, from, to, false));
+      moves.add(Move(from, to, false));
     }
   }
 
@@ -138,12 +130,11 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackBishop() : Piece::whiteBishop();
         if (type == GenerationType::Capturing || type == GenerationType::All) {
           auto promotable = from.isPromotable<turn>() || to.isPromotable<turn>();
-          moves.add(Move(piece, from, to, promotable));
+          moves.add(Move(from, to, promotable));
         } else {
-          moves.add(Move(piece, from, to, false));
+          moves.add(Move(from, to, false));
         }
       }
     }
@@ -166,8 +157,7 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackHorse() : Piece::whiteHorse();
-        moves.add(Move(piece, from, to, false));
+        moves.add(Move(from, to, false));
       }
     }
   }
@@ -191,12 +181,11 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackRook() : Piece::whiteRook();
         if (type == GenerationType::Capturing || type == GenerationType::All) {
           auto promotable = from.isPromotable<turn>() || to.isPromotable<turn>();
-          moves.add(Move(piece, from, to, promotable));
+          moves.add(Move(from, to, promotable));
         } else {
-          moves.add(Move(piece, from, to, false));
+          moves.add(Move(from, to, false));
         }
       }
     }
@@ -219,8 +208,7 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackDragon() : Piece::whiteDragon();
-        moves.add(Move(piece, from, to, false));
+        moves.add(Move(from, to, false));
       }
     }
   }
@@ -246,24 +234,23 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackLance() : Piece::whiteLance();
         if (to.isPromotable<turn>()) {
           if (type == GenerationType::Capturing) {
-            moves.add(Move(piece, from, to, true));
+            moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7) && cap.check(to)) {
-              moves.add(Move(piece, from, to, false));
+              moves.add(Move(from, to, false));
             }
           } else if (type == GenerationType::NotCapturing) {
-            moves.add(Move(piece, from, to, false));
+            moves.add(Move(from, to, false));
           } else {
-            moves.add(Move(piece, from, to, true));
+            moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7)) {
-              moves.add(Move(piece, from, to, false));
+              moves.add(Move(from, to, false));
             }
           }
 
         } else {
-          moves.add(Move(piece, from, to, false));
+          moves.add(Move(from, to, false));
         }
       }
     }
@@ -285,24 +272,23 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       }
 
       BB_EACH(to, tbb) {
-        auto piece = turn == Turn::Black ? Piece::blackKnight() : Piece::whiteKnight();
         if (to.isPromotable<turn>()) {
           if (type == GenerationType::Capturing) {
-            moves.add(Move(piece, from, to, true));
+            moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7) && cap.check(to)) {
-              moves.add(Move(piece, from, to, false));
+              moves.add(Move(from, to, false));
             }
           } else if (type == GenerationType::NotCapturing) {
-            moves.add(Move(piece, from, to, false));
+            moves.add(Move(from, to, false));
           } else {
-            moves.add(Move(piece, from, to, true));
+            moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7)) {
-              moves.add(Move(piece, from, to, false));
+              moves.add(Move(from, to, false));
             }
           }
 
         } else {
-          moves.add(Move(piece, from, to, false));
+          moves.add(Move(from, to, false));
         }
       }
     }
@@ -315,27 +301,18 @@ template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::Ge
 
 template <Turn turn>
 void MoveGenerator::generateDrops(const Position& pos, Moves& moves, const Bitboard& mask) {
-  Piece pieces[6];
+  PieceType pieces[6];
   int kn = 0;
   int ln = 0;
   int pn = 0;
 
   const auto& hand = turn == Turn::Black ? pos.getBlackHand() : pos.getWhiteHand();
-  if (turn == Turn::Black) {
-    if (hand.get(PieceType::knight()) != 0) { pieces[pn++] = Piece::blackKnight(); ln = kn = pn; }
-    if (hand.get(PieceType::lance()) != 0)  { pieces[pn++] = Piece::blackLance(); ln = pn; }
-    if (hand.get(PieceType::silver()) != 0) { pieces[pn++] = Piece::blackSilver(); }
-    if (hand.get(PieceType::gold()) != 0)   { pieces[pn++] = Piece::blackGold(); }
-    if (hand.get(PieceType::bishop()) != 0) { pieces[pn++] = Piece::blackBishop(); }
-    if (hand.get(PieceType::rook()) != 0)   { pieces[pn++] = Piece::blackRook(); }
-  } else {
-    if (hand.get(PieceType::knight()) != 0) { pieces[pn++] = Piece::whiteKnight(); ln = kn = pn; }
-    if (hand.get(PieceType::lance()) != 0)  { pieces[pn++] = Piece::whiteLance(); ln = pn; }
-    if (hand.get(PieceType::silver()) != 0) { pieces[pn++] = Piece::whiteSilver(); }
-    if (hand.get(PieceType::gold()) != 0)   { pieces[pn++] = Piece::whiteGold(); }
-    if (hand.get(PieceType::bishop()) != 0) { pieces[pn++] = Piece::whiteBishop(); }
-    if (hand.get(PieceType::rook()) != 0)   { pieces[pn++] = Piece::whiteRook(); }
-  }
+  if (hand.get(PieceType::knight()) != 0) { pieces[pn++] = PieceType::knight(); ln = kn = pn; }
+  if (hand.get(PieceType::lance()) != 0)  { pieces[pn++] = PieceType::lance(); ln = pn; }
+  if (hand.get(PieceType::silver()) != 0) { pieces[pn++] = PieceType::silver(); }
+  if (hand.get(PieceType::gold()) != 0)   { pieces[pn++] = PieceType::gold(); }
+  if (hand.get(PieceType::bishop()) != 0) { pieces[pn++] = PieceType::bishop(); }
+  if (hand.get(PieceType::rook()) != 0)   { pieces[pn++] = PieceType::rook(); }
 
   auto occ = pos.getBOccupiedBitboard() | pos.getWOccupiedBitboard();
   auto noocc = occ.andNot(mask);
@@ -366,8 +343,7 @@ void MoveGenerator::generateDrops(const Position& pos, Moves& moves, const Bitbo
     }
 
     BB_EACH(to, rank2to9) {
-      auto piece = turn == Turn::Black ? Piece::blackPawn() : Piece::whitePawn();
-      moves.add(Move(piece, to));
+      moves.add(Move(PieceType::pawn(), to));
     }
   }
 
@@ -437,11 +413,7 @@ void MoveGenerator::generateEvasions(const Position& pos, CheckState checkState,
   }
 
   BB_EACH(to, tbb) {
-    if (turn == Turn::Black) {
-      moves.add(Move(Piece::blackKing(), kingSquare, to, false));
-    } else {
-      moves.add(Move(Piece::whiteKing(), kingSquare, to, false));
-    }
+    moves.add(Move(kingSquare, to, false));
   }
 }
 template void MoveGenerator::generateEvasions<Turn::Black>(const Position&, CheckState, Moves&);

@@ -20,25 +20,19 @@ class Move {
 public:
 
   using RawType = uint32_t;
+  using RawType16 = uint16_t;
 
 private:
 
-  static CONSTEXPR_CONST RawType S16Hand  = 0x8000;
-  static CONSTEXPR_CONST RawType S16Empty = 0xffff;
-  static CONSTEXPR_CONST RawType S16HandOffset = 7;
+  static CONSTEXPR_CONST RawType ToMask   = 0x0000007f;
+  static CONSTEXPR_CONST RawType FromMask = 0x00003f80;
+  static CONSTEXPR_CONST RawType Promote  = 0x00004000;
+  static CONSTEXPR_CONST RawType Drop     = 0x00008000;
+  static CONSTEXPR_CONST RawType ExtMask  = 0xffff0000;
+  static CONSTEXPR_CONST RawType Empty    = 0xffffffff;
 
-  static CONSTEXPR_CONST RawType FromMask    = 0x0000007f;
-  static CONSTEXPR_CONST RawType ToMask      = 0x00003f80;
-  static CONSTEXPR_CONST RawType PromoteMask = 0x00004000;
-  static CONSTEXPR_CONST RawType PieceMask   = 0x000f8000;
-  static CONSTEXPR_CONST RawType CaptureMask = 0x01f00000;
-  static CONSTEXPR_CONST RawType UnusedMask  = 0x7e000000;
-  static CONSTEXPR_CONST RawType Drop        = 0x80000000;
-  static CONSTEXPR_CONST RawType Empty       = 0xffffffff;
-
-  static CONSTEXPR_CONST int ToOffset = 7;
-  static CONSTEXPR_CONST int PieceOffset = 15;
-  static CONSTEXPR_CONST int CaptureOffset = 20;
+  static CONSTEXPR_CONST int FromOffset = 7;
+  static CONSTEXPR_CONST int ExtOffset = 16;
 
   explicit CONSTEXPR Move(RawType move) : move_(move) {
   }
@@ -52,141 +46,125 @@ public:
   }
 
   /**
-   * Constructor
+   * Construct a move of a piece on board.
    */
-  Move(const Piece& piece, const Square& from, const Square& to, bool promote) {
-    assert(!piece.isEmpty());
-    assert(piece.isUnpromoted() || !promote);
-    assert(from.isValid());
-    assert(to.isValid());
-    move_ = (static_cast<RawType>(from.raw()))
-          | (static_cast<RawType>(to.raw()) << ToOffset)
-          | (static_cast<RawType>(piece.raw()) << PieceOffset);
-    if (promote) {
-      move_ |= PromoteMask;
-    }
+  CONSTEXPR Move(const Square& from, const Square& to, bool promote) :
+      move_((static_cast<RawType>(to.raw())) |
+            (static_cast<RawType>(from.raw()) << FromOffset) |
+            (promote ? Promote : 0)) {
   }
 
   /**
-   * Constructor
+   * Construct a drop
    */
-  Move(const Piece& piece, const Square& to) {
-    assert(!piece.isEmpty());
-    assert(piece == piece.unpromote());
-    move_ = (static_cast<RawType>(to.raw()) << ToOffset)
-          | (static_cast<RawType>(piece.raw()) << PieceOffset)
-          | Drop;
+  CONSTEXPR Move(const PieceType& pieceType, const Square& to) :
+      move_((static_cast<RawType>(to.raw())) |
+            (static_cast<RawType>(pieceType.raw()) << FromOffset) |
+            Drop) {
   }
 
   /**
    * Get an object representing empty.
    */
-  static Move empty() {
+  static CONSTEXPR Move empty() {
     return Move(Empty);
   }
 
   /**
    * Check the current object is empty.
    */
-  bool isEmpty() const {
+  bool CONSTEXPR isEmpty() const {
     return move_ == Empty;
   }
 
   /**
    * Get the starting square
    */
-  Square from() const {
-    return Square(move_ & FromMask);
+  CONSTEXPR Square from() const {
+    return Square((move_ & FromMask) >> FromOffset);
   }
 
   /**
    * Get the ending square
    */
-  Square to() const {
-    return Square((move_ & ToMask) >> ToOffset);
+  CONSTEXPR Square to() const {
+    return Square(move_ & ToMask);
   }
 
   /**
    * Check this move is promotion.
    */
-  bool isPromotion() const {
-    return move_ & PromoteMask;
+  CONSTEXPR bool isPromotion() const {
+    return move_ & Promote;
   }
 
   /**
-   * Get the target piece type.
+   * Get the dropping piece type.
    */
-  Piece piece() const {
-    return (move_ & PieceMask) >> PieceOffset;
-  }
-
-  /**
-   * Set the captured piece type.
-   */
-  void setCapturedPiece(const Piece& cap) {
-    assert(cap.isEmpty() || piece().isBlack() != cap.isBlack());
-    move_ = (move_ & (~CaptureMask)) | ((static_cast<RawType>(cap.raw()) + 1U) << CaptureOffset);
-  }
-
-  /**
-   * Get the captured piece type.
-   */
-  Piece capturedPiece() const {
-    RawType cap = move_ & CaptureMask;
-    return cap ? ((cap >> CaptureOffset) - 1U) : Piece::empty();
-  }
-
-  /**
-   * Check this is capturing move.
-   */
-  bool isCapturing() const {
-    return move_ & CaptureMask;
+  CONSTEXPR PieceType droppingPieceType() const {
+    return PieceType((move_ & FromMask) >> FromOffset);
   }
 
   /**
    * Check this is dropping move.
    */
-  bool isDrop() const {
+  CONSTEXPR bool isDrop() const {
     return move_ & Drop;
   }
 
   /**
-   * EQUAL operator
+   * Set an extension data.
    */
-  bool operator==(const Move& obj) const {
-    return (move_ & ~(UnusedMask | CaptureMask)) == (obj.move_ & ~(UnusedMask | CaptureMask));
+  void setExtData(RawType16 data) {
+    move_ = (move_ & ~ExtMask) | (static_cast<RawType>(data) << ExtOffset);
   }
 
   /**
-   * NOT-EQUAL operator
+   * Get an extension data.
    */
-  bool operator!=(const Move& obj) const {
+  CONSTEXPR RawType16 extData() const {
+    return static_cast<RawType16>(move_ >> ExtOffset);
+  }
+
+  CONSTEXPR Move excludeExtData() const {
+    return Move(move_ & ~ExtMask);
+  }
+
+  CONSTEXPR bool operator==(const Move& obj) const {
+    return serialize16() == obj.serialize16();
+  }
+
+  CONSTEXPR bool operator!=(const Move& obj) const {
     return !operator==(obj);
   }
 
   /**
-   * Serialize
+   * Get a raw value.
    */
-  static uint32_t serialize(const Move& obj) {
-    return obj.move_ & (FromMask | ToMask | PromoteMask | PieceMask | Drop);
+  CONSTEXPR RawType serialize() {
+    return move_;
   }
 
   /**
-   * Deserialize
+   * Get a raw value which excluding a extension data of 16 bits.
    */
-  static Move deserialize(uint32_t value) {
-    return Move(value);
+  CONSTEXPR RawType16 serialize16() {
+    return static_cast<RawType16>(move_);
   }
 
   /**
-   * Serialize
+   * Get a move from a raw value.
    */
-  static uint16_t serialize16(const Move& obj);
+  static CONSTEXPR Move deserialize(RawType move) {
+    return Move(move);
+  }
 
   /**
-   * Deserialize
+   * Get a move from a raw value of 16 bits.
    */
-  static Move deserialize16(uint16_t value, const Position& position);
+  static CONSTEXPR Move deserialize(RawType16 move) {
+    return Move(static_cast<RawType>(move));
+  }
 
   /**
    * Swap two Move objects.
@@ -198,17 +176,23 @@ public:
   }
 
   /**
-   * Get a string of CSA format.
+   * Get a string of proprietary format that is similar to CSA.
    */
   std::string toString() const;
+
+  /**
+   * Get a string of CSA format.
+   */
+  std::string toString(const Position& position) const;
 
   /**
    * Get a string of SFEN format.
    */
   std::string toStringSFEN() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const sunfish::Move& move) {
-    os << move.toString();
+  friend std::ostream& operator<<(std::ostream& os, const sunfish::Move& obj) {
+    os << obj.toString() << '(' << obj.extData() << ')';
+
     return os;
   }
 
