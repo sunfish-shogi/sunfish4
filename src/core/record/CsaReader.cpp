@@ -48,12 +48,12 @@ bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* 
     if (is.eof()) { break; }
 
     if (is.fail()) {
-      Loggers::warning << "file io error: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "file io error.";
       return false;
     }
 
     if (!readPosition(line, mp, info)) {
-      Loggers::warning << "invalid position format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid position format.";
       return false;
     }
 
@@ -75,8 +75,7 @@ bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* 
     } else if (line[1] == '-') {
       return readHand(line, mp, Turn::White);
     }
-    Loggers::warning << __FILE_LINE__ << ": unknown command";
-    Loggers::warning << line;
+    LOG(warning) << "invalid command: '" << line << '\'';
     return false;
 
   case '+':
@@ -94,15 +93,14 @@ bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* 
     return true;
 
   default:
-    Loggers::warning << __FILE_LINE__ << ": unknown command";
-    Loggers::warning << line;
+    LOG(warning) << "invalid command: '" << line << '\'';
     return false;
   }
 }
 
 bool CsaReader::readPositionPieces(const char* line, MutablePosition& mp) {
   if (strlen(line) < 2 + 3 * Square::FileMax) {
-    Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+    LOG(warning) << "invalid format: '" << line << '\'';
     return false;
   }
   int rank = line[1] - '0';
@@ -129,7 +127,7 @@ bool CsaReader::readInfo(const char* line, RecordInfo& info) {
     info.timeLimitReadoff = std::stoi(&line[18]);
 
   } else {
-    Loggers::warning << "unknown command: [" << line << "]: " << __FILE__ << "(" << __LINE__ << ")";
+    LOG(warning) << "unknown command: '" << line << '\'';
 
   }
 
@@ -159,12 +157,12 @@ bool CsaReader::readHand(const char* line, MutablePosition& mp, Turn turn) {
         }
 
       } else {
-        Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+        LOG(warning) << "invalid format: '" << line << '\'';
         return false;
       }
 
     } else {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << line << '\'';
       return false;
     }
   }

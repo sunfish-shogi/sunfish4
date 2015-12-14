@@ -27,9 +27,10 @@ int main(int, char**, char**) {
   if (EnableLogFile) {
     fout.open(DefaultUsiLogFilename, std::ios::out | std::ios::app);
 
+    Loggers::message.addStream(fout);
     Loggers::error.addStream(fout, true, true);
     Loggers::warning.addStream(fout, true, true);
-    Loggers::message.addStream(fout, true, true);
+    Loggers::info.addStream(fout, true, true);
     Loggers::send.addStream(fout, true, true);
     Loggers::receive.addStream(fout, true, true);
   }

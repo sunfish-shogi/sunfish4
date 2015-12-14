@@ -14,34 +14,26 @@ using namespace sunfish;
 
 void generateZobristOnBoard(Random& random, std::ostream& os) {
   os << "const Zobrist::Type Zobrist::Board[Square::N][PieceNumber::Num] = {\n";
-
   SQUARE_EACH(square) {
     os << "  {\n";
-
     for (PieceRawType piece = PieceNumber::Begin; piece != PieceNumber::End; piece++) {
       os << "    0x" << std::hex << random.getInt64() << "ll,\n";
     }
-
     os << "  },\n";
   }
-
   os << "};\n";
 }
 
 void generateZobristOnHand(Random& random, const char* pieceName, int num, std::ostream& os) {
   os << "const Zobrist::Type Zobrist::Hand" << pieceName << "[" << std::dec << num << "] = {\n";
-
   for (int i = 0; i < num; i++) {
     os << "  0x" << std::hex << random.getInt64() << "ll,\n";
   }
-
   os << "};\n";
 }
 
 void generateZobristBlack(Random& random, std::ostream& os) {
-
   os << "const Zobrist::Type Zobrist::Black = 0x" << std::hex << random.getInt64() << "ll;\n";
-
 }
 
 } // namespace

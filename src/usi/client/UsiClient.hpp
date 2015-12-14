@@ -31,6 +31,17 @@ private:
     Mate,
   };
 
+  enum class CommandState : uint8_t {
+    Ok,
+    Eof,
+    Error,
+  };
+
+  struct Command {
+    CommandState state;
+    std::string value;
+  };
+
 public:
 
   UsiClient();
@@ -75,7 +86,7 @@ private:
 
   bool onGameOver(const CommandArguments&);
 
-  std::string receive();
+  Command receive();
 
   template <class T>
   void send(T&& command);

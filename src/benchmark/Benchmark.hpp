@@ -55,7 +55,7 @@ public:
     interrupted_ = false;
     count_ = 0;
     swap(this);
-    timer_.set();
+    timer_.start();
 #ifdef WIN32
     timeSetEvent(usec_ / 1000, 10, sigtime, 0, TIME_ONESHOT);
 #else
@@ -71,7 +71,7 @@ public:
   bool cont() {
     count_++;
     if (interrupted_) {
-      elapsed_ = timer_.get() * 1000000;
+      elapsed_ = timer_.getElapsed() * 1000000;
       return false;
     }
     return true;
@@ -164,8 +164,8 @@ public:
 private:
 
   static void run(const std::string& name, const std::vector<Entry>& list) {
-    Loggers::message << "Benchmark                                        Time[us]      Iterations";
-    Loggers::message << "-------------------------------------------------------------------------";
+    OUT(message) << "Benchmark                                        Time[us]      Iterations";
+    OUT(message) << "-------------------------------------------------------------------------";
 
     for (const auto& entry : list) {
       BenchmarkController bc(entry.time);
@@ -180,14 +180,14 @@ private:
 
       float ips = (float)bc.getCount() / bc.getElapsed() * 1e+6;
 
-      Loggers::message
+      OUT(message)
         << std::setw(41) << std::left  << longName.str() << ' '
         << std::setw(15) << std::right << bc.getElapsed() << ' '
         << std::setw(15) << std::right << bc.getCount() << ' '
         << ips << "/sec";
     }
 
-    Loggers::message << "";
+    OUT(message) << "";
   }
 
   BenchmarkSuite() = default;
@@ -338,7 +338,7 @@ inline void register_bm_object(const T* p) {
   const auto& functionWrappers = p->getFunctionWrappers();
 
   if (functionWrappers.empty()) {
-    Loggers::error << "ERROR: The benchmark test named " << name << " has no argument list.";
+    LOG(error) << "ERROR: The benchmark test named " << name << " has no argument list.";
     exit(2);
   }
 

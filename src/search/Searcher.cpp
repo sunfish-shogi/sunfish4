@@ -226,14 +226,14 @@ bool Searcher::aspsearch(Tree& tree,
     Score beta = betas[betaIndex];
 
     if (bestScore >= beta) {
-      Loggers::warning << "invalid state: " << __FILE__ << ':' << __LINE__;
+      LOG(warning) << "invalid state.";
     }
 
     Move move = node.moves[i];
 
     bool moveOk = doMove(tree, move);
     if (!moveOk) {
-      Loggers::warning << "invalid state: " << __FILE__ << ':' << __LINE__;
+      LOG(warning) << "invalid state.";
       node.moves.remove(i);
       continue;
     }
@@ -332,7 +332,7 @@ Score Searcher::search(Tree& tree,
 #if 0
   bool isDebug = false;
   if (getPath(tree, tree.ply) == "9394 9796") {
-    Loggers::message << "debugging node :" << __FILE__ << ':' << __LINE__;
+    LOG(message) << "debugging node";
     isDebug = true;
   }
 #endif

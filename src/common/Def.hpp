@@ -29,11 +29,13 @@
 # define CONSTEXPR_CONST const
 # define NOEXCEPT
 # define ALIGNAS(a) __declspec(align(a))
+# define THREAD_LOCAL __declspec(thread) static
 #else
 # define CONSTEXPR constexpr
 # define CONSTEXPR_CONST constexpr
 # define NOEXCEPT noexcept
 # define ALIGNAS(a) alignas(a)
+# define THREAD_LOCAL thread_local
 #endif
 
 #if !defined(BYTE_ORDER)

@@ -158,7 +158,7 @@ public:
 
           std::ostringstream moss;
           moss << '\n' << message;
-          Loggers::error << moss.str();
+          OUT(error) << moss.str();
 
         } catch (...) {
           // failure

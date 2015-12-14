@@ -4,6 +4,7 @@
  */
 
 #include "logger/Logger.hpp"
+#include "common/Def.hpp"
 #include <chrono>
 #include <ctime>
 #include <cassert>
@@ -12,11 +13,7 @@ namespace sunfish {
 
 const char* LoggerUtil::getIso8601() {
   using namespace std::chrono;
-#ifdef WIN32
-  __declspec(thread) static char buf[22];
-#else
-  thread_local char buf[22];
-#endif
+  THREAD_LOCAL char buf[22];
   std::time_t t = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   std::tm m;
 #ifdef WIN32
@@ -29,15 +26,14 @@ const char* LoggerUtil::getIso8601() {
 }
 
 std::mutex Logger::mutex_;
-Logger Loggers::error("ERROR");
-Logger Loggers::warning("WARNING");
 Logger Loggers::message;
-Logger Loggers::send("SEND");
-Logger Loggers::receive("RECEIVE");
+Logger Loggers::error  ("[ERROR]");
+Logger Loggers::warning("[WARN] ");
+Logger Loggers::info   ("[INFO] ");
+Logger Loggers::send   ("[SEND] ");
+Logger Loggers::receive("[RECV] ");
 #ifndef NDEBUG
-Logger Loggers::debug("DEBUG");
-Logger Loggers::test("TEST");
-Logger Loggers::develop("DEVELOP");
+Logger Loggers::debug  ("[DEBUG]");
 #endif //NDEBUG
 
 } // namespace sunfish

@@ -22,7 +22,7 @@ public:
   bool generate() {
     std::ofstream fout(outputPath_);
     if (!fout) {
-      Loggers::error << "Could not open output file: " << outputPath_;
+      LOG(error) << "Could not open the output file: " << outputPath_;
       return false;
     }
 

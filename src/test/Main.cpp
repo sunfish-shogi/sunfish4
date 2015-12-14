@@ -33,13 +33,13 @@ int main(int argc, char** argv, char**) {
 
   // if '--silent' or '-s' is NOT specified.
   if (!po.has("silent")) {
+    Loggers::message.addStream(std::cerr);
     Loggers::error.addStream(std::cerr, ESC_SEQ_COLOR_RED, ESC_SEQ_COLOR_RESET);
     Loggers::warning.addStream(std::cerr, ESC_SEQ_COLOR_YELLOW, ESC_SEQ_COLOR_RESET);
-    Loggers::message.addStream(std::cerr, ESC_SEQ_COLOR_GREEN, ESC_SEQ_COLOR_RESET);
+    Loggers::info.addStream(std::cerr, ESC_SEQ_COLOR_GREEN, ESC_SEQ_COLOR_RESET);
     Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
     Loggers::debug.addStream(std::cerr, ESC_SEQ_COLOR_CYAN, ESC_SEQ_COLOR_RESET);
-    Loggers::develop.addStream(std::cerr, ESC_SEQ_COLOR_WHITE, ESC_SEQ_COLOR_RESET);
   }
 
   // the name of the result file
@@ -50,7 +50,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    Loggers::warning << "WARNING: `" << invalidArgument.arg << "' is invalid argument: " << invalidArgument.reason;
+    OUT(warning) << "WARNING: `" << invalidArgument.arg << "' is invalid argument: " << invalidArgument.reason;
   }
 
   // execute
@@ -59,7 +59,7 @@ int main(int argc, char** argv, char**) {
   // write results to a file in xUnit format
   std::ofstream fout(resultFileName, std::ios::out);
   if (!fout) {
-    Loggers::error << "Could not open output file: " << resultFileName;
+    OUT(error) << "Could not open output file: " << resultFileName;
     return 1;
   }
   fout << TestSuite::getXml();
@@ -67,11 +67,11 @@ int main(int argc, char** argv, char**) {
 
   // show result
   if (result) {
-    Loggers::message << "Test passed.";
+    OUT(info) << "Test passed.";
   } else {
-    Loggers::error << "Test failed.";
+    OUT(error) << "Test failed.";
   }
-  Loggers::message << "See '" << resultFileName << "'.";
+  OUT(message) << "See '" << resultFileName << "'.";
 
   // return value
   return result ? 0 : 1;

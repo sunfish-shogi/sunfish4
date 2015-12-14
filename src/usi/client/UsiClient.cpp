@@ -33,7 +33,7 @@ UsiClient::UsiClient() :
 
 bool UsiClient::start() {
   if (!checkStateIn(State::None)) {
-    Loggers::warning << "invalid state: " << toString(state_);
+    LOG(warning) << "invalid state: " << toString(state_);
     return false;
   }
 
@@ -41,7 +41,7 @@ bool UsiClient::start() {
 
   bool usiAccepted = acceptUsiCommand();
   if (!usiAccepted) {
-    Loggers::error << "invalid command is received.";
+    LOG(error) << "invalid command is received.";
     return false;
   }
 
@@ -54,7 +54,12 @@ bool UsiClient::start() {
 
 bool UsiClient::acceptUsiCommand() {
   auto command = receive();
-  if (command != "usi") {
+
+  if (command.state != CommandState::Ok) {
+    return false;
+  }
+
+  if (command.value != "usi") {
     return false;
   }
 
@@ -86,38 +91,42 @@ bool UsiClient::runCommandLoop() {
   for (;;) {
     auto command = receive();
 
-    auto args = StringUtil::split(command, [](char c) {
+    if (command.state != CommandState::Ok) {
+      return false;
+    }
+
+    auto args = StringUtil::split(command.value, [](char c) {
       return isspace(c);
     });
 
     if (args.empty()) {
-      Loggers::warning << "empty line is received.";
+      LOG(warning) << "empty line is received.";
       continue;
     }
 
     if (args[0] == "quit") {
       stopSearchIfRunning();
-      Loggers::message << "quit";
+      OUT(info) << "quit";
       return true;
     }
 
     auto ite = handlerMap.find(args[0]);
     if (ite == handlerMap.end()) {
-      Loggers::warning << "unsupported command is received. '" << command << "'";
+      LOG(warning) << "unsupported command is received. '" << command.value << "'";
       continue;
     }
 
     const auto& handler = ite->second;
     bool ok = handler(args);
     if (!ok) {
-      Loggers::warning << "fatal error occurred. '" << command << "'";
+      LOG(warning) << "fatal error occurred. '" << command.value << "'";
     }
   }
 }
 
 bool UsiClient::onIsReady(const CommandArguments&) {
   if (!checkStateIn(State::Ready)) {
-    Loggers::warning << "invalid state: " << toString(state_);
+    LOG(warning) << "invalid state: " << toString(state_);
     return false;
   }
 
@@ -134,7 +143,7 @@ bool UsiClient::onSetOption(const CommandArguments&) {
 
 bool UsiClient::onUsiNewGame(const CommandArguments&) {
   if (!checkStateIn(State::Ready)) {
-    Loggers::warning << "invalid state: " << toString(state_);
+    LOG(warning) << "invalid state: " << toString(state_);
     return false;
   }
 
@@ -145,7 +154,7 @@ bool UsiClient::onUsiNewGame(const CommandArguments&) {
 
 bool UsiClient::onPosition(const CommandArguments& args) {
   if (!checkStateIn(State::Ready)) {
-    Loggers::warning << "invalid state: " << toString(state_);
+    LOG(warning) << "invalid state: " << toString(state_);
     return false;
   }
 
@@ -162,7 +171,7 @@ bool UsiClient::onPosition(const CommandArguments& args) {
     nextIndex = 6;
 
   } else {
-    Loggers::error << "illegal arguments";
+    LOG(error) << "illegal arguments.";
     return false;
   }
 
@@ -173,7 +182,7 @@ bool UsiClient::onPosition(const CommandArguments& args) {
   }
 
   if (args[nextIndex] != "moves") {
-    Loggers::error << "illegal arguments";
+    LOG(error) << "illegal arguments";
     return false;
   }
 
@@ -181,31 +190,31 @@ bool UsiClient::onPosition(const CommandArguments& args) {
     Move move;
     bool parseOk = SfenParser::parseMove(args[i], move);
     if (!parseOk) {
-      Loggers::error << "illegal arguments";
+      LOG(error) << "illegal arguments";
       return false;
     }
 
     Piece captured;
     bool moveOk = position_.doMove(move, captured);
     if (!moveOk) {
-      Loggers::error << "illegal move";
+      LOG(error) << "illegal move";
       return false;
     }
   }
 
-  Loggers::message << position_;
+  OUT(info) << position_;
  
   return true;
 }
 
 bool UsiClient::onGo(const CommandArguments& args) {
   if (!checkStateIn(State::Ready, State::Ponder)) {
-    Loggers::warning << "invalid state: " << toString(state_);
+    LOG(warning) << "invalid state: " << toString(state_);
     return false;
   }
 
   if (!positionIsInitialized_) {
-    Loggers::error << "position command has not received.";
+    LOG(error) << "position command has not received.";
     return false;
   }
 
@@ -233,15 +242,15 @@ bool UsiClient::onGo(const CommandArguments& args) {
       isInfinite_ = true;
 
     } else if (args[i] == "mate") {
-      Loggers::error << "mate option is not supported";
+      LOG(error) << "mate option is not supported";
       return false;
     }
   }
 
-  Loggers::message << "btime     = " << blackTimeMilliSeconds_;
-  Loggers::message << "wtime     = " << whiteTimeMilliSeconds_;
-  Loggers::message << "byoyomi   = " << byoyomiMilliSeconds_;
-  Loggers::message << "inifinite = " << (isInfinite_ ? "true" : "false");
+  OUT(info) << "btime     = " << blackTimeMilliSeconds_;
+  OUT(info) << "wtime     = " << whiteTimeMilliSeconds_;
+  OUT(info) << "byoyomi   = " << byoyomiMilliSeconds_;
+  OUT(info) << "inifinite = " << (isInfinite_ ? "true" : "false");
 
   stopSearchIfRunning();
 
@@ -269,7 +278,7 @@ bool UsiClient::onStop(const CommandArguments&) {
 }
 
 void UsiClient::search() {
-  Loggers::message << "search thread is started. tid=" << std::this_thread::get_id();
+  OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
   int depth = 32;
 
@@ -281,7 +290,7 @@ void UsiClient::search() {
 
   changeState(State::Ready);
 
-  Loggers::message << "search thread is stopped. tid=" << std::this_thread::get_id();
+  OUT(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
 }
 
 void UsiClient::waitForSearcherIsStarted() {
@@ -297,7 +306,7 @@ void UsiClient::onStart() {
 
 void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) {
   if (pv.size() == 0) {
-    Loggers::warning << "PV is empty: " << __FILE__ << ':' << __LINE__;
+    LOG(warning) << "PV is empty.";
     return;
   }
 
@@ -343,7 +352,7 @@ void UsiClient::onFailHigh(const PV& pv, float elapsed, int depth, Score score) 
 
 void UsiClient::stopSearchIfRunning() {
   if (searchThread_.get() && searchThread_->joinable()) {
-    Loggers::message << "stopping search thread..";
+    OUT(info) << "stopping search thread..";
     searcher_.interrupt();
     searchThread_->join();
   }
@@ -371,11 +380,24 @@ bool UsiClient::onGameOver(const CommandArguments&) {
   return true;
 }
 
-std::string UsiClient::receive() {
+UsiClient::Command UsiClient::receive() {
+  CommandState state;
   std::string command;
+
   std::getline(std::cin, command);
-  Loggers::receive << command;
-  return command;
+
+  if (std::cin.eof()) {
+    state = CommandState::Eof;
+    LOG(warning) << "reached to EOF.";
+  } else if (!std::cin.good()) {
+    state = CommandState::Error;
+    LOG(warning) << "an error is occured in STDIN.";
+  } else {
+    state = CommandState::Ok;
+    OUT(receive) << command;
+  }
+
+  return { state, command };
 }
 
 template <class T>
@@ -383,7 +405,7 @@ void UsiClient::send(T&& command) {
   std::lock_guard<std::mutex> lock(sendMutex_);
 
   std::cout << command << std::endl;
-  Loggers::send << command;
+  OUT(send) << command;
 }
 
 template <class T, class... Args>
@@ -421,7 +443,7 @@ bool UsiClient::checkStateIn(State state, Args... args) const {
 }
 
 void UsiClient::changeState(State state) {
-  Loggers::message << "change state: " << toString(state_) << " => " << toString(state);
+  OUT(info) << "change state: " << toString(state_) << " => " << toString(state);
   state_ = state;
 }
 

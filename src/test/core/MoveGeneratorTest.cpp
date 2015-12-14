@@ -21,7 +21,7 @@ void debugPrint(const Moves& moves) {
   for (const auto& move : moves) {
     oss << ' ' << move.toString();
   }
-  Loggers::debug << oss.str();
+  OUT(debug) << oss.str();
 }
 #endif
 

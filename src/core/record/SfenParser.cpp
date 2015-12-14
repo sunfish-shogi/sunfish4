@@ -16,7 +16,7 @@ bool SfenParser::parsePosition(const char* data, Position& position) {
   auto tokens = StringUtil::split(data, [](char c) { return isspace(c); });
 
   if (tokens.size() < 4) {
-    Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+    LOG(warning) << "invalid format: '" << data << '\'';
     return false;
   }
 
@@ -40,11 +40,11 @@ bool SfenParser::parsePosition(const char* arg1,
     for (const char* p = arg1; p[0] != '\0'; p++) {
       if (p[0] == '/') {
         if (file != 0) {
-          Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+          LOG(warning) << "invalid format: '" << arg1 << '\'';
           return false;
         }
         if (rank == 9) {
-          Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+          LOG(warning) << "invalid format: '" << arg1 << '\'';
           return false;
         }
         file = 9;
@@ -54,7 +54,7 @@ bool SfenParser::parsePosition(const char* arg1,
         int len = p[0] - '0';
         for (int i = 0; i < len; i++) {
           if (file == 0) {
-            Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+            LOG(warning) << "invalid format: '" << arg1 << '\'';
             return false;
           }
           mp.board[Square(file, rank).raw()] = Piece::empty();
@@ -64,7 +64,7 @@ bool SfenParser::parsePosition(const char* arg1,
       } else {
         Piece piece = Piece::parseSFEN(p);
         if (piece.isEmpty()) {
-          Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+          LOG(warning) << "invalid format: '" << arg1 << '\'';
           return false;
         }
         mp.board[Square(file, rank).raw()] = piece;
@@ -76,7 +76,7 @@ bool SfenParser::parsePosition(const char* arg1,
     }
 
     if (file != 0 || rank != 9) {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << arg1 << '\'';
       return false;
     }
   }
@@ -87,7 +87,7 @@ bool SfenParser::parsePosition(const char* arg1,
     } else if (strcmp(arg2, "w") == 0) {
       mp.turn = Turn::White;
     } else {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << arg2 << '\'';
       return false;
     }
   }
@@ -108,7 +108,7 @@ bool SfenParser::parsePosition(const char* arg1,
 
         Piece piece = Piece::parseSFEN(p);
         if (piece.isEmpty()) {
-          Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+          LOG(warning) << "invalid format: '" << arg3 << '\'';
           return false;
         }
 
@@ -128,7 +128,7 @@ bool SfenParser::parsePosition(const char* arg1,
 
 bool SfenParser::parseMove(const char* data, Move& move) {
   if (strlen(data) < 4) {
-    Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+    LOG(warning) << "invalid format: '" << data << '\'';
     return false;
   }
 
@@ -138,7 +138,7 @@ bool SfenParser::parseMove(const char* data, Move& move) {
     bool prom = data[4] == '+';
 
     if (!from.isValid() || !to.isValid()) {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << data << '\'';
       return false;
     }
 
@@ -146,7 +146,7 @@ bool SfenParser::parseMove(const char* data, Move& move) {
 
   } else {
     if (data[1] != '*') {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << data << '\'';
       return false;
     }
 
@@ -154,7 +154,7 @@ bool SfenParser::parseMove(const char* data, Move& move) {
     Square to = Square::parseSFEN(&data[2]);
 
     if (pieceType.isEmpty() || !to.isValid()) {
-      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
+      LOG(warning) << "invalid format: '" << data << '\'';
       return false;
     }
 

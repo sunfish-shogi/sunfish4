@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#include "FileList.h"
-#include "logger/Logger.h"
+#include "common/file/FileList.hpp"
+#include "logger/Logger.hpp"
 
 #ifdef WIN32
 # include <windows.h>
@@ -57,14 +57,14 @@ size_t FileList::enumerate(const char* directory, const char* extension) {
   hFind = FindFirstFile(fname.c_str(), &fd);
 
   if( hFind == INVALID_HANDLE_VALUE ){
-    Loggers::warning << "There are no files! [" << fname << ']';
+    LOG(warning) << "There are no files! [" << fname << ']';
     return 0;
   }
   dir += '\\';
 #else
   // ディレクトリのオープン
   if ((pdir = opendir(dir.c_str())) == NULL) {
-    Loggers::error << "Could not open the directory! [" << dir << ']';
+    LOG(error) << "Could not open the directory! [" << dir << ']';
     return 0;
   }
   dir += '/';

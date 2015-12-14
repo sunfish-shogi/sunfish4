@@ -55,18 +55,31 @@ public:
     struct Data {
       Logger* plogger;
       std::lock_guard<std::mutex> lock;
-      Data(Logger* plogger, std::mutex& mutex) : plogger(plogger), lock(mutex) {
+      const char* fileline;
+      Data(Logger* plogger,
+           std::mutex& mutex,
+           const char* fileline) :
+          plogger(plogger),
+          lock(mutex),
+          fileline(fileline) {
       }
       ~Data() {
-        plogger->printNoLock<LineState::End>("");
+        if (fileline != nullptr) {
+          plogger->printNoLock<LineState::Normal>(" (");
+          plogger->printNoLock<LineState::Normal>(fileline);
+          plogger->printNoLock<LineState::End>(')');
+        } else {
+          plogger->printNoLock<LineState::End>("");
+        }
       }
     };
     std::shared_ptr<Data> data;
 
   public:
-    SubLogger(const SubLogger& org) = default;
-    SubLogger(Logger* plogger, std::mutex& mutex) {
-      data = std::make_shared<Data>(plogger, mutex);
+    SubLogger(Logger* plogger,
+              std::mutex& mutex,
+              const char* fileline) {
+      data = std::make_shared<Data>(plogger, mutex, fileline);
     }
     template <class T>
     SubLogger& operator<<(T&& t) {
@@ -102,8 +115,14 @@ public:
 
   template <class T>
   SubLogger operator<<(T&& t) {
-    SubLogger s(this, mutex_);
+    SubLogger s(this, mutex_, nullptr);
     printNoLock<LineState::Top>(std::forward<T>(t));
+    return s;
+  }
+
+  SubLogger getSubLogger(const char* fileline) {
+    SubLogger s(this, mutex_, fileline);
+    printNoLock<LineState::Top>("");
     return s;
   }
 
@@ -126,7 +145,7 @@ private:
 
         // logger name
         if (it->loggerName && name_) {
-          *(it->pout) << '[' << name_ << "] ";
+          *(it->pout) << name_ << ' ';
         }
       }
 
@@ -154,17 +173,19 @@ private:
 
 class Loggers {
 public:
+  static Logger message;
   static Logger error;
   static Logger warning;
-  static Logger message;
+  static Logger info;
   static Logger send;
   static Logger receive;
 #ifndef NDEBUG
   static Logger debug;
-  static Logger test;
-  static Logger develop;
 #endif //NDEBUG
 };
+
+#define OUT(type) sunfish::Loggers::type
+#define LOG(type) sunfish::Loggers::type.getSubLogger(__FILE_LINE__)
 
 } // namespace sunfish
 
