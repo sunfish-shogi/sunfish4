@@ -141,14 +141,14 @@ public:
   /**
    * Get a raw value.
    */
-  CONSTEXPR RawType serialize() {
+  CONSTEXPR RawType serialize() const {
     return move_;
   }
 
   /**
    * Get a raw value which excluding a extension data of 16 bits.
    */
-  CONSTEXPR RawType16 serialize16() {
+  CONSTEXPR RawType16 serialize16() const {
     return static_cast<RawType16>(move_);
   }
 
