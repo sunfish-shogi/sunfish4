@@ -14,7 +14,7 @@ using namespace sunfish;
 TEST(PieceTest, testEmpty) {
   {
     PieceType empty = PieceType::empty();
-    ASSERT_EQ(true, empty.isEmpty());
+    ASSERT_EQ(true , empty.isEmpty());
   }
 
   {
@@ -24,7 +24,7 @@ TEST(PieceTest, testEmpty) {
 
   {
     Piece empty = Piece::empty();
-    ASSERT_EQ(true, empty.isEmpty());
+    ASSERT_EQ(true , empty.isEmpty());
   }
 
   {
@@ -98,43 +98,55 @@ TEST(PieceTest, testTurn) {
 }
 
 TEST(PieceTest, testStatus) {
-  ASSERT_EQ(true, PieceType::pawn().isUnpromoted());
-  ASSERT_EQ(true, PieceType::king().isUnpromoted());
-  ASSERT_EQ(false, PieceType::tokin().isUnpromoted());
-  ASSERT_EQ(false, PieceType::dragon().isUnpromoted());
-
   ASSERT_EQ(false, PieceType::pawn().isPromoted());
   ASSERT_EQ(false, PieceType::king().isPromoted());
-  ASSERT_EQ(true, PieceType::tokin().isPromoted());
-  ASSERT_EQ(true, PieceType::dragon().isPromoted());
-
-  ASSERT_EQ(true, Piece::blackPawn().isUnpromoted());
-  ASSERT_EQ(true, Piece::blackKing().isUnpromoted());
-  ASSERT_EQ(false, Piece::blackTokin().isUnpromoted());
-  ASSERT_EQ(false, Piece::blackDragon().isUnpromoted());
-  ASSERT_EQ(true, Piece::whitePawn().isUnpromoted());
-  ASSERT_EQ(true, Piece::whiteKing().isUnpromoted());
-  ASSERT_EQ(false, Piece::whiteTokin().isUnpromoted());
-  ASSERT_EQ(false, Piece::whiteDragon().isUnpromoted());
+  ASSERT_EQ(true , PieceType::tokin().isPromoted());
+  ASSERT_EQ(true , PieceType::dragon().isPromoted());
 
   ASSERT_EQ(false, Piece::blackPawn().isPromoted());
   ASSERT_EQ(false, Piece::blackKing().isPromoted());
-  ASSERT_EQ(true, Piece::blackTokin().isPromoted());
-  ASSERT_EQ(true, Piece::blackDragon().isPromoted());
+  ASSERT_EQ(true , Piece::blackTokin().isPromoted());
+  ASSERT_EQ(true , Piece::blackDragon().isPromoted());
   ASSERT_EQ(false, Piece::whitePawn().isPromoted());
   ASSERT_EQ(false, Piece::whiteKing().isPromoted());
-  ASSERT_EQ(true, Piece::whiteTokin().isPromoted());
-  ASSERT_EQ(true, Piece::whiteDragon().isPromoted());
+  ASSERT_EQ(true , Piece::whiteTokin().isPromoted());
+  ASSERT_EQ(true , Piece::whiteDragon().isPromoted());
 
-  ASSERT_EQ(true, Piece::blackPawn().isBlack());
-  ASSERT_EQ(true, Piece::blackDragon().isBlack());
+  ASSERT_EQ(true , PieceType::pawn().isPromotable());
+  ASSERT_EQ(true , PieceType::silver().isPromotable());
+  ASSERT_EQ(false, PieceType::gold().isPromotable());
+  ASSERT_EQ(true , PieceType::bishop().isPromotable());
+  ASSERT_EQ(true , PieceType::rook().isPromotable());
+  ASSERT_EQ(false, PieceType::king().isPromotable());
+  ASSERT_EQ(false, PieceType::tokin().isPromotable());
+  ASSERT_EQ(false, PieceType::dragon().isPromotable());
+
+  ASSERT_EQ(true , Piece::blackPawn().isPromotable());
+  ASSERT_EQ(true , Piece::blackSilver().isPromotable());
+  ASSERT_EQ(false, Piece::blackGold().isPromotable());
+  ASSERT_EQ(true , Piece::blackBishop().isPromotable());
+  ASSERT_EQ(true , Piece::blackRook().isPromotable());
+  ASSERT_EQ(false, Piece::blackKing().isPromotable());
+  ASSERT_EQ(false, Piece::blackTokin().isPromotable());
+  ASSERT_EQ(false, Piece::blackDragon().isPromotable());
+  ASSERT_EQ(true , Piece::whitePawn().isPromotable());
+  ASSERT_EQ(true , Piece::whiteSilver().isPromotable());
+  ASSERT_EQ(false, Piece::whiteGold().isPromotable());
+  ASSERT_EQ(true , Piece::whiteBishop().isPromotable());
+  ASSERT_EQ(true , Piece::whiteRook().isPromotable());
+  ASSERT_EQ(false, Piece::whiteKing().isPromotable());
+  ASSERT_EQ(false, Piece::whiteTokin().isPromotable());
+  ASSERT_EQ(false, Piece::whiteDragon().isPromotable());
+
+  ASSERT_EQ(true , Piece::blackPawn().isBlack());
+  ASSERT_EQ(true , Piece::blackDragon().isBlack());
   ASSERT_EQ(false, Piece::whitePawn().isBlack());
   ASSERT_EQ(false, Piece::whiteDragon().isBlack());
 
   ASSERT_EQ(false, Piece::blackPawn().isWhite());
   ASSERT_EQ(false, Piece::blackDragon().isWhite());
-  ASSERT_EQ(true, Piece::whitePawn().isWhite());
-  ASSERT_EQ(true, Piece::whiteDragon().isWhite());
+  ASSERT_EQ(true , Piece::whitePawn().isWhite());
+  ASSERT_EQ(true , Piece::whiteDragon().isWhite());
 }
 
 TEST(PieceTest, testNext) {

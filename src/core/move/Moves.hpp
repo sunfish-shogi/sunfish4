@@ -195,6 +195,18 @@ private:
 
 using Moves = MoveArray<MAX_NUMBER_OF_MOVES>;
 
+inline void remove(Moves& moves,
+                   Moves::iterator begin,
+                   const Move& move) {
+  for (auto ite = begin; ite != moves.end();) {
+    if (*ite == move) {
+      ite = moves.remove(ite);
+    } else {
+      ite++;
+    }
+  }
+}
+
 } // namespace sunfish
 
 #endif // SUNFISH_CORE_MOVE_MOVES_HPP__

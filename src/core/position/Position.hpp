@@ -31,8 +31,12 @@ struct CheckState {
   Square from2;
 };
 
-inline bool isChecking(const CheckState& cs) {
+inline bool isCheck(const CheckState& cs) {
   return cs.from1.isValid();
+}
+
+inline bool isDoubleCheck(const CheckState& cs) {
+  return cs.from2.isValid();
 }
 
 class Position {
@@ -274,6 +278,25 @@ public:
     return (turn_ == Turn::Black) ? Zobrist::black() : 0x00ULL;
   }
 
+  bool hasBlackPawnInFile(int file) const {
+    return hasPawnInFile<Turn::Black>(file);
+  }
+
+  bool hasWhitePawnInFile(int file) const {
+    return hasPawnInFile<Turn::White>(file);
+  }
+
+  /**
+   * Detect if the specified move is legal.
+   */
+  bool isLegalMoveMaybe(const Move& move, const CheckState& checkState) const {
+    if (turn_ == Turn::Black) {
+      return isLegalMoveMaybe<Turn::Black>(move, checkState);
+    } else {
+      return isLegalMoveMaybe<Turn::White>(move, checkState);
+    }
+  }
+
   /**
    * Make move
    */
@@ -323,7 +346,7 @@ public:
    */
   bool isMate() const {
     CheckState checkState = getCheckState();
-    if (!isChecking(checkState)) {
+    if (!isCheck(checkState)) {
       return false;
     }
     return isMate(checkState);
@@ -437,6 +460,12 @@ private:
   }
 
   void onChanged();
+
+  template <Turn turn>
+  bool hasPawnInFile(int file) const;
+
+  template <Turn turn>
+  bool isLegalMoveMaybe(Move move, const CheckState& checkState) const;
 
   template <Turn turn>
   bool doMove(Move move, Piece& wbCaptured);

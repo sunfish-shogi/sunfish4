@@ -19,7 +19,7 @@ bool RandomSearcher::search(const Position& pos, Move& move) {
 
   auto cs = pos.getCheckState();
 
-  if (!isChecking(cs)) {
+  if (!isCheck(cs)) {
     MoveGenerator::generateCapturingMoves(pos, moves);
     MoveGenerator::generateNotCapturingMoves(pos, moves);
   } else {

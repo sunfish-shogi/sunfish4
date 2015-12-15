@@ -131,7 +131,7 @@ public:
   }
 
   CONSTEXPR bool operator==(const Move& obj) const {
-    return serialize16() == obj.serialize16();
+    return ((move_ ^ obj.move_) & ~ExtMask) == 0;
   }
 
   CONSTEXPR bool operator!=(const Move& obj) const {

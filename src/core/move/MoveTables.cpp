@@ -70,6 +70,7 @@ uint8_t DiagLeftLineOffset[NUMBER_OF_SQUARES] = {
 namespace sunfish {
 
 MoveTables::MovableInOneStepType MoveTables::MovableInOneStep;
+MoveTables::MovableInLongStepType MoveTables::MovableInLongStep;
 MoveTables::OneStepTableType MoveTables::BlackKnight;
 MoveTables::OneStepTableType MoveTables::WhiteKnight;
 MoveTables::OneStepTableType MoveTables::BlackSilver;
@@ -92,54 +93,61 @@ void MoveTables::initialize() {
 void MoveTables::initializeDirectionTable() {
   for (PieceRawType p = 0; p < PieceNumber::Num; p++) {
     MovableInOneStep[p] = 0x00;
+    MovableInLongStep[p] = 0x00;
   }
 
+  auto flag = [](Direction dir) {
+    return static_cast<uint16_t>(0x01) << static_cast<int32_t>(dir);
+  };
+
+  // 1. one step move
+
   // black pawn
-  MovableInOneStep[PieceNumber::BPawn] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
+  MovableInOneStep[PieceNumber::BPawn] |= flag(Direction::Up);
 
   // black lance
-  MovableInOneStep[PieceNumber::BLance] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
+  MovableInOneStep[PieceNumber::BLance] |= flag(Direction::Up);
 
   // black knight
-  MovableInOneStep[PieceNumber::BKnight] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUpKnight);
-  MovableInOneStep[PieceNumber::BKnight] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUpKnight);
+  MovableInOneStep[PieceNumber::BKnight] |= flag(Direction::LeftUpKnight);
+  MovableInOneStep[PieceNumber::BKnight] |= flag(Direction::RightUpKnight);
 
   // black silver
-  MovableInOneStep[PieceNumber::BSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::BSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::BSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::BSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::BSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
+  MovableInOneStep[PieceNumber::BSilver] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::BSilver] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::BSilver] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::BSilver] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::BSilver] |= flag(Direction::RightDown);
 
   // black gold
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::BGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::BGold] |= flag(Direction::Down);
 
   // black bishop
-  MovableInOneStep[PieceNumber::BBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::BBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::BBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::BBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
-
-  // black king
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
-  MovableInOneStep[PieceNumber::BKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
+  MovableInOneStep[PieceNumber::BBishop] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::BBishop] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::BBishop] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::BBishop] |= flag(Direction::RightDown);
 
   // black rook
-  MovableInOneStep[PieceNumber::BRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::BRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::BRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::BRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
+  MovableInOneStep[PieceNumber::BRook] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::BRook] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::BRook] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::BRook] |= flag(Direction::Down);
+
+  // black king
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::Down);
+  MovableInOneStep[PieceNumber::BKing] |= flag(Direction::RightDown);
 
   // black golds
   MovableInOneStep[PieceNumber::BTokin] = MovableInOneStep[PieceNumber::BGold];
@@ -154,51 +162,51 @@ void MoveTables::initializeDirectionTable() {
   MovableInOneStep[PieceNumber::BDragon] = MovableInOneStep[PieceNumber::BKing];
 
   // white pawn
-  MovableInOneStep[PieceNumber::WPawn] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
+  MovableInOneStep[PieceNumber::WPawn] |= flag(Direction::Down);
 
   // white lance
-  MovableInOneStep[PieceNumber::WLance] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
+  MovableInOneStep[PieceNumber::WLance] |= flag(Direction::Down);
 
   // white knight
-  MovableInOneStep[PieceNumber::WKnight] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDownKnight);
-  MovableInOneStep[PieceNumber::WKnight] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDownKnight);
+  MovableInOneStep[PieceNumber::WKnight] |= flag(Direction::LeftDownKnight);
+  MovableInOneStep[PieceNumber::WKnight] |= flag(Direction::RightDownKnight);
 
   // white silver
-  MovableInOneStep[PieceNumber::WSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::WSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::WSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::WSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
-  MovableInOneStep[PieceNumber::WSilver] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
+  MovableInOneStep[PieceNumber::WSilver] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::WSilver] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::WSilver] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::WSilver] |= flag(Direction::Down);
+  MovableInOneStep[PieceNumber::WSilver] |= flag(Direction::RightDown);
 
   // white gold
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
-  MovableInOneStep[PieceNumber::WGold] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::Down);
+  MovableInOneStep[PieceNumber::WGold] |= flag(Direction::RightDown);
 
   // white bishop
-  MovableInOneStep[PieceNumber::WBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::WBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::WBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::WBishop] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
-
-  // white king
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftUp);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightUp);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::LeftDown);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
-  MovableInOneStep[PieceNumber::WKing] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::RightDown);
+  MovableInOneStep[PieceNumber::WBishop] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::WBishop] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::WBishop] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::WBishop] |= flag(Direction::RightDown);
 
   // white rook
-  MovableInOneStep[PieceNumber::WRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Up);
-  MovableInOneStep[PieceNumber::WRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Left);
-  MovableInOneStep[PieceNumber::WRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Right);
-  MovableInOneStep[PieceNumber::WRook] |= static_cast<uint16_t>(0x01) << static_cast<int32_t>(Direction::Down);
+  MovableInOneStep[PieceNumber::WRook] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::WRook] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::WRook] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::WRook] |= flag(Direction::Down);
+
+  // white king
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::LeftUp);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::Up);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::RightUp);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::Left);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::Right);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::LeftDown);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::Down);
+  MovableInOneStep[PieceNumber::WKing] |= flag(Direction::RightDown);
 
   // white golds
   MovableInOneStep[PieceNumber::WTokin] = MovableInOneStep[PieceNumber::WGold];
@@ -211,6 +219,38 @@ void MoveTables::initializeDirectionTable() {
 
   // white dragon
   MovableInOneStep[PieceNumber::WDragon] = MovableInOneStep[PieceNumber::WKing];
+
+  // 2. long step move
+
+  // black lance
+  MovableInLongStep[PieceNumber::BLance] = MovableInOneStep[PieceNumber::BLance];
+
+  // black bishop
+  MovableInLongStep[PieceNumber::BBishop] = MovableInOneStep[PieceNumber::BBishop];
+
+  // black rook
+  MovableInLongStep[PieceNumber::BRook] = MovableInOneStep[PieceNumber::BRook];
+
+  // black horse
+  MovableInLongStep[PieceNumber::BHorse] = MovableInOneStep[PieceNumber::BBishop];
+
+  // black dragon
+  MovableInLongStep[PieceNumber::BDragon] = MovableInOneStep[PieceNumber::BRook];
+
+  // white lance
+  MovableInLongStep[PieceNumber::WLance] = MovableInOneStep[PieceNumber::WLance];
+
+  // white bishop
+  MovableInLongStep[PieceNumber::WBishop] = MovableInOneStep[PieceNumber::WBishop];
+
+  // white rook
+  MovableInLongStep[PieceNumber::WRook] = MovableInOneStep[PieceNumber::WRook];
+
+  // white horse
+  MovableInLongStep[PieceNumber::WHorse] = MovableInOneStep[PieceNumber::WBishop];
+
+  // white dragon
+  MovableInLongStep[PieceNumber::WDragon] = MovableInOneStep[PieceNumber::WRook];
 }
 
 void MoveTables::initializeBitboards() {

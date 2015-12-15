@@ -149,7 +149,7 @@ bool CsaReader::readHand(const char* line, MutablePosition& mp, Turn turn) {
         Piece piece = (turn == Turn::Black) ? pieceType.black() : pieceType.white();
         mp.board[Square(file, rank).raw()] = piece;
 
-      } else if (file == 0 && rank == 0 && pieceType.isUnpromoted() && pieceType != PieceType::king()) {
+      } else if (file == 0 && rank == 0 && !pieceType.isPromoted() && pieceType != PieceType::king()) {
         if (turn == Turn::Black) {
           mp.blackHand.inc(pieceType);
         } else {

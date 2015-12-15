@@ -8,9 +8,10 @@
 namespace sunfish {
 
 void arrive(Node& node) {
-  node.pv.clear();
+  node.hashMove = Move::empty();
   node.moves.clear();
   node.moveIterator = node.moves.begin();
+  node.pv.clear();
 }
 
 } // namespace sunfish

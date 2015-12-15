@@ -22,10 +22,14 @@ enum GenPhase {
 struct Node {
   CheckState checkState;
   GenPhase genPhase;
+
   Move move;
   Piece captured;
+  Move hashMove;
+
   Moves::iterator moveIterator;
   Moves moves;
+
   PV pv;
 };
 

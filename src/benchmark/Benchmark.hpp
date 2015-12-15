@@ -71,7 +71,7 @@ public:
   bool cont() {
     count_++;
     if (interrupted_) {
-      elapsed_ = timer_.getElapsed() * 1000000;
+      elapsed_ = timer_.elapsed() * 1000000;
       return false;
     }
     return true;

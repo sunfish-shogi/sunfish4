@@ -24,12 +24,12 @@ TEST(SquareTest, test) {
   }
 
   {
-    ASSERT_EQ(true, Square::isValidFile(1));
-    ASSERT_EQ(true, Square::isValidFile(9));
+    ASSERT_EQ(true , Square::isValidFile(1));
+    ASSERT_EQ(true , Square::isValidFile(9));
     ASSERT_EQ(false, Square::isValidFile(10));
 
-    ASSERT_EQ(true, Square::isValidRank(1));
-    ASSERT_EQ(true, Square::isValidRank(9));
+    ASSERT_EQ(true , Square::isValidRank(1));
+    ASSERT_EQ(true , Square::isValidRank(9));
     ASSERT_EQ(false, Square::isValidRank(10));
   }
 }
@@ -37,7 +37,7 @@ TEST(SquareTest, test) {
 TEST(SquareTest, testIsPromotable) {
   {
     Square sq43(Square::s43());
-    ASSERT_EQ(true, sq43.isPromotable<Turn::Black>());
+    ASSERT_EQ(true , sq43.isPromotable<Turn::Black>());
     ASSERT_EQ(false, sq43.isPromotable<Turn::White>());
 
     Square sq94(Square::s94());
@@ -50,60 +50,60 @@ TEST(SquareTest, testIsPromotable) {
 
     Square sq87(Square::s87());
     ASSERT_EQ(false, sq87.isPromotable<Turn::Black>());
-    ASSERT_EQ(true, sq87.isPromotable<Turn::White>());
+    ASSERT_EQ(true , sq87.isPromotable<Turn::White>());
   }
 
   {
     Square sq31(Square::s31());
     ASSERT_EQ(false, sq31.isPawnMovable<Turn::Black>());
-    ASSERT_EQ(true, sq31.isPawnMovable<Turn::White>());
+    ASSERT_EQ(true , sq31.isPawnMovable<Turn::White>());
 
     Square sq32(Square::s32());
-    ASSERT_EQ(true, sq32.isPawnMovable<Turn::Black>());
-    ASSERT_EQ(true, sq32.isPawnMovable<Turn::White>());
+    ASSERT_EQ(true , sq32.isPawnMovable<Turn::Black>());
+    ASSERT_EQ(true , sq32.isPawnMovable<Turn::White>());
 
     Square sq38(Square::s38());
-    ASSERT_EQ(true, sq38.isPawnMovable<Turn::Black>());
-    ASSERT_EQ(true, sq38.isPawnMovable<Turn::White>());
+    ASSERT_EQ(true , sq38.isPawnMovable<Turn::Black>());
+    ASSERT_EQ(true , sq38.isPawnMovable<Turn::White>());
 
     Square sq39(Square::s39());
-    ASSERT_EQ(true, sq39.isPawnMovable<Turn::Black>());
+    ASSERT_EQ(true , sq39.isPawnMovable<Turn::Black>());
     ASSERT_EQ(false, sq39.isPawnMovable<Turn::White>());
   }
 
   {
     Square sq81(Square::s81());
     ASSERT_EQ(false, sq81.isLanceMovable<Turn::Black>());
-    ASSERT_EQ(true, sq81.isLanceMovable<Turn::White>());
+    ASSERT_EQ(true , sq81.isLanceMovable<Turn::White>());
 
     Square sq82(Square::s82());
-    ASSERT_EQ(true, sq82.isLanceMovable<Turn::Black>());
-    ASSERT_EQ(true, sq82.isLanceMovable<Turn::White>());
+    ASSERT_EQ(true , sq82.isLanceMovable<Turn::Black>());
+    ASSERT_EQ(true , sq82.isLanceMovable<Turn::White>());
 
     Square sq88(Square::s88());
-    ASSERT_EQ(true, sq88.isLanceMovable<Turn::Black>());
-    ASSERT_EQ(true, sq88.isLanceMovable<Turn::White>());
+    ASSERT_EQ(true , sq88.isLanceMovable<Turn::Black>());
+    ASSERT_EQ(true , sq88.isLanceMovable<Turn::White>());
 
     Square sq89(Square::s89());
-    ASSERT_EQ(true, sq89.isLanceMovable<Turn::Black>());
+    ASSERT_EQ(true , sq89.isLanceMovable<Turn::Black>());
     ASSERT_EQ(false, sq89.isLanceMovable<Turn::White>());
   }
 
   {
     Square sq12(Square::s12());
     ASSERT_EQ(false, sq12.isKnightMovable<Turn::Black>());
-    ASSERT_EQ(true, sq12.isKnightMovable<Turn::White>());
+    ASSERT_EQ(true , sq12.isKnightMovable<Turn::White>());
 
     Square sq13(Square::s13());
-    ASSERT_EQ(true, sq13.isKnightMovable<Turn::Black>());
-    ASSERT_EQ(true, sq13.isKnightMovable<Turn::White>());
+    ASSERT_EQ(true , sq13.isKnightMovable<Turn::Black>());
+    ASSERT_EQ(true , sq13.isKnightMovable<Turn::White>());
 
     Square sq17(Square::s17());
-    ASSERT_EQ(true, sq17.isKnightMovable<Turn::Black>());
-    ASSERT_EQ(true, sq17.isKnightMovable<Turn::White>());
+    ASSERT_EQ(true , sq17.isKnightMovable<Turn::Black>());
+    ASSERT_EQ(true , sq17.isKnightMovable<Turn::White>());
 
     Square sq18(Square::s18());
-    ASSERT_EQ(true, sq18.isKnightMovable<Turn::Black>());
+    ASSERT_EQ(true , sq18.isKnightMovable<Turn::Black>());
     ASSERT_EQ(false, sq18.isKnightMovable<Turn::White>());
   }
 }

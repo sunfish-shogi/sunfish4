@@ -145,7 +145,7 @@ public:
 
           // passed
           tsr.results[methodName].state = State::PASSED;
-          tsr.results[methodName].time = timer.getElapsed();
+          tsr.results[methodName].time = timer.elapsed();
 
         } catch (const TestError& e) {
           auto message = getErrorMessage(e);
@@ -153,7 +153,7 @@ public:
           // error
           errors++;
           tsr.results[methodName].state = State::ERROR;
-          tsr.results[methodName].time = timer.getElapsed();
+          tsr.results[methodName].time = timer.elapsed();
           tsr.results[methodName].error.message = message;
 
           std::ostringstream moss;
@@ -164,7 +164,7 @@ public:
           // failure
           failures++;
           tsr.results[methodName].state = State::FAILURE;
-          tsr.results[methodName].time = timer.getElapsed();
+          tsr.results[methodName].time = timer.elapsed();
 
         }
       }

@@ -180,13 +180,6 @@ public:
   }
 
   /**
-   * Check the piece is NOT promoted.
-   */
-  CONSTEXPR bool isUnpromoted() const {
-    return !isPromoted();
-  }
-
-  /**
    * Check the piece is promoted.
    */
   CONSTEXPR bool isPromoted() const {
@@ -224,9 +217,14 @@ public:
   static CONSTEXPR PieceType horse    () { return PieceType(PieceNumber::Horse    ); }
   static CONSTEXPR PieceType dragon   () { return PieceType(PieceNumber::Dragon   ); }
 
+  CONSTEXPR bool isPromotable() const {
+    return number_ <= PieceNumber::Rook &&
+           number_ != PieceNumber::Gold;
+  }
+
   /**
    * Get pieces in numerical order.
-   * See TYPE_EACH macro.
+   * (See TYPE_EACH macro.)
    */
   CONSTEXPR PieceType next() const {
     return SuperType::number_ == (PieceNumber::Promotion | PieceNumber::Gold) - 1U ?
@@ -235,7 +233,7 @@ public:
 
   /**
    * Get pieces in numerical order.
-   * See HAND_EACH macro.
+   * (See HAND_EACH macro.)
    */
   CONSTEXPR PieceType nextUnsafe() const {
     return PieceType(SuperType::number_ + 1U);
@@ -345,9 +343,13 @@ public:
   static CONSTEXPR Piece whiteHorse    () { return Piece(PieceNumber::WHorse    ); }
   static CONSTEXPR Piece whiteDragon   () { return Piece(PieceNumber::WDragon   ); }
 
+  CONSTEXPR bool isPromotable() const {
+    return type().isPromotable();
+  }
+
   /**
    * Get pieces in numerical order.
-   * See PIECE_EACH macro.
+   * (See PIECE_EACH macro.)
    */
   CONSTEXPR Piece next() const {
     return ((SuperType::number_ == (PieceNumber::Promotion | PieceNumber::BGold) - 1U) ||

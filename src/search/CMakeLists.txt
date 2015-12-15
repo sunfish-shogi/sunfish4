@@ -6,6 +6,8 @@ add_library(search STATIC
     tree/Node.cpp
     tree/Tree.cpp
     tree/Worker.cpp
+	tt/TTElement.cpp
+	tt/TTSlots.cpp
     RandomSearcher.cpp
     Searcher.cpp
     SearchInfo.cpp

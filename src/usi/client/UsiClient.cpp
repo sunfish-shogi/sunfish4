@@ -8,6 +8,7 @@
 #include "core/record/SfenParser.hpp"
 #include "search/eval/Material.hpp"
 #include "logger/Logger.hpp"
+#include <iomanip>
 #include <sstream>
 #include <utility>
 #include <unordered_map>
@@ -288,6 +289,8 @@ void UsiClient::search() {
     sendBestMove();
   }
 
+  outputSearchInfo();
+
   changeState(State::Ready);
 
   OUT(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
@@ -335,7 +338,7 @@ void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) 
        "depth", realDepth,
        "nodes", info.nodes,
        "nps", nps,
-       "currmove", pv.get(0).toStringSFEN(),
+       "currmove", pv.getMove(0).toStringSFEN(),
        "score", scoreKey, scoreValue,
        "pv", pv.toStringSFEN());
 }
@@ -366,6 +369,18 @@ void UsiClient::sendBestMove() {
   } else {
     send("bestmove", "resign");
   }
+}
+
+void UsiClient::outputSearchInfo() {
+  const auto& info = searcher_.getInfo();
+  const auto& result = searcher_.getResult();
+
+  auto nps = static_cast<uint32_t>(info.nodes / result.elapsed);
+
+  OUT(info) << "nps      : " << nps;
+  OUT(info) << "elapsed  : " << std::fixed << std::setprecision(3) << result.elapsed;
+  OUT(info) << "nodes    : " << info.nodes;
+  OUT(info) << "hash-cut : " << info.hashCut;
 }
 
 bool UsiClient::onPonderhit(const CommandArguments&) {

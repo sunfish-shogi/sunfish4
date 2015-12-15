@@ -12,6 +12,7 @@ namespace sunfish {
 
 struct SearchInfo {
   uint64_t nodes;
+  uint64_t hashCut;
 };
 
 void initializeSearchInfo(SearchInfo& info);

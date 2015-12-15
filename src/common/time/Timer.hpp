@@ -23,7 +23,7 @@ public:
   /**
    * Get a real value representing a elapsed time from the reference point.
    */
-  float getElapsed(bool roundup = false) const {
+  float elapsed(bool roundup = false) const {
     auto now = std::chrono::system_clock::now();
     auto elapsed = now - base_;
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
@@ -37,7 +37,7 @@ public:
   /**
    * Get an integer value representing a elapsed time from the reference point.
    */
-  uint32_t getElapsedInt(bool roundup = false) const {
+  uint32_t elapsedInt(bool roundup = false) const {
     auto now = std::chrono::system_clock::now();
     auto elapsed = now - base_;
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);

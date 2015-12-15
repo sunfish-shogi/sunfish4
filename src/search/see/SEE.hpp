@@ -6,18 +6,22 @@
 #ifndef SUNFISH_SEARCH_SEE_SEE_HPP__
 #define SUNFISH_SEARCH_SEE_SEE_HPP__
 
-#include "search/tree/Tree.hpp"
-#include "search/eval/Score.hpp"
+#include "core/position/Position.hpp"
+#include "core/move/Moves.hpp"
 #include "core/move/Move.hpp"
+#include "search/eval/Score.hpp"
 
 namespace sunfish {
 
 class SEE {
 public:
 
-  static Score calculate(const Tree& tree, Move move);
+  static Score calculate(const Position& position,
+                         Move move);
 
-  static void sortMoves(Tree& tree);
+  static void sortMoves(const Position& position,
+                        Moves::iterator begin,
+                        Moves::iterator end);
 
 private:
 

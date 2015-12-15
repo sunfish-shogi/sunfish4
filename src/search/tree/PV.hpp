@@ -8,6 +8,7 @@
 
 #include "common/Def.hpp"
 #include "core/move/Moves.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <sstream>
@@ -18,8 +19,15 @@ class PV {
 public:
 
   using SizeType = uint32_t;
+  using MoveType = uint16_t;
+  using DepthType = int16_t;
 
-  static CONSTEXPR_CONST SizeType StackSize = 64;
+  static CONSTEXPR_CONST SizeType MaxSize = 64;
+
+  struct Element {
+    MoveType move;
+    DepthType depth;
+  };
 
   PV() : num_(0) {
   }
@@ -38,16 +46,24 @@ public:
     return num_;
   }
 
-  void set(const Move& move, const PV& pv) {
-    moves_[0] = move;
+  void set(const Move& move, int depth, const PV& pv) {
+    depth = std::max(depth, 0);
+
+    elements_[0].move = move.serialize16();
+    elements_[0].depth = static_cast<DepthType>(depth);
+
     // static_cast is required on Clang.
     // See https://trello.com/c/iJqg1GqN
-    num_ = std::min(pv.num_ + 1, static_cast<SizeType>(StackSize));
-    memcpy(&moves_[1], pv.moves_, sizeof(moves_[0]) * (num_ - 1));
+    num_ = std::min(pv.num_ + 1, static_cast<SizeType>(MaxSize));
+    memcpy(&elements_[1], pv.elements_, sizeof(elements_[0]) * (num_ - 1));
   }
 
-  const Move& get(SizeType depth) const {
-    return moves_[depth];
+  Move getMove(SizeType depth) const {
+    return Move::deserialize(elements_[depth].move);
+  }
+
+  int getDepth(SizeType depth) const {
+    return static_cast<int>(elements_[depth].depth);
   }
 
   std::string toString() const {
@@ -56,7 +72,8 @@ public:
       if (i != 0) {
         oss << ' ';
       }
-      oss << moves_[i].toString();
+      Move move = Move::deserialize(elements_[i].move);
+      oss << move.toString();
     }
     return oss.str();
   }
@@ -67,7 +84,8 @@ public:
       if (i != 0) {
         oss << ' ';
       }
-      oss << moves_[i].toStringSFEN();
+      Move move = Move::deserialize(elements_[i].move);
+      oss << move.toStringSFEN();
     }
     return oss.str();
   }
@@ -80,7 +98,7 @@ public:
 private:
 
   SizeType num_;
-  Move moves_[StackSize];
+  Element elements_[MaxSize];
 
 };
 

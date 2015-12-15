@@ -558,20 +558,20 @@ TEST(BitboardTest, testSet) {
 
   {
     Bitboard bb(0x3LL, 0xcLL);
-    ASSERT_EQ(true, bb.check(Square(0)));
-    ASSERT_EQ(true, bb.check(Square(1)));
+    ASSERT_EQ(true , bb.check(Square(0)));
+    ASSERT_EQ(true , bb.check(Square(1)));
     ASSERT_EQ(false, bb.check(Square(2)));
     ASSERT_EQ(false, bb.check(Square(3)));
     ASSERT_EQ(false, bb.check(Square(4)));
     ASSERT_EQ(false, bb.check(Square(44)));
     ASSERT_EQ(false, bb.check(Square(45)));
     ASSERT_EQ(false, bb.check(Square(46)));
-    ASSERT_EQ(true, bb.check(Square(47)));
-    ASSERT_EQ(true, bb.check(Square(48)));
+    ASSERT_EQ(true , bb.check(Square(47)));
+    ASSERT_EQ(true , bb.check(Square(48)));
 
     RotatedBitboard rbb(0x3LL);
-    ASSERT_EQ(true, rbb.check(0));
-    ASSERT_EQ(true, rbb.check(1));
+    ASSERT_EQ(true , rbb.check(0));
+    ASSERT_EQ(true , rbb.check(1));
     ASSERT_EQ(false, rbb.check(2));
     ASSERT_EQ(false, rbb.check(3));
     ASSERT_EQ(false, rbb.check(4));
@@ -585,15 +585,15 @@ TEST(BitboardTest, testCheckFile) {
     bb.set(Square::s41());
     bb.set(Square::s59());
     bb.set(Square::s91());
-    ASSERT_EQ(true,  bb.checkFile(1));
+    ASSERT_EQ(true ,  bb.checkFile(1));
     ASSERT_EQ(false, bb.checkFile(2));
     ASSERT_EQ(false, bb.checkFile(3));
-    ASSERT_EQ(true,  bb.checkFile(4));
-    ASSERT_EQ(true,  bb.checkFile(5));
+    ASSERT_EQ(true ,  bb.checkFile(4));
+    ASSERT_EQ(true ,  bb.checkFile(5));
     ASSERT_EQ(false, bb.checkFile(6));
     ASSERT_EQ(false, bb.checkFile(7));
     ASSERT_EQ(false, bb.checkFile(8));
-    ASSERT_EQ(true,  bb.checkFile(9));
+    ASSERT_EQ(true ,  bb.checkFile(9));
   }
 
   {
@@ -603,13 +603,13 @@ TEST(BitboardTest, testCheckFile) {
     bb.set(Square::s61());
     bb.set(Square::s89());
     ASSERT_EQ(false, bb.checkFile(1));
-    ASSERT_EQ(true,  bb.checkFile(2));
+    ASSERT_EQ(true ,  bb.checkFile(2));
     ASSERT_EQ(false, bb.checkFile(3));
-    ASSERT_EQ(true,  bb.checkFile(4));
+    ASSERT_EQ(true ,  bb.checkFile(4));
     ASSERT_EQ(false, bb.checkFile(5));
-    ASSERT_EQ(true,  bb.checkFile(6));
+    ASSERT_EQ(true ,  bb.checkFile(6));
     ASSERT_EQ(false, bb.checkFile(7));
-    ASSERT_EQ(true,  bb.checkFile(8));
+    ASSERT_EQ(true ,  bb.checkFile(8));
     ASSERT_EQ(false, bb.checkFile(9));
   }
 }

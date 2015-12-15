@@ -16,6 +16,7 @@ struct SearchResult {
   Move move;
   Score score;
   PV pv;
+  float elapsed;
 };
 
 } // namespace sunfish

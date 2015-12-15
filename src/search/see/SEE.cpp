@@ -8,10 +8,11 @@
 
 namespace sunfish {
 
-Score SEE::calculate(const Tree& tree, Move move) {
+Score SEE::calculate(const Position& position,
+                     Move move) {
   Score score = Score::zero();
 
-  auto& pos = tree.position;
+  auto& pos = position;
   auto captured = pos.getPieceOnBoard(move.to());
 
   score += material::pieceExchangeScore(captured);
@@ -21,19 +22,17 @@ Score SEE::calculate(const Tree& tree, Move move) {
   return score;
 }
 
-void SEE::sortMoves(Tree& tree) {
-  auto& node = tree.nodes[tree.ply];
-  auto& moves = node.moves;
-
-  for (Moves::size_type i = 0; i < moves.size(); i++) {
-    Move move = moves[i];
-    Score score = calculate(tree, move);
-
-    moves[i] = move;
-    moves[i].setExtData(static_cast<Move::RawType16>(score.raw()));
+void SEE::sortMoves(const Position& position,
+                    Moves::iterator begin,
+                    Moves::iterator end) {
+  for (auto ite = begin; ite != end; ite++) {
+    Move move = *ite;
+    Score score = calculate(position, move);
+    *ite = move;
+    ite->setExtData(static_cast<Move::RawType16>(score.raw()));
   }
 
-  std::sort(moves.begin(), moves.end(), [](const Move& lhs, const Move& rhs) {
+  std::sort(begin, end, [](const Move& lhs, const Move& rhs) {
     return moveToScore(lhs) > moveToScore(rhs);
   });
 }

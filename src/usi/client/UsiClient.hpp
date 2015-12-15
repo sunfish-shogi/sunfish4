@@ -82,6 +82,8 @@ private:
 
   void sendBestMove();
 
+  void outputSearchInfo();
+
   bool onPonderhit(const CommandArguments&);
 
   bool onGameOver(const CommandArguments&);

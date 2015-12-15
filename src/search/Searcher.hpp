@@ -13,6 +13,7 @@
 #include "search/SearchHandler.hpp"
 #include "search/tree/Tree.hpp"
 #include "search/tree/Worker.hpp"
+#include "search/tt/TT.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
 #include "common/time/Timer.hpp"
@@ -92,10 +93,6 @@ private:
               Score alpha,
               Score beta);
 
-  void generateMovesOnRoot(Tree& tree);
-
-  Move nextMoveOnRoot(Node& node);
-
   void generateMoves(Tree& tree);
 
   Move nextMove(Tree& tree);
@@ -104,12 +101,14 @@ private:
 
   Move nextMoveOnQuies(Node& node);
 
+  void storePV(Tree& tree, const PV& pv, unsigned ply);
+
   bool isInterrupted() const {
     if (interrupted_) {
       return true;
     }
 
-    if (timer_.getElapsedInt() >= config_.maximumTimeSeconds) {
+    if (timer_.elapsedInt() >= config_.maximumTimeSeconds) {
       return true;
     }
 
@@ -117,6 +116,8 @@ private:
   }
 
   Evaluator evaluator_;
+
+  TT tt_;
 
   Tree treeOnMainThread_;
   Worker workerOnMainThread_;

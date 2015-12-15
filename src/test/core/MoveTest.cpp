@@ -27,7 +27,7 @@ TEST(MoveTest, test) {
     Move move(Square::s54(), Square::s53(), true);
     ASSERT_EQ(Square::s54(), move.from().raw());
     ASSERT_EQ(Square::s53(), move.to().raw());
-    ASSERT_EQ(true, move.isPromotion());
+    ASSERT_EQ(true , move.isPromotion());
     ASSERT_EQ(false, move.isDrop());
     ASSERT_EQ(0, move.extData());
   }
@@ -37,7 +37,7 @@ TEST(MoveTest, test) {
     ASSERT_EQ(Square::s55(), move.to().raw());
     ASSERT_EQ(false, move.isPromotion());
     ASSERT_EQ(PieceType::pawn(), move.droppingPieceType());
-    ASSERT_EQ(true, move.isDrop());
+    ASSERT_EQ(true , move.isDrop());
     ASSERT_EQ(0, move.extData());
   }
 

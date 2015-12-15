@@ -453,6 +453,114 @@ Bitboard& Position::getBitboard(Piece piece) {
 }
 
 template <Turn turn>
+bool Position::hasPawnInFile(int file) const {
+  const auto& pawn = turn == Turn::Black ?  bbBPawn_ : bbWPawn_;
+  return pawn.checkFile(file);
+}
+
+template <Turn turn>
+bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
+  Square to = move.to();
+  bool isDrop = move.isDrop();
+  bool isKing = false;
+
+  if (isDrop) {
+    if (isDoubleCheck(checkState)) {
+      return false;
+    }
+
+    PieceType pieceType = move.droppingPieceType();
+
+    int handNum = turn == Turn::Black ?
+        blackHand_.get(pieceType) :
+        whiteHand_.get(pieceType);
+    if (handNum == 0) {
+      return false;
+    }
+
+    if (!board_[to.raw()].isEmpty()) {
+      return false;
+    }
+
+    if (pieceType == PieceType::pawn() &&
+        hasPawnInFile<turn>(to.getFile())) {
+      return false;
+    }
+
+  } else {
+    Square from = move.from();
+    Piece piece = board_[from.raw()];
+
+    isKing = piece == (turn == Turn::Black ? Piece::blackKing() : Piece::whiteKing());
+
+    if (isDoubleCheck(checkState)) {
+      if (!isKing) {
+        return false;
+      }
+    } else {
+      if (turn == Turn::Black ? !piece.isBlack() : !piece.isWhite()) {
+        return false;
+      }
+    }
+
+    Piece captured = board_[to.raw()];
+
+    if (turn == Turn::Black ? captured.isBlack() : captured.isWhite()) {
+      return false;
+    }
+
+    Direction dir = from.dir(to);
+
+    assert(dir != Direction::None);
+    assert(from.distance(to) != 0);
+
+    if (from.distance(to) == 1) {
+      if (!MoveTables::isMovableInOneStep(piece, dir)) {
+        return false;
+      }
+    } else {
+      if (!MoveTables::isMovableInLongStep(piece, dir)) {
+        return false;
+      }
+
+      // TODO: use rotated bitboard
+      for (Square square = from.move(dir); square != to; square = square.move(dir)) {
+        assert(from.isValid());
+        if (!board_[square.raw()].isEmpty()) {
+          return false;
+        }
+      }
+    }
+
+    if (move.isPromotion() && !piece.isPromotable()) {
+      return false;
+    }
+  }
+
+  if (isCheck(checkState) && !isDoubleCheck(checkState) && !isKing) {
+    Square kingSquare = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
+
+    Direction targetDir = kingSquare.dir(to);
+    Direction checkDir = kingSquare.dir(checkState.from1);
+
+    if (targetDir != checkDir) {
+      return false;
+    }
+
+    auto targetDistance = kingSquare.distance(to);
+    auto checkDistance = kingSquare.distance(checkState.from1);
+
+    if (targetDistance > checkDistance) {
+      return false;
+    }
+  }
+
+  return true;
+}
+template bool Position::isLegalMoveMaybe<Turn::Black>(Move, const CheckState&) const;
+template bool Position::isLegalMoveMaybe<Turn::White>(Move, const CheckState&) const;
+
+template <Turn turn>
 bool Position::doMove(Move move, Piece& wbCaptured) {
   bool isDrop = move.isDrop();
   Square to = move.to();
@@ -486,7 +594,7 @@ bool Position::doMove(Move move, Piece& wbCaptured) {
     if (turn == Turn::Black) {
       handNum = blackHand_.decUnsafe(pieceType);
     } else {
-      handNum = whiteHand_.decUnsafe(piece.type());
+      handNum = whiteHand_.decUnsafe(pieceType);
     }
 
     // zobrist hash
@@ -658,7 +766,7 @@ void Position::undoMove(Move move, Piece captured) {
     if (turn == Turn::Black) {
       handNum = blackHand_.incUnsafe(pieceType);
     } else {
-      handNum = whiteHand_.incUnsafe(piece.type());
+      handNum = whiteHand_.incUnsafe(pieceType);
     }
 
     // zobrist hash
@@ -1150,7 +1258,7 @@ template bool Position::isMovable<Turn::White, true>(const Bitboard&) const;
 
 template <Turn turn>
 bool Position::isMate(const CheckState& checkState) {
-  assert(checkState.from1.isValid());
+  assert(isCheck(checkState));
 
   auto kingSquare = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
 
