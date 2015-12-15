@@ -1,8 +1,7 @@
 CMAKE:=cmake
-CMAKE_CACHE:=CMakeCache.txt
 MKDIR:=mkdir
 LN:=ln
-TEST:=test
+FIND:=find
 
 SUNFISH:=sunfish
 SUNFISH_TEST:=sunfish_test
@@ -56,6 +55,7 @@ test-sse:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 ../../src/test
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
+	$(FIND) $(BUILD_DIR)/$@ -name '*.gcda' | xargs $(RM)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_sse.xml'
 ifneq ($(HAS_COV),)
 	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_sse.txt'
@@ -66,6 +66,7 @@ test-nosse:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 ../../src/test
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
+	$(FIND) $(BUILD_DIR)/$@ -name '*.gcda' | xargs $(RM)
 	$(SHELL) -c './$(SUNFISH_TEST) --out test_result_nosse.xml'
 ifneq ($(HAS_COV),)
 	cd $(BUILD_DIR)/$@ && $(SHELL) -c '../../$(GEN_COV) -s ../../src -e test > ../../coverage_nosse.txt'
