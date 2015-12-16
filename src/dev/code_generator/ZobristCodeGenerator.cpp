@@ -24,8 +24,9 @@ void generateZobristOnBoard(Random& random, std::ostream& os) {
   os << "};\n";
 }
 
-void generateZobristOnHand(Random& random, const char* pieceName, int num, std::ostream& os) {
-  os << "const Zobrist::Type Zobrist::Hand" << pieceName << "[" << std::dec << num << "] = {\n";
+void generateZobristOnHand(Random& random, const char* color, std::ostream& os) {
+  const int num = 7;
+  os << "const Zobrist::Type Zobrist::" << color << "Hand[" << std::dec << num << "] = {\n";
   for (int i = 0; i < num; i++) {
     os << "  0x" << std::hex << random.getInt64() << "ll,\n";
   }
@@ -57,21 +58,8 @@ bool ZobristCodeGenerator::generateIntoStream(std::ostream& os) {
 
   os << "\n";
 
-  generateZobristOnHand(random, "BPawn", 18, os);
-  generateZobristOnHand(random, "BLance", 4, os);
-  generateZobristOnHand(random, "BKnight", 4, os);
-  generateZobristOnHand(random, "BSilver", 4, os);
-  generateZobristOnHand(random, "BGold", 4, os);
-  generateZobristOnHand(random, "BBishop", 2, os);
-  generateZobristOnHand(random, "BRook", 2, os);
-
-  generateZobristOnHand(random, "WPawn", 18, os);
-  generateZobristOnHand(random, "WLance", 4, os);
-  generateZobristOnHand(random, "WKnight", 4, os);
-  generateZobristOnHand(random, "WSilver", 4, os);
-  generateZobristOnHand(random, "WGold", 4, os);
-  generateZobristOnHand(random, "WBishop", 2, os);
-  generateZobristOnHand(random, "WRook", 2, os);
+  generateZobristOnHand(random, "Black", os);
+  generateZobristOnHand(random, "White", os);
 
   generateZobristBlack(random, os);
 

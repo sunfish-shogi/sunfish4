@@ -393,7 +393,7 @@ void Position::onChanged() {
       // zobrist hash
       auto num = blackHand_.get(pieceType);
       for (int n = 0; n < num; n++) {
-        handHash_ ^= Zobrist::blackHand(pieceType, n);
+        handHash_ += Zobrist::blackHand(pieceType);
       }
     }
 
@@ -401,7 +401,7 @@ void Position::onChanged() {
       // zobrist hash
       auto num = whiteHand_.get(pieceType);
       for (int n = 0; n < num; n++) {
-        handHash_ ^= Zobrist::whiteHand(pieceType, n);
+        handHash_ += Zobrist::whiteHand(pieceType);
       }
     }
   }
@@ -600,9 +600,9 @@ bool Position::doMove(Move move, Piece& wbCaptured) {
     // zobrist hash
     boardHash_ ^= Zobrist::board(to, piece);
     if (turn == Turn::Black) {
-      handHash_ ^= Zobrist::blackHand(pieceType, handNum);
+      handHash_ -= Zobrist::blackHand(pieceType);
     } else {
-      handHash_ ^= Zobrist::whiteHand(pieceType, handNum);
+      handHash_ -= Zobrist::whiteHand(pieceType);
     }
 
   } else {
@@ -664,9 +664,9 @@ bool Position::doMove(Move move, Piece& wbCaptured) {
       boardHash_ ^= Zobrist::board(to, pieceAfter);
       boardHash_ ^= Zobrist::board(to, captured);
       if (turn == Turn::Black) {
-        handHash_ ^= Zobrist::blackHand(handType, handNum - 1);
+        handHash_ += Zobrist::blackHand(handType);
       } else {
-        handHash_ ^= Zobrist::whiteHand(handType, handNum - 1);
+        handHash_ += Zobrist::whiteHand(handType);
       }
 
     } else {
@@ -772,9 +772,9 @@ void Position::undoMove(Move move, Piece captured) {
     // zobrist hash
     boardHash_ ^= Zobrist::board(to, piece);
     if (turn == Turn::Black) {
-      handHash_ ^= Zobrist::blackHand(pieceType, handNum - 1);
+      handHash_ += Zobrist::blackHand(pieceType);
     } else {
-      handHash_ ^= Zobrist::whiteHand(pieceType, handNum - 1);
+      handHash_ += Zobrist::whiteHand(pieceType);
     }
 
   } else {
@@ -835,9 +835,9 @@ void Position::undoMove(Move move, Piece captured) {
       boardHash_ ^= Zobrist::board(to, pieceAfter);
       boardHash_ ^= Zobrist::board(to, captured);
       if (turn == Turn::Black) {
-        handHash_ ^= Zobrist::blackHand(handType, handNum);
+        handHash_ -= Zobrist::blackHand(handType);
       } else {
-        handHash_ ^= Zobrist::whiteHand(handType, handNum);
+        handHash_ -= Zobrist::whiteHand(handType);
       }
 
     } else {
