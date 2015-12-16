@@ -319,6 +319,10 @@ public:
     }
   }
 
+  void doNullMove();
+
+  void undoNullMove();
+
   /**
    * Indicate whether the king is checked.
    */

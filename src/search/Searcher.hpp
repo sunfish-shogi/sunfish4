@@ -12,6 +12,7 @@
 #include "search/SearchResult.hpp"
 #include "search/SearchHandler.hpp"
 #include "search/tree/Tree.hpp"
+#include "search/tree/NodeStat.hpp"
 #include "search/tree/Worker.hpp"
 #include "search/tt/TT.hpp"
 #include "search/eval/Evaluator.hpp"
@@ -87,7 +88,8 @@ private:
   Score search(Tree& tree,
                int depth,
                Score alpha,
-               Score beta);
+               Score beta,
+               NodeStat nodeStat);
 
   Score quies(Tree& tree,
               int qply,
@@ -101,6 +103,8 @@ private:
   void generateMovesOnQuies(Tree& tree, int qply);
 
   Move nextMoveOnQuies(Node& node);
+
+  Score calcStandPat(Tree& tree);
 
   void storePV(Tree& tree, const PV& pv, unsigned ply);
 

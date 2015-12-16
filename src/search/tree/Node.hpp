@@ -7,6 +7,7 @@
 #define SUNFISH_SEARCH_TREE_NODE_HPP__
 
 #include "search/tree/PV.hpp"
+#include "search/eval/Score.hpp"
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 
@@ -21,12 +22,13 @@ enum GenPhase {
 
 struct Node {
   CheckState checkState;
-  GenPhase genPhase;
+  Score standPat;
 
   Move move;
   Piece captured;
   Move hashMove;
 
+  GenPhase genPhase;
   Moves::iterator moveIterator;
   Moves moves;
 

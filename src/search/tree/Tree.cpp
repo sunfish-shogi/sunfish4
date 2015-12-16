@@ -34,6 +34,18 @@ void undoMove(Tree& tree) {
   tree.position.undoMove(node.move, node.captured);
 }
 
+void doNullMove(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+  tree.position.doNullMove();
+  node.move = Move::empty();
+  tree.ply++;
+}
+
+void undoNullMove(Tree& tree) {
+  tree.ply--;
+  tree.position.undoNullMove();
+}
+
 std::string getPath(const Tree& tree, int ply) {
   std::ostringstream oss;
 

@@ -15,6 +15,7 @@ void initializeSearchInfo(SearchInfo& info) {
 void mergeSearchInfo(SearchInfo& dst, const SearchInfo& src) {
   dst.nodes += src.nodes;
   dst.hashCut += src.hashCut;
+  dst.nullMovePruning += src.nullMovePruning;
 }
 
 } // namespace sunfish

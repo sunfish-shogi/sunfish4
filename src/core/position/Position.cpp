@@ -890,6 +890,14 @@ void Position::undoMove(Move move, Piece captured) {
 template void Position::undoMove<Turn::Black>(Move, Piece);
 template void Position::undoMove<Turn::White>(Move, Piece);
 
+void Position::doNullMove() {
+  turn_ = turn_ == Turn::Black ? Turn::White : Turn::Black;
+}
+
+void Position::undoNullMove() {
+  turn_ = turn_ == Turn::Black ? Turn::White : Turn::Black;
+}
+
 template <Turn turn>
 std::tuple<Square, Square> Position::detectLongEffects(const Square& square, Square from1) const {
   Square from2;

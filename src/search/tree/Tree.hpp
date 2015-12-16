@@ -32,6 +32,10 @@ bool doMove(Tree& tree, Move& move);
 
 void undoMove(Tree& tree);
 
+void doNullMove(Tree& tree);
+
+void undoNullMove(Tree& tree);
+
 std::string getPath(const Tree& tree, int ply);
 
 } // namespace sunfish

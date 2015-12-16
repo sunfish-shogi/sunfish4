@@ -923,6 +923,78 @@ TEST(PositionTest, testUndoMove) {
   }
 }
 
+TEST(PositionTest, testDoNullMove) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "-\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "+\n");
+
+    pos.doNullMove();
+
+    assertEq(expectPos, pos);
+  }
+}
+
+TEST(PositionTest, testUndoNullMove) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "+\n");
+
+    Position expectPos = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * +UM * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU * +FU+FU+FU+FU+FU+FU\n"
+      "P8 *  *  *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+00KA\n"
+      "P-\n"
+      "-\n");
+
+    pos.undoNullMove();
+
+    assertEq(expectPos, pos);
+  }
+}
+
 TEST(PositionTest, testInCheck) {
   {
     // checked by pawn

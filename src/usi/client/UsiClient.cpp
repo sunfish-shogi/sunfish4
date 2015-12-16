@@ -377,10 +377,11 @@ void UsiClient::outputSearchInfo() {
 
   auto nps = static_cast<uint32_t>(info.nodes / result.elapsed);
 
-  OUT(info) << "nps      : " << nps;
-  OUT(info) << "elapsed  : " << std::fixed << std::setprecision(3) << result.elapsed;
-  OUT(info) << "nodes    : " << info.nodes;
-  OUT(info) << "hash-cut : " << info.hashCut;
+  OUT(info) << "nps               : " << nps;
+  OUT(info) << "elapsed           : " << std::fixed << std::setprecision(3) << result.elapsed;
+  OUT(info) << "nodes             : " << info.nodes;
+  OUT(info) << "hash-cut          : " << info.hashCut;
+  OUT(info) << "null move pruning : " << info.nullMovePruning;
 }
 
 bool UsiClient::onPonderhit(const CommandArguments&) {
