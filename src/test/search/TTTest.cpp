@@ -164,4 +164,52 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(Move(Square::s83(), Square::s84(), false), tte.move());
 }
 
+TEST(TTTest, testUpdate) {
+  TT tt;
+  TTElement tte;
+  TTStatus tts;
+
+  Position pos1 = PositionUtil::createPositionFromCsaString(posStr1);
+
+  // first
+  tts = tt.store(pos1.getHash(),
+                 Score(-123), // alpha
+                 Score(456), // beta
+                 Score(77), // score
+                 5, // depth
+                 3, // ply
+                 Move(Square::s77(), Square::s76(), false));
+  ASSERT(TTStatus::New == tts);
+
+  // shallow
+  tts = tt.store(pos1.getHash(),
+                 Score(-123), // alpha
+                 Score(456), // beta
+                 Score(77), // score
+                 3, // depth
+                 3, // ply
+                 Move(Square::s77(), Square::s76(), false));
+  ASSERT(TTStatus::Reject == tts);
+
+  // same depth
+  tts = tt.store(pos1.getHash(),
+                 Score(-123), // alpha
+                 Score(456), // beta
+                 Score(77), // score
+                 5, // depth
+                 3, // ply
+                 Move(Square::s77(), Square::s76(), false));
+  ASSERT(TTStatus::Update == tts);
+
+  // deep
+  tts = tt.store(pos1.getHash(),
+                 Score(-123), // alpha
+                 Score(456), // beta
+                 Score(77), // score
+                 7, // depth
+                 3, // ply
+                 Move(Square::s77(), Square::s76(), false));
+  ASSERT(TTStatus::Update == tts);
+}
+
 #endif // !defined(NDEBUG)
