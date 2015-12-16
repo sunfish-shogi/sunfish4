@@ -29,6 +29,7 @@ add_executable(sunfish_test
     search/EvaluatorTest.cpp
     search/MaterialTest.cpp
     search/ScoreTest.cpp
+    search/TTTest.cpp
 )
 
 target_link_libraries(sunfish_test core)
