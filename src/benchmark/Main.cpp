@@ -58,7 +58,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    OUT(warning) << "WARNING: `" << invalidArgument.arg << "' is invalid argument: " << invalidArgument.reason;
+    OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
   // initialization
