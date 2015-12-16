@@ -64,7 +64,7 @@ public:
   }
 
   void prefetch(Zobrist::Type hash) const {
-    const ElementType* p = &table_[hash&mask_];
+    const ElementType* p = &table_[hash & mask_];
     const char* addr = reinterpret_cast<const char*>(p);
     memory::prefetch<sizeof(ElementType)>(addr);
   }
@@ -72,7 +72,7 @@ public:
 protected:
 
   ElementType& getElement(Zobrist::Type hash) {
-    return table_[hash&mask_];
+    return table_[hash & mask_];
   }
 
   ElementType& getElement(SizeType index) {
@@ -80,7 +80,7 @@ protected:
   }
 
   const ElementType& getElement(Zobrist::Type hash) const {
-    return table_[hash&mask_];
+    return table_[hash & mask_];
   }
 
   const ElementType& getElement(SizeType index) const {

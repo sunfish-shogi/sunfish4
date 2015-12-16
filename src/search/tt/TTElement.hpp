@@ -27,27 +27,30 @@ static_assert(TT_AGE_WIDTH
 
 // 2nd quad word
 #define TT_MOVE_WIDTH  16
-#define TT_VALUE_WIDTH 16 // 2^16
-#define TT_VTYPE_WIDTH 2  // 2^2 = 4
+#define TT_SCORE_WIDTH 16 // 2^16
+#define TT_STYPE_WIDTH 2  // 2^2 = 4
 #define TT_DEPTH_WIDTH 10 // 2^10 = 1024
 #define TT_CSUM_WIDTH  16
 
 #define TT_MOVE_SHIFT  0
-#define TT_VALUE_SHIFT (TT_MOVE_SHIFT + TT_MOVE_WIDTH)
-#define TT_VTYPE_SHIFT (TT_VALUE_SHIFT + TT_VALUE_WIDTH)
-#define TT_DEPTH_SHIFT (TT_VTYPE_SHIFT + TT_VTYPE_WIDTH)
+#define TT_SCORE_SHIFT (TT_MOVE_SHIFT + TT_MOVE_WIDTH)
+#define TT_STYPE_SHIFT (TT_SCORE_SHIFT + TT_SCORE_WIDTH)
+#define TT_DEPTH_SHIFT (TT_STYPE_SHIFT + TT_STYPE_WIDTH)
 
 #define TT_MOVE_MASK   (((1LLU << TT_MOVE_WIDTH) - 1) << TT_MOVE_SHIFT)
-#define TT_VALUE_MASK  (((1LLU << TT_VALUE_WIDTH) - 1) << TT_VALUE_SHIFT)
-#define TT_VTYPE_MASK  (((1LLU << TT_VTYPE_WIDTH) - 1) << TT_VTYPE_SHIFT)
+#define TT_SCORE_MASK  (((1LLU << TT_SCORE_WIDTH) - 1) << TT_SCORE_SHIFT)
+#define TT_STYPE_MASK  (((1LLU << TT_STYPE_WIDTH) - 1) << TT_STYPE_SHIFT)
 #define TT_DEPTH_MASK  (((1LLU << TT_DEPTH_WIDTH) - 1) << TT_DEPTH_SHIFT)
 #define TT_CSUM_MASK   (~((1LLU << (64 - TT_CSUM_WIDTH)) - 1))
 
 static_assert(sizeof(sunfish::Score::RawType) == 2, "invalid data size");
 
+static_assert(TT_CSUM_WIDTH == 16, "invalid data size");
+static_assert(TT_CSUM_MASK == 0xffff000000000000LLU, "invalid data size");
+
 static_assert(TT_MOVE_WIDTH
-            + TT_VALUE_WIDTH
-            + TT_VTYPE_WIDTH
+            + TT_SCORE_WIDTH
+            + TT_STYPE_WIDTH
             + TT_DEPTH_WIDTH
             + TT_CSUM_WIDTH <= 64, "invalid data size");
 
@@ -74,13 +77,12 @@ public:
   using AgeType = uint32_t;
   using QuadWord = uint64_t;
 
-  static CONSTEXPR_CONST AgeType InvalidAge = 0x00;
-  static CONSTEXPR_CONST AgeType AgeMax = 0x01 << TT_AGE_WIDTH;
+  static CONSTEXPR_CONST AgeType MaxAge = (0x01 << TT_AGE_WIDTH) - 1;
 
 private:
 
-  QuadWord _1;
-  QuadWord _2;
+  QuadWord w1_;
+  QuadWord w2_;
 
   bool update(Zobrist::Type newHash,
               Score newScore,
@@ -91,17 +93,15 @@ private:
               AgeType newAge);
 
   QuadWord calcCheckSum() const {
-    static_assert(TT_CSUM_WIDTH == 16, "invalid data size");
-    static_assert(TT_CSUM_MASK == 0xffff000000000000LLU, "invalid data size");
-    return TT_CSUM_MASK &
+    return
       (
-        (_1) ^
-        (_1 << 16) ^
-        (_1 << 32) ^
-        (_1 << 48) ^
-        (_2 << 16) ^
-        (_2 << 32) ^
-        (_2 << 48)
+        (w1_) ^
+        (w1_ << 16) ^
+        (w1_ << 32) ^
+        (w1_ << 48) ^
+        (w2_ << 16) ^
+        (w2_ << 32) ^
+        (w2_ << 48)
       );
   }
 
@@ -111,8 +111,8 @@ public:
   }
 
   void clear() {
-    assert((InvalidAge << TT_AGE_SHIFT) < TT_AGE_MASK);
-    _1 = InvalidAge << TT_AGE_SHIFT;
+    w1_ = 0;
+    w2_ = ~(calcCheckSum() & TT_CSUM_MASK);
   }
 
   bool update(Zobrist::Type newHash,
@@ -146,17 +146,18 @@ public:
                 AgeType newAge);
 
   bool checkHash(Zobrist::Type hash) const {
-    return ((_1 ^ hash          ) & TT_HASH_MASK) == 0LLU
-        && ((_2 ^ calcCheckSum()) & TT_CSUM_MASK) == 0LLU;
+    return ((w1_ ^ hash          ) & TT_HASH_MASK) == 0LLU
+        && ((w2_ ^ calcCheckSum()) & TT_CSUM_MASK) == 0LLU;
   }
 
   Zobrist::Type hash() const {
-    return _1 & TT_HASH_MASK;
+    return w1_ & TT_HASH_MASK;
   }
 
   Score score(int ply) const {
-    auto data = (_2 & TT_VALUE_MASK) >> TT_VALUE_SHIFT;
-    auto rawValue = static_cast<Score::RawType>(data);
+    auto data = (w2_ & TT_SCORE_MASK) >> TT_SCORE_SHIFT;
+    auto u16 = static_cast<uint16_t>(data);
+    auto rawValue = static_cast<Score::RawType>(u16);
     Score s(rawValue);
 
     TTScoreType st = scoreType();
@@ -173,23 +174,23 @@ public:
   }
 
   TTScoreType scoreType() const {
-    auto data = (_2 & TT_VTYPE_MASK) >> TT_VTYPE_SHIFT;
+    auto data = (w2_ & TT_STYPE_MASK) >> TT_STYPE_SHIFT;
     return static_cast<TTScoreType>(data);
   }
 
   int depth() const {
-    auto data = (_2 & TT_DEPTH_MASK) >> TT_DEPTH_SHIFT;
+    auto data = (w2_ & TT_DEPTH_MASK) >> TT_DEPTH_SHIFT;
     return static_cast<int>(data);
   }
 
   Move move() const {
-    auto data = (_2 & TT_MOVE_MASK) >> TT_MOVE_SHIFT;
+    auto data = (w2_ & TT_MOVE_MASK) >> TT_MOVE_SHIFT;
     auto rawValue = static_cast<Move::RawType16>(data);
     return Move::deserialize(rawValue);
   }
 
   AgeType age() const {
-    auto data = (_1 & TT_AGE_MASK) >> TT_AGE_SHIFT;
+    auto data = (w1_ & TT_AGE_MASK) >> TT_AGE_SHIFT;
     return static_cast<AgeType>(data);
   }
 

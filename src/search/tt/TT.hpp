@@ -24,8 +24,7 @@ public:
   TT(TT&&) = delete;
 
   void evolve() {
-    age_ = age_ % (TTElement::AgeMax-1) + 1;
-    assert(age_ != TTElement::InvalidAge);
+    age_ = age_ % TTElement::MaxAge + 1; // skip zero
   }
 
   TTStatus store(Zobrist::Type hash,
@@ -55,7 +54,8 @@ public:
   }
 
   bool get(Zobrist::Type hash, TTElement& e) {
-    return getElement(hash).get(hash, e) && e.checkHash(hash);
+    return getElement(hash).get(hash, e) &&
+           e.checkHash(hash);
   }
 
 private:

@@ -29,9 +29,9 @@ public:
     }
   }
 
-  TTStatus set(const TTElement& entity);
+  TTStatus set(const TTElement& element);
 
-  bool get(Zobrist::Type hash, TTElement& entity);
+  bool get(Zobrist::Type hash, TTElement& element);
 
 private:
 
