@@ -20,8 +20,9 @@ public:
                          Move move);
 
   static void sortMoves(const Position& position,
+                        Moves& moves,
                         Moves::iterator begin,
-                        Moves::iterator end);
+                        bool excludeSmallCaptures);
 
 private:
 

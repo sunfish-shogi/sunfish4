@@ -90,6 +90,7 @@ private:
                Score beta);
 
   Score quies(Tree& tree,
+              int qply,
               Score alpha,
               Score beta);
 
@@ -97,7 +98,7 @@ private:
 
   Move nextMove(Tree& tree);
 
-  void generateMovesOnQuies(Tree& tree);
+  void generateMovesOnQuies(Tree& tree, int qply);
 
   Move nextMoveOnQuies(Node& node);
 

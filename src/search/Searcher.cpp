@@ -192,6 +192,7 @@ bool Searcher::idsearch(const Position& pos,
     }
 
     Score score = -quies(tree,
+                         0,
                          -Score::infinity(),
                          Score::infinity());
     setScoreToMove(node.moves[i], score);
@@ -385,6 +386,7 @@ Score Searcher::search(Tree& tree,
   // quiesence search
   if (depth <= 0) {
     return quies(tree,
+                 0,
                  alpha,
                  beta);
   }
@@ -527,6 +529,7 @@ Score Searcher::search(Tree& tree,
  * quiesence search
  */
 Score Searcher::quies(Tree& tree,
+                      int qply,
                       Score alpha,
                       Score beta) {
   auto& node = tree.nodes[tree.ply];
@@ -548,7 +551,7 @@ Score Searcher::quies(Tree& tree,
 
   node.checkState = tree.position.getCheckState();
 
-  generateMovesOnQuies(tree);
+  generateMovesOnQuies(tree, qply);
 
   // expand the branches
   for (;;) {
@@ -563,6 +566,7 @@ Score Searcher::quies(Tree& tree,
     }
 
     Score score = -quies(tree,
+                         qply + 1,
                          -beta,
                          -alpha);
 
@@ -611,7 +615,10 @@ Move Searcher::nextMove(Tree& tree) {
     case GenPhase::CapturingMoves:
       MoveGenerator::generateCapturingMoves(tree.position, node.moves);
       remove(node.moves, node.moveIterator, node.hashMove);
-      SEE::sortMoves(tree.position, node.moveIterator, node.moves.end());
+      SEE::sortMoves(tree.position,
+                     node.moves,
+                     node.moveIterator,
+                     false /* excludeSmallCaptures */);
       node.genPhase = GenPhase::NotCapturingMoves;
       break;
 
@@ -636,13 +643,17 @@ Move Searcher::nextMove(Tree& tree) {
   }
 }
 
-void Searcher::generateMovesOnQuies(Tree& tree) {
+void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
   auto& node = tree.nodes[tree.ply];
 
   // generate moves
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    SEE::sortMoves(tree.position, node.moveIterator, node.moves.end());
+    bool excludeSmallCaptures = qply >= 7;
+    SEE::sortMoves(tree.position,
+                   node.moves,
+                   node.moveIterator,
+                   excludeSmallCaptures);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
     // TODO: ordering
