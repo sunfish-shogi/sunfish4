@@ -26,6 +26,7 @@ add_executable(sunfish_test
     core/PositionTest.cpp
     core/SfenParserTest.cpp
     core/SquareTest.cpp
+    search/EvaluatorTest.cpp
     search/MaterialTest.cpp
     search/ScoreTest.cpp
 )
