@@ -588,13 +588,11 @@ bool Position::doMove(Move move, Piece& wbCaptured) {
     bbRotatedR45_.set(to.rotateRight45());
     bbRotatedL45_.set(to.rotateLeft45());
 
-    Hand::Type handNum;
-
     // update count of pieces in hand
     if (turn == Turn::Black) {
-      handNum = blackHand_.decUnsafe(pieceType);
+      blackHand_.decUnsafe(pieceType);
     } else {
-      handNum = whiteHand_.decUnsafe(pieceType);
+      whiteHand_.decUnsafe(pieceType);
     }
 
     // zobrist hash
@@ -611,14 +609,13 @@ bool Position::doMove(Move move, Piece& wbCaptured) {
     captured = board_[to.raw()];
 
     if (!captured.isEmpty()) {
-      int handNum;
       PieceType handType = captured.type().unpromote();
 
       // update count of pieces in hand
       if (turn == Turn::Black) {
-        handNum = blackHand_.incUnsafe(handType);
+        blackHand_.incUnsafe(handType);
       } else {
-        handNum = whiteHand_.incUnsafe(handType);
+        whiteHand_.incUnsafe(handType);
       }
 
       Piece pieceAfter = move.isPromotion() ? piece.promote() : piece;
@@ -760,13 +757,11 @@ void Position::undoMove(Move move, Piece captured) {
     bbRotatedR45_.unset(to.rotateRight45());
     bbRotatedL45_.unset(to.rotateLeft45());
 
-    Hand::Type handNum;
-
     // update count of pieces in hand
     if (turn == Turn::Black) {
-      handNum = blackHand_.incUnsafe(pieceType);
+      blackHand_.incUnsafe(pieceType);
     } else {
-      handNum = whiteHand_.incUnsafe(pieceType);
+      whiteHand_.incUnsafe(pieceType);
     }
 
     // zobrist hash
@@ -784,14 +779,13 @@ void Position::undoMove(Move move, Piece captured) {
     Piece piece = isPromotion ? pieceAfter.unpromote() : pieceAfter;
 
     if (!captured.isEmpty()) {
-      int handNum;
       PieceType handType = captured.type().unpromote();
 
       // update count of pieces in hand
       if (turn == Turn::Black) {
-        handNum = blackHand_.decUnsafe(handType);
+        blackHand_.decUnsafe(handType);
       } else {
-        handNum = whiteHand_.decUnsafe(handType);
+        whiteHand_.decUnsafe(handType);
       }
 
       // update piece number array
