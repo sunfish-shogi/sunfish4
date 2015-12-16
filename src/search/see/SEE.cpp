@@ -15,7 +15,7 @@ Score SEE::calculate(const Position& position,
   auto& pos = position;
   auto captured = pos.getPieceOnBoard(move.to());
 
-  score += material::pieceExchangeScore(captured);
+  score += material::exchangeScore(captured);
 
   // TODO
 

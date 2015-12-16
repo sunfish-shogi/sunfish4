@@ -25,9 +25,9 @@ Score Evaluator::evaluateMaterial(const Position& position) const {
     }
 
     if (piece.isBlack()) {
-      score += material::pieceScore(piece);
+      score += material::score(piece);
     } else {
-      score -= material::pieceScore(piece);
+      score -= material::score(piece);
     }
   }
 

@@ -26,8 +26,10 @@ add_executable(sunfish_test
     core/PositionTest.cpp
     core/SfenParserTest.cpp
     core/SquareTest.cpp
+    search/MaterialTest.cpp
     search/ScoreTest.cpp
 )
 
 target_link_libraries(sunfish_test core)
+target_link_libraries(sunfish_test search)
 target_link_libraries(sunfish_test logger)
