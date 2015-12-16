@@ -12,8 +12,10 @@ namespace {
 
 using namespace sunfish;
 
+const char* OutputPath = "src/core/position/Zobrist.cpp";
+
 void generateZobristOnBoard(Random& random, std::ostream& os) {
-  os << "const Zobrist::Type Zobrist::Board[Square::N][PieceNumber::Num] = {\n";
+  os << "const Zobrist::Type Zobrist::Board[Square::N][32] = {\n";
   SQUARE_EACH(square) {
     os << "  {\n";
     for (PieceRawType piece = PieceNumber::Begin; piece != PieceNumber::End; piece++) {
@@ -40,6 +42,10 @@ void generateZobristBlack(Random& random, std::ostream& os) {
 } // namespace
 
 namespace sunfish {
+
+ZobristCodeGenerator::ZobristCodeGenerator() :
+  CodeGenerator(OutputPath) {
+}
 
 bool ZobristCodeGenerator::generateIntoStream(std::ostream& os) {
   os << "/* Zobrist.cpp \n";

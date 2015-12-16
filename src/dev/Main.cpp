@@ -15,7 +15,7 @@ using namespace sunfish;
 int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
-  po.addOption("gen-zobrist", "generate Zobrist.cpp", true);
+  po.addOption("gen-zobrist", "generate Zobrist.cpp");
   po.addOption("silent", "s", "silent mode");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
@@ -42,13 +42,9 @@ int main(int argc, char** argv, char**) {
     OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
-  // genearate Zobrist.cpp
+  // genearate src/core/position/Zobrist.cpp
   if (po.has("gen-zobrist")) {
-    // output file
-    std::string outputPath = po.getValue("gen-zobrist");
-
-    // generate
-    ZobristCodeGenerator generator(outputPath);
+    ZobristCodeGenerator generator;
     bool ok = generator.generate();
 
     return ok ? 0 : 1;

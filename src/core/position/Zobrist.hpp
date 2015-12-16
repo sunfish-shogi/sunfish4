@@ -38,7 +38,7 @@ private:
 
   Zobrist();
 
-  static const Type Board[Square::N][PieceNumber::Num];
+  static const Type Board[Square::N][32];
   static const Type BlackHand[7];
   static const Type WhiteHand[7];
   static const Type Black;

@@ -15,7 +15,7 @@ namespace sunfish {
 class ZobristCodeGenerator : public CodeGenerator {
 public:
 
-  using CodeGenerator::CodeGenerator;
+  ZobristCodeGenerator();
 
 protected:
 
