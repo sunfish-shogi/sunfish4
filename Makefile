@@ -8,17 +8,14 @@ SUNFISH_TEST:=sunfish_test
 SUNFISH_BM:=sunfish_bm
 SUNFISH_USI:=sunfish_usi
 SUNFISH_DEV:=sunfish_dev
-EVAL_BIN:=eval.bin
 BUILD_DIR:=build
-PROF:=gprof
-PROFOUT:=profile.txt
 GEN_COV:=tools/gen_cov_report.py
 COV:=gcov
 
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
-.PHONY: release debug learn clean
+.PHONY: release debug test test-sse test-nosse bm usi dev clean
 
 help:
 	@echo 'usage:'
@@ -89,10 +86,6 @@ dev:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/dev
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_DEV) $(SUNFISH_DEV)
-
-gen-zobrist:
-	$(MAKE) dev
-	$(SHELL) -c './$(SUNFISH_DEV) --gen-zobrist src/core/position/Zobrist.cpp'
 
 clean:
 	$(RM) -r $(BUILD_DIR)
