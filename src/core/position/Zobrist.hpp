@@ -31,7 +31,7 @@ public:
   }
 
   static Type black() {
-    return Black;
+    return 0x01LLU;
   }
 
 private:
@@ -41,7 +41,6 @@ private:
   static const Type Board[Square::N][32];
   static const Type BlackHand[7];
   static const Type WhiteHand[7];
-  static const Type Black;
 
 };
 

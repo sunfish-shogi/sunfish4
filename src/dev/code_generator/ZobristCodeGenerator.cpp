@@ -12,6 +12,8 @@ namespace {
 
 using namespace sunfish;
 
+const uint64_t ZobristHashMask = 0xfffffffffffffffe;
+
 const char* OutputPath = "src/core/position/Zobrist.cpp";
 
 void generateZobristOnBoard(Random& random, std::ostream& os) {
@@ -19,7 +21,8 @@ void generateZobristOnBoard(Random& random, std::ostream& os) {
   SQUARE_EACH(square) {
     os << "  {\n";
     for (PieceRawType piece = PieceNumber::Begin; piece != PieceNumber::End; piece++) {
-      os << "    0x" << std::hex << random.getInt64() << "ll,\n";
+      uint64_t hash = random.getInt64() & ZobristHashMask;
+      os << "    0x" << std::hex << hash << "ll,\n";
     }
     os << "  },\n";
   }
@@ -30,13 +33,10 @@ void generateZobristOnHand(Random& random, const char* color, std::ostream& os) 
   const int num = 7;
   os << "const Zobrist::Type Zobrist::" << color << "Hand[" << std::dec << num << "] = {\n";
   for (int i = 0; i < num; i++) {
-    os << "  0x" << std::hex << random.getInt64() << "ll,\n";
+    uint64_t hash = random.getInt64() & ZobristHashMask;
+    os << "  0x" << std::hex << hash << "ll,\n";
   }
   os << "};\n";
-}
-
-void generateZobristBlack(Random& random, std::ostream& os) {
-  os << "const Zobrist::Type Zobrist::Black = 0x" << std::hex << random.getInt64() << "ll;\n";
 }
 
 } // namespace
@@ -66,8 +66,6 @@ bool ZobristCodeGenerator::generateIntoStream(std::ostream& os) {
 
   generateZobristOnHand(random, "Black", os);
   generateZobristOnHand(random, "White", os);
-
-  generateZobristBlack(random, os);
 
   os << "\n";
   os << "} // namespace sunfish\n";
