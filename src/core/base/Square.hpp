@@ -8,6 +8,7 @@
 
 #include "common/Def.hpp"
 #include "core/base/Turn.hpp"
+#include "logger/Logger.hpp"
 #include <string>
 #include <iostream>
 #include <cstdint>
@@ -683,7 +684,7 @@ public:
    * Get the rotated square.
    */
   RotatedSquare rotate90() const {
-    assert(isStrictValid());
+    ASSERT(isStrictValid());
     return rotate90Table[number_];
   }
 
@@ -691,7 +692,7 @@ public:
    * Get the rotated square.
    */
   RotatedSquare rotateRight45() const {
-    assert(isStrictValid());
+    ASSERT(isStrictValid());
     return rotateRight45Table[number_];
   }
 
@@ -699,7 +700,7 @@ public:
    * Get the rotated square.
    */
   RotatedSquare rotateLeft45() const {
-    assert(isStrictValid());
+    ASSERT(isStrictValid());
     return rotateLeft45Table[number_];
   }
 

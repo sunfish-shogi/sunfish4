@@ -179,7 +179,7 @@ TEST(TTTest, testUpdate) {
                  5, // depth
                  3, // ply
                  Move(Square::s77(), Square::s76(), false));
-  ASSERT(TTStatus::New == tts);
+  ASSERT_TRUE(TTStatus::New == tts);
 
   // shallow
   tts = tt.store(pos1.getHash(),
@@ -189,7 +189,7 @@ TEST(TTTest, testUpdate) {
                  3, // depth
                  3, // ply
                  Move(Square::s77(), Square::s76(), false));
-  ASSERT(TTStatus::Reject == tts);
+  ASSERT_TRUE(TTStatus::Reject == tts);
 
   // same depth
   tts = tt.store(pos1.getHash(),
@@ -199,7 +199,7 @@ TEST(TTTest, testUpdate) {
                  5, // depth
                  3, // ply
                  Move(Square::s77(), Square::s76(), false));
-  ASSERT(TTStatus::Update == tts);
+  ASSERT_TRUE(TTStatus::Update == tts);
 
   // deep
   tts = tt.store(pos1.getHash(),
@@ -209,7 +209,7 @@ TEST(TTTest, testUpdate) {
                  7, // depth
                  3, // ply
                  Move(Square::s77(), Square::s76(), false));
-  ASSERT(TTStatus::Update == tts);
+  ASSERT_TRUE(TTStatus::Update == tts);
 }
 
 #endif // !defined(NDEBUG)

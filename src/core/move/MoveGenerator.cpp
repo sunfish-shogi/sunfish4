@@ -387,14 +387,14 @@ template void MoveGenerator::generateDrops<Turn::White>(const Position&, Moves&,
 
 template <Turn turn>
 void MoveGenerator::generateEvasions(const Position& pos, CheckState checkState, Moves& moves) {
-  assert(isCheck(checkState));
+  ASSERT(isCheck(checkState));
 
   auto kingSquare = turn == Turn::Black ? pos.getBlackKingSquare() : pos.getWhiteKingSquare();
 
   if (!checkState.from2.isValid()) {
     auto targetSquare = checkState.from1;
-    assert(turn != Turn::Black || pos.getPieceOnBoard(targetSquare).isWhite());
-    assert(turn != Turn::White || pos.getPieceOnBoard(targetSquare).isBlack());
+    ASSERT(turn != Turn::Black || pos.getPieceOnBoard(targetSquare).isWhite());
+    ASSERT(turn != Turn::White || pos.getPieceOnBoard(targetSquare).isBlack());
 
     const auto& tbb = Bitboard::mask(kingSquare, targetSquare);
 

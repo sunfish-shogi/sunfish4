@@ -11,23 +11,23 @@
 using namespace sunfish;
 
 TEST(MaterialTest, test) {
-  ASSERT(material::Pawn < material::Lance);
-  ASSERT(material::Lance < material::Knight);
-  ASSERT(material::Knight < material::Silver);
-  ASSERT(material::Silver < material::Gold);
-  ASSERT(material::Gold < material::Bishop);
-  ASSERT(material::Bishop < material::Rook);
+  ASSERT_TRUE(material::Pawn < material::Lance);
+  ASSERT_TRUE(material::Lance < material::Knight);
+  ASSERT_TRUE(material::Knight < material::Silver);
+  ASSERT_TRUE(material::Silver < material::Gold);
+  ASSERT_TRUE(material::Gold < material::Bishop);
+  ASSERT_TRUE(material::Bishop < material::Rook);
 
-  ASSERT(material::Tokin > material::Silver);
-  ASSERT(material::ProLance > material::Silver);
-  ASSERT(material::ProKnight > material::Silver);
-  ASSERT(material::ProSilver > material::Silver);
-  ASSERT(material::Tokin < material::Bishop);
-  ASSERT(material::ProLance < material::Bishop);
-  ASSERT(material::ProKnight < material::Bishop);
-  ASSERT(material::ProSilver < material::Bishop);
-  ASSERT(material::Horse > material::Bishop);
-  ASSERT(material::Dragon > material::Rook);
+  ASSERT_TRUE(material::Tokin > material::Silver);
+  ASSERT_TRUE(material::ProLance > material::Silver);
+  ASSERT_TRUE(material::ProKnight > material::Silver);
+  ASSERT_TRUE(material::ProSilver > material::Silver);
+  ASSERT_TRUE(material::Tokin < material::Bishop);
+  ASSERT_TRUE(material::ProLance < material::Bishop);
+  ASSERT_TRUE(material::ProKnight < material::Bishop);
+  ASSERT_TRUE(material::ProSilver < material::Bishop);
+  ASSERT_TRUE(material::Horse > material::Bishop);
+  ASSERT_TRUE(material::Dragon > material::Rook);
 }
 
 TEST(MaterialTest, testScore) {

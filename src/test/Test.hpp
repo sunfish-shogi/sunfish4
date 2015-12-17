@@ -31,10 +31,17 @@ void test_method_ ## group ## name()
   } \
 } while (false)
 
-#define ASSERT(b) do { \
+#define ASSERT_TRUE(b) do { \
   const auto b_ = (b);\
   if (!b_) { \
     throw sunfish::TestError{std::string(#b) + " is not true.", __FILE__, __LINE__}; \
+  } \
+} while (false)
+
+#define ASSERT_FALSE(b) do { \
+  const auto b_ = (b);\
+  if (b_) { \
+    throw sunfish::TestError{std::string(#b) + " is not false.", __FILE__, __LINE__}; \
   } \
 } while (false)
 

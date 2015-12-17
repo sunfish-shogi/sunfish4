@@ -158,7 +158,7 @@ protected:
    * Set the specified bit.
    */
   T& set(U offset) {
-    assert(offset < 64);
+    ASSERT(offset < 64);
     bb_ |= 1LLU << offset;
     return *(static_cast<T*>(this));
   }
@@ -167,7 +167,7 @@ protected:
    * Unset the specified bit.
    */
   T& unset(U offset) {
-    assert(offset < 64);
+    ASSERT(offset < 64);
     bb_ &= ~(1LLU << offset);
     return *(static_cast<T*>(this));
   }
@@ -176,7 +176,7 @@ protected:
    * Check the specified bit.
    */
   bool check(U offset) const {
-    assert(offset < 64);
+    ASSERT(offset < 64);
     return bb_ & (1LLU << offset);
   }
 

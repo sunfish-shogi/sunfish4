@@ -101,8 +101,8 @@ private:
 #endif
   {
     auto ins = swap(nullptr);
-    assert(ins != nullptr);
-    assert(!ins->interrupted_);
+    ASSERT(ins != nullptr);
+    ASSERT(!ins->interrupted_);
     ins->interrupted_ = true;
   }
 

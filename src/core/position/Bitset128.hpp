@@ -312,7 +312,7 @@ protected:
     if (offset < Width1) {
       firstRef() |= 1LLU << offset;
     } else {
-      assert(offset < Width1 + Width2);
+      ASSERT(offset < Width1 + Width2);
       secondRef() |= 1LLU << (offset - Width1);
     }
     return *(static_cast<T*>(this));
@@ -325,7 +325,7 @@ protected:
     if (offset < Width1) {
       firstRef() &= ~(1LLU << offset);
     } else {
-      assert(offset < Width1 + Width2);
+      ASSERT(offset < Width1 + Width2);
       secondRef() &= ~(1LLU << (offset - Width1));
     }
     return *(static_cast<T*>(this));
@@ -338,7 +338,7 @@ protected:
     if (offset < Width1) {
       return first() & (1LLU << offset);
     } else {
-      assert(offset < Width1 + Width2);
+      ASSERT(offset < Width1 + Width2);
       return second() & (1LLU << (offset - Width1));
     }
   }
@@ -347,7 +347,7 @@ protected:
    * Set the specified bit of the first quad ward.
    */
   T& set1(U offset) {
-    assert(offset < Width1);
+    ASSERT(offset < Width1);
     firstRef() |= 1LLU << offset;
     return *(static_cast<T*>(this));
   }
@@ -356,7 +356,7 @@ protected:
    * Unset the specified bit of the first quad ward.
    */
   T& unset1(U offset) {
-    assert(offset < Width1);
+    ASSERT(offset < Width1);
     firstRef() &= ~(1LLU << offset);
     return *(static_cast<T*>(this));
   }
@@ -365,7 +365,7 @@ protected:
    * Check the specified bit of the first quad ward.
    */
   bool check1(U offset) const {
-    assert(offset < Width1);
+    ASSERT(offset < Width1);
     return first() & (1LLU << offset);
   }
 
@@ -373,7 +373,7 @@ protected:
    * Set the specified bit of the first quad ward.
    */
   T& set2(U offset) {
-    assert(offset < Width2);
+    ASSERT(offset < Width2);
     secondRef() |= 1LLU << offset;
     return *(static_cast<T*>(this));
   }
@@ -382,7 +382,7 @@ protected:
    * Unset the specified bit of the first quad ward.
    */
   T& unset2(U offset) {
-    assert(offset < Width2);
+    ASSERT(offset < Width2);
     secondRef() &= ~(1LLU << offset);
     return *(static_cast<T*>(this));
   }
@@ -391,7 +391,7 @@ protected:
    * Check the specified bit of the first quad ward.
    */
   bool check2(U offset) const {
-    assert(offset < Width2);
+    ASSERT(offset < Width2);
     return second() & (1LLU << offset);
   }
 

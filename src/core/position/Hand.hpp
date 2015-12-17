@@ -45,14 +45,14 @@ public:
    * Increment the count of specified piece.
    */
   Type incUnsafe(const PieceType& piece) {
-    assert(piece == piece.unpromote());
-    assert(counts_[piece.raw()] < 18);
-    assert(piece != PieceType::lance() || counts_[piece.raw()] < 4);
-    assert(piece != PieceType::knight() || counts_[piece.raw()] < 4);
-    assert(piece != PieceType::silver() || counts_[piece.raw()] < 4);
-    assert(piece != PieceType::gold() || counts_[piece.raw()] < 4);
-    assert(piece != PieceType::bishop() || counts_[piece.raw()] < 2);
-    assert(piece != PieceType::rook() || counts_[piece.raw()] < 2);
+    ASSERT(piece == piece.unpromote());
+    ASSERT(counts_[piece.raw()] < 18);
+    ASSERT(piece != PieceType::lance() || counts_[piece.raw()] < 4);
+    ASSERT(piece != PieceType::knight() || counts_[piece.raw()] < 4);
+    ASSERT(piece != PieceType::silver() || counts_[piece.raw()] < 4);
+    ASSERT(piece != PieceType::gold() || counts_[piece.raw()] < 4);
+    ASSERT(piece != PieceType::bishop() || counts_[piece.raw()] < 2);
+    ASSERT(piece != PieceType::rook() || counts_[piece.raw()] < 2);
     return ++counts_[piece.raw()];
   }
 
@@ -67,8 +67,8 @@ public:
    * Decrement the count of specified piece.
    */
   Type decUnsafe(const PieceType& piece) {
-    assert(piece == piece.unpromote());
-    assert(counts_[piece.raw()] > 0);
+    ASSERT(piece == piece.unpromote());
+    ASSERT(counts_[piece.raw()] > 0);
     return --counts_[piece.raw()];
   }
 

@@ -165,32 +165,32 @@ TEST(SquareTest, testDirections) {
     ASSERT_EQ(Square::s43(), sq55.safetyRightUpKnight());
     ASSERT_EQ(Square::s47(), sq55.safetyRightDownKnight());
 
-    ASSERT(sq55.safetyUp(4).isValid());
-    ASSERT(sq55.safetyDown(4).isValid());
-    ASSERT(sq55.safetyLeft(4).isValid());
-    ASSERT(sq55.safetyRight(4).isValid());
-    ASSERT(sq55.safetyLeftUp(4).isValid());
-    ASSERT(sq55.safetyLeftDown(4).isValid());
-    ASSERT(sq55.safetyRightUp(4).isValid());
-    ASSERT(sq55.safetyRightDown(4).isValid());
-    ASSERT(sq55.safetyUp(5).isInvalid());
-    ASSERT(sq55.safetyDown(5).isInvalid());
-    ASSERT(sq55.safetyLeft(5).isInvalid());
-    ASSERT(sq55.safetyRight(5).isInvalid());
-    ASSERT(sq55.safetyLeftUp(5).isInvalid());
-    ASSERT(sq55.safetyLeftDown(5).isInvalid());
-    ASSERT(sq55.safetyRightUp(5).isInvalid());
-    ASSERT(sq55.safetyRightDown(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyUp(4).isValid());
+    ASSERT_TRUE(sq55.safetyDown(4).isValid());
+    ASSERT_TRUE(sq55.safetyLeft(4).isValid());
+    ASSERT_TRUE(sq55.safetyRight(4).isValid());
+    ASSERT_TRUE(sq55.safetyLeftUp(4).isValid());
+    ASSERT_TRUE(sq55.safetyLeftDown(4).isValid());
+    ASSERT_TRUE(sq55.safetyRightUp(4).isValid());
+    ASSERT_TRUE(sq55.safetyRightDown(4).isValid());
+    ASSERT_TRUE(sq55.safetyUp(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyDown(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyLeft(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyRight(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyLeftUp(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyLeftDown(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyRightUp(5).isInvalid());
+    ASSERT_TRUE(sq55.safetyRightDown(5).isInvalid());
 
     Square sq91(9, 1);
-    ASSERT(sq91.safetyUp().isInvalid());
-    ASSERT(sq91.safetyDown().isValid());
-    ASSERT(sq91.safetyLeft().isInvalid());
-    ASSERT(sq91.safetyRight().isValid());
-    ASSERT(sq91.safetyLeftUp().isInvalid());
-    ASSERT(sq91.safetyLeftDown().isInvalid());
-    ASSERT(sq91.safetyRightUp().isInvalid());
-    ASSERT(sq91.safetyRightDown().isValid());
+    ASSERT_TRUE(sq91.safetyUp().isInvalid());
+    ASSERT_TRUE(sq91.safetyDown().isValid());
+    ASSERT_TRUE(sq91.safetyLeft().isInvalid());
+    ASSERT_TRUE(sq91.safetyRight().isValid());
+    ASSERT_TRUE(sq91.safetyLeftUp().isInvalid());
+    ASSERT_TRUE(sq91.safetyLeftDown().isInvalid());
+    ASSERT_TRUE(sq91.safetyRightUp().isInvalid());
+    ASSERT_TRUE(sq91.safetyRightDown().isValid());
   }
 }
 

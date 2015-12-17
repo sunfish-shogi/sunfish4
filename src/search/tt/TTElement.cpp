@@ -16,8 +16,8 @@ bool TTElement::update(Zobrist::Type newHash,
                        int ply,
                        Move move,
                        AgeType newAge) {
-  assert(newAge <= MaxAge);
-  assert(newScoreType < (TTScoreType)(1 << TT_STYPE_WIDTH));
+  ASSERT(newAge <= MaxAge);
+  ASSERT(newScoreType < (TTScoreType)(1 << TT_STYPE_WIDTH));
 
   newDepth = std::max(newDepth, 0);
   newDepth = std::min(newDepth, (1 << TT_DEPTH_WIDTH) - 1);

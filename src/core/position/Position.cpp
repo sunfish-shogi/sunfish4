@@ -162,10 +162,10 @@ static Square detectLongEffect(const Position& pos, const Square& to) {
 
   BB_EACH(from, bb) {
     Piece piece = board[from.raw()];
-    assert(!piece.isEmpty());
+    ASSERT(!piece.isEmpty());
 
-    assert(turn != Turn::Black || piece.isBlack());
-    assert(turn != Turn::White || piece.isWhite());
+    ASSERT(turn != Turn::Black || piece.isBlack());
+    ASSERT(turn != Turn::White || piece.isWhite());
 
     if (turn == Turn::Black) {
       if (type == LongEffectType::Ver) {
@@ -448,7 +448,7 @@ Bitboard& Position::getBitboard(Piece piece) {
   case PieceNumber::WDragon   : return bbWDragon_;
   }
 
-  assert(false);
+  ASSERT(false);
   return *static_cast<Bitboard*>(nullptr);
 }
 
@@ -511,8 +511,8 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
 
     Direction dir = from.dir(to);
 
-    assert(dir != Direction::None);
-    assert(from.distance(to) != 0);
+    ASSERT(dir != Direction::None);
+    ASSERT(from.distance(to) != 0);
 
     if (from.distance(to) == 1) {
       if (!MoveTables::isMovableInOneStep(piece, dir)) {
@@ -525,7 +525,7 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
 
       // TODO: use rotated bitboard
       for (Square square = from.move(dir); square != to; square = square.move(dir)) {
-        assert(from.isValid());
+        ASSERT(from.isValid());
         if (!board_[square.raw()].isEmpty()) {
           return false;
         }
@@ -1260,14 +1260,14 @@ template bool Position::isMovable<Turn::White, true>(const Bitboard&) const;
 
 template <Turn turn>
 bool Position::isMate(const CheckState& checkState) {
-  assert(isCheck(checkState));
+  ASSERT(isCheck(checkState));
 
   auto kingSquare = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
 
   if (!checkState.from2.isValid()) {
     auto from = checkState.from1;
-    assert(turn != Turn::Black || board_[from.raw()].isWhite());
-    assert(turn != Turn::White || board_[from.raw()].isBlack());
+    ASSERT(turn != Turn::Black || board_[from.raw()].isWhite());
+    ASSERT(turn != Turn::White || board_[from.raw()].isBlack());
 
     const auto& tbb = Bitboard::mask(kingSquare, from);
 

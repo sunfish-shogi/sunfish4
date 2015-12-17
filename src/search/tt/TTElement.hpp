@@ -161,8 +161,8 @@ public:
     Score s(rawValue);
 
     TTScoreType st = scoreType();
-    assert(st == TTScoreType::None || s >= -Score::infinity());
-    assert(st == TTScoreType::None || s <= Score::infinity());
+    ASSERT(st == TTScoreType::None || s >= -Score::infinity());
+    ASSERT(st == TTScoreType::None || s <= Score::infinity());
 
     if (s >= Score::mate()) {
       if (st == Lower) { return s - ply; }

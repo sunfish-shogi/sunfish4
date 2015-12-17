@@ -187,6 +187,12 @@ public:
 #define OUT(type) sunfish::Loggers::type
 #define LOG(type) sunfish::Loggers::type.getSubLogger(__FILE_LINE__)
 
+#ifdef NDEBUG
+# define ASSERT(expression)
+#else
+# define ASSERT(expression) do { if (!((expression))) { LOG(error) << "ASSERT(" #expression ") was failed."; abort(); } } while (false);
+#endif
+
 } // namespace sunfish
 
 #endif // SUNFISH_LOGGER_LOGGER_HPP__

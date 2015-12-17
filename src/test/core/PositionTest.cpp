@@ -2499,57 +2499,57 @@ TEST(PositionTest, testZobrist) {
   Position pos(Position::Handicap::Even);
   Piece captured;
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
   ASSERT_EQ(0x00LLU, pos.getHandHash());
   ASSERT_EQ(0x01LLU, pos.getTurnHash());
   ASSERT_EQ(0x01LLU, pos.getHash() & 0x01LLU);
 
   pos.doMove(Move(Square::s76(), Square::s75(), false), captured);
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
   ASSERT_EQ(0x00LLU, pos.getHandHash());
   ASSERT_EQ(0x00LLU, pos.getTurnHash());
   ASSERT_EQ(0x00LLU, pos.getHash() & 0x01LLU);
 
   pos.doMove(Move(Square::s33(), Square::s34(), false), captured);
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
   ASSERT_EQ(0x00LLU, pos.getHandHash());
   ASSERT_EQ(0x01LLU, pos.getTurnHash());
   ASSERT_EQ(0x01LLU, pos.getHash() & 0x01LLU);
 
   pos.doMove(Move(Square::s27(), Square::s26(), false), captured);
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
   ASSERT_EQ(0x00LLU, pos.getHandHash());
   ASSERT_EQ(0x00LLU, pos.getTurnHash());
   ASSERT_EQ(0x00LLU, pos.getHash() & 0x01LLU);
 
   pos.doMove(Move(Square::s22(), Square::s88(), true), captured);
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
-  ASSERT   (0x00LLU != pos.getHandHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getHandHash());
   ASSERT_EQ(0x01LLU, pos.getTurnHash());
   ASSERT_EQ(0x01LLU, pos.getHash() & 0x01LLU);
 
   pos.doMove(Move(Square::s79(), Square::s88(), false), captured);
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
-  ASSERT   (0x00LLU != pos.getHandHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getHandHash());
   ASSERT_EQ(0x00LLU, pos.getTurnHash());
   ASSERT_EQ(0x00LLU, pos.getHash() & 0x01LLU);
 
   pos.doNullMove();
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
-  ASSERT   (0x00LLU != pos.getHandHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getHandHash());
   ASSERT_EQ(0x01LLU, pos.getTurnHash());
   ASSERT_EQ(0x01LLU, pos.getHash() & 0x01LLU);
 
   pos.doNullMove();
 
-  ASSERT   (0x00LLU != pos.getBoardHash());
-  ASSERT   (0x00LLU != pos.getHandHash());
+  ASSERT_TRUE(0x00LLU != pos.getBoardHash());
+  ASSERT_TRUE(0x00LLU != pos.getHandHash());
   ASSERT_EQ(0x00LLU, pos.getTurnHash());
   ASSERT_EQ(0x00LLU, pos.getHash() & 0x01LLU);
 }
