@@ -392,8 +392,11 @@ Score Searcher::search(Tree& tree,
                        NodeStat nodeStat) {
 #if 0
   bool isDebug = false;
-  if (getPath(tree, tree.ply) == "9394 9796") {
-    LOG(message) << "debugging node";
+  if (getPath(tree, tree.ply) == "42GI") {
+    LOG(message) << "debugging node:"
+        << " depth=" << depth
+        << " alpha=" << alpha
+        << " beta =" << beta;
     isDebug = true;
   }
 #endif
@@ -481,7 +484,7 @@ Score Searcher::search(Tree& tree,
   // null move pruning
   if (isNullWindow &&
       nodeStat.isNullMove() &&
-      isCheck(node.checkState) &&
+      !isCheck(node.checkState) &&
       node.standPat >= beta &&
       depth >= Depth1Ply * 2) {
     int newDepth = nullDepth(depth);
