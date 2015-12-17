@@ -5,6 +5,7 @@
 
 #include "core/position/Position.hpp"
 #include "core/move/MoveTables.hpp"
+#include "logger/Logger.hpp"
 #include <sstream>
 
 namespace {
@@ -486,6 +487,21 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
         hasPawnInFile<turn>(to.getFile())) {
       return false;
     }
+
+    ASSERT(!(turn == Turn::Black &&
+             (pieceType == PieceType::pawn() ||
+              pieceType == PieceType::lance()) &&
+             to.getRank() == 1));
+    ASSERT(!(turn == Turn::White &&
+             (pieceType == PieceType::pawn() ||
+              pieceType == PieceType::lance()) &&
+             to.getRank() == 9));
+    ASSERT(!(turn == Turn::Black &&
+             pieceType == PieceType::knight() &&
+             to.getRank() <= 2));
+    ASSERT(!(turn == Turn::White &&
+             pieceType == PieceType::knight() &&
+             to.getRank() >= 8));
 
   } else {
     Square from = move.from();
