@@ -23,6 +23,8 @@ private:
 
   using CommandArguments = std::vector<std::string>;
 
+  using TimeType = SearchConfig::TimeType;
+
   enum class State : uint8_t {
     None,
     Ready,
@@ -116,9 +118,9 @@ private:
   bool positionIsInitialized_;
   Position position_;
 
-  uint32_t blackTimeMilliSeconds_;
-  uint32_t whiteTimeMilliSeconds_;
-  uint32_t byoyomiMilliSeconds_;
+  TimeType blackMilliSeconds_;
+  TimeType whiteMilliSeconds_;
+  TimeType byoyomiMilliSeconds_;
   bool isInfinite_;
 
   Searcher searcher_;

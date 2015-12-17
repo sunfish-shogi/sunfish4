@@ -224,17 +224,17 @@ bool UsiClient::onGo(const CommandArguments& args) {
     return true;
   }
 
-  blackTimeMilliSeconds_ = 0;
-  whiteTimeMilliSeconds_ = 0;
+  blackMilliSeconds_ = 0;
+  whiteMilliSeconds_ = 0;
   byoyomiMilliSeconds_ = 0;
   isInfinite_ = false;
 
   for (size_t i = 1; i < args.size(); i++) {
     if (args[i] == "btime") {
-      blackTimeMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
+      blackMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "wtime") {
-      whiteTimeMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
+      whiteMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "byoyomi") {
       byoyomiMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
@@ -248,8 +248,8 @@ bool UsiClient::onGo(const CommandArguments& args) {
     }
   }
 
-  OUT(info) << "btime     = " << blackTimeMilliSeconds_;
-  OUT(info) << "wtime     = " << whiteTimeMilliSeconds_;
+  OUT(info) << "btime     = " << blackMilliSeconds_;
+  OUT(info) << "wtime     = " << whiteMilliSeconds_;
   OUT(info) << "byoyomi   = " << byoyomiMilliSeconds_;
   OUT(info) << "inifinite = " << (isInfinite_ ? "true" : "false");
 
@@ -282,6 +282,21 @@ void UsiClient::search() {
   OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
   int depth = 32;
+
+  auto config = searcher_.getConfig();
+
+  if (isInfinite_) {
+    config.maximumMilliSeconds = SearchConfig::InfinityTime;
+    config.optimumMilliSeconds = SearchConfig::InfinityTime;
+  } else {
+    bool isBlack = position_.getTurn() == Turn::Black;
+    TimeType maximumMilliSeconds = isBlack ?  blackMilliSeconds_ : whiteMilliSeconds_;
+    maximumMilliSeconds += byoyomiMilliSeconds_;
+    config.maximumMilliSeconds = maximumMilliSeconds;
+    config.optimumMilliSeconds = maximumMilliSeconds / 5; // TODO
+  }
+
+  searcher_.setConfig(config);
 
   searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
 

@@ -35,16 +35,30 @@ public:
   }
 
   /**
-   * Get an integer value representing a elapsed time from the reference point.
+   * Get an integer value representing a elapsed time from the reference point in seconds.
    */
-  uint32_t elapsedInt(bool roundup = false) const {
+  uint32_t elapsedSeconds(bool roundup = false) const {
     auto now = std::chrono::system_clock::now();
     auto elapsed = now - base_;
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
-    auto count = milliseconds.count();
     if (roundup) {
-      count += static_cast<std::chrono::milliseconds::rep>(500);
+      milliseconds += std::chrono::milliseconds(500);
     }
+    auto count = milliseconds.count();
+    return count / 1000;
+  }
+
+  /**
+   * Get an integer value representing a elapsed time from the reference point in milli seconds.
+   */
+  uint32_t elapsedMilliSeconds(bool roundup = false) const {
+    auto now = std::chrono::system_clock::now();
+    auto elapsed = now - base_;
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+    if (roundup) {
+      microseconds += std::chrono::microseconds(500);
+    }
+    auto count = microseconds.count();
     return count / 1000;
   }
 

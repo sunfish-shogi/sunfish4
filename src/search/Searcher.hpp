@@ -113,7 +113,7 @@ private:
       return true;
     }
 
-    if (timer_.elapsedInt() >= config_.maximumTimeSeconds) {
+    if (timer_.elapsedMilliSeconds() >= config_.maximumMilliSeconds) {
       return true;
     }
 

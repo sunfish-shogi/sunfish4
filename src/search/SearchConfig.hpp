@@ -11,17 +11,20 @@
 namespace sunfish {
 
 struct SearchConfig {
-  static CONSTEXPR_CONST uint32_t DefaultOptimumTimeSeconds = 3;
-  static CONSTEXPR_CONST uint32_t DefaultMaximumTimeSeconds = 3;
+  using TimeType = uint32_t;
 
-  uint32_t optimumTimeSeconds;
-  uint32_t maximumTimeSeconds;
+  static CONSTEXPR_CONST TimeType InfinityTime = ~static_cast<TimeType>(0);
+  static CONSTEXPR_CONST TimeType DefaultOptimumMilliSeconds = 3 * 1000;
+  static CONSTEXPR_CONST TimeType DefaultMaximumMilliSeconds = 3 * 1000;
+
+  TimeType optimumMilliSeconds;
+  TimeType maximumMilliSeconds;
 };
 
 inline CONSTEXPR SearchConfig getDefaultSearchConfig() {
   return {
-    SearchConfig::DefaultOptimumTimeSeconds,
-    SearchConfig::DefaultMaximumTimeSeconds
+    SearchConfig::DefaultOptimumMilliSeconds,
+    SearchConfig::DefaultMaximumMilliSeconds
   };
 }
 
