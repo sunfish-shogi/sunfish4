@@ -15,25 +15,26 @@ COV:=gcov
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
-.PHONY: release debug test test-sse test-nosse bm usi dev clean
+.PHONY: app app-debug test test-sse test-nosse bm usi usi-debug dev clean
 
 help:
 	@echo 'usage:'
-	@echo '  make release'
-	@echo '  make debug'
+	@echo '  make app'
+	@echo '  make app-debug'
 	@echo '  make test'
 	@echo '  make bm'
 	@echo '  make usi'
+	@echo '  make usi-debug'
 	@echo '  make dev'
 	@echo '  make clean'
 
-release:
+app:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/app
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
-debug:
+app-debug:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/app
 	cd $(BUILD_DIR)/$@ && $(MAKE)
@@ -78,6 +79,12 @@ bm:
 usi:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/usi
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_USI) $(SUNFISH_USI)
+
+usi-debug:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/usi
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_USI) $(SUNFISH_USI)
 
