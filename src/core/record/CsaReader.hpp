@@ -18,7 +18,7 @@ namespace sunfish {
 class CsaReader {
 public:
 
-  static void initializeMutablePosition(MutablePosition& mp);
+  static bool read(std::istream& is, Record& record, RecordInfo* info = nullptr);
   static bool readPosition(std::istream& is, Position& position, RecordInfo* info = nullptr);
   static bool readPosition(const char* line, MutablePosition& position, RecordInfo* info = nullptr);
   static bool readMove(const char* line, const Position& position, Move& move);

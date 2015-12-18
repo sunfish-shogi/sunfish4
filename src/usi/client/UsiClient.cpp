@@ -4,7 +4,7 @@
  */
 
 #include "usi/client/UsiClient.hpp"
-#include "common/util/StringUtil.hpp"
+#include "common/string/StringUtil.hpp"
 #include "core/record/SfenParser.hpp"
 #include "search/eval/Material.hpp"
 #include "logger/Logger.hpp"
@@ -281,8 +281,6 @@ bool UsiClient::onStop(const CommandArguments&) {
 void UsiClient::search() {
   OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
-  int depth = 32;
-
   auto config = searcher_.getConfig();
 
   if (isInfinite_) {
@@ -298,7 +296,7 @@ void UsiClient::search() {
 
   searcher_.setConfig(config);
 
-  searcher_.idsearch(position_, depth * Searcher::Depth1Ply);
+  searcher_.idsearch(position_, Searcher::DepthInfinity);
 
   if (!isInfinite_) {
     sendBestMove();
@@ -318,17 +316,17 @@ void UsiClient::waitForSearcherIsStarted() {
   }
 }
 
-void UsiClient::onStart() {
+void UsiClient::onStart(const Searcher&) {
   searcherIsStarted_ = true;
 }
 
-void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) {
+void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   if (pv.size() == 0) {
     LOG(warning) << "PV is empty.";
     return;
   }
 
-  auto& info = searcher_.getInfo();
+  auto& info = searcher.getInfo();
 
   auto timeMilliSeconds = static_cast<uint32_t>(elapsed * 1e3);
   auto realDepth = depth / Searcher::Depth1Ply;
@@ -358,13 +356,13 @@ void UsiClient::onUpdatePV(const PV& pv, float elapsed, int depth, Score score) 
        "pv", pv.toStringSFEN());
 }
 
-void UsiClient::onFailLow(const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(pv, elapsed, depth, score);
+void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+  onUpdatePV(searcher, pv, elapsed, depth, score);
   send("info", "string", "fail-low");
 }
 
-void UsiClient::onFailHigh(const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(pv, elapsed, depth, score);
+void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+  onUpdatePV(searcher, pv, elapsed, depth, score);
   send("info", "string", "fail-high");
 }
 

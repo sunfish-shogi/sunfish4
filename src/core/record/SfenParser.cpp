@@ -3,7 +3,7 @@
  * Kubo Ryosuke
  */
 
-#include "common/util/StringUtil.hpp"
+#include "common/string/StringUtil.hpp"
 #include "core/record/SfenParser.hpp"
 #include "logger/Logger.hpp"
 #include <cctype>

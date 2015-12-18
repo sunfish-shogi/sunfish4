@@ -308,6 +308,19 @@ bool isPinned(const Position& pos, Square square) {
 
 namespace sunfish {
 
+void initializeMutablePosition(MutablePosition& mp) {
+  SQUARE_EACH(square) {
+    mp.board[square.raw()] = Piece::empty();
+  }
+
+  HAND_EACH(piece) {
+    mp.blackHand.set(piece, 0);
+    mp.whiteHand.set(piece, 0);
+  }
+
+  mp.turn = Turn::Black;
+}
+
 Position::Position() {
   initialize(EmptyBoardArray, Turn::Black);
 }

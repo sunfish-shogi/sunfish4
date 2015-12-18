@@ -21,7 +21,7 @@ void printMoves(const Position& pos, const Moves& moves) {
     Score score = moveToScore(move);
     oss << move.toString(pos) << '(' << score << ") ";
   }
-  OUT(message) << oss.str();
+  OUT(info) << oss.str();
 }
 #endif
 
@@ -58,7 +58,7 @@ void Searcher::onSearchStarted() {
   tt_.evolve();
 
   if (handler_ != nullptr) {
-    handler_->onStart();
+    handler_->onStart(*this);
   }
 }
 
@@ -332,7 +332,7 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, depth, childNode.pv);
 
       if (handler_ != nullptr) {
-        handler_->onFailLow(node.pv, timer_.elapsed(), depth, score);
+        handler_->onFailLow(*this, node.pv, timer_.elapsed(), depth, score);
       }
       continue;
     }
@@ -345,7 +345,7 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, depth, childNode.pv);
 
       if (handler_ != nullptr) {
-        handler_->onFailHigh(node.pv, timer_.elapsed(), depth, score);
+        handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
       }
       continue;
     }
@@ -375,7 +375,7 @@ bool Searcher::aspsearch(Tree& tree,
     storePV(tree, node.pv, 0);
 
     if (handler_ != nullptr) {
-      handler_->onUpdatePV(node.pv, timer_.elapsed(), depth, bestScore);
+      handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
     }
   }
 

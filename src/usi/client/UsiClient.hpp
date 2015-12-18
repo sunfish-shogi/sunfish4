@@ -18,7 +18,7 @@
 
 namespace sunfish {
 
-class UsiClient : public SearchHandler{
+class UsiClient : public SearchHandler {
 private:
 
   using CommandArguments = std::vector<std::string>;
@@ -72,13 +72,13 @@ private:
 
   void waitForSearcherIsStarted();
 
-  void onStart() override;
+  void onStart(const Searcher&) override;
 
-  void onUpdatePV(const PV& pv, float elapsed, int depth, Score score) override;
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
-  void onFailLow(const PV& pv, float elapsed, int depth, Score score) override;
+  void onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
-  void onFailHigh(const PV& pv, float elapsed, int depth, Score score) override;
+  void onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
   void stopSearchIfRunning();
 

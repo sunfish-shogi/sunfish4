@@ -3,24 +3,34 @@ MKDIR:=mkdir
 LN:=ln
 FIND:=find
 
-SUNFISH:=sunfish
+COV:=gcov
+PROF:=gprof
+
+SUNFISH_EXPT:=sunfish_expt
 SUNFISH_TEST:=sunfish_test
 SUNFISH_BM:=sunfish_bm
 SUNFISH_USI:=sunfish_usi
 SUNFISH_DEV:=sunfish_dev
 BUILD_DIR:=build
+KIFU_PROF1:=kifu/prof1
+PROFOUT:=profile.txt
 GEN_COV:=tools/gen_cov_report.py
-COV:=gcov
 
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
-.PHONY: app app-debug test test-sse test-nosse bm usi usi-debug dev clean
+.PHONY: expt expt-prof
+.PHONY: test test-sse
+.PHONY: test-nosse
+.PHONY: bm
+.PHONY: usi usi-debug
+.PHONY: dev
+.PHONY: clean
 
 help:
 	@echo 'usage:'
-	@echo '  make app'
-	@echo '  make app-debug'
+	@echo '  make expt'
+	@echo '  make prof'
 	@echo '  make test'
 	@echo '  make bm'
 	@echo '  make usi'
@@ -28,17 +38,23 @@ help:
 	@echo '  make dev'
 	@echo '  make clean'
 
-app:
+expt:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/app
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src/expt
 	cd $(BUILD_DIR)/$@ && $(MAKE)
-	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
-app-debug:
+expt-prof:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src/app
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE=ON ../../src/expt
 	cd $(BUILD_DIR)/$@ && $(MAKE)
-	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
+
+prof:
+	$(MAKE) expt-prof
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1)
+	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
+	@echo "See $(PROFOUT)."
 
 test:
 ifeq ($(HAS_SSE2),1)
@@ -96,4 +112,4 @@ dev:
 
 clean:
 	$(RM) -r $(BUILD_DIR)
-	$(RM) $(SUNFISH) $(SUNFISH_TEST) $(SUNFISH_BM) $(SUNFISH_USI) $(SUNFISH_DEV)
+	$(RM) $(SUNFISH_EXPT) $(SUNFISH_TEST) $(SUNFISH_BM) $(SUNFISH_USI) $(SUNFISH_DEV)

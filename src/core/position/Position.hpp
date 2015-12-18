@@ -26,6 +26,8 @@ struct MutablePosition {
   Turn turn;
 };
 
+void initializeMutablePosition(MutablePosition& mp);
+
 struct CheckState {
   Square from1;
   Square from2;

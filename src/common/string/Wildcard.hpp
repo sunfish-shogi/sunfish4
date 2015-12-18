@@ -11,16 +11,6 @@
 namespace sunfish {
 
 class Wildcard {
-private:
-  std::string pattern_;
-
-  static std::string normalize(const char* pattern);
-  static std::string normalize(const std::string& pattern) {
-    return normalize(pattern.c_str());
-  }
-
-  static bool match(const char* pp, const char* pt);
-
 public:
   Wildcard(const char* pattern) : pattern_(normalize(pattern)) {
   }
@@ -31,6 +21,17 @@ public:
   bool match(const std::string& str) const {
     return match(str.c_str());
   }
+
+private:
+  static std::string normalize(const char* pattern);
+  static std::string normalize(const std::string& pattern) {
+    return normalize(pattern.c_str());
+  }
+
+  static bool match(const char* pp, const char* pt);
+
+private:
+  std::string pattern_;
 
 };
 

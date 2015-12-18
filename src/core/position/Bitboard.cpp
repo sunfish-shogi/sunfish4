@@ -4,7 +4,7 @@
  */
 
 #include "core/position/Bitboard.hpp"
-#include "common/util/StringUtil.hpp"
+#include "common/string/StringUtil.hpp"
 #include <sstream>
 
 namespace sunfish {

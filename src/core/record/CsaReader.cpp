@@ -11,19 +11,74 @@
 
 #define LINE_BUFFER_SIZE 1024
 
+namespace {
+
+enum InputStatus {
+  Continue,
+  Break,
+  Eof,
+  Error,
+};
+
+template <class T>
+InputStatus forEach(std::istream& is, T&& f) {
+  char line[LINE_BUFFER_SIZE];
+
+  while (true) {
+    is.getline(line, sizeof(line));
+
+    if (is.eof()) {
+      return InputStatus::Eof;
+    }
+
+    if (is.fail()) {
+      LOG(warning) << "file io error";
+      return InputStatus::Error;
+    }
+
+    auto status = f(line);
+    if (status != InputStatus::Continue) {
+      return status;
+    }
+  }
+}
+
+} // namespace
+
 namespace sunfish {
 
-void CsaReader::initializeMutablePosition(MutablePosition& mp) {
-  SQUARE_EACH(square) {
-    mp.board[square.raw()] = Piece::empty();
+bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = nullptr*/) {
+  MutablePosition mp;
+  initializeMutablePosition(mp);
+
+  if (!readPosition(is, mp, info)) {
+    return false;
   }
 
-  HAND_EACH(piece) {
-    mp.blackHand.set(piece, 0);
-    mp.whiteHand.set(piece, 0);
-  }
+  record.initialPosition.initialize(mp);
+  record.moveList.clear();
 
-  mp.turn = Turn::Black;
+  Position position = record.initialPosition;
+
+  auto status = forEach(is, [&record, &position, info](const char* line) {
+    Move move;
+    if (!readMove(line, position, move)) {
+      LOG(error) << "invalid move: " << line;
+      return InputStatus::Error;
+    }
+
+    record.moveList.push_back(move);
+
+    Piece captured;
+    if (!position.doMove(move, captured)) {
+      LOG(error) << "invalid move: " << line;
+      return InputStatus::Error;
+    }
+
+    return InputStatus::Continue;
+  });
+
+  return status != InputStatus::Error;
 }
 
 bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* info/* = nullptr*/) {
@@ -40,29 +95,20 @@ bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* i
 }
 
 bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info) {
-  char line[LINE_BUFFER_SIZE];
-
-  while (true) {
-    is.getline(line, sizeof(line));
-
-    if (is.eof()) { break; }
-
-    if (is.fail()) {
-      LOG(warning) << "file io error.";
-      return false;
-    }
-
+  auto status = forEach(is, [&mp, info](const char* line) {
     if (!readPosition(line, mp, info)) {
       LOG(warning) << "invalid position format.";
-      return false;
+      return InputStatus::Error;
     }
 
     if (line[0] == '+' || line[0] == '-') {
-      break;
+      return InputStatus::Break;
     }
-  }
 
-  return true;
+    return InputStatus::Continue;
+  });
+
+  return status != InputStatus::Error;
 }
 
 bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* info/* = nullptr*/) {

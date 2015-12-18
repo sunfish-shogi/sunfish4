@@ -20,6 +20,7 @@
 #include "common/time/Timer.hpp"
 #include <atomic>
 #include <array>
+#include <climits>
 
 namespace sunfish {
 
@@ -30,6 +31,7 @@ class Searcher {
 public:
 
   static CONSTEXPR_CONST int Depth1Ply = 8;
+  static CONSTEXPR_CONST int DepthInfinity = INT_MAX;
 
   Searcher();
 

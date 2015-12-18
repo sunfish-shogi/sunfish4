@@ -3,7 +3,7 @@
  * Kubo Ryosuke
  */
 
-#include "Wildcard.h"
+#include "common/string/Wildcard.hpp"
 #include <sstream>
 
 namespace sunfish {

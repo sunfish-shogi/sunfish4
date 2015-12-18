@@ -31,10 +31,9 @@ int main(int argc, char** argv, char**) {
 
   // if '--silent' or '-s' is NOT specified.
   if (!po.has("silent")) {
-    Loggers::message.addStream(std::cerr);
     Loggers::error.addStream(std::cerr, ESC_SEQ_COLOR_RED, ESC_SEQ_COLOR_RESET);
     Loggers::warning.addStream(std::cerr, ESC_SEQ_COLOR_YELLOW, ESC_SEQ_COLOR_RESET);
-    Loggers::info.addStream(std::cerr, ESC_SEQ_COLOR_GREEN, ESC_SEQ_COLOR_RESET);
+    Loggers::info.addStream(std::cerr);
     Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
 #if !defined(NDEBUG)
@@ -53,7 +52,7 @@ int main(int argc, char** argv, char**) {
       return 1;
     }
 
-    Loggers::message.addStream(fout);
+    Loggers::info.addStream(fout);
   }
 
   // invalid arguments

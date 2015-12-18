@@ -26,7 +26,6 @@ const char* LoggerUtil::getIso8601() {
 }
 
 std::mutex Logger::mutex_;
-Logger Loggers::message;
 Logger Loggers::error  ("[ERROR]");
 Logger Loggers::warning("[WARN] ");
 Logger Loggers::info   ("[INFO] ");

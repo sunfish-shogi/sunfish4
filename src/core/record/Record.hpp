@@ -6,7 +6,11 @@
 #ifndef SUNFISH_CORE_RECORD_RECORD__
 #define SUNFISH_CORE_RECORD_RECORD__
 
+#include "core/position/Position.hpp"
+#include "core/move/Move.hpp"
 #include <string>
+#include <vector>
+#include <utility>
 
 namespace sunfish {
 
@@ -31,6 +35,13 @@ struct RecordInfo {
 
   /** readoff-part of the time limit */
   int timeLimitReadoff;
+};
+
+struct Record {
+  using MoveListType = std::vector<Move>;
+
+  Position initialPosition;
+  MoveListType moveList;
 };
 
 } // namespace sunfish

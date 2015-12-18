@@ -173,7 +173,6 @@ private:
 
 class Loggers {
 public:
-  static Logger message;
   static Logger error;
   static Logger warning;
   static Logger info;

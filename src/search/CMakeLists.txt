@@ -11,5 +11,6 @@ add_library(search STATIC
     tt/TTSlots.cpp
     RandomSearcher.cpp
     Searcher.cpp
+    SearchHandler.cpp
     SearchInfo.cpp
 )

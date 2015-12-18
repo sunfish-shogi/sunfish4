@@ -6,11 +6,8 @@
 #include "common/console/Console.hpp"
 #include "common/program_options/ProgramOptions.hpp"
 #include "core/util/CoreUtil.hpp"
-#include "test/Test.hpp"
+#include "expt/solve/Solver.hpp"
 #include "logger/Logger.hpp"
-#include <fstream>
-
-#define DEFAULT_TEST_RESULT_FILENAME "test_result.xml"
 
 using namespace sunfish;
 
@@ -20,8 +17,7 @@ int main(int argc, char** argv, char**) {
 
   // program options
   ProgramOptions po;
-  po.addOption("silent", "s", "silent mode");
-  po.addOption("out", "o", "output file name (default: " DEFAULT_TEST_RESULT_FILENAME ")", true);
+  po.addOption("solve", "run a solver", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -38,13 +34,9 @@ int main(int argc, char** argv, char**) {
     Loggers::info.addStream(std::cerr);
     Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
+#ifndef NDEBUG
     Loggers::debug.addStream(std::cerr, ESC_SEQ_COLOR_CYAN, ESC_SEQ_COLOR_RESET);
-  }
-
-  // the name of the result file
-  std::string resultFileName = DEFAULT_TEST_RESULT_FILENAME;
-  if (po.has("out")) {
-    resultFileName = po.getValue("out");
+#endif // NDEBUG
   }
 
   // invalid arguments
@@ -52,26 +44,18 @@ int main(int argc, char** argv, char**) {
     OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
-  // execute
-  bool result = TestSuite::test();
+  // genearate src/core/position/Zobrist.cpp
+  if (po.has("solve")) {
+    std::string targetDirectory = po.getValue("solve");
 
-  // write results to a file in xUnit format
-  std::ofstream fout(resultFileName, std::ios::out);
-  if (!fout) {
-    OUT(error) << "Could not open output file: " << resultFileName;
-    return 1;
+    Solver solver;
+    bool ok = solver.solve(targetDirectory);
+
+    return ok ? 0 : 1;
   }
-  fout << TestSuite::getXml();
-  fout.close();
 
-  // show result
-  if (result) {
-    OUT(info) << ESC_SEQ_COLOR_GREEN << "Test passed." << ESC_SEQ_COLOR_RESET;
-  } else {
-    OUT(error) << "Test failed.";
-  }
-  OUT(info) << "See '" << resultFileName << "'.";
+  OUT(error) << "No action is specified.";
+  std::cout << po.help();
 
-  // return value
-  return result ? 0 : 1;
+  return 0;
 }

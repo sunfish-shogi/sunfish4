@@ -164,8 +164,8 @@ public:
 private:
 
   static void run(const std::string& name, const std::vector<Entry>& list) {
-    OUT(message) << "Benchmark                                        Time[us]      Iterations";
-    OUT(message) << "-------------------------------------------------------------------------";
+    OUT(info) << "Benchmark                                        Time[us]      Iterations";
+    OUT(info) << "-------------------------------------------------------------------------";
 
     for (const auto& entry : list) {
       BenchmarkController bc(entry.time);
@@ -180,14 +180,14 @@ private:
 
       float ips = (float)bc.getCount() / bc.getElapsed() * 1e+6;
 
-      OUT(message)
+      OUT(info)
         << std::setw(41) << std::left  << longName.str() << ' '
         << std::setw(15) << std::right << bc.getElapsed() << ' '
         << std::setw(15) << std::right << bc.getCount() << ' '
         << ips << "/sec";
     }
 
-    OUT(message) << "";
+    OUT(info) << "";
   }
 
   BenchmarkSuite() = default;
