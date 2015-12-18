@@ -8,8 +8,8 @@ include(../Common.cmake)
 
 include_directories("..")
 
-add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
 add_subdirectory(../search "${CMAKE_CURRENT_BINARY_DIR}/search")
+add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_usi
