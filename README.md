@@ -61,28 +61,41 @@ If you use `make`, execute with `usi` target as follows:
 
 ```
 make usi
+
+# debugging mode
+make usi-debug
 ```
 
 Register `sunfish_usi.exe` or `sunfish_usi` into the GUI application.
 
-### Unit tests
+### Unit Tests
 
 ```
 make test
 ```
 
-### Benchmark tests
+### Experiments
+
+```
+make expt
+./sunfish_expt --help
+
+# profiling
+make prof
+```
+
+### Benchmark Tests
 
 ```
 make bm
 ./sunfish_bm
 ```
 
-### Development tool
+### Development Tool
 
 ```
 make dev
-./sunfish_dev OPTION
+./sunfish_dev --help
 ```
 
 License
