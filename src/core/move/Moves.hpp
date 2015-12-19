@@ -8,6 +8,7 @@
 
 #include "common/Def.hpp"
 #include "core/move/Move.hpp"
+#include "core/position/Position.hpp"
 #include <array>
 #include <sstream>
 #include <cstdint>
@@ -15,6 +16,8 @@
 #define MAX_NUMBER_OF_MOVES 900
 
 namespace sunfish {
+
+class Position;
 
 template <uint32_t capacity>
 class MoveArray {
@@ -186,6 +189,17 @@ public:
     return oss.str();
   }
 
+  std::string toString(Position& position) const {
+    std::ostringstream oss;
+    for (auto ite = cbegin(); ite != cend(); ite++) {
+      if (ite != cbegin()) {
+        oss << ' ';
+      }
+      oss << ite->toString(position);
+    }
+    return oss.str();
+  }
+
 private:
 
   size_type size_;
@@ -206,6 +220,8 @@ inline void remove(Moves& moves,
     }
   }
 }
+
+void sortMovesForDebug(Moves& moves, const Position& position);
 
 } // namespace sunfish
 

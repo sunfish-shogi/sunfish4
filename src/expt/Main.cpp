@@ -7,6 +7,7 @@
 #include "common/program_options/ProgramOptions.hpp"
 #include "core/util/CoreUtil.hpp"
 #include "expt/solve/Solver.hpp"
+#include "expt/mgtest/MoveGenerationTest.hpp"
 #include "logger/Logger.hpp"
 
 using namespace sunfish;
@@ -18,6 +19,7 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("solve", "run a solver", true);
+  po.addOption("mgtest", "run a cross-check test of move generation");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -44,12 +46,20 @@ int main(int argc, char** argv, char**) {
     OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
-  // genearate src/core/position/Zobrist.cpp
+  // solver
   if (po.has("solve")) {
     std::string targetDirectory = po.getValue("solve");
 
     Solver solver;
     bool ok = solver.solve(targetDirectory);
+
+    return ok ? 0 : 1;
+  }
+
+  // move generation test
+  if (po.has("mgtest")) {
+    MoveGenerationTest mgtest;
+    bool ok = mgtest.test(500, 1000);
 
     return ok ? 0 : 1;
   }

@@ -5,6 +5,7 @@ add_library(core STATIC
     base/Square.cpp
     move/Move.cpp
     move/MoveGenerator.cpp
+    move/Moves.cpp
     move/MoveTables.cpp
     position/Bitboard.cpp
     position/Position.cpp

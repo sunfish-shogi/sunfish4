@@ -25,49 +25,6 @@ void debugPrint(const Moves& moves) {
 }
 #endif
 
-void sortMoves(Moves& moves, const Position& position) {
-  std::sort(moves.begin(), moves.end(), [&position](Move lhs, Move rhs) {
-    if (lhs.isDrop() != rhs.isDrop()) {
-      return rhs.isDrop();
-    }
-
-    if (lhs.isDrop()) {
-      if (lhs.droppingPieceType() != rhs.droppingPieceType()) {
-        return lhs.droppingPieceType().raw() < rhs.droppingPieceType().raw();
-      }
-
-    } else {
-      Piece lp = position.getPieceOnBoard(lhs.from());
-      Piece rp = position.getPieceOnBoard(rhs.from());
-      if (lp != rp) {
-        return lp.raw() < rp.raw();
-      }
-
-      if (lhs.from().getFile() != rhs.from().getFile()) {
-        return lhs.from().getFile() < rhs.from().getFile();
-      }
-    }
-
-    if (lhs.from().getRank() != rhs.from().getRank()) {
-      return lhs.from().getRank() < rhs.from().getRank();
-    }
-
-    if (lhs.to().getFile() != rhs.to().getFile()) {
-      return lhs.to().getFile() < rhs.to().getFile();
-    }
-
-    if (lhs.to().getRank() != rhs.to().getRank()) {
-      return lhs.to().getRank() < rhs.to().getRank();
-    }
-
-    if (lhs.isPromotion() != rhs.isPromotion()) {
-      return lhs.isPromotion();
-    }
-
-    return false;
-  });
-}
-
 }
 
 TEST(MoveGeneratorTest, test) {
@@ -89,7 +46,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(4, caps.size());
     ASSERT_EQ(Move(Square::s12(), Square::s11(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s23(), Square::s22(), true),  caps[1]);
@@ -98,7 +55,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(9, nocaps.size());
     ASSERT_EQ(Move(Square::s45(), Square::s44(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s56(), Square::s55(), false), nocaps[1]);
@@ -129,7 +86,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(4, caps.size());
     ASSERT_EQ(Move(Square::s18(), Square::s19(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s27(), Square::s28(), true),  caps[1]);
@@ -138,7 +95,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(9, nocaps.size());
     ASSERT_EQ(Move(Square::s45(), Square::s46(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s54(), Square::s55(), false), nocaps[1]);
@@ -169,7 +126,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(6, caps.size());
     ASSERT_EQ(Move(Square::s34(), Square::s22(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s34(), Square::s42(), true),  caps[1]);
@@ -180,7 +137,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(6, nocaps.size());
     ASSERT_EQ(Move(Square::s55(), Square::s43(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s59(), Square::s48(), false), nocaps[1]);
@@ -208,7 +165,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(6, caps.size());
     ASSERT_EQ(Move(Square::s36(), Square::s28(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s36(), Square::s48(), true),  caps[1]);
@@ -219,7 +176,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(6, nocaps.size());
     ASSERT_EQ(Move(Square::s55(), Square::s47(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s51(), Square::s41(), false), nocaps[1]);
@@ -247,7 +204,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(28, caps.size());
     ASSERT_EQ(Move(Square::s15(), Square::s12(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s15(), Square::s13(), true),  caps[1]);
@@ -280,7 +237,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(36, nocaps.size());
     ASSERT_EQ(Move(Square::s67(), Square::s66(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s15(), Square::s13(), false), nocaps[1]);
@@ -338,7 +295,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(28, caps.size());
     ASSERT_EQ(Move(Square::s15(), Square::s17(), true),  caps[0]);
     ASSERT_EQ(Move(Square::s15(), Square::s18(), true),  caps[1]);
@@ -371,7 +328,7 @@ TEST(MoveGeneratorTest, test) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(36, nocaps.size());
     ASSERT_EQ(Move(Square::s63(), Square::s64(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s15(), Square::s16(), false), nocaps[1]);
@@ -429,12 +386,12 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(3, caps.size());
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(175, nocaps.size());
     ASSERT_EQ(Move(Square::s59(), Square::s48(), false), nocaps[0]);
     ASSERT_EQ(Move(PieceType::pawn(), Square::s12()),    nocaps[5]);
@@ -462,12 +419,12 @@ TEST(MoveGeneratorTest, test) {
 
     Moves caps;
     MoveGenerator::generateCapturingMoves(pos, caps);
-    sortMoves(caps, pos);
+    sortMovesForDebug(caps, pos);
     ASSERT_EQ(3, caps.size());
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(175, nocaps.size());
     ASSERT_EQ(Move(Square::s51(), Square::s41(), false), nocaps[0]);
     ASSERT_EQ(Move(PieceType::pawn(), Square::s11()),    nocaps[5]);
@@ -499,7 +456,7 @@ TEST(MoveGeneratorTest, testEvasions) {
 
     Moves evasions;
     MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
-    sortMoves(evasions, pos);
+    sortMovesForDebug(evasions, pos);
     ASSERT_EQ(5, evasions.size());
     ASSERT_EQ(Move(Square::s69(), Square::s68(), false), evasions[0]);
     ASSERT_EQ(Move(Square::s59(), Square::s48(), false), evasions[1]);
@@ -526,7 +483,7 @@ TEST(MoveGeneratorTest, testEvasions) {
 
     Moves evasions;
     MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
-    sortMoves(evasions, pos);
+    sortMovesForDebug(evasions, pos);
     ASSERT_EQ(14, evasions.size());
     ASSERT_EQ(Move(Square::s77(), Square::s76(), false), evasions[0]);
     ASSERT_EQ(Move(Square::s87(), Square::s76(), false), evasions[1]);
@@ -562,7 +519,7 @@ TEST(MoveGeneratorTest, testEvasions) {
 
     Moves evasions;
     MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
-    sortMoves(evasions, pos);
+    sortMovesForDebug(evasions, pos);
     ASSERT_EQ(5, evasions.size());
     ASSERT_EQ(Move(Square::s51(), Square::s42(), false), evasions[0]);
     ASSERT_EQ(Move(Square::s41(), Square::s31(), false), evasions[1]);
@@ -589,7 +546,7 @@ TEST(MoveGeneratorTest, testEvasions) {
 
     Moves evasions;
     MoveGenerator::generateEvasions(pos, pos.getCheckState(), evasions);
-    sortMoves(evasions, pos);
+    sortMovesForDebug(evasions, pos);
     ASSERT_EQ(14, evasions.size());
     ASSERT_EQ(Move(Square::s73(), Square::s74(), false), evasions[0]);
     ASSERT_EQ(Move(Square::s83(), Square::s72(), false), evasions[1]);
@@ -627,7 +584,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(17, nocaps.size());
     ASSERT_EQ(Move(Square::s43(), Square::s32(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s43(), Square::s33(), false), nocaps[1]);
@@ -666,7 +623,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(17, nocaps.size());
     ASSERT_EQ(Move(Square::s47(), Square::s37(), false), nocaps[0]);
     ASSERT_EQ(Move(Square::s47(), Square::s38(), false), nocaps[1]);
@@ -705,7 +662,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -727,7 +684,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -749,7 +706,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -771,7 +728,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -793,7 +750,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -815,7 +772,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(18, nocaps.size());
   }
 
@@ -837,7 +794,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(24, nocaps.size());
   }
 
@@ -859,7 +816,7 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
 
     Moves nocaps;
     MoveGenerator::generateNotCapturingMoves(pos, nocaps);
-    sortMoves(nocaps, pos);
+    sortMovesForDebug(nocaps, pos);
     ASSERT_EQ(24, nocaps.size());
   }
 }

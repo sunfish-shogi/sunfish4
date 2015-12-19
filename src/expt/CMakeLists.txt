@@ -15,6 +15,8 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 
 add_executable(sunfish_expt
     Main.cpp
+    mgtest/MoveGenerationTest.cpp
+    mgtest/TardyMoveGenerator.cpp
     solve/Solver.cpp
 )
 

@@ -471,6 +471,8 @@ bool Position::hasPawnInFile(int file) const {
   const auto& pawn = turn == Turn::Black ?  bbBPawn_ : bbWPawn_;
   return pawn.checkFile(file);
 }
+template bool Position::hasPawnInFile<Turn::Black>(int) const;
+template bool Position::hasPawnInFile<Turn::White>(int) const;
 
 template <Turn turn>
 bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {

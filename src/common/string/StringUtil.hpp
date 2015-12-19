@@ -77,6 +77,21 @@ public:
     return split(line.c_str(), std::forward<T>(isDelim));
   }
 
+  static std::string ordinal(unsigned n) {
+    std::ostringstream oss;
+    oss << n;
+    if (n == 1) {
+      oss << "st";
+    } else if (n == 2) {
+      oss << "nd";
+    } else if (n == 3) {
+      oss << "rd";
+    } else {
+      oss << "th";
+    }
+    return oss.str();
+  }
+
 };
 
 } // namespace sunfish
