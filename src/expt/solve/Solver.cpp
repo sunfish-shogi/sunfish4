@@ -4,6 +4,7 @@
  */
 
 #include "expt/solve/Solver.hpp"
+#include "common/Def.hpp"
 #include "common/file_system/Directory.hpp"
 #include "common/file_system/FileUtil.hpp"
 #include "common/string/StringUtil.hpp"
@@ -11,6 +12,12 @@
 #include "logger/Logger.hpp"
 
 #include <fstream>
+
+namespace {
+
+CONSTEXPR_CONST int SearchDepth = 15;
+
+} // namespace
 
 namespace sunfish {
 
@@ -97,7 +104,12 @@ bool Solver::solve(const Position& position, Move correct) {
   OUT(info) << "";
   OUT(info) << StringUtil::chomp(position.toString());
 
-  bool ok = searcher_.idsearch(position, 5 * Searcher::Depth1Ply);
+  auto config = searcher_.getConfig();
+  config.maximumMilliSeconds = 3 * 1000;
+  config.optimumMilliSeconds = 1 * 1000;
+  searcher_.setConfig(config);
+
+  bool ok = searcher_.idsearch(position, SearchDepth * Searcher::Depth1Ply);
 
   if (!ok) {
     OUT(info) << "skipped.";
