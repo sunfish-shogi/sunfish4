@@ -16,9 +16,11 @@ public:
 
   using RawType = uint32_t;
 
-  static CONSTEXPR_CONST RawType NullMove   = 0x01;
+  static CONSTEXPR_CONST RawType NullMoveSearch   = 0x01;
+  static CONSTEXPR_CONST RawType RecursiveIDSearch = 0x02;
 
-  static CONSTEXPR_CONST RawType Normal = NullMove;
+  static CONSTEXPR_CONST RawType Normal = NullMoveSearch
+                                        | RecursiveIDSearch;
 
 public:
 
@@ -43,7 +45,8 @@ public:
     return is(s); \
   }
 
-  NODESTAT_METHOD__(NullMove);
+  NODESTAT_METHOD__(NullMoveSearch);
+  NODESTAT_METHOD__(RecursiveIDSearch);
 
 #undef NODESTAT_METHOD__
 

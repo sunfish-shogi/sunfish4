@@ -28,10 +28,25 @@ void printMoves(const Position& pos, const Moves& moves) {
 // constants
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
+inline bool shouldRecursiveIDSearch(int depth) {
+  return depth >= 3 * Searcher::Depth1Ply;
+}
+
+/**
+ * Calculate a depth of recursive iterative deepening.
+ */
+inline int recursiveIDSearchDepth(int depth) {
+  return depth < Searcher::Depth1Ply * 9 / 2 ?  Searcher::Depth1Ply * 3 / 2 :
+                                                depth - Searcher::Depth1Ply * 3;
+}
+
+/**
+ * Calculate a depth of null move search.
+ */
 inline int nullDepth(int depth) {
-  return (depth <  Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
-         (depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 :
-                                                  depth - Searcher::Depth1Ply * 16 / 4)); 
+  return depth <  Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
+        (depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 :
+                                                 depth - Searcher::Depth1Ply * 16 / 4); 
 }
 
 } // namespace
@@ -464,18 +479,25 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-    if (ttScoreType == TTScoreType::Exact ||
-        ttScoreType == TTScoreType::Upper) {
-      // if the score is smaller than beta, exclude null window search .
-      if (ttScore < beta && ttDepth >= nullDepth(depth)) {
-        nodeStat.unsetNullMove();
+    if (!shouldRecursiveIDSearch(depth) ||
+        ttDepth >= recursiveIDSearchDepth(depth)) {
+      if (ttScoreType == TTScoreType::Exact ||
+          ttScoreType == TTScoreType::Upper) {
+        // if the score is smaller than alpha, exclude recursive iterative deepening search.
+        if (ttScore < alpha && ttDepth >= recursiveIDSearchDepth(depth)) {
+          nodeStat.unsetRecursiveIDSearch();
+        }
+        // if the score is smaller than beta, exclude null window search.
+        if (ttScore < beta && ttDepth >= nullDepth(depth)) {
+          nodeStat.unsetNullMoveSearch();
+        }
       }
-    }
 
-    // previous best move
-    Move ttMove = tte.move();
-    if (tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
-      node.hashMove = ttMove;
+      // previous best move
+      Move ttMove = tte.move();
+      if (tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
+        node.hashMove = ttMove;
+      }
     }
   }
 
@@ -487,12 +509,13 @@ Score Searcher::search(Tree& tree,
 
   // null move pruning
   if (isNullWindow &&
-      nodeStat.isNullMove() &&
+      nodeStat.isNullMoveSearch() &&
       !isCheck(node.checkState) &&
       standPat >= beta &&
       depth >= Depth1Ply * 2) {
     int newDepth = nullDepth(depth);
-    NodeStat newNodeStat = NodeStat::normal().unsetNullMove();
+    NodeStat newNodeStat = NodeStat::normal()
+        .unsetNullMoveSearch();
 
     doNullMove(tree);
 
@@ -508,6 +531,33 @@ Score Searcher::search(Tree& tree,
       alpha = score;
       worker.info.nullMovePruning++;
       goto hash_store; // XXX
+    }
+  }
+
+  // recursive iterative deepening
+  if (node.hashMove.isEmpty() &&
+      nodeStat.isRecursiveIDSearch() &&
+      shouldRecursiveIDSearch(depth)) {
+    int newDepth = recursiveIDSearchDepth(depth);
+    NodeStat newNodeStat = NodeStat::normal()
+        .unsetNullMoveSearch();
+
+    search(tree,
+           newDepth,
+           alpha,
+           beta,
+           newNodeStat);
+
+    if (isInterrupted()) {
+      return Score::zero();
+    }
+
+    TTElement tte;
+    if (tt_.get(tree.position.getHash(), tte)) {
+      Move ttMove = tte.move();
+      if (tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
+        node.hashMove = ttMove;
+      }
     }
   }
 
