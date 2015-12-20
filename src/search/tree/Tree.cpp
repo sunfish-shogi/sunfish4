@@ -4,28 +4,36 @@
  */
 
 #include "search/tree/Tree.hpp"
+#include "search/eval/Evaluator.hpp"
+#include "logger/Logger.hpp"
 #include <sstream>
 
 namespace sunfish {
 
 void initializeTree(Tree& tree,
                     const Position& position,
+                    Score score,
                     Worker* worker) {
   tree.position = position;
   tree.ply = 0;
   tree.worker = worker;
+  tree.nodes[0].score = score;
 }
 
-bool doMove(Tree& tree, Move& move) {
+bool doMove(Tree& tree, Move& move, Evaluator& eval) {
   auto& node = tree.nodes[tree.ply];
-  if (tree.position.doMove(move, node.captured)) {
-    node.move = move;
-    tree.ply++;
-
-    return true;
+  if (!tree.position.doMove(move, node.captured)) {
+    return false;
   }
 
-  return false;
+  node.move = move;
+  tree.ply++;
+
+  auto& childNode = tree.nodes[tree.ply];
+  childNode.score = node.score + eval.evaluateDiff(tree.position, move, node.captured);
+
+  return true;
+
 }
 
 void undoMove(Tree& tree) {
@@ -39,6 +47,9 @@ void doNullMove(Tree& tree) {
   tree.position.doNullMove();
   node.move = Move::empty();
   tree.ply++;
+
+  auto& childNode = tree.nodes[tree.ply];
+  childNode.score = node.score;
 }
 
 void undoNullMove(Tree& tree) {

@@ -106,8 +106,6 @@ private:
 
   Move nextMoveOnQuies(Node& node);
 
-  Score calcStandPat(Tree& tree);
-
   void storePV(Tree& tree, const PV& pv, unsigned ply);
 
   bool isInterrupted() const {

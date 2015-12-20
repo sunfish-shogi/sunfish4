@@ -103,12 +103,12 @@ TEST(MaterialTest, testPromotionScore) {
   ASSERT_EQ(material::Horse     - material::Bishop, material::promotionScore(Piece::blackBishop()));
   ASSERT_EQ(material::Dragon    - material::Rook  , material::promotionScore(Piece::blackRook()));
   ASSERT_EQ(0                                     , material::promotionScore(Piece::blackKing()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackTokin()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackProLance()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackProKnight()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackProSilver()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackHorse()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::blackDragon()));
+  ASSERT_EQ(material::Tokin     - material::Pawn  , material::promotionScore(Piece::blackTokin()));
+  ASSERT_EQ(material::ProLance  - material::Lance , material::promotionScore(Piece::blackProLance()));
+  ASSERT_EQ(material::ProKnight - material::Knight, material::promotionScore(Piece::blackProKnight()));
+  ASSERT_EQ(material::ProSilver - material::Silver, material::promotionScore(Piece::blackProSilver()));
+  ASSERT_EQ(material::Horse     - material::Bishop, material::promotionScore(Piece::blackHorse()));
+  ASSERT_EQ(material::Dragon    - material::Rook  , material::promotionScore(Piece::blackDragon()));
 
   ASSERT_EQ(material::Tokin     - material::Pawn  , material::promotionScore(Piece::whitePawn()));
   ASSERT_EQ(material::ProLance  - material::Lance , material::promotionScore(Piece::whiteLance()));
@@ -118,12 +118,12 @@ TEST(MaterialTest, testPromotionScore) {
   ASSERT_EQ(material::Horse     - material::Bishop, material::promotionScore(Piece::whiteBishop()));
   ASSERT_EQ(material::Dragon    - material::Rook  , material::promotionScore(Piece::whiteRook()));
   ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteKing()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteTokin()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteProLance()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteProKnight()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteProSilver()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteHorse()));
-  ASSERT_EQ(0                                     , material::promotionScore(Piece::whiteDragon()));
+  ASSERT_EQ(material::Tokin     - material::Pawn  , material::promotionScore(Piece::whiteTokin()));
+  ASSERT_EQ(material::ProLance  - material::Lance , material::promotionScore(Piece::whiteProLance()));
+  ASSERT_EQ(material::ProKnight - material::Knight, material::promotionScore(Piece::whiteProKnight()));
+  ASSERT_EQ(material::ProSilver - material::Silver, material::promotionScore(Piece::whiteProSilver()));
+  ASSERT_EQ(material::Horse     - material::Bishop, material::promotionScore(Piece::whiteHorse()));
+  ASSERT_EQ(material::Dragon    - material::Rook  , material::promotionScore(Piece::whiteDragon()));
 }
 
 #endif // !defined(NDEBUG)

@@ -13,6 +13,8 @@
 
 namespace sunfish {
 
+class Evaluator;
+
 struct Worker;
 
 struct Tree {
@@ -26,9 +28,10 @@ struct Tree {
 
 void initializeTree(Tree& tree,
                     const Position& position,
+                    Score score,
                     Worker* worker);
 
-bool doMove(Tree& tree, Move& move);
+bool doMove(Tree& tree, Move& move, Evaluator& eval);
 
 void undoMove(Tree& tree);
 

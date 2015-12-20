@@ -78,7 +78,8 @@ bool Searcher::search(const Position& pos,
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
-  initializeTree(tree, pos, &worker);
+  Score rootScore = evaluator_.evaluateMaterial(pos);
+  initializeTree(tree, pos, rootScore, &worker);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -98,7 +99,7 @@ bool Searcher::search(const Position& pos,
       break;
     }
 
-    bool moveOk = doMove(tree, move);
+    bool moveOk = doMove(tree, move, evaluator_);
     if (!moveOk) {
       continue;
     }
@@ -171,7 +172,8 @@ bool Searcher::idsearch(const Position& pos,
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
-  initializeTree(tree, pos, &worker);
+  Score rootScore = evaluator_.evaluateMaterial(pos);
+  initializeTree(tree, pos, rootScore, &worker);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -195,7 +197,7 @@ bool Searcher::idsearch(const Position& pos,
   for (Moves::size_type i = 0; i < node.moves.size();) {
     Move move = node.moves[i];
 
-    bool moveOk = doMove(tree, move);
+    bool moveOk = doMove(tree, move, evaluator_);
     if (!moveOk) {
       node.moves.remove(i);
       continue;
@@ -282,7 +284,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     Move move = node.moves[i];
 
-    bool moveOk = doMove(tree, move);
+    bool moveOk = doMove(tree, move, evaluator_);
     if (!moveOk) {
       LOG(warning) << "invalid state.";
       node.moves.remove(i);
@@ -417,7 +419,8 @@ Score Searcher::search(Tree& tree,
 
   // static evaluation
   if (tree.ply >= Tree::StackSize) {
-    return calcStandPat(tree);
+    Turn turn = tree.position.getTurn();
+    return turn == Turn::Black ? node.score : -node.score;
   }
 
   const Score oldAlpha = alpha;
@@ -476,7 +479,8 @@ Score Searcher::search(Tree& tree,
     }
   }
 
-  node.standPat = calcStandPat(tree);
+  Turn turn = tree.position.getTurn();
+  Score standPat = turn == Turn::Black ? node.score : -node.score;
 
   bool isFirst = true;
   Move bestMove = Move::empty();
@@ -485,7 +489,7 @@ Score Searcher::search(Tree& tree,
   if (isNullWindow &&
       nodeStat.isNullMove() &&
       !isCheck(node.checkState) &&
-      node.standPat >= beta &&
+      standPat >= beta &&
       depth >= Depth1Ply * 2) {
     int newDepth = nullDepth(depth);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMove();
@@ -516,7 +520,7 @@ Score Searcher::search(Tree& tree,
       break;
     }
 
-    bool moveOk = doMove(tree, move);
+    bool moveOk = doMove(tree, move, evaluator_);
     if (!moveOk) {
       continue;
     }
@@ -596,13 +600,14 @@ Score Searcher::quies(Tree& tree,
   auto& worker = *tree.worker;
   worker.info.nodes++;
 
-  node.standPat = calcStandPat(tree);
+  Turn turn = tree.position.getTurn();
+  Score standPat = turn == Turn::Black ? node.score : -node.score;
 
-  if (node.standPat >= beta) {
-    return node.standPat;
+  if (standPat >= beta) {
+    return standPat;
   }
 
-  alpha = std::max(alpha, node.standPat);
+  alpha = std::max(alpha, standPat);
 
   node.checkState = tree.position.getCheckState();
 
@@ -615,7 +620,7 @@ Score Searcher::quies(Tree& tree,
       break;
     }
 
-    bool moveOk = doMove(tree, move);
+    bool moveOk = doMove(tree, move, evaluator_);
     if (!moveOk) {
       continue;
     }
@@ -723,12 +728,6 @@ Move Searcher::nextMoveOnQuies(Node& node) {
   return *(node.moveIterator++);
 }
 
-Score Searcher::calcStandPat(Tree& tree) {
-  Turn turn = tree.position.getTurn();
-  Score standPat = evaluator_.evaluateMaterial(tree.position);
-  return turn == Turn::Black ? standPat : -standPat;
-}
-
 void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {
   if (ply >= pv.size()) {
     return;
@@ -745,7 +744,7 @@ void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {
     return;
   }
 
-  if (doMove(tree, move)) {
+  if (doMove(tree, move, evaluator_)) {
     storePV(tree, pv, ply + 1);
     undoMove(tree);
   } else {

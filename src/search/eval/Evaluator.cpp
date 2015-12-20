@@ -5,7 +5,6 @@
 
 #include "search/eval/Evaluator.hpp"
 #include "search/eval/Material.hpp"
-#include "core/position/Position.hpp"
 
 namespace sunfish {
 
@@ -51,5 +50,23 @@ Score Evaluator::evaluateMaterial(const Position& position) const {
 
   return score;
 }
+
+template <Turn turn>
+Score Evaluator::evaluateDiff(const Position& position, Move move, Piece captured) const {
+  Score score = Score::zero();
+
+  if (move.isPromotion()) {
+    Piece piece = position.getPieceOnBoard(move.to());
+    score += material::promotionScore(piece);
+  }
+
+  if (!captured.isEmpty()) {
+    score += material::exchangeScore(captured);
+  }
+
+  return turn == Turn::Black ? score : -score;
+}
+template Score Evaluator::evaluateDiff<Turn::Black>(const Position&, Move, Piece) const;
+template Score Evaluator::evaluateDiff<Turn::White>(const Position&, Move, Piece) const;
 
 } // namespace sunfish

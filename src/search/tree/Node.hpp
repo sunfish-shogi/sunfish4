@@ -21,8 +21,8 @@ enum GenPhase {
 };
 
 struct Node {
+  Score score;
   CheckState checkState;
-  Score standPat;
 
   Move move;
   Piece captured;
