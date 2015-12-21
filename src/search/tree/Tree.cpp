@@ -57,6 +57,21 @@ void undoNullMove(Tree& tree) {
   tree.position.undoNullMove();
 }
 
+bool isImproving(const Tree& tree) {
+  if (tree.ply < 2) {
+    return false;
+  }
+
+  auto& curr = tree.nodes[tree.ply];
+  auto& front = tree.nodes[tree.ply-2];
+
+  if (tree.position.getTurn() == Turn::Black) {
+    return  curr.score >= front.score;
+  } else {
+    return  curr.score <= front.score;
+  }
+}
+
 std::string getPath(const Tree& tree, int ply) {
   std::ostringstream oss;
 

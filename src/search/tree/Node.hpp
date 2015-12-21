@@ -37,6 +37,10 @@ struct Node {
 
 void arrive(Node& node);
 
+inline bool isPriorMove(const Node& node, const Move& move) {
+  return move != node.hashMove;
+}
+
 } // namespace sunfish
 
 #endif // SUNFISH_SEARCH_TREE_NODE_HPP__

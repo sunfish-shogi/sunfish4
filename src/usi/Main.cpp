@@ -4,6 +4,7 @@
  */
 
 #include "core/util/CoreUtil.hpp"
+#include "search/util/SearchUtil.hpp"
 #include "usi/client/UsiClient.hpp"
 #include "logger/Logger.hpp"
 #include <iostream>
@@ -21,6 +22,7 @@ using namespace sunfish;
 int main(int, char**, char**) {
   // initialize static objects
   CoreUtil::initialize();
+  SearchUtil::initialize();
 
   // Logger settings
   std::ofstream fout;

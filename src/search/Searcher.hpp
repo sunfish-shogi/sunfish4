@@ -34,6 +34,8 @@ public:
   static CONSTEXPR_CONST int Depth1Ply = 8;
   static CONSTEXPR_CONST int DepthInfinity = INT_MAX;
 
+  static void initialize();
+
   Searcher();
 
   bool search(const Position& pos,

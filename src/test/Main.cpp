@@ -6,6 +6,7 @@
 #include "common/console/Console.hpp"
 #include "common/program_options/ProgramOptions.hpp"
 #include "core/util/CoreUtil.hpp"
+#include "search/util/SearchUtil.hpp"
 #include "test/Test.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>
@@ -17,6 +18,7 @@ using namespace sunfish;
 int main(int argc, char** argv, char**) {
   // initialize static objects
   CoreUtil::initialize();
+  SearchUtil::initialize();
 
   // program options
   ProgramOptions po;

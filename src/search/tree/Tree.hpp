@@ -39,6 +39,8 @@ void doNullMove(Tree& tree);
 
 void undoNullMove(Tree& tree);
 
+bool isImproving(const Tree& tree);
+
 std::string getPath(const Tree& tree, int ply);
 
 } // namespace sunfish
