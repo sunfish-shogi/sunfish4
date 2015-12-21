@@ -5,6 +5,7 @@
 
 #include "search/see/SEE.hpp"
 #include "search/eval/Material.hpp"
+#include <algorithm>
 
 namespace sunfish {
 

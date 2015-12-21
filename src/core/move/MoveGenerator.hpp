@@ -76,6 +76,19 @@ private:
 
 };
 
+inline bool isTacticalMove(const Position& position, const Move& move) {
+  if (move.isPromotion() &&
+      position.getPieceOnBoard(move.from()).type() != PieceType::silver()) {
+    return true;
+  }
+
+  if (position.isCapture(move)) {
+    return true;
+  }
+
+  return false;
+}
+
 } // namespace sunfish
 
 #endif // SUNFISH_CORE_MOVE_MOVEGENERATOR_HPP__

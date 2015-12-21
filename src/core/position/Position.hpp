@@ -325,6 +325,10 @@ public:
 
   void undoNullMove();
 
+  bool isCapture(const Move& move) const {
+    return !board_[move.to().raw()].isEmpty();
+  }
+
   /**
    * Indicate whether the king is checked.
    */

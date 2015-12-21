@@ -72,6 +72,8 @@ void Searcher::onSearchStarted() {
 
   tt_.evolve();
 
+  history_.reduce();
+
   if (handler_ != nullptr) {
     handler_->onStart(*this);
   }
@@ -624,6 +626,21 @@ Score Searcher::search(Tree& tree,
     isFirst = false;
   }
 
+  if (!bestMove.isEmpty() &&
+      !isCheck(node.checkState) &&
+      !isTacticalMove(tree.position, bestMove)) {
+    // history heuristics
+    unsigned hval = std::max(depth * 2 / Depth1Ply, 1);
+    for (auto& move : node.moves) {
+      if (!isTacticalMove(tree.position, bestMove)) {
+        history_.add(turn,
+                     move,
+                     hval,
+                     move == bestMove ? hval : 0);
+      }
+    }
+  }
+
 hash_store:
 
   tt_.store(tree.position.getHash(),
@@ -736,13 +753,13 @@ Move Searcher::nextMove(Tree& tree) {
       MoveGenerator::generateNotCapturingMoves(tree.position,
                                                node.moves);
       remove(node.moves, node.moveIterator, node.hashMove);
-      // TODO: ordering
+      sortMovesOnHistory(tree);
       node.genPhase = GenPhase::End;
       break;
 
     case GenPhase::Evasions:
       MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-      // TODO: ordering
+      sortMovesOnHistory(tree);
       node.genPhase = GenPhase::End;
       break;
 
@@ -766,7 +783,7 @@ void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
                    excludeSmallCaptures);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-    // TODO: ordering
+    sortMovesOnHistory(tree);
   }
 }
 
@@ -776,6 +793,21 @@ Move Searcher::nextMoveOnQuies(Node& node) {
   }
 
   return *(node.moveIterator++);
+}
+
+void Searcher::sortMovesOnHistory(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+  auto turn = tree.position.getTurn();
+
+  for (auto ite = node.moveIterator; ite != node.moves.end(); ite++) {
+    auto& move = *ite;
+    auto r = history_.ratio(turn, move);
+    move.setExtData(static_cast<Move::RawType16>(r));
+  }
+
+  std::sort(node.moveIterator, node.moves.end(), [](const Move& lhs, const Move& rhs) {
+    return lhs.extData() > rhs.extData();
+  });
 }
 
 void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {

@@ -15,6 +15,7 @@
 #include "search/tree/NodeStat.hpp"
 #include "search/tree/Worker.hpp"
 #include "search/tt/TT.hpp"
+#include "search/history/History.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
 #include "common/time/Timer.hpp"
@@ -106,6 +107,8 @@ private:
 
   Move nextMoveOnQuies(Node& node);
 
+  void sortMovesOnHistory(Tree& tree);
+
   void storePV(Tree& tree, const PV& pv, unsigned ply);
 
   bool isInterrupted() const {
@@ -120,19 +123,21 @@ private:
     return false;
   }
 
-  Evaluator evaluator_;
-
-  TT tt_;
-
-  Tree treeOnMainThread_;
-  Worker workerOnMainThread_;
-
   SearchConfig config_;
   SearchResult result_;
   SearchInfo info_;
 
   std::atomic<bool> interrupted_;
   Timer timer_;
+
+  Evaluator evaluator_;
+
+  TT tt_;
+
+  History history_;
+
+  Tree treeOnMainThread_;
+  Worker workerOnMainThread_;
 
   Random random_;
 
