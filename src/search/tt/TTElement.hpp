@@ -13,23 +13,35 @@
 #include <cassert>
 
 // 1st quad word
-#define TT_AGE_WIDTH   3  // 2^3 = 8
-#define TT_HASH_WIDTH  61
+#define TT_AGE_MASK    0x0000000000000007LLU
+#define TT_MATE_MASK   0x0000000000000008LLU
+#define TT_HASH_MASK   0xfffffffffffffff0LLU
+
+#define TT_AGE_WIDTH    3
+#define TT_MATE_WIDTH   1
+#define TT_HASH_WIDTH  60
 
 #define TT_AGE_SHIFT   0
 #define TT_MATE_SHIFT  (TT_AGE_SHIFT + TT_AGE_WIDTH)
 
-#define TT_AGE_MASK    (((1LLU << TT_AGE_WIDTH) - 1LLU) << TT_AGE_SHIFT)
-#define TT_HASH_MASK   (~((1LLU << (64 - TT_HASH_WIDTH)) - 1))
-
 static_assert(TT_AGE_WIDTH
+            + TT_MATE_WIDTH
             + TT_HASH_WIDTH <= 64, "invalid data size");
+static_assert(TT_AGE_MASK  == (((1LLU << TT_AGE_WIDTH) - 1LLU) << TT_AGE_SHIFT), "invalid status");
+static_assert(TT_MATE_MASK == (((1LLU << TT_MATE_WIDTH) - 1LLU) << TT_MATE_SHIFT), "invalid status");
+static_assert(TT_HASH_MASK == (~((1LLU << (64 - TT_HASH_WIDTH)) - 1)), "invalid status");
 
 // 2nd quad word
+#define TT_MOVE_MASK  0x000000000000ffffLLU
+#define TT_SCORE_MASK 0x00000000ffff0000LLU
+#define TT_STYPE_MASK 0x0000000300000000LLU
+#define TT_DEPTH_MASK 0x00000ffc00000000LLU
+#define TT_CSUM_MASK  0xffff000000000000LLU
+
 #define TT_MOVE_WIDTH  16
-#define TT_SCORE_WIDTH 16 // 2^16
-#define TT_STYPE_WIDTH 2  // 2^2 = 4
-#define TT_DEPTH_WIDTH 10 // 2^10 = 1024
+#define TT_SCORE_WIDTH 16
+#define TT_STYPE_WIDTH  2
+#define TT_DEPTH_WIDTH 10
 #define TT_CSUM_WIDTH  16
 
 #define TT_MOVE_SHIFT  0
@@ -37,22 +49,21 @@ static_assert(TT_AGE_WIDTH
 #define TT_STYPE_SHIFT (TT_SCORE_SHIFT + TT_SCORE_WIDTH)
 #define TT_DEPTH_SHIFT (TT_STYPE_SHIFT + TT_STYPE_WIDTH)
 
-#define TT_MOVE_MASK   (((1LLU << TT_MOVE_WIDTH) - 1) << TT_MOVE_SHIFT)
-#define TT_SCORE_MASK  (((1LLU << TT_SCORE_WIDTH) - 1) << TT_SCORE_SHIFT)
-#define TT_STYPE_MASK  (((1LLU << TT_STYPE_WIDTH) - 1) << TT_STYPE_SHIFT)
-#define TT_DEPTH_MASK  (((1LLU << TT_DEPTH_WIDTH) - 1) << TT_DEPTH_SHIFT)
-#define TT_CSUM_MASK   (~((1LLU << (64 - TT_CSUM_WIDTH)) - 1))
-
-static_assert(sizeof(sunfish::Score::RawType) == 2, "invalid data size");
-
-static_assert(TT_CSUM_WIDTH == 16, "invalid data size");
-static_assert(TT_CSUM_MASK == 0xffff000000000000LLU, "invalid data size");
-
 static_assert(TT_MOVE_WIDTH
             + TT_SCORE_WIDTH
             + TT_STYPE_WIDTH
             + TT_DEPTH_WIDTH
             + TT_CSUM_WIDTH <= 64, "invalid data size");
+static_assert(TT_MOVE_MASK  == (((1LLU << TT_MOVE_WIDTH) - 1) << TT_MOVE_SHIFT), "invalid status");
+static_assert(TT_SCORE_MASK == (((1LLU << TT_SCORE_WIDTH) - 1) << TT_SCORE_SHIFT), "invalid status");
+static_assert(TT_STYPE_MASK == (((1LLU << TT_STYPE_WIDTH) - 1) << TT_STYPE_SHIFT), "invalid status");
+static_assert(TT_DEPTH_MASK == (((1LLU << TT_DEPTH_WIDTH) - 1) << TT_DEPTH_SHIFT), "invalid status");
+static_assert(TT_CSUM_MASK  == (~((1LLU << (64 - TT_CSUM_WIDTH)) - 1)), "invalid status");
+
+static_assert(sizeof(sunfish::Score::RawType) == 2, "invalid data size");
+
+static_assert(TT_CSUM_WIDTH == 16, "invalid data size");
+static_assert(TT_CSUM_MASK == 0xffff000000000000LLU, "invalid data size");
 
 namespace sunfish {
 
@@ -90,6 +101,7 @@ private:
               int newDepth,
               int ply,
               Move move,
+              bool mateThreat,
               AgeType newAge);
 
   QuadWord calcCheckSum() const {
@@ -121,6 +133,7 @@ public:
       Score newScore,
       int newDepth, int ply,
       const Move& move,
+      bool mateThreat,
       AgeType newAge) {
     TTScoreType newScoreType;
     if (newScore >= beta) {
@@ -137,6 +150,7 @@ public:
                   newDepth,
                   ply,
                   move,
+                  mateThreat,
                   newAge);
   }
 
@@ -192,6 +206,10 @@ public:
   AgeType age() const {
     auto data = (w1_ & TT_AGE_MASK) >> TT_AGE_SHIFT;
     return static_cast<AgeType>(data);
+  }
+
+  bool isMateThreat() const {
+    return w1_ & TT_MATE_MASK;
   }
 
 };

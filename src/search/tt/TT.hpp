@@ -33,11 +33,12 @@ public:
                  Score score,
                  int depth,
                  int ply,
-                 const Move& move) {
+                 const Move& move,
+                 bool mateThreat) {
     TTElement element;
     TTSlots& slots = getElement(hash);
     slots.get(hash, element);
-    if (element.update(hash, alpha, beta, score, depth, ply, move, age_)) {
+    if (element.update(hash, alpha, beta, score, depth, ply, move, mateThreat, age_)) {
       return slots.set(element);
     }
     return TTStatus::Reject;

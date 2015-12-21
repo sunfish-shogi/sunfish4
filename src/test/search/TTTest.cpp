@@ -88,7 +88,8 @@ TEST(TTTest, test) {
            Score(77), // score
            5, // depth
            3, // ply
-           Move(Square::s77(), Square::s76(), false));
+           Move(Square::s77(), Square::s76(), false),
+           false);
 
   tt.storePV(pos2.getHash(),
              7, // depth
@@ -114,7 +115,8 @@ TEST(TTTest, testElement) {
            Score(77), // score
            5, // depth
            3, // ply
-           Move(Square::s77(), Square::s76(), false));
+           Move(Square::s77(), Square::s76(), false),
+           false);
 
   tt.store(pos2.getHash(),
            Score(-123), // alpha
@@ -122,7 +124,8 @@ TEST(TTTest, testElement) {
            Score(517), // score
            -2, // depth
            3, // ply
-           Move(Square::s33(), Square::s34(), false));
+           Move(Square::s33(), Square::s34(), false),
+           false);
 
   tt.store(pos3.getHash(),
            Score(-123), // alpha
@@ -130,7 +133,8 @@ TEST(TTTest, testElement) {
            Score(-298), // score
            0, // depth
            3, // ply
-           Move(Square::s27(), Square::s26(), false));
+           Move(Square::s27(), Square::s26(), false),
+           true);
 
   tt.storePV(pos4.getHash(),
              7, // depth
@@ -142,6 +146,7 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(TTScoreType::Exact, tte.scoreType());
   ASSERT_EQ(5, tte.depth());
   ASSERT_EQ(Move(Square::s77(), Square::s76(), false), tte.move());
+  ASSERT_EQ(false, tte.isMateThreat());
 
   success = tt.get(pos2.getHash(), tte);
   ASSERT_EQ(true, success);
@@ -149,6 +154,7 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(TTScoreType::Lower, tte.scoreType());
   ASSERT_EQ(0, tte.depth());
   ASSERT_EQ(Move(Square::s33(), Square::s34(), false), tte.move());
+  ASSERT_EQ(false, tte.isMateThreat());
 
   success = tt.get(pos3.getHash(), tte);
   ASSERT_EQ(true, success);
@@ -156,12 +162,14 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(TTScoreType::Upper, tte.scoreType());
   ASSERT_EQ(0, tte.depth());
   ASSERT_EQ(Move(Square::s27(), Square::s26(), false), tte.move());
+  ASSERT_EQ(true, tte.isMateThreat());
 
   success = tt.get(pos4.getHash(), tte);
   ASSERT_EQ(true, success);
   ASSERT_EQ(TTScoreType::None, tte.scoreType());
   ASSERT_EQ(7, tte.depth());
   ASSERT_EQ(Move(Square::s83(), Square::s84(), false), tte.move());
+  ASSERT_EQ(false, tte.isMateThreat());
 }
 
 TEST(TTTest, testUpdate) {
@@ -178,7 +186,8 @@ TEST(TTTest, testUpdate) {
                  Score(77), // score
                  5, // depth
                  3, // ply
-                 Move(Square::s77(), Square::s76(), false));
+                 Move(Square::s77(), Square::s76(), false),
+                 false);
   ASSERT_TRUE(TTStatus::New == tts);
 
   // shallow
@@ -188,7 +197,8 @@ TEST(TTTest, testUpdate) {
                  Score(77), // score
                  3, // depth
                  3, // ply
-                 Move(Square::s77(), Square::s76(), false));
+                 Move(Square::s77(), Square::s76(), false),
+                 false);
   ASSERT_TRUE(TTStatus::Reject == tts);
 
   // same depth
@@ -198,7 +208,8 @@ TEST(TTTest, testUpdate) {
                  Score(77), // score
                  5, // depth
                  3, // ply
-                 Move(Square::s77(), Square::s76(), false));
+                 Move(Square::s77(), Square::s76(), false),
+                 false);
   ASSERT_TRUE(TTStatus::Update == tts);
 
   // deep
@@ -208,7 +219,8 @@ TEST(TTTest, testUpdate) {
                  Score(77), // score
                  7, // depth
                  3, // ply
-                 Move(Square::s77(), Square::s76(), false));
+                 Move(Square::s77(), Square::s76(), false),
+                 false);
   ASSERT_TRUE(TTStatus::Update == tts);
 }
 

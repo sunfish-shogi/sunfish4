@@ -501,6 +501,10 @@ Score Searcher::search(Tree& tree,
         node.hashMove = ttMove;
       }
     }
+
+    if (tte.isMateThreat()) {
+      nodeStat.setMateThreat();
+    }
   }
 
   Turn turn = tree.position.getTurn();
@@ -512,6 +516,7 @@ Score Searcher::search(Tree& tree,
   // null move pruning
   if (isNullWindow &&
       nodeStat.isNullMoveSearch() &&
+      !nodeStat.isMateThreat() &&
       !isCheck(node.checkState) &&
       standPat >= beta &&
       depth >= Depth1Ply * 2) {
@@ -533,6 +538,10 @@ Score Searcher::search(Tree& tree,
       alpha = score;
       worker.info.nullMovePruning++;
       goto hash_store; // XXX
+    }
+
+    if (score < -Score::mate()) {
+      nodeStat.setMateThreat();
     }
   }
 
@@ -649,7 +658,8 @@ hash_store:
             alpha,
             depth,
             tree.ply,
-            bestMove);
+            bestMove,
+            nodeStat.isMateThreat());
 
   return alpha;
 }

@@ -15,6 +15,7 @@ bool TTElement::update(Zobrist::Type newHash,
                        int newDepth,
                        int ply,
                        Move move,
+                       bool mateThreat,
                        AgeType newAge) {
   ASSERT(newAge <= MaxAge);
   ASSERT(newScoreType < (TTScoreType)(1 << TT_STYPE_WIDTH));
@@ -58,16 +59,17 @@ bool TTElement::update(Zobrist::Type newHash,
 
   // 1st quad word
   w1_ = newHash & TT_HASH_MASK;
-  w1_ |= (static_cast<QuadWord>(newAge)) << TT_AGE_SHIFT;
+  w1_ |= static_cast<QuadWord>(mateThreat) << TT_MATE_SHIFT;
+  w1_ |= static_cast<QuadWord>(newAge) << TT_AGE_SHIFT;
 
   // 2nd quad word
   auto scoreU16 = static_cast<uint16_t>(newScore.raw());
-  w2_ |= (static_cast<QuadWord>(scoreU16)) << TT_SCORE_SHIFT;
-  w2_ |= (static_cast<QuadWord>(newScoreType)) << TT_STYPE_SHIFT;
-  w2_ |= (static_cast<QuadWord>(newDepth)) << TT_DEPTH_SHIFT;
+  w2_ |= static_cast<QuadWord>(scoreU16) << TT_SCORE_SHIFT;
+  w2_ |= static_cast<QuadWord>(newScoreType) << TT_STYPE_SHIFT;
+  w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
   if (!move.isEmpty()) {
     w2_ &= ~TT_MOVE_MASK;
-    w2_ |= (static_cast<QuadWord>(move.serialize16())) << TT_MOVE_SHIFT;
+    w2_ |= static_cast<QuadWord>(move.serialize16()) << TT_MOVE_SHIFT;
   }
   w2_ |= calcCheckSum() & TT_CSUM_MASK;
 
@@ -85,25 +87,25 @@ void TTElement::updatePV(Zobrist::Type newHash,
   if (checkHash(newHash)) {
     if (newDepth >= depth() || newAge != age()) {
       w2_ &= ~(TT_STYPE_MASK | TT_DEPTH_MASK | TT_CSUM_MASK);
-      w2_ |= (static_cast<QuadWord>(None)) << TT_STYPE_SHIFT;
-      w2_ |= (static_cast<QuadWord>(newDepth)) << TT_DEPTH_SHIFT;
+      w2_ |= static_cast<QuadWord>(None) << TT_STYPE_SHIFT;
+      w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
     } else {
       w2_ &= ~(TT_CSUM_MASK);
     }
   } else {
     w2_ = Move::empty().serialize16() << TT_MOVE_SHIFT;
-    w2_ |= (static_cast<QuadWord>(None)) << TT_STYPE_SHIFT;
-    w2_ |= (static_cast<QuadWord>(newDepth)) << TT_DEPTH_SHIFT;
+    w2_ |= static_cast<QuadWord>(None) << TT_STYPE_SHIFT;
+    w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
   }
 
   // 1st quad word
   w1_ = newHash & TT_HASH_MASK;
-  w1_ |= (static_cast<QuadWord>(newAge)) << TT_AGE_SHIFT;
+  w1_ |= static_cast<QuadWord>(newAge) << TT_AGE_SHIFT;
 
   // 2nd quad word
   if (!move.isEmpty()) {
     w2_ &= ~TT_MOVE_MASK;
-    w2_ |= (static_cast<QuadWord>(move.serialize16())) << TT_MOVE_SHIFT;
+    w2_ |= static_cast<QuadWord>(move.serialize16()) << TT_MOVE_SHIFT;
   }
   w2_ |= calcCheckSum() & TT_CSUM_MASK;
 }
