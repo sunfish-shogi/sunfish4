@@ -143,7 +143,7 @@ public:
 #if USE_SSE2
     return T(_mm_or_si128(bb_.m, rhs.bb_.m));
 #else
-    return T(first() | rhs.first(), second() | rhs.second());
+    return nosseOr(*(static_cast<const T*>(this)), rhs);
 #endif
   }
 
@@ -154,7 +154,7 @@ public:
 #if USE_SSE2
     return T(_mm_and_si128(bb_.m, rhs.bb_.m));
 #else
-    return T(first() & rhs.first(), second() & rhs.second());
+    return nosseAnd(*(static_cast<const T*>(this)), rhs);
 #endif
   }
 
@@ -165,7 +165,7 @@ public:
 #if USE_SSE2
     return T(_mm_xor_si128(bb_.m, rhs.bb_.m));
 #else
-    return T(first() ^ rhs.first(), second() ^ rhs.second());
+    return nosseXor(*(static_cast<const T*>(this)), rhs);
 #endif
   }
 
@@ -182,7 +182,7 @@ public:
 #endif
           ));
 #else
-    return T((~first()) & Mask1, (~second()) & Mask2);
+    return nosseNot();
 #endif
   }
 
@@ -193,8 +193,28 @@ public:
 #if USE_SSE2
     return T(_mm_andnot_si128(bb_.m, rhs.bb_.m));
 #else
-    return T((~first()) & rhs.first(), (~second()) & rhs.second());
+    return nosseAndNot(rhs);
 #endif
+  }
+
+  friend T nosseOr(const T& lhs, const T& rhs) {
+    return T(lhs.first() | rhs.first(), lhs.second() | rhs.second());
+  }
+
+  friend T nosseAnd(const T& lhs, const T& rhs) {
+    return T(lhs.first() & rhs.first(), lhs.second() & rhs.second());
+  }
+
+  friend T nosseXor(const T& lhs, const T& rhs) {
+    return T(lhs.first() ^ rhs.first(), lhs.second() ^ rhs.second());
+  }
+
+  T nosseNot() const {
+    return T((~first()) & Mask1, (~second()) & Mask2);
+  }
+
+  T nosseAndNot(const T& rhs) const {
+    return T((~first()) & rhs.first(), (~second()) & rhs.second());
   }
 
   /**

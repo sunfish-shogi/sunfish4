@@ -10,11 +10,23 @@
 #include "core/move/Moves.hpp"
 #include "core/move/Move.hpp"
 #include "search/eval/Score.hpp"
+#include <utility>
+
+void test_method_ScoreTest_testGenerateAttackers();
 
 namespace sunfish {
 
 class SEE {
 public:
+
+  struct Attackers {
+    Score scores[10];
+    int num;
+  };
+
+  using AttackerSet = std::tuple<Attackers, Attackers>;
+
+  SEE() = delete;
 
   static Score calculate(const Position& position,
                          Move move);
@@ -26,7 +38,18 @@ public:
 
 private:
 
-  SEE();
+  static AttackerSet generateAttackers(const Position& position,
+                                       Square from,
+                                       Square to);
+
+  static Score search(const Attackers& ba,
+                      const Attackers& wa,
+                      int b,
+                      int w,
+                      Score score,
+                      Score materialScore);
+
+  friend void ::test_method_ScoreTest_testGenerateAttackers();
 
 };
 

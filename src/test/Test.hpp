@@ -17,9 +17,9 @@
 #include <utility>
 
 #define TEST(group, name) \
-void test_method_ ## group ## name();\
-sunfish::test_inserter__ __test_inserter_ ## group ## name (#group, #name, test_method_ ## group ## name); \
-void test_method_ ## group ## name()
+void test_method_ ## group ## _ ## name();\
+sunfish::test_inserter__ __test_inserter_ ## group ## _ ## name (#group, #name, test_method_ ## group ## _ ## name); \
+void test_method_ ## group ## _ ## name()
 
 #define ASSERT_EQ(correct, exact) do { \
   const auto correct_ = (correct); \

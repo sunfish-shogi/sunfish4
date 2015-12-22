@@ -829,6 +829,9 @@ Score Searcher::quies(Tree& tree,
   return alpha;
 }
 
+/**
+ * move generation for full expanding nodes
+ */
 void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
@@ -836,7 +839,6 @@ void Searcher::generateMoves(Tree& tree) {
     node.moves.add(node.hashMove);
   }
 
-  // generate moves
   if (!isCheck(node.checkState)) {
     node.genPhase = GenPhase::CapturingMoves;
   } else {
@@ -848,7 +850,10 @@ Move Searcher::nextMove(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
   for (;;) {
-    if (node.moveIterator != node.moves.end()) {
+    if (node.moveIterator != node.moves.end() &&
+        // if the move has minus SEE value, carry foward it to NotCapturingMoves phase.
+        (node.genPhase != GenPhase::NotCapturingMoves ||
+         moveToScore(*node.moveIterator) >= Score::zero())) {
       return *(node.moveIterator++);
     }
 
@@ -884,10 +889,12 @@ Move Searcher::nextMove(Tree& tree) {
   }
 }
 
+/**
+ * move generation for nodes of quiesence search
+ */
 void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
   auto& node = tree.nodes[tree.ply];
 
-  // generate moves
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
     bool excludeSmallCaptures = qply >= 7;
@@ -903,6 +910,11 @@ void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
 
 Move Searcher::nextMoveOnQuies(Node& node) {
   if (node.moveIterator == node.moves.end()) {
+    return Move::empty();
+  }
+
+  // exclude moves which have minus SEE value.
+  if (moveToScore(*node.moveIterator) < Score::zero()) {
     return Move::empty();
   }
 
