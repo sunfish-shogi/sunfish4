@@ -23,7 +23,8 @@ public:
   TTSlots() : lastAccess_(0) {
   }
 
-  void clear(SizeType) {
+  template <class T>
+  void clear(T) {
     for (SizeType i = 0; i < Size; i++) {
       slots_[i].clear();
     }
