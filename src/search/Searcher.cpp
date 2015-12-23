@@ -263,8 +263,6 @@ bool Searcher::idsearch(const Position& pos,
   random_.shuffle(node.moves.begin(), node.moves.end());
 #endif
 
-  bool ok = false;
-
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Move move = node.moves[moveCount];
 
@@ -299,7 +297,7 @@ bool Searcher::idsearch(const Position& pos,
 
   int completedDepth = 0;
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
-    ok = aspsearch(tree, currDepth);
+    bool cont = aspsearch(tree, currDepth);
 
     if (isInterrupted()) {
       break;
@@ -307,7 +305,7 @@ bool Searcher::idsearch(const Position& pos,
 
     completedDepth = currDepth;
 
-    if (!ok || currDepth >= depth) {
+    if (!cont || currDepth >= depth) {
       break;
     }
   }
@@ -318,7 +316,7 @@ bool Searcher::idsearch(const Position& pos,
   result_.depth = completedDepth;
   result_.elapsed = timer_.elapsed();
 
-  return ok;
+  return result_.score > -Score::mate();
 }
 
 /**
