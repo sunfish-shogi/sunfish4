@@ -290,8 +290,14 @@ void UsiClient::search() {
     bool isBlack = position_.getTurn() == Turn::Black;
     TimeType maximumMilliSeconds = isBlack ?  blackMilliSeconds_ : whiteMilliSeconds_;
     maximumMilliSeconds += byoyomiMilliSeconds_;
+    // TODO
+#if 0
     config.maximumMilliSeconds = maximumMilliSeconds;
     config.optimumMilliSeconds = maximumMilliSeconds / 5; // TODO
+#else
+    config.maximumMilliSeconds = std::min(8000u, maximumMilliSeconds);
+    config.optimumMilliSeconds = std::min(8000u, maximumMilliSeconds / 5); // TODO
+#endif
   }
 
   searcher_.setConfig(config);
