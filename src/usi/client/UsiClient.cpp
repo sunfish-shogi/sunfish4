@@ -5,6 +5,7 @@
 
 #include "usi/client/UsiClient.hpp"
 #include "common/string/StringUtil.hpp"
+#include "common/resource/Resource.hpp"
 #include "core/record/SfenParser.hpp"
 #include "search/eval/Material.hpp"
 #include "logger/Logger.hpp"
@@ -19,8 +20,12 @@
 
 namespace {
 
-const char* ProgramName = "Sunfish4";
-const char* Author = "Kubo Ryosuke";
+namespace resources {
+
+const char* ProgramName = "res/strings/usi_name";
+const char* Author = "res/strings/usi_author";
+
+} // namespace resources
 
 } // namespace
 
@@ -64,8 +69,10 @@ bool UsiClient::acceptUsiCommand() {
     return false;
   }
 
-  send("id", "name", ProgramName);
-  send("id", "author", Author);
+  auto name = Resource::string(resources::ProgramName, "Sunfish4");
+  auto author = Resource::string(resources::Author, "Kubo Ryosuke");
+  send("id", "name", name);
+  send("id", "author", author);
 
   // TODO: send options
 

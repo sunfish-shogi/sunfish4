@@ -1,10 +1,10 @@
-/* StringUtil.h
+/* StringUtil.hpp
  *
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_COMMON_UTIL_STRINGUTIL_HPP__
-#define SUNFISH_COMMON_UTIL_STRINGUTIL_HPP__
+#ifndef SUNFISH_COMMON_STRING_STRINGSTRING_HPP__
+#define SUNFISH_COMMON_STRING_STRINGSTRING_HPP__
 
 #include <string>
 #include <sstream>
@@ -96,4 +96,4 @@ public:
 
 } // namespace sunfish
 
-#endif // SUNFISH_COMMON_UTIL_STRINGUTIL_HPP__
+#endif // SUNFISH_COMMON_STRING_STRINGSTRING_HPP__

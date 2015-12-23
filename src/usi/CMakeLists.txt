@@ -10,6 +10,7 @@ include_directories("..")
 
 add_subdirectory(../search "${CMAKE_CURRENT_BINARY_DIR}/search")
 add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
+add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_usi
@@ -19,4 +20,5 @@ add_executable(sunfish_usi
 
 target_link_libraries(sunfish_usi search)
 target_link_libraries(sunfish_usi core)
+target_link_libraries(sunfish_usi common)
 target_link_libraries(sunfish_usi logger)
