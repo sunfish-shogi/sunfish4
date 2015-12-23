@@ -13,27 +13,26 @@
 
 #include <fstream>
 
-namespace {
-
-CONSTEXPR_CONST int SearchDepth = 15;
-
-} // namespace
-
 namespace sunfish {
 
 Solver::Solver() {
   searcher_.setHandler(&searchHandler_);
+  config_.muximumDepth = 7;
+  config_.muximumTimeSeconds = 1;
   result_.corrected = 0;
   result_.incorrected = 0;
   result_.skipped = 0;
 }
 
 bool Solver::solve(const char* path) {
+  result_.depthSum = 0;
+  result_.nodesSum = 0;
+  result_.elapsedSum = 0.0;
+
   if (FileUtil::isDirectory(path)) {
     // 'path' point to a directory
     Directory directory(path);
     auto files = directory.files("*.csa");
-
     for (const auto& path : files) {
       if (!solveCsaFile(path.c_str())) {
         return false;
@@ -47,6 +46,7 @@ bool Solver::solve(const char* path) {
     }
 
   } else {
+    // a specified path is not available.
     LOG(error) << "not exists: " << path;
     return false;
   }
@@ -54,9 +54,7 @@ bool Solver::solve(const char* path) {
   auto percentage = [](float n, float d) {
     return n / d * 100.0f;
   };
-
   auto total = result_.corrected + result_.incorrected + result_.skipped;
-
   OUT(info) << "";
   OUT(info) << "summary:";
   OUT(info) << "  total    : " << total;
@@ -66,6 +64,8 @@ bool Solver::solve(const char* path) {
                                << " (" << percentage(result_.incorrected, total) << "%)";
   OUT(info) << "  skipped  : " << result_.skipped
                                << " (" << percentage(result_.skipped, total) << "%)";
+  OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
+  OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected));
 
   return true;
 }
@@ -105,11 +105,12 @@ bool Solver::solve(const Position& position, Move correct) {
   OUT(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
-  config.maximumMilliSeconds = 3 * 1000;
-  config.optimumMilliSeconds = 1 * 1000;
+  config.maximumMilliSeconds = config_.muximumTimeSeconds * 1000;
+  config.optimumMilliSeconds = config_.muximumTimeSeconds * 1000;
   searcher_.setConfig(config);
 
-  bool ok = searcher_.idsearch(position, SearchDepth * Searcher::Depth1Ply);
+  int depth = config_.muximumDepth * Searcher::Depth1Ply;
+  bool ok = searcher_.idsearch(position, depth);
 
   if (!ok) {
     OUT(info) << "skipped.";
@@ -118,6 +119,8 @@ bool Solver::solve(const Position& position, Move correct) {
   }
 
   auto& result = searcher_.getResult();
+  auto& info = searcher_.getInfo();
+
   OUT(info) << "answer : " << result.move.toString(position);
   OUT(info) << "correct: " << correct.toString(position);
   if (result.move == correct) {
@@ -127,6 +130,10 @@ bool Solver::solve(const Position& position, Move correct) {
     OUT(info) << "result : incorrect";
     result_.incorrected++;
   }
+
+  result_.depthSum += result.depth;
+  result_.nodesSum += info.nodes;
+  result_.elapsedSum += result.elapsed;
 
   return true;
 }

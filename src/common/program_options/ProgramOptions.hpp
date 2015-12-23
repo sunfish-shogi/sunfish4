@@ -78,14 +78,14 @@ public:
         // option key
         bool isFullSpell = (arg[1] == '-');
         if (lastKey != nullptr) {
-          invalidArguments_.push_back({ lastKeyFull, "value is required" });
+          invalidArguments_.push_back({ lastKeyFull, "this option require a value" });
           lastKey = nullptr;
         }
         lastKey = &arg[isFullSpell?2:1];
         lastKeyFull = arg;
         auto opt = getOption(lastKey, !isFullSpell);
         if (opt == nullptr) {
-          invalidArguments_.push_back({ lastKeyFull, "unknown name" });
+          invalidArguments_.push_back({ lastKeyFull, "unknown option" });
           lastKey = nullptr;
         } else if (!opt->arg) {
           setValue(lastKey, "");
@@ -98,7 +98,7 @@ public:
           setValue(lastKey, arg);
           lastKey = nullptr;
         } else {
-          invalidArguments_.push_back({ lastKeyFull, "value is required" });
+          invalidArguments_.push_back({ lastKeyFull, "this option require a value" });
           lastKey = nullptr;
         }
 

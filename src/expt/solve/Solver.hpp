@@ -10,16 +10,26 @@
 #include "core/move/Move.hpp"
 #include "search/Searcher.hpp"
 #include <string>
+#include <cstdint>
 
 namespace sunfish {
 
 class Solver {
 public:
 
+  struct Config {
+    int muximumDepth;
+    SearchConfig::TimeType muximumTimeSeconds;
+  };
+
   struct Result {
     unsigned corrected;
     unsigned incorrected;
     unsigned skipped;
+
+    unsigned depthSum;
+    uint64_t nodesSum;
+    double elapsedSum;
   };
 
   Solver();
@@ -28,6 +38,14 @@ public:
 
   bool solve(const std::string& path) {
     return solve(path.c_str());
+  }
+
+  const Config& getConfig() const {
+    return config_;
+  }
+
+  void setConfig(const Config& config) {
+    config_ = config;
   }
 
 private:
@@ -40,6 +58,7 @@ private:
 
   LoggingSearchHandler searchHandler_;
   Searcher searcher_;
+  Config config_;
   Result result_;
 
 };

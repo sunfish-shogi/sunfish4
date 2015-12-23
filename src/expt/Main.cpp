@@ -10,6 +10,7 @@
 #include "expt/solve/Solver.hpp"
 #include "expt/mgtest/MoveGenerationTest.hpp"
 #include "logger/Logger.hpp"
+#include <string>
 
 using namespace sunfish;
 
@@ -22,6 +23,8 @@ int main(int argc, char** argv, char**) {
   ProgramOptions po;
   po.addOption("solve", "run a solver", true);
   po.addOption("mgtest", "run a cross-check test of move generation");
+  po.addOption("time", "t", "a muximum time of search in seconds (This option is only used when the --solver option is specified.)", true);
+  po.addOption("depth", "d", "a muximum depth of search (This option is only used when the --solver option is specified.)", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -50,11 +53,19 @@ int main(int argc, char** argv, char**) {
 
   // solver
   if (po.has("solve")) {
-    std::string targetDirectory = po.getValue("solve");
-
     Solver solver;
-    bool ok = solver.solve(targetDirectory);
 
+    auto config = solver.getConfig();
+    if (po.has("time")) {
+      config.muximumTimeSeconds = std::stoi(po.getValue("time"));
+    }
+    if (po.has("depth")) {
+      config.muximumDepth = std::stoi(po.getValue("depth"));
+    }
+    solver.setConfig(config);
+
+    std::string targetDirectory = po.getValue("solve");
+    bool ok = solver.solve(targetDirectory);
     return ok ? 0 : 1;
   }
 
@@ -62,7 +73,6 @@ int main(int argc, char** argv, char**) {
   if (po.has("mgtest")) {
     MoveGenerationTest mgtest;
     bool ok = mgtest.test(500, 1000);
-
     return ok ? 0 : 1;
   }
 

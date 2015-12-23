@@ -52,7 +52,7 @@ expt-prof:
 
 prof:
 	$(MAKE) expt-prof
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1)
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1) --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
 	@echo "See $(PROFOUT)."
 

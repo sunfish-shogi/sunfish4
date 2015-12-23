@@ -95,6 +95,7 @@ void Searcher::onSearchStarted() {
   result_.move = Move::empty();
   result_.score = Score::zero();
   result_.pv.clear();
+  result_.depth = 0;
   result_.elapsed = 0.0f;
 
   initializeWorker(workerOnMainThread_);
@@ -227,6 +228,7 @@ bool Searcher::search(const Position& pos,
   result_.move = bestMove;
   result_.score = alpha;
   result_.pv = node.pv;
+  result_.depth = depth;
   result_.elapsed = timer_.elapsed();
 
   return hasBestMove;
@@ -295,10 +297,17 @@ bool Searcher::idsearch(const Position& pos,
     return moveToScore(lhs) > moveToScore(rhs);
   });
 
+  int completedDepth = 0;
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
     ok = aspsearch(tree, currDepth);
 
-    if (!ok || isInterrupted() || currDepth >= depth) {
+    if (isInterrupted()) {
+      break;
+    }
+
+    completedDepth = currDepth;
+
+    if (!ok || currDepth >= depth) {
       break;
     }
   }
@@ -306,6 +315,7 @@ bool Searcher::idsearch(const Position& pos,
   result_.move = node.moves[0].excludeExtData();
   result_.score = moveToScore(node.moves[0]);
   result_.pv = node.pv;
+  result_.depth = completedDepth;
   result_.elapsed = timer_.elapsed();
 
   return ok;
