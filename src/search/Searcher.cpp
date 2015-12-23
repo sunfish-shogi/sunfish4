@@ -910,13 +910,6 @@ void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
                    node.moves,
                    node.moveIterator,
                    excludeSmallCaptures);
-    // exclude moves which have minus SEE value.
-    for (auto ite = node.moves.begin(); ite != node.moves.end(); ite++) {
-      if (moveToScore(*ite) < Score::zero()) {
-        node.moves.removeAfter(ite);
-        break;
-      }
-    }
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
     sortMovesOnHistory(tree);

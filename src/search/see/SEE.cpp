@@ -126,7 +126,7 @@ void SEE::sortMoves(const Position& position,
                     Moves::iterator begin,
                     bool excludeSmallCaptures) {
   for (auto ite = begin; ite != moves.end(); ) {
-    Move move = *ite;
+    auto& move = *ite;
 
     if (excludeSmallCaptures) {
       auto piece = position.getPieceOnBoard(move.from());
@@ -139,8 +139,13 @@ void SEE::sortMoves(const Position& position,
     }
 
     Score score = calculate(position, move);
-    *ite = move;
-    ite->setExtData(static_cast<Move::RawType16>(score.raw()));
+
+    if (excludeSmallCaptures && score <= material::PawnEx) {
+      ite = moves.remove(ite);
+      continue;
+    }
+
+    move.setExtData(static_cast<Move::RawType16>(score.raw()));
 
     ite++;
   }
