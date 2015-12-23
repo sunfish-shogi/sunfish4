@@ -12,5 +12,4 @@ add_library(search STATIC
     RandomSearcher.cpp
     Searcher.cpp
     SearchHandler.cpp
-    SearchInfo.cpp
 )

@@ -7,18 +7,27 @@
 #define SUNFISH_SEARCH_SEARCHINFO_HPP__
 
 #include <cstdint>
+#include <cstring>
 
 namespace sunfish {
 
 struct SearchInfo {
   uint64_t nodes;
+  uint64_t quiesNodes;
   uint64_t hashCut;
   uint64_t nullMovePruning;
 };
 
-void initializeSearchInfo(SearchInfo& info);
+inline void initializeSearchInfo(SearchInfo& info) {
+  memset(&info, 0, sizeof(info));
+}
 
-void mergeSearchInfo(SearchInfo& dst, const SearchInfo& src);
+inline void mergeSearchInfo(SearchInfo& dst, const SearchInfo& src) {
+  dst.nodes += src.nodes;
+  dst.quiesNodes += src.quiesNodes;
+  dst.hashCut += src.hashCut;
+  dst.nullMovePruning += src.nullMovePruning;
+}
 
 } // namespace sunfish
 

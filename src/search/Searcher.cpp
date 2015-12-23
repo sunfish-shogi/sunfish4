@@ -787,7 +787,7 @@ Score Searcher::quies(Tree& tree,
   arrive(node);
 
   auto& worker = *tree.worker;
-  worker.info.nodes++;
+  worker.info.quiesNodes++;
 
   Turn turn = tree.position.getTurn();
   Score standPat = turn == Turn::Black ? node.score : -node.score;
@@ -910,6 +910,13 @@ void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
                    node.moves,
                    node.moveIterator,
                    excludeSmallCaptures);
+    // exclude moves which have minus SEE value.
+    for (auto ite = node.moves.begin(); ite != node.moves.end(); ite++) {
+      if (moveToScore(*ite) < Score::zero()) {
+        node.moves.removeAfter(ite);
+        break;
+      }
+    }
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
     sortMovesOnHistory(tree);
@@ -918,11 +925,6 @@ void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
 
 Move Searcher::nextMoveOnQuies(Node& node) {
   if (node.moveIterator == node.moves.end()) {
-    return Move::empty();
-  }
-
-  // exclude moves which have minus SEE value.
-  if (moveToScore(*node.moveIterator) < Score::zero()) {
     return Move::empty();
   }
 

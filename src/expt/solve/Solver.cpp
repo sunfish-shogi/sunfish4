@@ -129,13 +129,15 @@ bool Solver::solve(const Position& position, Move correct) {
     result_.incorrected++;
   }
   result_.depthSum += result.depth;
-  result_.nodesSum += info.nodes;
+  result_.nodesSum += info.nodes + info.quiesNodes;
   result_.elapsedSum += result.elapsed;
 
   OUT(info) << "answer : " << result.move.toString(position);
   OUT(info) << "correct: " << correct.toString(position);
   OUT(info) << "result : " << (isCorrect ? "correct" : "incorrect");
-  OUT(info) << "nps    : " << static_cast<uint64_t>(info.nodes / result.elapsed);
+  OUT(info) << "nodes  : " << info.nodes;
+  OUT(info) << "q-nodes: " << info.quiesNodes;
+  OUT(info) << "nps    : " << static_cast<uint64_t>((info.nodes + info.quiesNodes) / result.elapsed);
   OUT(info) << "";
 
   return true;

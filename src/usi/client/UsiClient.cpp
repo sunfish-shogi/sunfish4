@@ -330,7 +330,8 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
 
   auto timeMilliSeconds = static_cast<uint32_t>(elapsed * 1e3);
   auto realDepth = depth / Searcher::Depth1Ply;
-  auto nps = static_cast<uint32_t>(info.nodes / elapsed);
+  auto totalNodes = info.nodes + info.quiesNodes;
+  auto nps = static_cast<uint32_t>(totalNodes / elapsed);
 
   const char* scoreKey;
   int scoreValue;
@@ -349,7 +350,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
   send("info",
        "time", timeMilliSeconds,
        "depth", realDepth,
-       "nodes", info.nodes,
+       "nodes", totalNodes,
        "nps", nps,
        "currmove", pv.getMove(0).toStringSFEN(),
        "score", scoreKey, scoreValue,
@@ -388,11 +389,14 @@ void UsiClient::outputSearchInfo() {
   const auto& info = searcher_.getInfo();
   const auto& result = searcher_.getResult();
 
-  auto nps = static_cast<uint32_t>(info.nodes / result.elapsed);
+  auto totalNodes = info.nodes + info.quiesNodes;
+  auto nps = static_cast<uint32_t>(totalNodes / result.elapsed);
 
   OUT(info) << "nps               : " << nps;
   OUT(info) << "elapsed           : " << std::fixed << std::setprecision(3) << result.elapsed;
   OUT(info) << "nodes             : " << info.nodes;
+  OUT(info) << "quies nodes       : " << info.quiesNodes;
+  OUT(info) << "total nodes       : " << totalNodes;
   OUT(info) << "hash-cut          : " << info.hashCut;
   OUT(info) << "null move pruning : " << info.nullMovePruning;
 }

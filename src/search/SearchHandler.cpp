@@ -26,7 +26,7 @@ void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, fl
   auto realDepth = depth / Searcher::Depth1Ply;
 
   OUT(info) << std::setw(2) << realDepth << ": "
-            << std::setw(10) << info.nodes << ": "
+            << std::setw(10) << (info.nodes + info.quiesNodes) << ": "
             << std::setw(7) << timeMilliSeconds << ' '
             << pv.toString() << ": "
             << score;
