@@ -120,4 +120,36 @@ TEST(ScoreTest, testCalculate) {
   }
 }
 
+TEST(ScoreTest, testSortMoves) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  * -GI * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 * -FU *  *  * -KY *  *  * \n"
+      "P4 * -KE+HI *  *  *  *  *  * \n"
+      "P5 * +FU *  *  * -FU *  *  * \n"
+      "P6 *  *  *  * +KI+FU *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Moves moves;
+    moves.add(Move(Square::s46(), Square::s45(), false));
+    moves.add(Move(Square::s56(), Square::s45(), false));
+    moves.add(Move(Square::s74(), Square::s71(), true ));
+    moves.add(Move(Square::s74(), Square::s84(), false));
+    moves.add(Move(Square::s85(), Square::s84(), false));
+
+    SEE::sortMoves(pos, moves, moves.begin(), false);
+
+    ASSERT_EQ(Move(Square::s74(), Square::s71(), true ), moves[0]);
+    ASSERT_EQ(Move(Square::s85(), Square::s84(), false), moves[1]);
+    ASSERT_EQ(Move(Square::s46(), Square::s45(), false), moves[2]);
+    ASSERT_EQ(Move(Square::s56(), Square::s45(), false), moves[3]);
+    ASSERT_EQ(Move(Square::s74(), Square::s84(), false), moves[4]);
+  }
+}
+
 #endif // !defined(NDEBUG)
