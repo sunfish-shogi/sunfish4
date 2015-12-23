@@ -17,7 +17,7 @@ namespace sunfish {
 
 Solver::Solver() {
   searcher_.setHandler(&searchHandler_);
-  config_.muximumDepth = 7;
+  config_.muximumDepth = 18;
   config_.muximumTimeSeconds = 1;
   result_.corrected = 0;
   result_.incorrected = 0;
@@ -55,7 +55,6 @@ bool Solver::solve(const char* path) {
     return n / d * 100.0f;
   };
   auto total = result_.corrected + result_.incorrected + result_.skipped;
-  OUT(info) << "";
   OUT(info) << "summary:";
   OUT(info) << "  total    : " << total;
   OUT(info) << "  correct  : " << result_.corrected
@@ -72,10 +71,12 @@ bool Solver::solve(const char* path) {
 
 bool Solver::solveCsaFile(const char* path) {
   OUT(info) << "open a record file: " << path;
+  OUT(info) << "";
 
   std::ifstream file(path);
   if (!file) {
     LOG(error) << "could not open a file: " << path;
+    OUT(info) << "";
     return false;
   }
 
@@ -93,6 +94,7 @@ bool Solver::solveCsaFile(const char* path) {
     if (!position.doMove(move, captured)) {
       LOG(error) << "invalid move: " << move.toString(position) << "\n"
                  << "on:\n" << position.toString();
+      OUT(info) << "";
       return false;
     }
   }
@@ -101,7 +103,6 @@ bool Solver::solveCsaFile(const char* path) {
 }
 
 bool Solver::solve(const Position& position, Move correct) {
-  OUT(info) << "";
   OUT(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
@@ -120,20 +121,22 @@ bool Solver::solve(const Position& position, Move correct) {
 
   auto& result = searcher_.getResult();
   auto& info = searcher_.getInfo();
+  bool isCorrect = result.move == correct;
 
-  OUT(info) << "answer : " << result.move.toString(position);
-  OUT(info) << "correct: " << correct.toString(position);
-  if (result.move == correct) {
-    OUT(info) << "result : correct";
+  if (isCorrect) {
     result_.corrected++;
   } else {
-    OUT(info) << "result : incorrect";
     result_.incorrected++;
   }
-
   result_.depthSum += result.depth;
   result_.nodesSum += info.nodes;
   result_.elapsedSum += result.elapsed;
+
+  OUT(info) << "answer : " << result.move.toString(position);
+  OUT(info) << "correct: " << correct.toString(position);
+  OUT(info) << "result : " << (isCorrect ? "correct" : "incorrect");
+  OUT(info) << "nps    : " << static_cast<uint64_t>(info.nodes / result.elapsed);
+  OUT(info) << "";
 
   return true;
 }

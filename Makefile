@@ -13,6 +13,7 @@ SUNFISH_USI:=sunfish_usi
 SUNFISH_DEV:=sunfish_dev
 BUILD_DIR:=build
 KIFU_PROF1:=kifu/prof1
+KIFU_PROF5:=kifu/prof5
 PROFOUT:=profile.txt
 GEN_COV:=tools/gen_cov_report.py
 
@@ -31,6 +32,7 @@ help:
 	@echo 'usage:'
 	@echo '  make expt'
 	@echo '  make prof'
+	@echo '  make prof1'
 	@echo '  make test'
 	@echo '  make bm'
 	@echo '  make usi'
@@ -51,6 +53,12 @@ expt-prof:
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
 prof:
+	$(MAKE) expt-prof
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROF5) --time 5 --depth 18
+	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
+	@echo "See $(PROFOUT)."
+
+prof1:
 	$(MAKE) expt-prof
 	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1) --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
