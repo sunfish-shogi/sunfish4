@@ -438,6 +438,7 @@ void UsiClient::send(T&& command) {
   std::lock_guard<std::mutex> lock(sendMutex_);
 
   std::cout << command << std::endl;
+  std::cout.flush();
   OUT(send) << command;
 }
 
