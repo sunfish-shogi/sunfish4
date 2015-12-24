@@ -4,10 +4,10 @@
 /sunfish_bm
 /sunfish_usi
 /sunfish_dev
-/test_result.xml
-/test_result_sse.xml
-/test_result_nosse.xml
-/build
+/out/test_result.xml
+/out/test_result_sse.xml
+/out/test_result_nosse.xml
+/out/build
 
 *.html
 *.csa

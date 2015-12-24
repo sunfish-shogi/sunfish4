@@ -3,6 +3,7 @@
  * Kubo Ryosuke
  */
 
+#include "common/resource/Resource.hpp"
 #include "core/util/CoreUtil.hpp"
 #include "search/util/SearchUtil.hpp"
 #include "usi/client/UsiClient.hpp"
@@ -12,8 +13,14 @@
 
 namespace {
 
-const char* DefaultUsiLogFilename = "usi.log";
+const char* DefaultUsiLogPath = "out/usi.log";
 bool EnableLogFile = true;
+
+namespace resources {
+
+const char* UsiLogPath = "res/strings/usi_log_path";
+
+} // namespace resources
 
 } // namespace
 
@@ -27,7 +34,9 @@ int main(int, char**, char**) {
   // Logger settings
   std::ofstream fout;
   if (EnableLogFile) {
-    fout.open(DefaultUsiLogFilename, std::ios::out | std::ios::app);
+    auto usiLogPath = Resource::string(resources::UsiLogPath,
+                                       DefaultUsiLogPath);
+    fout.open(usiLogPath, std::ios::out | std::ios::app);
 
     Loggers::error.addStream(fout, true, true);
     Loggers::warning.addStream(fout, true, true);
