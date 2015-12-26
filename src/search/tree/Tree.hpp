@@ -8,28 +8,33 @@
 
 #include "common/Def.hpp"
 #include "search/tree/Node.hpp"
+#include "search/shek/ShekTable.hpp"
+#include "search/shek/SCRDetector.hpp"
 #include "core/position/Position.hpp"
 #include <string>
 
 namespace sunfish {
 
+class Record;
 class Evaluator;
-
 struct Worker;
 
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
   Position position;
+  ShekTable shekTable;
+  Worker* worker;
   int ply;
   Node nodes[StackSize];
-  Worker* worker;
+  SCRDetector scr;
 };
 
 void initializeTree(Tree& tree,
                     const Position& position,
                     Score score,
-                    Worker* worker);
+                    Worker* worker,
+                    const Record* record);
 
 bool doMove(Tree& tree, Move& move, Evaluator& eval);
 

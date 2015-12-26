@@ -44,6 +44,12 @@ struct Record {
   MoveListType moveList;
 };
 
+/**
+ * if numberOfMoves is a negative number, returns the last position.
+ */
+Position generatePosition(const Record& record,
+                          int numberOfMoves);
+
 } // namespace sunfish
 
 #endif // SUNFISH_CORE_RECORD_RECORD__

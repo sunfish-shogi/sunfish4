@@ -8,6 +8,7 @@
 namespace sunfish {
 
 void arrive(Node& node) {
+  node.isHistorical = false;
   node.hashMove = Move::empty();
   node.moves.clear();
   node.moveIterator = node.moves.begin();

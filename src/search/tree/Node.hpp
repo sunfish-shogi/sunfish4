@@ -10,10 +10,11 @@
 #include "search/eval/Score.hpp"
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
+#include <cstdint>
 
 namespace sunfish {
 
-enum GenPhase {
+enum GenPhase : uint8_t {
   CapturingMoves,
   NotCapturingMoves,
   Evasions,
@@ -21,11 +22,13 @@ enum GenPhase {
 };
 
 struct Node {
+  Zobrist::Type hash;
   Score score;
   CheckState checkState;
+  bool isHistorical;
 
-  Move move;
   Piece captured;
+  Move move;
   Move hashMove;
 
   GenPhase genPhase;

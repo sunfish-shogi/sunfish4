@@ -120,13 +120,14 @@ void Searcher::updateInfo() {
 bool Searcher::search(const Position& pos,
                       int depth,
                       Score alpha,
-                      Score beta) {
+                      Score beta,
+                      Record* record /*= nullptr*/) {
   onSearchStarted();
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
   Score rootScore = evaluator_.evaluateMaterial(pos);
-  initializeTree(tree, pos, rootScore, &worker);
+  initializeTree(tree, pos, rootScore, &worker, record);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -238,13 +239,14 @@ bool Searcher::search(const Position& pos,
  * iterative deepening search
  */
 bool Searcher::idsearch(const Position& pos,
-                        int depth) {
+                        int depth,
+                        Record* record /*= nullptr*/) {
   onSearchStarted();
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
   Score rootScore = evaluator_.evaluateMaterial(pos);
-  initializeTree(tree, pos, rootScore, &worker);
+  initializeTree(tree, pos, rootScore, &worker, record);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -492,14 +494,48 @@ Score Searcher::search(Tree& tree,
                        NodeStat nodeStat) {
 #if 0
   bool isDebug = false;
-  if (getPath(tree, tree.ply) == "42GI") {
-    LOG(message) << "debugging node:"
-        << " depth=" << depth
-        << " alpha=" << alpha
-        << " beta =" << beta;
+  if (getPath(tree, tree.ply) == "4647+ 5847 46FU") {
+    LOG(info) << "debugging node:"
+              << " depth=" << depth
+              << " alpha=" << alpha
+              << " beta =" << beta;
     isDebug = true;
   }
 #endif
+
+  auto& node = tree.nodes[tree.ply];
+  arrive(node);
+
+  // SHEK(strong horizontal effect killer)
+  switch (tree.shekTable.check(tree.position)) {
+  case ShekState::Equal4:
+    node.isHistorical = true;
+    switch (tree.scr.detect(tree)) {
+    case SCRState::Draw:
+      return Score::zero();
+    case SCRState::Win:
+      return Score::infinity() - tree.ply;
+    case SCRState::Lose:
+      return -Score::infinity() + tree.ply;
+    case SCRState::None:
+      break;
+    }
+
+  case ShekState::Equal:
+    node.isHistorical = true;
+    return Score::zero();
+
+  case ShekState::Superior:
+    node.isHistorical = true;
+    return Score::infinity() - tree.ply;
+
+  case ShekState::Inferior:
+    node.isHistorical = true;
+    return -Score::infinity() + tree.ply;
+
+  case ShekState::None:
+    break;
+  }
 
   // quiesence search
   if (depth <= 0) {
@@ -509,16 +545,12 @@ Score Searcher::search(Tree& tree,
                  beta);
   }
 
-  auto& node = tree.nodes[tree.ply];
-  arrive(node);
-
   auto& worker = *tree.worker;
   worker.info.nodes++;
 
-  // static evaluation
   if (tree.ply >= Tree::StackSize) {
-    Turn turn = tree.position.getTurn();
-    return turn == Turn::Black ? node.score : -node.score;
+    node.isHistorical = true;
+    return tree.position.getTurn() == Turn::Black ? node.score : -node.score;
   }
 
   const Score oldAlpha = alpha;
@@ -613,6 +645,8 @@ Score Searcher::search(Tree& tree,
     undoNullMove(tree);
 
     if (score >= beta) {
+      auto& childNode = tree.nodes[tree.ply+1];
+      node.isHistorical = childNode.isHistorical;
       worker.info.nullMovePruning++;
       tt_.store(tree.position.getHash(),
                 oldAlpha,
@@ -733,18 +767,22 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
+    auto& childNode = tree.nodes[tree.ply+1];
+
     if (score > alpha) {
       alpha = score;
       bestMove = move;
 
-      auto& childNode = tree.nodes[tree.ply+1];
-      node.pv.set(move, depth, childNode.pv);
-
       // beta cut
       if (score >= beta) {
+        node.isHistorical = childNode.isHistorical;
         break;
       }
+
+      node.pv.set(move, depth, childNode.pv);
     }
+
+    node.isHistorical |= childNode.isHistorical;
 
     isFirst = false;
   }
@@ -764,14 +802,16 @@ Score Searcher::search(Tree& tree,
     }
   }
 
-  tt_.store(tree.position.getHash(),
-            oldAlpha,
-            beta,
-            alpha,
-            depth,
-            tree.ply,
-            bestMove,
-            nodeStat.isMateThreat());
+  if (!node.isHistorical) {
+    tt_.store(tree.position.getHash(),
+              oldAlpha,
+              beta,
+              alpha,
+              depth,
+              tree.ply,
+              bestMove,
+              nodeStat.isMateThreat());
+  }
 
   return alpha;
 }
@@ -793,6 +833,11 @@ Score Searcher::quies(Tree& tree,
   Score standPat = turn == Turn::Black ? node.score : -node.score;
 
   if (standPat >= beta) {
+    return standPat;
+  }
+
+  if (tree.ply >= Tree::StackSize) {
+    node.isHistorical = true;
     return standPat;
   }
 

@@ -5,24 +5,65 @@
 
 #include "search/tree/Tree.hpp"
 #include "search/eval/Evaluator.hpp"
+#include "core/record/Record.hpp"
 #include "logger/Logger.hpp"
 #include <sstream>
+
+namespace {
+
+using namespace sunfish;
+
+void initializeShekTable(ShekTable& shekTable, const Record* record) {
+  shekTable.initialize();
+
+  if (record == nullptr) {
+    return;
+  }
+
+  Position pos = record->initialPosition;
+  for (auto& move : record->moveList) {
+    shekTable.retain(pos);
+
+    Piece captured;
+    if (!pos.doMove(move, captured)) {
+      LOG(error) << "illegal move: " << move.toString();
+      return;
+    }
+  }
+}
+
+} // namespace
 
 namespace sunfish {
 
 void initializeTree(Tree& tree,
                     const Position& position,
                     Score score,
-                    Worker* worker) {
+                    Worker* worker,
+                    const Record* record) {
   tree.position = position;
-  tree.ply = 0;
   tree.worker = worker;
+  tree.ply = 0;
   tree.nodes[0].score = score;
+
+  // SHEK
+  initializeShekTable(tree.shekTable, record);
+
+  // successive checks repetition detector
+  if (record != nullptr) {
+    tree.scr.registerRecord(*record);
+  } else {
+    tree.scr.clear();
+  }
 }
 
 bool doMove(Tree& tree, Move& move, Evaluator& eval) {
   auto& node = tree.nodes[tree.ply];
+  node.hash = tree.position.getHash();
+  tree.shekTable.retain(tree.position);
+
   if (!tree.position.doMove(move, node.captured)) {
+    tree.shekTable.release(tree.position);
     return false;
   }
 
@@ -40,11 +81,15 @@ void undoMove(Tree& tree) {
   tree.ply--;
   auto& node = tree.nodes[tree.ply];
   tree.position.undoMove(node.move, node.captured);
+  tree.shekTable.release(tree.position);
 }
 
 void doNullMove(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
+  node.hash = tree.position.getHash();
+
   tree.position.doNullMove();
+
   node.move = Move::empty();
   tree.ply++;
 

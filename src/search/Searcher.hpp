@@ -27,6 +27,7 @@ namespace sunfish {
 
 class Position;
 class Move;
+class Record;
 
 class Searcher {
 public:
@@ -39,23 +40,27 @@ public:
   Searcher();
 
   bool search(const Position& pos,
-              int depth) {
+              int depth,
+              Record* record = nullptr) {
     return search(pos,
                   depth,
                   -Score::infinity(),
-                  Score::infinity());
+                  Score::infinity(),
+                  record);
   }
 
   bool search(const Position& pos,
               int depth,
               Score alpha,
-              Score beta);
+              Score beta,
+              Record* record = nullptr);
 
   /**
    * iterative deepening search.
    */
   bool idsearch(const Position& pos,
-                int depth);
+                int depth,
+                Record* record = nullptr);
 
   const SearchConfig& getConfig() const {
     return config_;

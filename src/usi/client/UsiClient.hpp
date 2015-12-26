@@ -7,6 +7,7 @@
 #define SUNFISH_USI_CLIENT_USICLIENT_HPP__
 
 #include "core/position/Position.hpp"
+#include "core/record/Record.hpp"
 #include "search/Searcher.hpp"
 #include <iostream>
 #include <string>
@@ -116,7 +117,7 @@ private:
   std::atomic<State> state_;
 
   bool positionIsInitialized_;
-  Position position_;
+  Record record_;
 
   TimeType blackMilliSeconds_;
   TimeType whiteMilliSeconds_;

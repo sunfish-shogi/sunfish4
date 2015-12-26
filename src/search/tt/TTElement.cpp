@@ -40,7 +40,7 @@ bool TTElement::update(Zobrist::Type newHash,
 
   // normalize a score
   if (newScore >= Score::mate()) {
-    if (newScoreType == Lower) {
+    if (newScoreType == TTScoreType::Lower) {
       if (newScore < Score::infinity() - ply) {
         newScore += ply;
       } else {
@@ -48,7 +48,7 @@ bool TTElement::update(Zobrist::Type newHash,
       }
     }
   } else if (newScore <= -Score::mate()) {
-    if (newScoreType == Upper) {
+    if (newScoreType == TTScoreType::Upper) {
       if (newScore > -Score::infinity() + ply) {
         newScore -= ply;
       } else {
@@ -87,14 +87,14 @@ void TTElement::updatePV(Zobrist::Type newHash,
   if (checkHash(newHash)) {
     if (newDepth >= depth() || newAge != age()) {
       w2_ &= ~(TT_STYPE_MASK | TT_DEPTH_MASK | TT_CSUM_MASK);
-      w2_ |= static_cast<QuadWord>(None) << TT_STYPE_SHIFT;
+      w2_ |= static_cast<QuadWord>(TTScoreType::None) << TT_STYPE_SHIFT;
       w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
     } else {
       w2_ &= ~(TT_CSUM_MASK);
     }
   } else {
     w2_ = Move::empty().serialize16() << TT_MOVE_SHIFT;
-    w2_ |= static_cast<QuadWord>(None) << TT_STYPE_SHIFT;
+    w2_ |= static_cast<QuadWord>(TTScoreType::None) << TT_STYPE_SHIFT;
     w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
   }
 

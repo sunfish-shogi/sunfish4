@@ -22,12 +22,12 @@ public:
   using ElementType = E;
   using SizeType = uint32_t;
 
-  static CONSTEXPR_CONST unsigned DefaultBits = 18;
+  static CONSTEXPR_CONST unsigned DefaultWidth = 18;
 
 public:
 
-  HashTable(unsigned bits = DefaultBits) : table_(nullptr), size_(0) {
-    clear(bits);
+  HashTable(unsigned width = DefaultWidth) : table_(nullptr), size_(0) {
+    initialize(width);
   }
   HashTable(const HashTable&) = delete;
   HashTable(HashTable&&) = delete;
@@ -39,10 +39,10 @@ public:
   HashTable& operator=(const HashTable&) = delete;
   HashTable& operator=(HashTable&&) = delete;
 
-  void clear(unsigned bits = 0) {
-    SizeType newSize = 1 << bits;
+  void initialize(unsigned width = 0) {
+    SizeType newSize = 1 << width;
 
-    if (bits != 0 && size_ != newSize) {
+    if (width != 0 && size_ != newSize) {
       // resize
       size_ = newSize;
       mask_ = size_ - 1;
@@ -54,7 +54,7 @@ public:
     } else {
       // clear all elements
       for (SizeType i = 0; i < size_; i++) {
-        table_[i].clear(i);
+        table_[i] = ElementType();
       }
     }
   }

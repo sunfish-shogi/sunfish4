@@ -4,6 +4,7 @@ add_library(search STATIC
     eval/Evaluator.cpp
     eval/Material.cpp
     see/SEE.cpp
+    shek/SCRDetector.cpp
     tree/Node.cpp
     tree/Tree.cpp
     tree/Worker.cpp

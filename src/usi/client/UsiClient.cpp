@@ -168,11 +168,11 @@ bool UsiClient::onPosition(const CommandArguments& args) {
 
   size_t nextIndex;
   if (args.size() >= 2 && args[1] == "startpos") {
-    position_.initialize(Position::Handicap::Even);
+    record_.initialPosition.initialize(Position::Handicap::Even);
     nextIndex = 2;
 
   } else if (args.size() >= 6 && args[1] == "sfen") {
-    bool ok = SfenParser::parsePosition(args[2], args[3], args[4], args[5], position_);
+    bool ok = SfenParser::parsePosition(args[2], args[3], args[4], args[5], record_.initialPosition);
     if (!ok) {
       return false;
     }
@@ -194,6 +194,7 @@ bool UsiClient::onPosition(const CommandArguments& args) {
     return false;
   }
 
+  record_.moveList.clear();
   for (auto i = nextIndex + 1; i < args.size(); i++) {
     Move move;
     bool parseOk = SfenParser::parseMove(args[i], move);
@@ -201,16 +202,8 @@ bool UsiClient::onPosition(const CommandArguments& args) {
       LOG(error) << "illegal arguments";
       return false;
     }
-
-    Piece captured;
-    bool moveOk = position_.doMove(move, captured);
-    if (!moveOk) {
-      LOG(error) << "illegal move";
-      return false;
-    }
+    record_.moveList.push_back(move);
   }
-
-  OUT(info) << position_;
  
   return true;
 }
@@ -288,13 +281,14 @@ bool UsiClient::onStop(const CommandArguments&) {
 void UsiClient::search() {
   OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
+  auto pos = generatePosition(record_, -1);
   auto config = searcher_.getConfig();
 
   if (isInfinite_) {
     config.maximumMilliSeconds = SearchConfig::InfinityTime;
     config.optimumMilliSeconds = SearchConfig::InfinityTime;
   } else {
-    bool isBlack = position_.getTurn() == Turn::Black;
+    bool isBlack = pos.getTurn() == Turn::Black;
     TimeType maximumMilliSeconds = isBlack ?  blackMilliSeconds_ : whiteMilliSeconds_;
     maximumMilliSeconds += byoyomiMilliSeconds_;
     // TODO
@@ -309,7 +303,7 @@ void UsiClient::search() {
 
   searcher_.setConfig(config);
 
-  searcher_.idsearch(position_, Searcher::DepthInfinity);
+  searcher_.idsearch(pos, Searcher::DepthInfinity, &record_);
 
   if (!isInfinite_) {
     sendBestMove();

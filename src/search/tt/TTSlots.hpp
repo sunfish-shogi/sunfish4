@@ -9,7 +9,7 @@
 #include "common/Def.hpp"
 #include "core/position/Zobrist.hpp"
 #include "search/tt/TTElement.hpp"
-#include <cassert>
+#include <cstdint>
 
 namespace sunfish {
 
@@ -21,13 +21,6 @@ public:
   static CONSTEXPR_CONST SizeType Size = 4;
 
   TTSlots() : lastAccess_(0) {
-  }
-
-  template <class T>
-  void clear(T) {
-    for (SizeType i = 0; i < Size; i++) {
-      slots_[i].clear();
-    }
   }
 
   TTStatus set(const TTElement& element);

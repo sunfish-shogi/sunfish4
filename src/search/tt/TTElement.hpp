@@ -75,7 +75,7 @@ enum class TTStatus : int {
   Collide,
 };
 
-enum TTScoreType : int {
+enum class TTScoreType : int {
   Exact = 0,
   Upper, /* = 1 */
   Lower, /* = 2 */
@@ -118,13 +118,9 @@ private:
   }
 
 public:
-  TTElement() {
-    clear();
-  }
-
-  void clear() {
-    w1_ = 0;
-    w2_ = ~(calcCheckSum() & TT_CSUM_MASK);
+  TTElement() :
+      w1_(0),
+      w2_(~(calcCheckSum() & TT_CSUM_MASK)) {
   }
 
   bool update(Zobrist::Type newHash,
@@ -137,11 +133,11 @@ public:
       AgeType newAge) {
     TTScoreType newScoreType;
     if (newScore >= beta) {
-      newScoreType = Lower;
+      newScoreType = TTScoreType::Lower;
     } else if (newScore <= alpha) {
-      newScoreType = Upper;
+      newScoreType = TTScoreType::Upper;
     } else {
-      newScoreType = Exact;
+      newScoreType = TTScoreType::Exact;
     }
 
     return update(newHash,
@@ -179,9 +175,9 @@ public:
     ASSERT(st == TTScoreType::None || s <= Score::infinity());
 
     if (s >= Score::mate()) {
-      if (st == Lower) { return s - ply; }
+      if (st == TTScoreType::Lower) { return s - ply; }
     } else if (s <= -Score::mate()) {
-      if (st == Upper) { return s + ply; }
+      if (st == TTScoreType::Upper) { return s + ply; }
     }
 
     return s;
@@ -215,5 +211,23 @@ public:
 };
 
 } // namespace sunfish
+
+inline std::ostream& operator<<(std::ostream& os, sunfish::TTScoreType scrState) {
+  switch (scrState) {
+  case sunfish::TTScoreType::Exact:
+    os << "Exact";
+    break;
+  case sunfish::TTScoreType::Upper:
+    os << "Upper";
+    break;
+  case sunfish::TTScoreType::Lower:
+    os << "Lower";
+    break;
+  case sunfish::TTScoreType::None:
+    os << "None";
+    break;
+  }
+  return os;
+}
 
 #endif // SUNFISH_TT_TTSLOT_HPP__
