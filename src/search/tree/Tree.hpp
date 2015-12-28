@@ -36,6 +36,52 @@ void initializeTree(Tree& tree,
                     Worker* worker,
                     const Record* record);
 
+inline bool hasKiller1(const Tree& tree) {
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return !parentNode.killerMove1.isEmpty();
+}
+
+inline bool hasKiller2(const Tree& tree) {
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return !parentNode.killerMove2.isEmpty();
+}
+
+inline bool isKiller1Good(const Tree& tree) {
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return parentNode.killerCount1 >= 0;
+}
+
+inline bool isKiller2Good(const Tree& tree) {
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return parentNode.killerCount2 >= 0;
+}
+
+inline bool isKiller1Legal(const Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return tree.position.isLegalMoveMaybe(parentNode.killerMove1,
+                                        node.checkState);
+}
+
+inline bool isKiller2Legal(const Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return tree.position.isLegalMoveMaybe(parentNode.killerMove2,
+                                        node.checkState);
+}
+
+inline bool isPriorMove(const Tree& tree, const Move& move) {
+  auto& node = tree.nodes[tree.ply];
+  auto& parentNode = tree.nodes[tree.ply-1];
+  return move == node.hashMove ||
+         (isKiller1Good(tree) &&
+          move == parentNode.killerMove1) ||
+         (isKiller2Good(tree) &&
+          move == parentNode.killerMove2);
+}
+
+void addKiller(Tree& tree, Move move);
+
 bool doMove(Tree& tree, Move& move, Evaluator& eval);
 
 void undoMove(Tree& tree);

@@ -57,6 +57,44 @@ void initializeTree(Tree& tree,
   }
 }
 
+void sortKiller(Node& node) {
+  if (node.killerCount2 > node.killerCount1) {
+    std::swap(node.killerMove1, node.killerMove2);
+    std::swap(node.killerCount1, node.killerCount2);
+  }
+}
+
+void addKiller(Tree& tree, Move move) {
+  auto& node = tree.nodes[tree.ply-1];
+
+  if (node.killerMove1.isEmpty()) {
+    node.killerMove1 = move;
+    node.killerCount1 = 0;
+    node.killerCount2 -= 1;
+  } else if (node.killerMove2.isEmpty()) {
+    node.killerMove2 = move;
+    node.killerCount2 = 0;
+    node.killerCount1 -= 1;
+    sortKiller(node);
+  } else if (move == node.killerMove1) {
+    node.killerCount1 += 2;
+    node.killerCount2 -= 1;
+  } else if (move == node.killerMove2) {
+    node.killerCount2 += 2;
+    node.killerCount1 -= 1;
+    sortKiller(node);
+  } else if (node.killerCount2 < 0) {
+    node.killerMove2 = move;
+    node.killerCount2 = 0;
+    node.killerCount1 -= 1;
+    sortKiller(node);
+  } else if (node.killerCount1 < 0) {
+    node.killerMove1 = move;
+    node.killerCount1 = 0;
+    node.killerCount2 -= 1;
+  }
+}
+
 bool doMove(Tree& tree, Move& move, Evaluator& eval) {
   auto& node = tree.nodes[tree.ply];
   node.hash = tree.position.getHash();

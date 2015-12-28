@@ -31,6 +31,11 @@ struct Node {
   Move move;
   Move hashMove;
 
+  Move killerMove1;
+  Move killerMove2;
+  int16_t killerCount1;
+  int16_t killerCount2;
+
   GenPhase genPhase;
   Moves::iterator moveIterator;
   Moves moves;
@@ -39,10 +44,6 @@ struct Node {
 };
 
 void arrive(Node& node);
-
-inline bool isPriorMove(const Node& node, const Move& move) {
-  return move == node.hashMove;
-}
 
 } // namespace sunfish
 

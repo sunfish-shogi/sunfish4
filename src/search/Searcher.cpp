@@ -713,7 +713,7 @@ Score Searcher::search(Tree& tree,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move) &&
-        !isPriorMove(node, move)) {
+        !isPriorMove(tree, move)) {
       reduced = reductionDepth(depth,
                                moveCount,
                                improving);
@@ -785,6 +785,12 @@ Score Searcher::search(Tree& tree,
     node.isHistorical |= childNode.isHistorical;
 
     isFirst = false;
+  }
+
+  if (!bestMove.isEmpty() &&
+      !isCheck(node.checkState)) {
+    // killer move
+    addKiller(tree, bestMove);
   }
 
   if (!bestMove.isEmpty() &&
@@ -887,9 +893,24 @@ Score Searcher::quies(Tree& tree,
  */
 void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
+  auto& parentNode = tree.nodes[tree.ply-1];
 
   if (!node.hashMove.isEmpty()) {
     node.moves.add(node.hashMove);
+  }
+
+  if (!isCheck(node.checkState) &&
+      hasKiller1(tree) &&
+      isKiller1Good(tree) &&
+      isKiller1Legal(tree)) {
+    node.moves.add(parentNode.killerMove1);
+  }
+
+  if (!isCheck(node.checkState) &&
+      hasKiller2(tree) &&
+      isKiller2Good(tree) &&
+      isKiller2Legal(tree)) {
+    node.moves.add(parentNode.killerMove2);
   }
 
   if (!isCheck(node.checkState)) {
@@ -913,7 +934,9 @@ Move Searcher::nextMove(Tree& tree) {
     switch (node.genPhase) {
     case GenPhase::CapturingMoves:
       MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-      remove(node.moves, node.moveIterator, node.hashMove);
+      remove(node.moves, node.moveIterator, [&tree](const Move& move) {
+        return isPriorMove(tree, move);
+      });
       SEE::sortMoves(tree.position,
                      node.moves,
                      node.moveIterator,
@@ -924,7 +947,9 @@ Move Searcher::nextMove(Tree& tree) {
     case GenPhase::NotCapturingMoves:
       MoveGenerator::generateNotCapturingMoves(tree.position,
                                                node.moves);
-      remove(node.moves, node.moveIterator, node.hashMove);
+      remove(node.moves, node.moveIterator, [&tree](const Move& move) {
+        return isPriorMove(tree, move);
+      });
       sortMovesOnHistory(tree);
       node.genPhase = GenPhase::End;
       break;

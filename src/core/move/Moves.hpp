@@ -221,6 +221,19 @@ inline void remove(Moves& moves,
   }
 }
 
+template <class T>
+inline void remove(Moves& moves,
+                   Moves::iterator begin,
+                   T&& f) {
+  for (auto ite = begin; ite != moves.end();) {
+    if (f(*ite)) {
+      ite = moves.remove(ite);
+    } else {
+      ite++;
+    }
+  }
+}
+
 void sortMovesForDebug(Moves& moves, const Position& position);
 
 } // namespace sunfish
