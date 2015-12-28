@@ -33,7 +33,9 @@ bool Solver::solve(const char* path) {
     // 'path' point to a directory
     Directory directory(path);
     auto files = directory.files("*.csa");
+    int count = 0;
     for (const auto& path : files) {
+      OUT(info) << "------------------------ [" << ++count << "] ------------------------";
       if (!solveCsaFile(path.c_str())) {
         return false;
       }
@@ -50,6 +52,8 @@ bool Solver::solve(const char* path) {
     LOG(error) << "not exists: " << path;
     return false;
   }
+
+  OUT(info) << "--------------------- completed ---------------------";
 
   auto percentage = [](float n, float d) {
     return n / d * 100.0f;
@@ -70,7 +74,7 @@ bool Solver::solve(const char* path) {
 }
 
 bool Solver::solveCsaFile(const char* path) {
-  OUT(info) << "open a record file: " << path;
+  OUT(info) << "[" << path << "]";
   OUT(info) << "";
 
   std::ifstream file(path);
