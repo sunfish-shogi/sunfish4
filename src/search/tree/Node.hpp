@@ -41,7 +41,7 @@ struct Node {
 void arrive(Node& node);
 
 inline bool isPriorMove(const Node& node, const Move& move) {
-  return move != node.hashMove;
+  return move == node.hashMove;
 }
 
 } // namespace sunfish
