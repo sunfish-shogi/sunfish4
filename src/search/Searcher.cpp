@@ -789,6 +789,10 @@ Score Searcher::search(Tree& tree,
       // beta cut
       if (score >= beta) {
         node.isHistorical = childNode.isHistorical;
+        worker.info.failHigh++;
+        if (isFirst) {
+          worker.info.failHighFirst++;
+        }
         break;
       }
 

@@ -395,17 +395,7 @@ void UsiClient::sendBestMove() {
 void UsiClient::outputSearchInfo() {
   const auto& info = searcher_.getInfo();
   const auto& result = searcher_.getResult();
-
-  auto totalNodes = info.nodes + info.quiesNodes;
-  auto nps = static_cast<uint32_t>(totalNodes / result.elapsed);
-
-  OUT(info) << "nps               : " << nps;
-  OUT(info) << "elapsed           : " << std::fixed << std::setprecision(3) << result.elapsed;
-  OUT(info) << "nodes             : " << info.nodes;
-  OUT(info) << "quies nodes       : " << info.quiesNodes;
-  OUT(info) << "total nodes       : " << totalNodes;
-  OUT(info) << "hash-cut          : " << info.hashCut;
-  OUT(info) << "null move pruning : " << info.nullMovePruning;
+  printSearchInfo(OUT(info), info, result.elapsed);
 }
 
 bool UsiClient::onPonderhit(const CommandArguments&) {
