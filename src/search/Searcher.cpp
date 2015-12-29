@@ -5,6 +5,7 @@
 
 #include "search/Searcher.hpp"
 #include "search/see/SEE.hpp"
+#include "search/eval/Evaluator.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
@@ -84,6 +85,13 @@ void Searcher::initialize() {
 
 Searcher::Searcher() :
   config_ (getDefaultSearchConfig()),
+  evaluator_(Evaluator::sharedEvaluator()),
+  handler_(nullptr) {
+}
+
+Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
+  config_ (getDefaultSearchConfig()),
+  evaluator_(evaluator),
   handler_(nullptr) {
 }
 
@@ -126,8 +134,11 @@ bool Searcher::search(const Position& pos,
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
-  Score rootScore = evaluator_.evaluateMaterial(pos);
-  initializeTree(tree, pos, rootScore, &worker, record);
+  initializeTree(tree,
+                 pos,
+                 evaluator_->evaluate(pos),
+                 &worker,
+                 record);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -161,7 +172,7 @@ bool Searcher::search(const Position& pos,
       newDepth = newDepth - reduced;
     }
 
-    bool moveOk = doMove(tree, move, evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       moveCount--;
       continue;
@@ -245,8 +256,11 @@ bool Searcher::idsearch(const Position& pos,
 
   auto& tree = treeOnMainThread_;
   auto& worker = workerOnMainThread_;
-  Score rootScore = evaluator_.evaluateMaterial(pos);
-  initializeTree(tree, pos, rootScore, &worker, record);
+  initializeTree(tree,
+                 pos,
+                 evaluator_->evaluate(pos),
+                 &worker,
+                 record);
 
   auto& node = tree.nodes[tree.ply];
   arrive(node);
@@ -268,7 +282,7 @@ bool Searcher::idsearch(const Position& pos,
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Move move = node.moves[moveCount];
 
-    bool moveOk = doMove(tree, move, evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       node.moves.remove(moveCount);
       continue;
@@ -376,7 +390,7 @@ bool Searcher::aspsearch(Tree& tree,
       newDepth = newDepth - reduced;
     }
 
-    bool moveOk = doMove(tree, move, evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       LOG(warning) << "invalid state.";
       node.moves.remove(moveCount);
@@ -550,7 +564,7 @@ Score Searcher::search(Tree& tree,
 
   if (tree.ply >= Tree::StackSize) {
     node.isHistorical = true;
-    return tree.position.getTurn() == Turn::Black ? node.score : -node.score;
+    return calculateStandPat(tree);
   }
 
   const Score oldAlpha = alpha;
@@ -620,8 +634,7 @@ Score Searcher::search(Tree& tree,
     }
   }
 
-  Turn turn = tree.position.getTurn();
-  Score standPat = turn == Turn::Black ? node.score : -node.score;
+  Score standPat = calculateStandPat(tree);
 
   // null move pruning
   if (isNullWindow &&
@@ -720,7 +733,7 @@ Score Searcher::search(Tree& tree,
       newDepth = newDepth - reduced;
     }
 
-    bool moveOk = doMove(tree, move, evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       moveCount--;
       continue;
@@ -800,7 +813,7 @@ Score Searcher::search(Tree& tree,
     unsigned hval = std::max(depth * 2 / Depth1Ply, 1);
     for (auto& move : node.moves) {
       if (!isTacticalMove(tree.position, bestMove)) {
-        history_.add(turn,
+        history_.add(tree.position.getTurn(),
                      move,
                      hval,
                      move == bestMove ? hval : 0);
@@ -835,8 +848,7 @@ Score Searcher::quies(Tree& tree,
   auto& worker = *tree.worker;
   worker.info.quiesNodes++;
 
-  Turn turn = tree.position.getTurn();
-  Score standPat = turn == Turn::Black ? node.score : -node.score;
+  Score standPat = calculateStandPat(tree);
 
   if (standPat >= beta) {
     return standPat;
@@ -860,7 +872,7 @@ Score Searcher::quies(Tree& tree,
       break;
     }
 
-    bool moveOk = doMove(tree, move, evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       continue;
     }
@@ -1025,7 +1037,7 @@ void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {
     return;
   }
 
-  if (doMove(tree, move, evaluator_)) {
+  if (doMove(tree, move, *evaluator_)) {
     storePV(tree, pv, ply + 1);
     undoMove(tree);
   } else {

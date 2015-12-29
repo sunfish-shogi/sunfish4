@@ -32,7 +32,7 @@ struct Tree {
 
 void initializeTree(Tree& tree,
                     const Position& position,
-                    Score score,
+                    ClassifiedScores scores,
                     Worker* worker,
                     const Record* record);
 
@@ -89,6 +89,15 @@ void undoMove(Tree& tree);
 void doNullMove(Tree& tree);
 
 void undoNullMove(Tree& tree);
+
+inline Score calculateStandPat(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+  if (tree.position.getTurn() == Turn::Black) {
+    return calculateScore(node.scores);
+  } else {
+    return -calculateScore(node.scores);
+  }
+}
 
 bool isImproving(const Tree& tree);
 

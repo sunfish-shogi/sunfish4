@@ -113,10 +113,6 @@ public:
     return score_ <= s.score_;
   }
 
-  explicit CONSTEXPR operator RawType() const {
-    return score_;
-  }
-
   CONSTEXPR RawType raw() const {
     return score_;
   }

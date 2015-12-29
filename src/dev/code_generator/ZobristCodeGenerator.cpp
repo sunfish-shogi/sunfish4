@@ -21,7 +21,7 @@ void generateZobristOnBoard(Random& random, std::ostream& os) {
   SQUARE_EACH(square) {
     os << "  {\n";
     for (PieceRawType piece = PieceNumber::Begin; piece != PieceNumber::End; piece++) {
-      uint64_t hash = random.getInt64() & ZobristHashMask;
+      uint64_t hash = random.int64() & ZobristHashMask;
       os << "    0x" << std::hex << hash << "ll,\n";
     }
     os << "  },\n";
@@ -33,7 +33,7 @@ void generateZobristOnHand(Random& random, const char* color, std::ostream& os) 
   const int num = 7;
   os << "const Zobrist::Type Zobrist::" << color << "Hand[" << std::dec << num << "] = {\n";
   for (int i = 0; i < num; i++) {
-    uint64_t hash = random.getInt64() & ZobristHashMask;
+    uint64_t hash = random.int64() & ZobristHashMask;
     os << "  0x" << std::hex << hash << "ll,\n";
   }
   os << "};\n";

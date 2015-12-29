@@ -39,7 +39,7 @@ bool RandomSearcher::search(const Position& pos, Move& move) {
     return false;
   }
 
-  auto index = random_.getInt16(moves.size());
+  auto index = random_.int16(moves.size());
 
   move = moves[index];
 

@@ -16,6 +16,11 @@
 #include <map>
 #include <utility>
 
+#define TEST_BEFORE(group) \
+void test_method_before_ ## group();\
+sunfish::test_before_inserter__ __test_before_inserter_ ## group (#group, test_method_before_ ## group); \
+void test_method_before_ ## group()
+
 #define TEST(group, name) \
 void test_method_ ## group ## _ ## name();\
 sunfish::test_inserter__ __test_inserter_ ## group ## _ ## name (#group, #name, test_method_ ## group ## _ ## name); \
@@ -88,10 +93,14 @@ public:
   using TestSuiteResultMap = std::map<std::string, TestSuiteResult>;
 
 private:
-  using TestCaseMethodMap = std::map<std::string, TEST_METHOD>;
-  using TestSuiteMethodMap = std::map<std::string, TestCaseMethodMap>;
+  using TestMethodMap = std::map<std::string, TEST_METHOD>;
+  struct TestGroup {
+    TEST_METHOD before;
+    TestMethodMap methods;
+  };
+  using TestGroupMap = std::map<std::string, TestGroup>;
 
-  TestSuiteMethodMap tests_;
+  TestGroupMap groups_;
 
   TestSuiteResultMap results_;
 
@@ -109,13 +118,23 @@ private:
 public:
 
   /**
+   * Add the specified method which called before calling the test methods.
+   * This function is called by TEST_BEFORE macro.
+   * You should not call this manually.
+   */
+  static void addTestBefore(const char* groupName, TEST_METHOD method) {
+    auto ins = getInstance();
+    ins->groups_[groupName].before = method;
+  }
+
+  /**
    * Add the specified method for unit test into the suite.
    * This function is called by TEST macro.
    * You should not call this manually.
    */
   static void addTest(const char* groupName, const char* methodName, TEST_METHOD method) {
     auto ins = getInstance();
-    ins->tests_[groupName][methodName] = method;
+    ins->groups_[groupName].methods[methodName] = method;
   }
 
   /**
@@ -123,21 +142,25 @@ public:
    */
   static bool test() {
     auto ins = getInstance();
-    const auto& tests = ins->tests_;
+    const auto& tests = ins->groups_;
     int totalErrors = 0;
 
     ins->results_.clear();
 
     for (auto it = tests.begin(); it != tests.end(); it++) {
       auto& groupName = it->first;
-      auto& methods = it->second;
+      auto& group = it->second;
       int tests = 0;
       int errors = 0;
       int failures = 0;
 
       auto& tsr = ins->results_[groupName];
 
-      for (auto im = methods.begin(); im != methods.end(); im++) {
+      if (group.before) {
+        group.before();
+      }
+
+      for (auto im = group.methods.begin(); im != group.methods.end(); im++) {
         auto& methodName = im->first;
         auto method = im->second;
 
@@ -231,6 +254,13 @@ public:
     return oss.str();
   }
 
+};
+
+class test_before_inserter__ {
+public:
+  test_before_inserter__(const char* groupName, TEST_METHOD method) {
+    TestSuite::addTestBefore(groupName, method);
+  }
 };
 
 class test_inserter__ {

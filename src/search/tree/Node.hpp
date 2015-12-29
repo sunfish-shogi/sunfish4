@@ -7,7 +7,7 @@
 #define SUNFISH_SEARCH_TREE_NODE_HPP__
 
 #include "search/tree/PV.hpp"
-#include "search/eval/Score.hpp"
+#include "search/eval/Evaluator.hpp"
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 #include <cstdint>
@@ -23,7 +23,7 @@ enum GenPhase : uint8_t {
 
 struct Node {
   Zobrist::Type hash;
-  Score score;
+  ClassifiedScores scores;
   CheckState checkState;
   bool isHistorical;
 

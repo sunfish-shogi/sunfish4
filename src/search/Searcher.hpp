@@ -16,9 +16,9 @@
 #include "search/tree/Worker.hpp"
 #include "search/tt/TT.hpp"
 #include "search/history/History.hpp"
-#include "search/eval/Evaluator.hpp"
 #include "common/math/Random.hpp"
 #include "common/time/Timer.hpp"
+#include <memory>
 #include <atomic>
 #include <array>
 #include <climits>
@@ -28,6 +28,7 @@ namespace sunfish {
 class Position;
 class Move;
 class Record;
+class Evaluator;
 
 class Searcher {
 public:
@@ -38,6 +39,8 @@ public:
   static void initialize();
 
   Searcher();
+
+  Searcher(std::shared_ptr<Evaluator> evaluator);
 
   bool search(const Position& pos,
               int depth,
@@ -137,7 +140,7 @@ private:
   std::atomic<bool> interrupted_;
   Timer timer_;
 
-  Evaluator evaluator_;
+  std::shared_ptr<Evaluator> evaluator_;
 
   TT tt_;
 

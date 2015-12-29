@@ -38,13 +38,13 @@ namespace sunfish {
 
 void initializeTree(Tree& tree,
                     const Position& position,
-                    Score score,
+                    ClassifiedScores scores,
                     Worker* worker,
                     const Record* record) {
   tree.position = position;
   tree.worker = worker;
   tree.ply = 0;
-  tree.nodes[0].score = score;
+  tree.nodes[0].scores = scores;
 
   // SHEK
   initializeShekTable(tree.shekTable, record);
@@ -109,7 +109,7 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval) {
   tree.ply++;
 
   auto& childNode = tree.nodes[tree.ply];
-  childNode.score = node.score + eval.evaluateDiff(tree.position, move, node.captured);
+  childNode.scores = eval.evaluateDiff(node.scores, tree.position, move, node.captured);
 
   return true;
 
@@ -132,7 +132,7 @@ void doNullMove(Tree& tree) {
   tree.ply++;
 
   auto& childNode = tree.nodes[tree.ply];
-  childNode.score = node.score;
+  childNode.scores = node.scores;
 }
 
 void undoNullMove(Tree& tree) {
@@ -148,10 +148,12 @@ bool isImproving(const Tree& tree) {
   auto& curr = tree.nodes[tree.ply];
   auto& front = tree.nodes[tree.ply-2];
 
+  auto currScore = calculateScore(curr.scores);
+  auto frontScore = calculateScore(front.scores);
   if (tree.position.getTurn() == Turn::Black) {
-    return  curr.score >= front.score;
+    return  currScore >= frontScore;
   } else {
-    return  curr.score <= front.score;
+    return  currScore <= frontScore;
   }
 }
 

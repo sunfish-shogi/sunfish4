@@ -110,7 +110,7 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
     return TestStatus::Mate;
   }
 
-  auto r = random_.getInt16(moves.size());
+  auto r = random_.int16(moves.size());
   auto move = moves[r];
 
   Piece captured;
