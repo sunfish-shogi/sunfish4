@@ -59,9 +59,10 @@ def PrintResult(results):
   print 'executed      lines file'
   fmt = '  %6.2f      %5d %-' + str(maxSrcLength) + 's %s'
   for result in results:
-    print fmt % (
-        result.get('executed', 0.0), result.get('executable', 0),
-        result.get('file', ''), result.get('gcov', ''))
+    if result.get('executable', 0) != 0:
+      print fmt % (
+          result.get('executed', 0.0), result.get('executable', 0),
+          result.get('file', ''), result.get('gcov', ''))
 
 def GetExecuted(item):
   return item.get('executed', 0.0)
