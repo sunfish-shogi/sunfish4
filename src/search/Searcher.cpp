@@ -562,7 +562,7 @@ Score Searcher::search(Tree& tree,
   auto& worker = *tree.worker;
   worker.info.nodes++;
 
-  if (tree.ply >= Tree::StackSize) {
+  if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
     return calculateStandPat(tree);
   }
@@ -858,7 +858,7 @@ Score Searcher::quies(Tree& tree,
     return standPat;
   }
 
-  if (tree.ply >= Tree::StackSize) {
+  if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
     return standPat;
   }
