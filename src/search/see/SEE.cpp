@@ -18,16 +18,19 @@ Score SEE::calculate(const Position& position,
   Piece captured = position.getPieceOnBoard(to);
 
   ASSERT(!piece.isEmpty());
-  ASSERT(!captured.isEmpty());
-  ASSERT(position.getTurn() ? piece.isBlack() : piece.isWhite());
-  ASSERT(position.getTurn() ? captured.isWhite() : captured.isBlack());
+  ASSERT(position.getTurn() == Turn::Black ? piece.isBlack() : piece.isWhite());
+  ASSERT(position.getTurn() == Turn::Black ? !captured.isBlack() : !captured.isWhite());
 
   Score score = Score::zero();
+
   if (move.isPromotion()) {
     score += material::promotionScore(piece);
     piece = piece.promote();
   }
-  score += material::exchangeScore(captured);
+
+  if (!captured.isEmpty()) {
+    score += material::exchangeScore(captured);
+  }
 
   Attackers ba;
   Attackers wa;
@@ -47,6 +50,30 @@ SEE::AttackerSet SEE::generateAttackers(const Position& position,
   Attackers wa;
   ba.num = 0;
   wa.num = 0;
+
+  auto addBlackAttacker = [&ba, &to](Piece piece) {
+    if (to.isPromotable<Turn::Black>() &&
+        piece.isPromotable()) {
+      ba.list[ba.num].prom = material::promotionScore(piece);
+      ba.list[ba.num].exch = material::exchangeScore(piece.promote());
+    } else {
+      ba.list[ba.num].prom = Score::zero();
+      ba.list[ba.num].exch = material::exchangeScore(piece);
+    }
+    ba.num++;
+  };
+
+  auto addWhiteAttacker = [&wa, &to](Piece piece) {
+    if (to.isPromotable<Turn::White>() &&
+        piece.isPromotable()) {
+      wa.list[wa.num].prom = material::promotionScore(piece);
+      wa.list[wa.num].exch = material::exchangeScore(piece.promote());
+    } else {
+      wa.list[wa.num].prom = Score::zero();
+      wa.list[wa.num].exch = material::exchangeScore(piece);
+    }
+    wa.num++;
+  };
 
   Bitboard occ = nosseOr(position.getBOccupiedBitboard(),
                          position.getWOccupiedBitboard());
@@ -70,9 +97,9 @@ SEE::AttackerSet SEE::generateAttackers(const Position& position,
     if (MoveTables::isMovableInLongStep(piece, dir) ||
         (square.move(dir) == to && MoveTables::isMovableInOneStep(piece, dir))) {
       if (piece.isBlack()) {
-        ba.scores[ba.num++] = material::exchangeScore(piece);
+        addBlackAttacker(piece);
       } else {
-        wa.scores[wa.num++] = material::exchangeScore(piece);
+        addWhiteAttacker(piece);
       }
     }
   }
@@ -80,29 +107,33 @@ SEE::AttackerSet SEE::generateAttackers(const Position& position,
   Square square = to.safetyLeftDownKnight();
   if (square.isValid() &&
       position.getPieceOnBoard(square) == Piece::blackKnight()) {
-    ba.scores[ba.num++] = material::KnightEx;
+    addBlackAttacker(Piece::blackKnight());
   }
 
   square = to.safetyRightDownKnight();
   if (square.isValid() &&
       position.getPieceOnBoard(square) == Piece::blackKnight()) {
-    ba.scores[ba.num++] = material::KnightEx;
+    addBlackAttacker(Piece::blackKnight());
   }
 
   square = to.safetyLeftUpKnight();
   if (square.isValid() &&
       position.getPieceOnBoard(square) == Piece::whiteKnight()) {
-    wa.scores[wa.num++] = material::KnightEx;
+    addWhiteAttacker(Piece::whiteKnight());
   }
 
   square = to.safetyRightUpKnight();
   if (square.isValid() &&
       position.getPieceOnBoard(square) == Piece::whiteKnight()) {
-    wa.scores[wa.num++] = material::KnightEx;
+    addWhiteAttacker(Piece::whiteKnight());
   }
 
-  std::sort(ba.scores, ba.scores + ba.num);
-  std::sort(wa.scores, wa.scores + wa.num);
+  std::sort(ba.list, ba.list + ba.num, [](const Attacker& lhs, const Attacker& rhs) {
+    return lhs.exch < rhs.exch;
+  });
+  std::sort(wa.list, wa.list + wa.num, [](const Attacker& lhs, const Attacker& rhs) {
+    return lhs.exch < rhs.exch;
+  });
 
   return std::make_tuple(ba, wa);
 }
@@ -117,8 +148,8 @@ Score SEE::search(const Attackers& ba,
     return score;
   }
 
-  Score newScore = score + materialScore;
-  return std::max(score, -search(wa, ba, w, b + 1, -newScore, ba.scores[b]));
+  Score newScore = score + materialScore + ba.list[b].prom;
+  return std::max(score, -search(wa, ba, w, b + 1, -newScore, ba.list[b].exch));
 }
 
 void SEE::sortMoves(const Position& position,
@@ -141,6 +172,7 @@ void SEE::sortMoves(const Position& position,
     Score score = calculate(position, move);
 
     if (excludeSmallCaptures && score <= material::PawnEx) {
+      LOG(warning) << ite->toString(position) << ',' << score;
       ite = moves.remove(ite);
       continue;
     }

@@ -19,9 +19,14 @@ namespace sunfish {
 class SEE {
 public:
 
+  struct Attacker {
+    Score prom;
+    Score exch;
+  };
+
   struct Attackers {
-    Score scores[10];
     int num;
+    Attacker list[10];
   };
 
   using AttackerSet = std::tuple<Attackers, Attackers>;
