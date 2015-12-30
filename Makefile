@@ -25,6 +25,7 @@ KIFU_PROF1:=$(PROJ_ROOT)/kifu/prof1
 KIFU_PROF5:=$(PROJ_ROOT)/kifu/prof5
 
 GEN_COV:=$(PROJ_ROOT)/tools/gen_cov_report.py
+GROUP_PROF:=$(PROJ_ROOT)/tools/group_prof.pl
 
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
@@ -65,13 +66,19 @@ prof:
 	$(MAKE) expt-prof
 	./$(SUNFISH_EXPT) --solve $(KIFU_PROF5) --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
-	@echo "See $(PROFOUT)."
+	@echo
+	$(SHELL) -c '$(GROUP_PROF) < $(PROFOUT)'
+	@echo
+	@echo "Please see the details in $(PROFOUT)."
 
 prof1:
 	$(MAKE) expt-prof
 	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1) --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
-	@echo "See $(PROFOUT)."
+	@echo
+	$(SHELL) -c '$(GROUP_PROF) < $(PROFOUT)'
+	@echo
+	@echo "Please see the details in $(PROFOUT)."
 
 test:
 ifeq ($(HAS_SSE2),1)
