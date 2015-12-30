@@ -12,16 +12,11 @@
 #include <fstream>
 
 namespace {
-
-const char* DefaultUsiLogPath = "out/usi.log";
-bool EnableLogFile = true;
-
 namespace resources {
 
 const char* UsiLogPath = "res/strings/usi_log_path";
 
 } // namespace resources
-
 } // namespace
 
 using namespace sunfish;
@@ -33,10 +28,9 @@ int main(int, char**, char**) {
 
   // Logger settings
   std::ofstream fout;
-  if (EnableLogFile) {
-    auto usiLogPath = Resource::string(resources::UsiLogPath,
-                                       DefaultUsiLogPath);
-    fout.open(usiLogPath, std::ios::out | std::ios::app);
+  auto logPath = Resource::string(resources::UsiLogPath, "");
+  if (!logPath.empty()) {
+    fout.open(logPath, std::ios::out | std::ios::app);
 
     Loggers::error.addStream(fout, true, true);
     Loggers::warning.addStream(fout, true, true);
