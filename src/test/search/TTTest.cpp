@@ -70,6 +70,34 @@ const char* posStr4 =
   "P-\n"
   "-\n";
 
+const char* posStr5 =
+  "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+  "P2 * -HI *  *  *  *  * -KA * \n"
+  "P3-FU * -FU-FU-FU-FU * -FU-FU\n"
+  "P4 * -FU *  *  *  * -FU *  * \n"
+  "P5 *  *  *  *  *  *  *  *  * \n"
+  "P6 *  * +FU *  *  *  * +FU * \n"
+  "P7+FU+FU * +FU+FU+FU+FU * +FU\n"
+  "P8 * +KA *  *  *  *  * +HI * \n"
+  "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+  "P+\n"
+  "P-\n"
+  "+\n";
+
+const char* posStr6 =
+  "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+  "P2 * -HI *  *  *  *  * -KA * \n"
+  "P3-FU * -FU-FU-FU-FU * -FU-FU\n"
+  "P4 * -FU *  *  *  * -FU *  * \n"
+  "P5 *  *  *  *  *  *  * +FU * \n"
+  "P6 *  * +FU *  *  *  *  *  * \n"
+  "P7+FU+FU * +FU+FU+FU+FU * +FU\n"
+  "P8 * +KA *  *  *  *  * +HI * \n"
+  "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+  "P+\n"
+  "P-\n"
+  "-\n";
+
 }
 
 using namespace sunfish;
@@ -82,18 +110,18 @@ TEST(TTTest, test) {
   Position pos2 = PositionUtil::createPositionFromCsaString(posStr2);
   Position pos3 = PositionUtil::createPositionFromCsaString(posStr3);
 
-  tt.store(pos1.getHash(),
-           Score(-123), // alpha
-           Score(456), // beta
-           Score(77), // score
-           5, // depth
-           3, // ply
-           Move(Square::s77(), Square::s76(), false),
-           false);
+  tt.store(/* hash  */ pos1.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ Score(77),
+           /* depth */ 5,
+           /* ply   */ 3,
+           /* move  */ Move(Square::s77(), Square::s76(), false),
+           /* mate  */ false);
 
-  tt.storePV(pos2.getHash(),
-             7, // depth
-             Move(Square::s33(), Square::s34(), false));
+  tt.storePV(/* hash  */ pos2.getHash(),
+             /* depth */  7,
+             /* move  */ Move(Square::s33(), Square::s34(), false));
 
   ASSERT_EQ(true , tt.get(pos1.getHash(), tte));
   ASSERT_EQ(true , tt.get(pos2.getHash(), tte));
@@ -108,37 +136,57 @@ TEST(TTTest, testElement) {
   Position pos2 = PositionUtil::createPositionFromCsaString(posStr2);
   Position pos3 = PositionUtil::createPositionFromCsaString(posStr3);
   Position pos4 = PositionUtil::createPositionFromCsaString(posStr4);
+  Position pos5 = PositionUtil::createPositionFromCsaString(posStr5);
+  Position pos6 = PositionUtil::createPositionFromCsaString(posStr6);
 
-  tt.store(pos1.getHash(),
-           Score(-123), // alpha
-           Score(456), // beta
-           Score(77), // score
-           5, // depth
-           3, // ply
-           Move(Square::s77(), Square::s76(), false),
-           false);
+  tt.store(/* hash  */ pos1.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ Score(77),
+           /* depth */ 5,
+           /* ply   */ 3,
+           /* move  */ Move(Square::s77(), Square::s76(), false),
+           /* mate  */ false);
 
-  tt.store(pos2.getHash(),
-           Score(-123), // alpha
-           Score(456), // beta
-           Score(517), // score
-           -2, // depth
-           3, // ply
-           Move(Square::s33(), Square::s34(), false),
-           false);
+  tt.store(/* hash  */ pos2.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ Score(517),
+           /* depth */ -2,
+           /* ply   */ 3,
+           /* move  */ Move(Square::s33(), Square::s34(), false),
+           /* mate  */ false);
 
-  tt.store(pos3.getHash(),
-           Score(-123), // alpha
-           Score(456), // beta
-           Score(-298), // score
-           0, // depth
-           3, // ply
-           Move(Square::s27(), Square::s26(), false),
-           true);
+  tt.store(/* hash  */ pos3.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ Score(-298),
+           /* depth */ 0,
+           /* ply   */ 3,
+           /* move  */ Move(Square::s27(), Square::s26(), false),
+           /* mate  */ true);
 
-  tt.storePV(pos4.getHash(),
-             7, // depth
-             Move(Square::s83(), Square::s84(), false));
+  tt.store(/* hash  */ pos4.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ Score::infinity() - 7,
+           /* depth */ 5,
+           /* ply   */ 3,
+           /* move  */ Move(Square::s26(), Square::s25(), false),
+           /* mate  */ false);
+
+  tt.store(/* hash  */ pos5.getHash(),
+           /* alpha */ Score(-123),
+           /* beta  */ Score(456),
+           /* score */ -Score::infinity() + 5,
+           /* depth */ 5,
+           /* ply   */ 4,
+           /* move  */ Move(Square::s84(), Square::s85(), false),
+           /* mate  */ false);
+
+  tt.storePV(/* hash  */ pos6.getHash(),
+             /* depth */ 7,
+             /* move  */ Move(Square::s83(), Square::s84(), false));
 
   bool success = tt.get(pos1.getHash(), tte);
   ASSERT_EQ(true, success);
@@ -165,6 +213,14 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(true, tte.isMateThreat());
 
   success = tt.get(pos4.getHash(), tte);
+  ASSERT_EQ(Score::infinity() - 8, tte.score(4));
+  ASSERT_EQ(TTScoreType::Lower, tte.scoreType());
+
+  success = tt.get(pos5.getHash(), tte);
+  ASSERT_EQ(-Score::infinity() + 6, tte.score(5));
+  ASSERT_EQ(TTScoreType::Upper, tte.scoreType());
+
+  success = tt.get(pos6.getHash(), tte);
   ASSERT_EQ(true, success);
   ASSERT_EQ(TTScoreType::None, tte.scoreType());
   ASSERT_EQ(7, tte.depth());
@@ -180,47 +236,47 @@ TEST(TTTest, testUpdate) {
   Position pos1 = PositionUtil::createPositionFromCsaString(posStr1);
 
   // first
-  tts = tt.store(pos1.getHash(),
-                 Score(-123), // alpha
-                 Score(456), // beta
-                 Score(77), // score
-                 5, // depth
-                 3, // ply
-                 Move(Square::s77(), Square::s76(), false),
-                 false);
+  tts = tt.store(/* hash  */ pos1.getHash(),
+                 /* alpha */ Score(-123),
+                 /* beta  */ Score(456),
+                 /* score */ Score(77),
+                 /* depth */ 5,
+                 /* ply   */ 3,
+                 /* move  */ Move(Square::s77(), Square::s76(), false),
+                 /* mate  */ false);
   ASSERT_TRUE(TTStatus::New == tts);
 
   // shallow
-  tts = tt.store(pos1.getHash(),
-                 Score(-123), // alpha
-                 Score(456), // beta
-                 Score(77), // score
-                 3, // depth
-                 3, // ply
-                 Move(Square::s77(), Square::s76(), false),
-                 false);
+  tts = tt.store(/* hash  */ pos1.getHash(),
+                 /* alpha */ Score(-123),
+                 /* beta  */ Score(456),
+                 /* score */ Score(77),
+                 /* depth */ 3,
+                 /* ply   */ 3,
+                 /* move  */ Move(Square::s77(), Square::s76(), false),
+                 /* mate  */ false);
   ASSERT_TRUE(TTStatus::Reject == tts);
 
   // same depth
-  tts = tt.store(pos1.getHash(),
-                 Score(-123), // alpha
-                 Score(456), // beta
-                 Score(77), // score
-                 5, // depth
-                 3, // ply
-                 Move(Square::s77(), Square::s76(), false),
-                 false);
+  tts = tt.store(/* hash  */ pos1.getHash(),
+                 /* alpha */ Score(-123),
+                 /* beta  */ Score(456),
+                 /* score */ Score(77),
+                 /* depth */ 5,
+                 /* ply   */ 3,
+                 /* move  */ Move(Square::s77(), Square::s76(), false),
+                 /* mate  */ false);
   ASSERT_TRUE(TTStatus::Update == tts);
 
   // deep
-  tts = tt.store(pos1.getHash(),
-                 Score(-123), // alpha
-                 Score(456), // beta
-                 Score(77), // score
-                 7, // depth
-                 3, // ply
-                 Move(Square::s77(), Square::s76(), false),
-                 false);
+  tts = tt.store(/* hash  */ pos1.getHash(),
+                 /* alpha */ Score(-123),
+                 /* beta  */ Score(456),
+                 /* score */ Score(77),
+                 /* depth */ 7,
+                 /* ply   */ 3,
+                 /* move  */ Move(Square::s77(), Square::s76(), false),
+                 /* mate  */ false);
   ASSERT_TRUE(TTStatus::Update == tts);
 }
 
