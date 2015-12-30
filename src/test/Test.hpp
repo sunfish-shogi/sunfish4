@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <list>
 #include <utility>
 
 #define TEST_BEFORE(group) \
@@ -52,7 +53,7 @@ void test_method_ ## group ## _ ## name()
 
 namespace sunfish {
 
-using TEST_METHOD = void (*)();
+using TestMethod = void (*)();
 
 /**
  * This error is thrown when the test is failed.
@@ -93,9 +94,13 @@ public:
   using TestSuiteResultMap = std::map<std::string, TestSuiteResult>;
 
 private:
-  using TestMethodMap = std::map<std::string, TEST_METHOD>;
+  struct TestMethodInfo {
+    std::string name;
+    TestMethod method;
+  };
+  using TestMethodMap = std::list<TestMethodInfo>;
   struct TestGroup {
-    TEST_METHOD before;
+    TestMethod before;
     TestMethodMap methods;
   };
   using TestGroupMap = std::map<std::string, TestGroup>;
@@ -122,7 +127,7 @@ public:
    * This function is called by TEST_BEFORE macro.
    * You should not call this manually.
    */
-  static void addTestBefore(const char* groupName, TEST_METHOD method) {
+  static void addTestBefore(const char* groupName, TestMethod method) {
     auto ins = getInstance();
     ins->groups_[groupName].before = method;
   }
@@ -132,9 +137,12 @@ public:
    * This function is called by TEST macro.
    * You should not call this manually.
    */
-  static void addTest(const char* groupName, const char* methodName, TEST_METHOD method) {
+  static void addTest(const char* groupName, const char* methodName, TestMethod method) {
     auto ins = getInstance();
-    ins->groups_[groupName].methods[methodName] = method;
+    ins->groups_[groupName].methods.push_back({
+      methodName,
+      method
+    });
   }
 
   /**
@@ -161,8 +169,8 @@ public:
       }
 
       for (auto im = group.methods.begin(); im != group.methods.end(); im++) {
-        auto& methodName = im->first;
-        auto method = im->second;
+        auto& methodName = im->name;
+        auto method = im->method;
 
         tests++;
 
@@ -258,14 +266,14 @@ public:
 
 class test_before_inserter__ {
 public:
-  test_before_inserter__(const char* groupName, TEST_METHOD method) {
+  test_before_inserter__(const char* groupName, TestMethod method) {
     TestSuite::addTestBefore(groupName, method);
   }
 };
 
 class test_inserter__ {
 public:
-  test_inserter__(const char* groupName, const char* methodName, TEST_METHOD method) {
+  test_inserter__(const char* groupName, const char* methodName, TestMethod method) {
     TestSuite::addTest(groupName, methodName, method);
   }
 };
