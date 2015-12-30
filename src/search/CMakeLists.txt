@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 add_library(search STATIC
     eval/Evaluator.cpp
+    eval/FeatureVector.cpp
     eval/Material.cpp
     see/SEE.cpp
     shek/SCRDetector.cpp

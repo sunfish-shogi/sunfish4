@@ -45,7 +45,7 @@ TEST(EvaluatorTest, testSymmetry) {
 
     auto scores = g_eval.evaluate(pos);
     ASSERT_EQ(Score::zero(), scores.materialScore);
-    ASSERT_EQ(Score::zero(), scores.positionalScore);
+    ASSERT_EQ(0            , scores.positionalScore);
     ASSERT_EQ(Score::zero(), calculateScore(scores));
   }
 
@@ -66,7 +66,7 @@ TEST(EvaluatorTest, testSymmetry) {
 
     auto scores = g_eval.evaluate(pos);
     ASSERT_EQ(Score::zero(), scores.materialScore);
-    ASSERT_EQ(Score::zero(), scores.positionalScore);
+    ASSERT_EQ(0            , scores.positionalScore);
     ASSERT_EQ(Score::zero(), calculateScore(scores));
   }
 }
