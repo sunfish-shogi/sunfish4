@@ -172,7 +172,6 @@ void SEE::sortMoves(const Position& position,
     Score score = calculate(position, move);
 
     if (excludeSmallCaptures && score <= material::PawnEx) {
-      LOG(warning) << ite->toString(position) << ',' << score;
       ite = moves.remove(ite);
       continue;
     }
