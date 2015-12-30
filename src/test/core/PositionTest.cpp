@@ -995,6 +995,24 @@ TEST(PositionTest, testUndoNullMove) {
   }
 }
 
+TEST(PositionTest, testIsCapture) {
+  Position pos = PositionUtil::createPositionFromCsaString(
+    "P1-KY-KE-GI-KI * -KI * -KE-KY\n"
+    "P2 *  * -OU *  * -GI * -HI * \n"
+    "P3-FU-FU-FU-FU-FU * -KA * -FU\n"
+    "P4 *  *  *  *  * -FU-FU-FU * \n"
+    "P5 *  *  *  *  * +FU *  *  * \n"
+    "P6 *  * +FU *  *  * +FU *  * \n"
+    "P7+FU+FU+KA+FU+FU *  * +FU+FU\n"
+    "P8 *  *  * +OU * +HI+GI *  * \n"
+    "P9+KY+KE+GI+KI * +KI * +KE+KY\n"
+    "P+00KA\n"
+    "P-\n"
+    "+\n");
+  ASSERT_EQ(true , pos.isCapture(Move(Square::s77(), Square::s44(), false)));
+  ASSERT_EQ(false, pos.isCapture(Move(Square::s77(), Square::s55(), false)));
+}
+
 TEST(PositionTest, testInCheck) {
   {
     // checked by pawn
