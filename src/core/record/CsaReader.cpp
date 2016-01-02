@@ -61,6 +61,12 @@ bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = null
   Position position = record.initialPosition;
 
   auto status = forEach(is, [&record, &position, info](const char* line) {
+    if (readComment(line) ||
+        readTime(line) ||
+        readCommand(line)) {
+      return InputStatus::Continue;
+    }
+
     Move move;
     if (!readMove(line, position, move)) {
       LOG(error) << "invalid move: " << line;

@@ -11,6 +11,7 @@ PROJ_ROOT:=$(shell pwd)
 SUNFISH_EXPT:=sunfish_expt
 SUNFISH_TEST:=sunfish_test
 SUNFISH_BM:=sunfish_bm
+SUNFISH_LN:=sunfish_ln
 SUNFISH_USI:=sunfish_usi
 SUNFISH_DEV:=sunfish_dev
 
@@ -45,6 +46,7 @@ help:
 	@echo '  make prof1'
 	@echo '  make test'
 	@echo '  make bm'
+	@echo '  make ln'
 	@echo '  make usi'
 	@echo '  make usi-debug'
 	@echo '  make dev'
@@ -115,6 +117,12 @@ bm:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/benchmark
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_BM) $(SUNFISH_BM)
+
+ln:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/learn
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_LN) $(SUNFISH_LN)
 
 usi:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null

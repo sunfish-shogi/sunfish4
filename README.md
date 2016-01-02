@@ -91,6 +91,13 @@ make bm
 ./sunfish_bm
 ```
 
+### Machine Learning
+
+```
+make ln
+./sunfish_ln
+```
+
 ### Development Tool
 
 ```

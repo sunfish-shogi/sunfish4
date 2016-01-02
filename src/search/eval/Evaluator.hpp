@@ -45,9 +45,14 @@ public:
 
   using FeatureType = FeatureVector<int16_t>;
 
+  enum class InitType {
+    EvalBin,
+    Zero,
+  };
+
   static std::shared_ptr<Evaluator> sharedEvaluator();
 
-  Evaluator();
+  Evaluator(InitType type);
 
   void initializeZero();
 
@@ -62,6 +67,10 @@ public:
   bool read(const char* path);
 
   bool write(const char* path) const;
+
+  bool readEvalBin();
+
+  bool writeEvalBin() const;
 
   void onChanged();
 
@@ -82,6 +91,10 @@ public:
                                        move,
                                        captured);
     }
+  }
+
+  FeatureType& fv() {
+    return fv_;
   }
 
 private:

@@ -16,7 +16,7 @@ using namespace sunfish;
 
 namespace {
 
-Evaluator g_eval;
+Evaluator g_eval(Evaluator::InitType::Zero);
 
 } // namespace
 

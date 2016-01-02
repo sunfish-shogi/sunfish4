@@ -11,6 +11,12 @@
 #include <mutex>
 #include <cstring>
 
+namespace {
+
+const char* const EvalBin = "eval.bin";
+
+} // namespace
+
 namespace sunfish {
 
 std::shared_ptr<Evaluator> Evaluator::sharedEvaluator() {
@@ -20,19 +26,29 @@ std::shared_ptr<Evaluator> Evaluator::sharedEvaluator() {
   std::lock_guard<std::mutex> lock(mutex);
   std::shared_ptr<Evaluator> sptr = wptr.lock();
   if (!sptr) {
-    sptr = std::make_shared<Evaluator>();
+    sptr = std::make_shared<Evaluator>(InitType::EvalBin);
     wptr = sptr;
   }
 
   return sptr;
 }
 
-Evaluator::Evaluator() {
-  initializeZero();
+Evaluator::Evaluator(InitType type) {
+  switch (type) {
+  case InitType::EvalBin:
+    if (!readEvalBin()) {
+      initializeZero();
+    }
+    break;
+
+  case InitType::Zero:
+    initializeZero();
+    break;
+  }
 }
 
 void Evaluator::initializeZero() {
-  memset((void*)&fv_, 0, sizeof(fv_));
+  memset(reinterpret_cast<void*>(&fv_), 0, sizeof(fv_));
   onChanged();
 }
 
@@ -60,6 +76,14 @@ bool Evaluator::write(const char* path) const {
   file.close();
 
   return true;
+}
+
+bool Evaluator::readEvalBin() {
+  return read(EvalBin);
+}
+
+bool Evaluator::writeEvalBin() const {
+  return write(EvalBin);
 }
 
 void Evaluator::onChanged() {
@@ -113,8 +137,7 @@ Score Evaluator::calculateMaterialScore(const Position& position) {
 }
 
 int32_t Evaluator::calculatePositionalScore(const Position& position) {
-  return operate<FeatureType, int32_t,
-                 FeatureOperationType::Evaluate>
+  return operate<FeatureOperationType::Evaluate>
                 (fv_, position, 0);
 }
 

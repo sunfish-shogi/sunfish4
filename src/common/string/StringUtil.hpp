@@ -12,6 +12,8 @@
 #include <vector>
 #include <utility>
 #include <cstdint>
+#include <cstdlib>
+#include <cctype>
 
 namespace sunfish {
 
@@ -36,6 +38,18 @@ public:
 
   static std::string stringify(uint64_t u64) {
     return stringify((unsigned)(u64>>32)) + stringify((unsigned)u64);
+  }
+
+  static std::string trim(const std::string& line) {
+    std::string::size_type spos;
+    std::string::size_type epos;
+    for (spos = 0; spos < line.length(); spos++) {
+      if (!isspace(line[spos])) { break; }
+    }
+    for (epos = spos; epos < line.length(); epos++) {
+      if (isspace(line[epos])) { break; }
+    }
+    return line.substr(spos, epos - spos);
   }
 
   static std::string chomp(const std::string& line) {
@@ -75,6 +89,34 @@ public:
   template <class T>
   static std::vector<std::string> split(const std::string& line, T&& isDelim) {
     return split(line.c_str(), std::forward<T>(isDelim));
+  }
+
+  static int toInt(const std::string str, int defaultValue) {
+    if (str.empty()) {
+      return defaultValue;
+    }
+
+    char* endptr;
+    int i = strtol(str.c_str(), &endptr, 10);
+    if (*endptr != '\0') {
+      return defaultValue;
+    }
+
+    return i;
+  }
+
+  static float toFloat(const std::string str, float defaultValue) {
+    if (str.empty()) {
+      return defaultValue;
+    }
+
+    char* endptr;
+    float f = strtof(str.c_str(), &endptr);
+    if (*endptr != '\0') {
+      return defaultValue;
+    }
+
+    return f;
   }
 
   static std::string ordinal(unsigned n) {

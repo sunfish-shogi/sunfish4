@@ -96,8 +96,8 @@ bool Solver::solveCsaFile(const char* path) {
 
     Piece captured;
     if (!position.doMove(move, captured)) {
-      LOG(error) << "invalid move: " << move.toString(position) << "\n"
-                 << "on:\n" << position.toString();
+      LOG(error) << "an illegal move is detected: " << move.toString(position) << "\n"
+                 << position.toString();
       OUT(info) << "";
       return false;
     }

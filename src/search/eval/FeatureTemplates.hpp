@@ -18,7 +18,7 @@ template <class FV>
 inline
 void cumulate(FV& fv) {
   // generate kkpc
-#define GEN_KKPC_HAND(pt, n) do { \
+#define CUM_KKPC_HAND(pt, n) do { \
   typename FV::Type cum = 0; \
   for (int i = 0; i < n; i++) { \
     cum += fv.kkp[bking.raw()][wking.raw()][KKP::H ## pt + i]; \
@@ -27,16 +27,89 @@ void cumulate(FV& fv) {
 } while (false)
   SQUARE_EACH(bking) {
     SQUARE_EACH(wking) {
-      GEN_KKPC_HAND(Pawn  , 18);
-      GEN_KKPC_HAND(Lance ,  4);
-      GEN_KKPC_HAND(Knight,  4);
-      GEN_KKPC_HAND(Silver,  4);
-      GEN_KKPC_HAND(Gold  ,  4);
-      GEN_KKPC_HAND(Bishop,  4);
-      GEN_KKPC_HAND(Rook  ,  4);
+      CUM_KKPC_HAND(Pawn  , 18);
+      CUM_KKPC_HAND(Lance ,  4);
+      CUM_KKPC_HAND(Knight,  4);
+      CUM_KKPC_HAND(Silver,  4);
+      CUM_KKPC_HAND(Gold  ,  4);
+      CUM_KKPC_HAND(Bishop,  4);
+      CUM_KKPC_HAND(Rook  ,  4);
     }
   }
-#undef GEN_KKPC_HAND
+#undef CUM_KKPC_HAND
+}
+
+template <class FV>
+inline
+void rcumulate(FV& fv) {
+  // generate kkpc
+#define RCUM_KKPC_HAND(pt, n) do { \
+  typename FV::Type cum = 0; \
+  for (int i = n - 1; i >= 0; i--) { \
+    cum += fv.kkpc[bking.raw()][wking.raw()][KKP::H ## pt + i]; \
+    fv.kkp[bking.raw()][wking.raw()][KKP::H ## pt + i] = cum; \
+  } \
+} while (false)
+  SQUARE_EACH(bking) {
+    SQUARE_EACH(wking) {
+      RCUM_KKPC_HAND(Pawn  , 18);
+      RCUM_KKPC_HAND(Lance ,  4);
+      RCUM_KKPC_HAND(Knight,  4);
+      RCUM_KKPC_HAND(Silver,  4);
+      RCUM_KKPC_HAND(Gold  ,  4);
+      RCUM_KKPC_HAND(Bishop,  4);
+      RCUM_KKPC_HAND(Rook  ,  4);
+    }
+  }
+#undef RCUM_KKPC_HAND
+}
+
+template <class FV>
+inline
+void add(FV& dst, const FV& src) {
+  for (int i = 0; i < KKP::Size; i++) {
+    (&dst.kkp[0][0][0])[i] += (&src.kkp[0][0][0])[i];
+  }
+}
+
+template <class FV1, class FV2, class T>
+inline
+void each(FV1& fv1, FV2& fv2, T&& func) {
+  for (int i = 0; i < KKP::Size; i++) {
+    func((&fv1.kkp[0][0][0])[i],
+         (&fv2.kkp[0][0][0])[i]);
+  }
+}
+
+template <class FV, class T>
+inline
+void symmetrize(FV& fv, T&& func) {
+  SQUARE_EACH(bking) {
+    auto rbking = bking.hsym();
+    if (rbking.raw() < bking.raw()) {
+      continue;
+    }
+
+    SQUARE_EACH(wking) {
+      auto rwking = wking.hsym();
+      if (rbking == bking &&
+          rwking.raw() < wking.raw()) {
+        continue;
+      }
+
+      for (int x = 0; x < KKP::End; x++) {
+        int rx = symmetricalKkpIndex(x);
+        if (rbking == bking &&
+            rwking == wking &&
+            rx <= x) {
+          continue;
+        }
+
+        func(fv.kkp[bking.raw()][wking.raw()][x],
+             fv.kkp[rbking.raw()][rwking.raw()][rx]);
+      }
+    }
+  }
 }
 
 enum FeatureOperationType {
@@ -44,7 +117,7 @@ enum FeatureOperationType {
   Extract,
 };
 
-template <class FV, class T, FeatureOperationType type>
+template <FeatureOperationType type, class FV, class T>
 inline
 T operate(FV& fv, const Position& position, T delta) {
   T sum = 0;
