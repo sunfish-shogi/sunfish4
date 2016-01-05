@@ -26,8 +26,8 @@ CONSTEXPR_CONST int DefaultIteration = 32;
 CONSTEXPR_CONST int DefaultDepth = 2;
 CONSTEXPR_CONST float DefaultNorm = 1.0e-2f;
 
-CONSTEXPR_CONST int MaximumUpdateCount = 128;
-CONSTEXPR_CONST int MinimumUpdateCount = 16;
+CONSTEXPR_CONST int MaximumUpdateCount = 32;
+CONSTEXPR_CONST int MinimumUpdateCount = 8;
 
 CONSTEXPR_CONST int16_t Int16Max = 32767;
 CONSTEXPR_CONST int16_t Int16Min = -32768;
@@ -516,9 +516,9 @@ void BatchLearning::updateParameters() {
   each(evaluator_->fv(), *gradient_, [this](int16_t& e, float& g) {
     float n = norm(e, config_.norm);
     int16_t step = random_.bit() + random_.bit();
-    if      (g + n >= 0.0f && e <= Int16Max - step) { e += step; }
-    else if (g + n <= 0.0f && e >= Int16Min + step) { e -= step; }
-    else { LOG(warning) << "A parameter is out of bounce."; }
+    if      (g + n > 0.0f && e <= Int16Max - step) { e += step; }
+    else if (g + n < 0.0f && e >= Int16Min + step) { e -= step; }
+    else if (g + n != 0.0f) { LOG(warning) << "A parameter is out of bounce."; }
   });
 
   symmetrize(evaluator_->fv(), [](int16_t& e1, int16_t& e2) {
