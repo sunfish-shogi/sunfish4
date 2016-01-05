@@ -12,8 +12,8 @@
 
 namespace sunfish {
 
-class Record;
-class Tree;
+struct Record;
+struct Tree;
 
 enum class SCRState {
   None,

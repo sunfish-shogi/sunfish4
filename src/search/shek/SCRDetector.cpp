@@ -33,7 +33,9 @@ void SCRDetector::registerRecord(const Record& record) {
     }
   }
 
-  length_ = std::min(recordLength, MaxLength);
+  // static_cast is required on Clang.
+  // See https://trello.com/c/iJqg1GqN
+  length_ = std::min(recordLength, static_cast<size_t>(MaxLength));
 }
 
 SCRState SCRDetector::detect(const Tree& tree) const {

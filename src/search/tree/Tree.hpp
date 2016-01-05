@@ -15,7 +15,7 @@
 
 namespace sunfish {
 
-class Record;
+struct Record;
 class Evaluator;
 struct Worker;
 

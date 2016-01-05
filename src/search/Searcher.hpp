@@ -27,7 +27,7 @@ namespace sunfish {
 
 class Position;
 class Move;
-class Record;
+struct Record;
 class Evaluator;
 
 class Searcher {
