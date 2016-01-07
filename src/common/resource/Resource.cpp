@@ -32,7 +32,7 @@ Resource::INI Resource::ini(const char* path) {
 
   if (!fin) {
     LOG(error) << "could not open the INI file: " << path;
-    return {};
+    return Resource::INI{};
   }
 
   std::regex emptyLine("^\\s*$");
@@ -51,7 +51,7 @@ Resource::INI Resource::ini(const char* path) {
 
     if (fin.fail()) {
       LOG(error) << "an error occured while reading INI file: " << path;
-      return {};
+      return Resource::INI{};
     }
 
     if (std::regex_match(line, emptyLine) ||
@@ -70,7 +70,7 @@ Resource::INI Resource::ini(const char* path) {
     if (sepPos == std::string::npos || sepPos == 0) {
       LOG(error) << "invalid INI file format: " << path;
       LOG(error) << line;
-      return {};
+      return Resource::INI{};
     }
 
     auto key = StringUtil::trim(line.substr(0, sepPos));

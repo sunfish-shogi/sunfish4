@@ -1,9 +1,4 @@
-/sunfish
-/sunfish_expt
-/sunfish_test
-/sunfish_bm
-/sunfish_usi
-/sunfish_dev
+/sunfish_*
 /out/test_result.xml
 /out/test_result_sse.xml
 /out/test_result_nosse.xml

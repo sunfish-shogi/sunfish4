@@ -19,7 +19,7 @@ namespace sunfish {
 
 class Position;
 class Evaluator;
-class Gradient;
+struct Gradient;
 
 class BatchLearning {
 public:
