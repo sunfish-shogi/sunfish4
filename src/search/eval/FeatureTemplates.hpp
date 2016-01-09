@@ -174,6 +174,15 @@ void symmetrize(FV& fv, T&& func) {
              fv.kingWLance[rking.raw()][rs.raw()][i]);
       }
     }
+
+    if (rking.raw() <= king.raw()) {
+      continue;
+    }
+
+    for (int i = 0; i <= 8; i++) {
+      func(fv.kingNumGold[king.raw()][i],
+           fv.kingNumGold[rking.raw()][i]);
+    }
   }
 }
 
@@ -275,6 +284,16 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     BB_EACH(square, wsilver) {
       Direction dir = square.dir(position.getWhiteKingSquare());
       wgolds[wgoldn++] = kingSilverIndex(dir);
+    }
+  }
+
+  {
+    if (type == FeatureOperationType::Evaluate) {
+      sum += fv.kingNumGold[bking][bgoldn];
+      sum -= fv.kingNumGold[wking][wgoldn];
+    } else {
+      fv.kingNumGold[bking][bgoldn] += delta;
+      fv.kingNumGold[wking][wgoldn] -= delta;
     }
   }
 

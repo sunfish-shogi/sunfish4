@@ -96,6 +96,7 @@ struct FeatureVector {
   using KingPieceType = Type[81][KingPiece::End];
   using KingGoldPieceType = Type[81][KingGold::End][KingPiece::End];
   using KingOpenType = Type[81][81][8];
+  using KingNumGoldType = Type[81][9];
 
   KingHandType kingHand;
   KingPieceType kingPiece;
@@ -110,6 +111,7 @@ struct FeatureVector {
   KingOpenType kingWBishopDiagR45;
   KingOpenType kingBLance;
   KingOpenType kingWLance;
+  KingNumGoldType kingNumGold;
 };
 
 template <class T>
