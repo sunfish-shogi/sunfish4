@@ -10,6 +10,8 @@
 #include "core/move/MoveTables.hpp"
 #include "core/position/Position.hpp"
 #include "search/eval/FeatureVector.hpp"
+#include <vector>
+#include <algorithm>
 
 namespace {
 
@@ -492,6 +494,79 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   }
 
   return sum;
+}
+
+template <class T>
+struct FVSummary {
+  using Type = T;
+
+  std::string name;
+  int num;
+  int zero;
+  int nonZero;
+  Type max;
+  Type min;
+  Type maxAbs;
+  Type aveAbs;
+};
+
+template <class SummaryType, class T>
+inline
+SummaryType summarizePart(const char* name, const T* array, size_t size) {
+  SummaryType summary;
+  summary.name = name;
+  summary.num = size;
+  summary.zero = 0;
+  summary.nonZero = 0;
+  summary.max = array[0];
+  summary.min = array[0];
+  summary.maxAbs = std::abs(array[0]);
+  double sum = 0;
+
+  for (size_t i = 0; i < size; i++) {
+    if (array[i] == static_cast<T>(0)) {
+      summary.zero++;
+    } else {
+      summary.nonZero++;
+    }
+    summary.max = std::max(summary.max, array[i]);
+    summary.min = std::min(summary.min, array[i]);
+    sum += std::abs(array[i]);
+    summary.maxAbs = std::max(summary.maxAbs,
+                              static_cast<T>(std::abs(array[i])));
+  }
+  summary.aveAbs = sum / size;
+
+  return summary;
+}
+
+template <class FV,
+          class SummaryType = FVSummary<typename FV::Type>,
+          class SummaryListType = std::vector<SummaryType>>
+inline
+SummaryListType summarize(const FV& fv) {
+#define FV_PART_PTR(part)  (reinterpret_cast<const typename FV::Type*>(fv.part))
+#define FV_PART_SIZE(part) (sizeof(fv.part) / sizeof(typename FV::Type))
+#define FV_SUMMARIZE(part) (summarizePart<SummaryType>(#part, FV_PART_PTR(part), FV_PART_SIZE(part)))
+  return SummaryListType {
+    FV_SUMMARIZE(kingHand),
+    FV_SUMMARIZE(kingPiece),
+    FV_SUMMARIZE(kingGoldPiece),
+    FV_SUMMARIZE(kingBRookVer),
+    FV_SUMMARIZE(kingWRookVer),
+    FV_SUMMARIZE(kingBRookHor),
+    FV_SUMMARIZE(kingWRookHor),
+    FV_SUMMARIZE(kingBBishopDiagL45),
+    FV_SUMMARIZE(kingWBishopDiagL45),
+    FV_SUMMARIZE(kingBBishopDiagR45),
+    FV_SUMMARIZE(kingWBishopDiagR45),
+    FV_SUMMARIZE(kingBLance),
+    FV_SUMMARIZE(kingWLance),
+    FV_SUMMARIZE(kingNumGold),
+  };
+#undef FV_PART_PTR
+#undef FV_PART_SIZE
+#undef FV_SUMMARIZE
 }
 
 } // namespace

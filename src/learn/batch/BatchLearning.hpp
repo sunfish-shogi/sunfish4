@@ -70,6 +70,8 @@ private:
 
   void updateParameters();
 
+  void printSummary();
+
 private:
 
   Config config_;

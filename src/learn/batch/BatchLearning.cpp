@@ -11,6 +11,7 @@
 #include "core/record/CsaReader.hpp"
 #include "common/file_system/Directory.hpp"
 #include "common/resource/Resource.hpp"
+#include "common/string/TablePrinter.hpp"
 #include "common/string/StringUtil.hpp"
 #include "logger/Logger.hpp"
 #include <thread>
@@ -134,13 +135,19 @@ bool BatchLearning::iterate() {
 
   for (int i = 0; i < config_.iteration; i++) {
     OUT(info) << "";
-    OUT(info) << "Iteration - " << i;
+    OUT(info) << "ITERATION - " << i;
+
+    OUT(info) << "Training-Data-Generation Phase";
 
     bool ok = generateTrainingData();
     if (!ok) {
       return false;
     }
 
+    OUT(info) << "Parameter-Adjustment Phase";
+
+    float lossFirst = 0.0f;
+    float lossLast = 0.0f;
     for (int uc = 0; uc < updateCount; uc++) {
       ok = generateGradient();
       if (!ok) {
@@ -150,12 +157,22 @@ bool BatchLearning::iterate() {
       updateParameters();
 
       if (uc == 0) {
-        float lossAve = loss_ / numberOfData_;
-        OUT(info) << "loss=" << lossAve;
+        lossFirst = loss_ / numberOfData_;
+      }
+      
+      if (uc == updateCount - 1) {
+        lossLast = loss_ / numberOfData_;
       }
     }
 
+    OUT(info) << "Write-To-File Phase";
+
     evaluator_->writeEvalBin();
+
+    OUT(info) << "";
+    OUT(info) << "loss = " << lossFirst << " - " << lossLast;
+
+    printSummary();
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
   }
@@ -232,7 +249,8 @@ bool BatchLearning::generateTrainingData() {
     numberOfData_ += ti.numberOfData;
   }
 
-  OUT(info) << "training data was generated: success=" << succ << " fail=" << fail;
+  OUT(info) << "success: " << succ;
+  OUT(info) << "fail   : " << fail;
 
   return true;
 }
@@ -531,6 +549,34 @@ void BatchLearning::updateParameters() {
   });
 
   evaluator_->onChanged();
+}
+
+void BatchLearning::printSummary() {
+  auto summary = summarize(evaluator_->fv());
+  TablePrinter tp;
+
+  tp.row() << "name"
+           << "num"
+           << "zero"
+           << "non-zero"
+           << "max"
+           << "min"
+           << "max-abs"
+           << "ave-abs"
+           << "";
+  for (const auto& s : summary) {
+    tp.row() << s.name
+             << s.num
+             << s.zero
+             << s.nonZero
+             << s.max
+             << s.min
+             << s.maxAbs
+             << s.aveAbs;
+  }
+
+  OUT(info) << "";
+  OUT(info) << StringUtil::chomp(tp.stringify());
 }
 
 } // namespace sunfish
