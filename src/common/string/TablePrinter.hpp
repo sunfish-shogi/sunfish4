@@ -6,6 +6,7 @@
 #ifndef SUNFISH_COMMON_STRING_TABLEPRINTER_HPP__
 #define SUNFISH_COMMON_STRING_TABLEPRINTER_HPP__
 
+#include "common/string/StringUtil.hpp"
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -65,7 +66,9 @@ public:
         if (index != 0) {
           oss << separator_;
         }
-        oss << std::setw(widthList[index]) << column;
+        oss << std::setw(widthList[index])
+            << (StringUtil::isNumber(column) ? std::right : std::left)
+            << column;
         index++;
       }
       oss << suffix_ << '\n';

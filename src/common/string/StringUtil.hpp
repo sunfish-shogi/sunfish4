@@ -98,7 +98,7 @@ public:
 
     char* endptr;
     int i = strtol(str.c_str(), &endptr, 10);
-    if (*endptr != '\0') {
+    if (endptr == str.c_str() || *endptr != '\0') {
       return defaultValue;
     }
 
@@ -112,11 +112,17 @@ public:
 
     char* endptr;
     float f = strtof(str.c_str(), &endptr);
-    if (*endptr != '\0') {
+    if (endptr == str.c_str() || *endptr != '\0') {
       return defaultValue;
     }
 
     return f;
+  }
+
+  static bool isNumber(const std::string str) {
+    char* endptr;
+    strtof(str.c_str(), &endptr);
+    return endptr != str.c_str() && *endptr == '\0';
   }
 
   static std::string ordinal(unsigned n) {
