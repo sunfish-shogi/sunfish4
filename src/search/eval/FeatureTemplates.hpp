@@ -563,6 +563,9 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingBLance),
     FV_SUMMARIZE(kingWLance),
     FV_SUMMARIZE(kingNumGold),
+    summarizePart<SummaryType>("total",
+                               reinterpret_cast<const typename FV::Type*>(&fv),
+                               sizeof(fv) / sizeof(typename FV::Type)),
   };
 #undef FV_PART_PTR
 #undef FV_PART_SIZE
