@@ -576,6 +576,13 @@ TEST(BitboardTest, testSet) {
     ASSERT_EQ(false, rbb.check(3));
     ASSERT_EQ(false, rbb.check(4));
   }
+
+  {
+    ASSERT_EQ(0 , Bitboard(0x000LL, 0x000LL).count());
+    ASSERT_EQ(9 , Bitboard(0x803LL, 0x74cLL).count());
+    ASSERT_EQ(0 , RotatedBitboard(0x000LL).count());
+    ASSERT_EQ(6 , RotatedBitboard(0x74cLL).count());
+  }
 }
 
 TEST(BitboardTest, testCheckFile) {

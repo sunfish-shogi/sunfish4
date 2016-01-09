@@ -91,10 +91,16 @@ TEST(PieceTest, testTurn) {
   ASSERT_EQ(Piece::blackDragon(), Piece::blackDragon().black());
   ASSERT_EQ(Piece::blackPawn(), Piece::whitePawn().black());
   ASSERT_EQ(Piece::blackDragon(), Piece::whiteDragon().black());
+
   ASSERT_EQ(Piece::whitePawn(), Piece::blackPawn().white());
   ASSERT_EQ(Piece::whiteDragon(), Piece::blackDragon().white());
   ASSERT_EQ(Piece::whitePawn(), Piece::whitePawn().white());
   ASSERT_EQ(Piece::whiteDragon(), Piece::whiteDragon().white());
+
+  ASSERT_EQ(Piece::whitePawn(), Piece::blackPawn().enemy());
+  ASSERT_EQ(Piece::whiteDragon(), Piece::blackDragon().enemy());
+  ASSERT_EQ(Piece::blackPawn(), Piece::whitePawn().enemy());
+  ASSERT_EQ(Piece::blackDragon(), Piece::whiteDragon().enemy());
 }
 
 TEST(PieceTest, testStatus) {

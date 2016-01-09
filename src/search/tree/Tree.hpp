@@ -32,7 +32,7 @@ struct Tree {
 
 void initializeTree(Tree& tree,
                     const Position& position,
-                    ClassifiedScores scores,
+                    Evaluator& eval,
                     Worker* worker,
                     const Record* record);
 
@@ -93,9 +93,9 @@ void undoNullMove(Tree& tree);
 inline Score calculateStandPat(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   if (tree.position.getTurn() == Turn::Black) {
-    return calculateScore(node.scores);
+    return node.score;
   } else {
-    return -calculateScore(node.scores);
+    return -node.score;
   }
 }
 

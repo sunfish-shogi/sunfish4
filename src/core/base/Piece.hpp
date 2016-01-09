@@ -292,6 +292,13 @@ public:
   }
 
   /**
+   * Get a enemy piece.
+   */
+  CONSTEXPR T enemy() const {
+    return T(SuperType::number_ ^ PieceNumber::White);
+  }
+
+  /**
    * Check the piece is black.
    */
   CONSTEXPR bool isBlack() const {

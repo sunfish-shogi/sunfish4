@@ -7,6 +7,7 @@
 #define SUNFISH_CORE_POSITION_BITSET128_HPP__
 
 #include "common/Def.hpp"
+#include "common/bitope/BitOpe.hpp"
 #include "core/Sse.hpp"
 #include <cstdint>
 #include <cassert>
@@ -321,6 +322,13 @@ public:
       offset = InvalidOffset;
     }
     return offset;
+  }
+
+  /**
+   * Returns the number of 1-bits.
+   */
+  int count() const {
+    return popcount(first()) + popcount(second());
   }
 
 protected:

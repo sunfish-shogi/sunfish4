@@ -8,6 +8,7 @@
 #include "test/Test.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "search/eval/Material.hpp"
+#include "search/eval/FeatureTemplates.hpp"
 #include "core/position/Position.hpp"
 #include "core/util/PositionUtil.hpp"
 #include "common/math/Random.hpp"
@@ -22,9 +23,13 @@ Evaluator g_eval(Evaluator::InitType::Zero);
 
 TEST_BEFORE(EvaluatorTest) {
   Random r;
-  g_eval.initializeRandom([&r]() {
-    return r.int16();
+  each(g_eval.fv(), [&r](int16_t& v) {
+    v = r.int16() % 21 - 10;
   });
+  symmetrize(g_eval.fv(), [](int16_t& e1, int16_t& e2) {
+    e1 = e2;
+  });
+  g_eval.onChanged();
 }
 
 TEST(EvaluatorTest, testSymmetry) {
@@ -43,10 +48,11 @@ TEST(EvaluatorTest, testSymmetry) {
       "P-\n"
       "+\n");
 
-    auto scores = g_eval.evaluate(pos);
-    ASSERT_EQ(Score::zero(), scores.materialScore);
-    ASSERT_EQ(0            , scores.positionalScore);
-    ASSERT_EQ(Score::zero(), calculateScore(scores));
+    auto materialScore = g_eval.calculateMaterialScore(pos);
+    auto score = g_eval.calculateTotalScore(materialScore,
+                                            pos);
+    ASSERT_EQ(Score::zero(), materialScore);
+    ASSERT_EQ(Score::zero(), score);
   }
 
   {
@@ -64,10 +70,49 @@ TEST(EvaluatorTest, testSymmetry) {
       "P-00HI00KA00KI00GI00KE00KY00FU00FU\n"
       "+\n");
 
-    auto scores = g_eval.evaluate(pos);
-    ASSERT_EQ(Score::zero(), scores.materialScore);
-    ASSERT_EQ(0            , scores.positionalScore);
-    ASSERT_EQ(Score::zero(), calculateScore(scores));
+    auto materialScore = g_eval.calculateMaterialScore(pos);
+    auto score = g_eval.calculateTotalScore(materialScore,
+                                            pos);
+    ASSERT_EQ(Score::zero(), materialScore);
+    ASSERT_EQ(Score::zero(), score);
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1-KY *  *  *  *  *  * +KI-KY\n"
+      "P2 * -HI *  *  *  *  *  *  * \n"
+      "P3 *  * -KE *  * -KI-KI-FU-OU\n"
+      "P4-KE * -FU * -GI-FU-FU * -FU\n"
+      "P5 *  *  *  * -FU *  * +FU+FU\n"
+      "P6-FU+GI+FU+FU *  * +FU *  * \n"
+      "P7 * +FU * +GI+FU * +KA *  * \n"
+      "P8+FU+OU+KI *  *  *  *  *  * \n"
+      "P9+KY+KE * -HI *  *  * +KE+KY\n"
+      "P+00KA00FU\n"
+      "P-00GI00FU00FU\n"
+      "+\n");
+    Position pos2 = PositionUtil::createPositionFromCsaString(
+      "P1-KY+KI *  *  *  *  *  * -KY\n"
+      "P2 *  *  *  *  *  *  * -HI * \n"
+      "P3-OU-FU-KI-KI *  * -KE *  * \n"
+      "P4-FU * -FU-FU-GI * -FU * -KE\n"
+      "P5+FU+FU *  * -FU *  *  *  * \n"
+      "P6 *  * +FU *  * +FU+FU+GI-FU\n"
+      "P7 *  * +KA * +FU+GI * +FU * \n"
+      "P8 *  *  *  *  *  * +KI+OU+FU\n"
+      "P9+KY+KE *  *  * -HI * +KE+KY\n"
+      "P+00KA00FU\n"
+      "P-00GI00FU00FU\n"
+      "+\n");
+
+    auto materialScore = g_eval.calculateMaterialScore(pos);
+    auto score = g_eval.calculateTotalScore(materialScore,
+                                            pos);
+    auto materialScore2 = g_eval.calculateMaterialScore(pos2);
+    auto score2 = g_eval.calculateTotalScore(materialScore2,
+                                             pos2);
+    ASSERT_EQ(materialScore, materialScore2);
+    ASSERT_EQ(score, score2);
   }
 }
 
@@ -88,8 +133,8 @@ TEST(EvaluatorTest, testMaterial) {
       "-\n");
 
     auto expect = material::Bishop + material::Horse;
-    auto scores = g_eval.evaluate(pos);
-    ASSERT_EQ(expect, scores.materialScore);
+    auto materialScore = g_eval.calculateMaterialScore(pos);
+    ASSERT_EQ(expect, materialScore);
   }
 }
 
@@ -125,14 +170,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s27(), Square::s26(), false);
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -166,14 +210,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s88(), Square::s22(), true);
     auto captured = Piece::whiteBishop();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -207,14 +250,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(PieceType::pawn(), Square::s76());
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -248,14 +290,53 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s59(), Square::s68(), false);
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
+  }
+
+  {
+    // black - king, capture
+    Position posBefore = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI * -KI * -KE-KY\n"
+      "P2 *  * -OU *  * -HI * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  * +FU * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU-UM+FU+FU+FU+FU * +FU\n"
+      "P8 *  * +KI+OU * +GI * +HI * \n"
+      "P9+KY+KE+GI *  * +KI * +KE+KY\n"
+      "P+\n"
+      "P-00KA\n"
+      "+\n");
+    Position posAfter = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE-GI-KI * -KI * -KE-KY\n"
+      "P2 *  * -OU *  * -HI * -GI * \n"
+      "P3-FU-FU-FU-FU-FU-FU * -FU-FU\n"
+      "P4 *  *  *  *  *  * -FU *  * \n"
+      "P5 *  *  *  *  *  *  * +FU * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7+FU+FU+OU+FU+FU+FU+FU * +FU\n"
+      "P8 *  * +KI *  * +GI * +HI * \n"
+      "P9+KY+KE+GI *  * +KI * +KE+KY\n"
+      "P+00KA\n"
+      "P-00KA\n"
+      "-\n");
+
+    auto move = Move(Square::s68(), Square::s77(), false);
+    auto captured = Piece::whiteHorse();
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -289,14 +370,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s61(), Square::s52(), false);
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -330,14 +410,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s82(), Square::s86(), false);
     auto captured = Piece::blackPawn();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -371,14 +450,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s98(), Square::s99(), true);
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -412,14 +490,13 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(PieceType::gold(), Square::s88());
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 
   {
@@ -453,45 +530,86 @@ TEST(EvaluatorTest, testDiff) {
 
     auto move = Move(Square::s51(), Square::s52(), false);
     auto captured = Piece::empty();
-    auto scores = g_eval.evaluate(posBefore);
-    scores = g_eval.evaluateDiff(scores,
-                                 posAfter,
-                                 move,
-                                 captured);
-    auto expect = g_eval.evaluate(posAfter);
-    ASSERT_EQ(expect.materialScore, scores.materialScore);
-    ASSERT_EQ(expect.positionalScore, scores.positionalScore);
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
+  }
+
+  {
+    // white - king, capture
+    Position posBefore = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE * -KI *  *  * -KE-KY\n"
+      "P2 * -HI * -GI * -KI-OU-GI * \n"
+      "P3-FU * -FU-FU * -FU+FU-FU-FU\n"
+      "P4 *  *  *  * -FU-KA-FU *  * \n"
+      "P5 * -FU *  *  *  *  *  *  * \n"
+      "P6 *  * +FU * +FU+GI *  *  * \n"
+      "P7+FU+FU+GI+FU * +FU+KE * +FU\n"
+      "P8 *  * +OU *  *  * +HI *  * \n"
+      "P9+KY+KE+KA+KI * +KI *  * +KY\n"
+      "P+00FU\n"
+      "P-\n"
+      "-\n");
+    Position posAfter = PositionUtil::createPositionFromCsaString(
+      "P1-KY-KE * -KI *  *  * -KE-KY\n"
+      "P2 * -HI * -GI * -KI * -GI * \n"
+      "P3-FU * -FU-FU * -FU-OU-FU-FU\n"
+      "P4 *  *  *  * -FU-KA-FU *  * \n"
+      "P5 * -FU *  *  *  *  *  *  * \n"
+      "P6 *  * +FU * +FU+GI *  *  * \n"
+      "P7+FU+FU+GI+FU * +FU+KE * +FU\n"
+      "P8 *  * +OU *  *  * +HI *  * \n"
+      "P9+KY+KE+KA+KI * +KI *  * +KY\n"
+      "P+00FU\n"
+      "P-00FU\n"
+      "+\n");
+
+    auto move = Move(Square::s32(), Square::s33(), false);
+    auto captured = Piece::blackPawn();
+    auto scoreBefore = g_eval.calculateMaterialScore(posBefore);
+    auto scoreAfter = g_eval.calculateMaterialScoreDiff(scoreBefore,
+                                                        posAfter,
+                                                        move,
+                                                        captured);
+    auto expect = g_eval.calculateMaterialScore(posAfter);
+    ASSERT_EQ(expect, scoreAfter);
   }
 }
 
 TEST(EvaluatorTest, testSymmetric) {
-  ASSERT_EQ(KKP::HPawn   +  0, symmetricalKkpIndex(KKP::HPawn   +  0));
-  ASSERT_EQ(KKP::HPawn   + 17, symmetricalKkpIndex(KKP::HPawn   + 17));
+  ASSERT_EQ(KingPiece::BPawn   + 64, symmetricalKingPieceIndex(KingPiece::BPawn   +  0));
+  ASSERT_EQ(KingPiece::BPawn   + 50, symmetricalKingPieceIndex(KingPiece::BPawn   + 18));
+  ASSERT_EQ(KingPiece::BPawn   + 18, symmetricalKingPieceIndex(KingPiece::BPawn   + 50));
+  ASSERT_EQ(KingPiece::BPawn   +  7, symmetricalKingPieceIndex(KingPiece::BPawn   + 71));
 
-  ASSERT_EQ(KKP::HLance  +  0, symmetricalKkpIndex(KKP::HLance  +  0));
+  ASSERT_EQ(KingPiece::BLance  + 64, symmetricalKingPieceIndex(KingPiece::BLance  +  0));
+  ASSERT_EQ(KingPiece::BLance  + 50, symmetricalKingPieceIndex(KingPiece::BLance  + 18));
+  ASSERT_EQ(KingPiece::BLance  + 18, symmetricalKingPieceIndex(KingPiece::BLance  + 50));
+  ASSERT_EQ(KingPiece::BLance  +  7, symmetricalKingPieceIndex(KingPiece::BLance  + 71));
 
-  ASSERT_EQ(KKP::HRook   +  1, symmetricalKkpIndex(KKP::HRook   +  1));
+  ASSERT_EQ(KingPiece::BKnight + 56, symmetricalKingPieceIndex(KingPiece::BKnight +  0));
+  ASSERT_EQ(KingPiece::BKnight + 52, symmetricalKingPieceIndex(KingPiece::BKnight + 10));
+  ASSERT_EQ(KingPiece::BKnight + 10, symmetricalKingPieceIndex(KingPiece::BKnight + 52));
+  ASSERT_EQ(KingPiece::BKnight +  6, symmetricalKingPieceIndex(KingPiece::BKnight + 62));
 
-  ASSERT_EQ(KKP::BPawn   + 64, symmetricalKkpIndex(KKP::BPawn   +  0));
-  ASSERT_EQ(KKP::BPawn   + 50, symmetricalKkpIndex(KKP::BPawn   + 18));
-  ASSERT_EQ(KKP::BPawn   + 18, symmetricalKkpIndex(KKP::BPawn   + 50));
-  ASSERT_EQ(KKP::BPawn   +  7, symmetricalKkpIndex(KKP::BPawn   + 71));
+  ASSERT_EQ(KingPiece::BSilver + 72, symmetricalKingPieceIndex(KingPiece::BSilver +  0));
+  ASSERT_EQ(KingPiece::BSilver +  8, symmetricalKingPieceIndex(KingPiece::BSilver + 80));
 
-  ASSERT_EQ(KKP::BLance  + 64, symmetricalKkpIndex(KKP::BLance  +  0));
-  ASSERT_EQ(KKP::BLance  + 50, symmetricalKkpIndex(KKP::BLance  + 18));
-  ASSERT_EQ(KKP::BLance  + 18, symmetricalKkpIndex(KKP::BLance  + 50));
-  ASSERT_EQ(KKP::BLance  +  7, symmetricalKkpIndex(KKP::BLance  + 71));
+  ASSERT_EQ(KingPiece::BRook   + 72, symmetricalKingPieceIndex(KingPiece::BRook   +  0));
+  ASSERT_EQ(KingPiece::BRook   +  8, symmetricalKingPieceIndex(KingPiece::BRook   + 80));
 
-  ASSERT_EQ(KKP::BKnight + 56, symmetricalKkpIndex(KKP::BKnight +  0));
-  ASSERT_EQ(KKP::BKnight + 52, symmetricalKkpIndex(KKP::BKnight + 10));
-  ASSERT_EQ(KKP::BKnight + 10, symmetricalKkpIndex(KKP::BKnight + 52));
-  ASSERT_EQ(KKP::BKnight +  6, symmetricalKkpIndex(KKP::BKnight + 62));
-
-  ASSERT_EQ(KKP::BSilver + 72, symmetricalKkpIndex(KKP::BSilver +  0));
-  ASSERT_EQ(KKP::BSilver +  8, symmetricalKkpIndex(KKP::BSilver + 80));
-
-  ASSERT_EQ(KKP::BRook   + 72, symmetricalKkpIndex(KKP::BRook   +  0));
-  ASSERT_EQ(KKP::BRook   +  8, symmetricalKkpIndex(KKP::BRook   + 80));
+  ASSERT_EQ(KingGold::LeftUpGold   , symmetricalKingGoldIndex(KingGold::RightUpGold));
+  ASSERT_EQ(KingGold::UpGold       , symmetricalKingGoldIndex(KingGold::UpGold));
+  ASSERT_EQ(KingGold::RightUpGold  , symmetricalKingGoldIndex(KingGold::LeftUpGold));
+  ASSERT_EQ(KingGold::LeftGold     , symmetricalKingGoldIndex(KingGold::RightGold));
+  ASSERT_EQ(KingGold::RightGold    , symmetricalKingGoldIndex(KingGold::LeftGold));
+  ASSERT_EQ(KingGold::LeftDownGold , symmetricalKingGoldIndex(KingGold::RightDownGold));
+  ASSERT_EQ(KingGold::DownGold     , symmetricalKingGoldIndex(KingGold::DownGold));
+  ASSERT_EQ(KingGold::RightDownGold, symmetricalKingGoldIndex(KingGold::LeftDownGold));
 }
 
 #endif // !defined(NDEBUG)

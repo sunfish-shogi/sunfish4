@@ -11,39 +11,22 @@
 #include "core/move/Move.hpp"
 #include "core/position/Position.hpp"
 #include "search/eval/FeatureVector.hpp"
+#include "search/eval/EvalCache.hpp"
 #include "search/eval/Score.hpp"
 #include <memory>
 #include <cstdint>
 
 namespace sunfish {
 
-struct ClassifiedScores {
-  Score materialScore;
-  int32_t positionalScore;
-
-  ClassifiedScores operator-() {
-    return { -materialScore, -positionalScore };
-  }
-  ClassifiedScores operator+(const ClassifiedScores& rhs) {
-    return {
-      materialScore   + rhs.materialScore,
-      positionalScore + rhs.positionalScore
-    };
-  }
-};
-
 inline int32_t positionalScoreScale() {
   return 32;
-}
-
-inline Score calculateScore(const ClassifiedScores& scores) {
-  return scores.materialScore + static_cast<Score::RawType>(scores.positionalScore / positionalScoreScale());
 }
 
 class Evaluator {
 public:
 
-  using FeatureType = FeatureVector<int16_t>;
+  using FVType = FeatureVector<int16_t>;
+  using CVType = CumulatedVector<int16_t>;
 
   enum class InitType {
     EvalBin,
@@ -56,14 +39,6 @@ public:
 
   void initializeZero();
 
-  template <class T>
-  void initializeRandom(T&& gen) {
-    for (int i = 0; i < KKP::End; i++) {
-      (&fv_.kkp[0][0][0])[i] = gen();
-    }
-    onChanged();
-  }
-
   bool read(const char* path);
 
   bool write(const char* path) const;
@@ -74,44 +49,34 @@ public:
 
   void onChanged();
 
-  ClassifiedScores evaluate(const Position& position);
+  Score calculateMaterialScore(const Position& position) const;
 
-  ClassifiedScores evaluateDiff(const ClassifiedScores& scores,
-                                const Position& position,
-                                Move move,
-                                Piece captured) {
-    if (position.getTurn() == Turn::White) {
-      return evaluateDiff<Turn::Black>(scores,
-                                       position,
-                                       move,
-                                       captured);
-    } else {
-      return evaluateDiff<Turn::White>(scores,
-                                       position,
-                                       move,
-                                       captured);
-    }
-  }
+  Score calculateMaterialScoreDiff(Score scores,
+                                   const Position& position,
+                                   Move move,
+                                   Piece captured) const;
 
-  FeatureType& fv() {
+  Score calculateTotalScore(Score materialScore,
+                            const Position& position);
+
+  FVType& fv() {
     return fv_;
   }
 
-private:
+  CVType& cv() {
+    return cv_;
+  }
 
-  Score calculateMaterialScore(const Position& position);
+private:
 
   int32_t calculatePositionalScore(const Position& position);
 
-  template <Turn turn>
-  ClassifiedScores evaluateDiff(ClassifiedScores scores,
-                                const Position& position,
-                                Move move,
-                                Piece captured);
-
 private:
 
-  FeatureType fv_;
+  EvalCache cache_;
+
+  FVType fv_;
+  CVType cv_;
 
 };
 

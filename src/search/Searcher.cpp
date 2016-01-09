@@ -136,7 +136,7 @@ bool Searcher::search(const Position& pos,
   auto& worker = workerOnMainThread_;
   initializeTree(tree,
                  pos,
-                 evaluator_->evaluate(pos),
+                 *evaluator_,
                  &worker,
                  record);
 
@@ -258,7 +258,7 @@ bool Searcher::idsearch(const Position& pos,
   auto& worker = workerOnMainThread_;
   initializeTree(tree,
                  pos,
-                 evaluator_->evaluate(pos),
+                 *evaluator_,
                  &worker,
                  record);
 

@@ -87,36 +87,30 @@ bool Evaluator::writeEvalBin() const {
 }
 
 void Evaluator::onChanged() {
-  cumulate(fv_);
+  cumulate(fv_, cv_);
+  cache_.initialize();
 }
 
-ClassifiedScores Evaluator::evaluate(const Position& position) {
-  return {
-    calculateMaterialScore(position),
-    calculatePositionalScore(position),
-  };
-}
-
-Score Evaluator::calculateMaterialScore(const Position& position) {
+Score Evaluator::calculateMaterialScore(const Position& position) const {
   Score score = Score::zero();
 
   auto& blackHand = position.getBlackHand();
-  score += material::Pawn   * blackHand.get(PieceType::pawn  ()); \
-  score += material::Lance  * blackHand.get(PieceType::lance ()); \
-  score += material::Knight * blackHand.get(PieceType::knight()); \
-  score += material::Silver * blackHand.get(PieceType::silver()); \
-  score += material::Gold   * blackHand.get(PieceType::gold  ()); \
-  score += material::Bishop * blackHand.get(PieceType::bishop()); \
-  score += material::Rook   * blackHand.get(PieceType::rook  ()); \
+  score += material::Pawn   * blackHand.get(PieceType::pawn  ());
+  score += material::Lance  * blackHand.get(PieceType::lance ());
+  score += material::Knight * blackHand.get(PieceType::knight());
+  score += material::Silver * blackHand.get(PieceType::silver());
+  score += material::Gold   * blackHand.get(PieceType::gold  ());
+  score += material::Bishop * blackHand.get(PieceType::bishop());
+  score += material::Rook   * blackHand.get(PieceType::rook  ());
 
   auto& whiteHand = position.getWhiteHand();
-  score -= material::Pawn   * whiteHand.get(PieceType::pawn  ()); \
-  score -= material::Lance  * whiteHand.get(PieceType::lance ()); \
-  score -= material::Knight * whiteHand.get(PieceType::knight()); \
-  score -= material::Silver * whiteHand.get(PieceType::silver()); \
-  score -= material::Gold   * whiteHand.get(PieceType::gold  ()); \
-  score -= material::Bishop * whiteHand.get(PieceType::bishop()); \
-  score -= material::Rook   * whiteHand.get(PieceType::rook  ()); \
+  score -= material::Pawn   * whiteHand.get(PieceType::pawn  ());
+  score -= material::Lance  * whiteHand.get(PieceType::lance ());
+  score -= material::Knight * whiteHand.get(PieceType::knight());
+  score -= material::Silver * whiteHand.get(PieceType::silver());
+  score -= material::Gold   * whiteHand.get(PieceType::gold  ());
+  score -= material::Bishop * whiteHand.get(PieceType::bishop());
+  score -= material::Rook   * whiteHand.get(PieceType::rook  ());
 
   Bitboard occ = nosseOr(position.getBOccupiedBitboard(),
                          position.getWOccupiedBitboard());
@@ -136,99 +130,48 @@ Score Evaluator::calculateMaterialScore(const Position& position) {
   return score;
 }
 
-int32_t Evaluator::calculatePositionalScore(const Position& position) {
-  return operate<FeatureOperationType::Evaluate>
-                (fv_, position, 0);
-}
-
-template <Turn turn>
-ClassifiedScores Evaluator::evaluateDiff(ClassifiedScores scores,
-                                         const Position& position,
-                                         Move move,
-                                         Piece captured) {
-  Piece piece = position.getPieceOnBoard(move.to());
-
-  if (piece.type() == PieceType::king()) {
-    if (!captured.isEmpty()) {
-      if (turn == Turn::Black) {
-        scores.materialScore += material::exchangeScore(captured);
-      } else {
-        scores.materialScore -= material::exchangeScore(captured);
-      }
-    }
-    scores.positionalScore = calculatePositionalScore(position);
-    return scores;
-  }
-
-  auto bking = position.getBlackKingSquare().raw();
-  auto wking = position.getWhiteKingSquare().raw();
-  auto rbking = position.getWhiteKingSquare().dsym().raw();
-  auto rwking = position.getBlackKingSquare().dsym().raw();
-
-  if (move.isDrop()) {
-    PieceType pieceType = piece.type();
-    if (turn == Turn::Black) {
-      auto n = position.getBlackHandPieceCount(pieceType) + 1;
-      scores.positionalScore -= fv_.kkp[bking][wking][kkpHandIndex(pieceType, n)];
-      scores.positionalScore += fv_.kkp[bking][wking][kkpBoardIndex(pieceType, move.to())];
+Score Evaluator::calculateMaterialScoreDiff(Score score,
+                                            const Position& position,
+                                            Move move,
+                                            Piece captured) const {
+  if (move.isPromotion()) {
+    Piece piece = position.getPieceOnBoard(move.to());
+    if (position.getTurn() == Turn::White) {
+      score += material::promotionScore(piece);
     } else {
-      auto n = position.getWhiteHandPieceCount(pieceType) + 1;
-      scores.positionalScore += fv_.kkp[rbking][rwking][kkpHandIndex(pieceType, n)];
-      scores.positionalScore -= fv_.kkp[rbking][rwking][kkpBoardIndex(pieceType, move.to().dsym())];
-    }
-
-    goto skip_capture;
- 
-  } else if (move.isPromotion()) {
-    Piece pieceBefore = piece.unpromote();
-
-    if (turn == Turn::Black) {
-      scores.materialScore += material::promotionScore(piece);
-      scores.positionalScore -= fv_.kkp[bking][wking][kkpBoardIndex(pieceBefore.type(), move.from())];
-      scores.positionalScore += fv_.kkp[bking][wking][kkpBoardIndex(piece.type(), move.to())];
-    } else {
-      scores.materialScore -= material::promotionScore(piece);
-      scores.positionalScore += fv_.kkp[rbking][rwking][kkpBoardIndex(pieceBefore.type(), move.from().dsym())];
-      scores.positionalScore -= fv_.kkp[rbking][rwking][kkpBoardIndex(piece.type(), move.to().dsym())];
-    }
-
-  } else {
-    if (turn == Turn::Black) {
-      scores.materialScore -= fv_.kkp[bking][wking][kkpBoardIndex(piece.type(), move.from())];
-      scores.positionalScore += fv_.kkp[bking][wking][kkpBoardIndex(piece.type(), move.to())];
-    } else {
-      scores.materialScore += fv_.kkp[rbking][rwking][kkpBoardIndex(piece.type(), move.from().dsym())];
-      scores.positionalScore -= fv_.kkp[rbking][rwking][kkpBoardIndex(piece.type(), move.to().dsym())];
+      score -= material::promotionScore(piece);
     }
   }
 
   if (!captured.isEmpty()) {
-    if (turn == Turn::Black) {
-      scores.materialScore += material::exchangeScore(captured);
-      scores.positionalScore += fv_.kkp[rbking][rwking][kkpBoardIndex(captured.type(), move.from().dsym())];
-      auto n = position.getBlackHandPieceCount(captured.type());
-      scores.positionalScore += fv_.kkp[bking][wking][kkpHandIndex(captured.type(), n)];
+    if (position.getTurn() == Turn::White) {
+      score += material::exchangeScore(captured);
     } else {
-      scores.materialScore -= material::exchangeScore(captured);
-      scores.positionalScore -= fv_.kkp[bking][wking][kkpBoardIndex(captured.type(), move.from())];
-      auto n = position.getWhiteHandPieceCount(captured.type());
-      scores.positionalScore -= fv_.kkp[rbking][rwking][kkpHandIndex(captured.type(), n)];
+      score -= material::exchangeScore(captured);
     }
   }
 
-skip_capture:
-
-  return scores;
+  return score;
 }
-template
-ClassifiedScores
-Evaluator::evaluateDiff<Turn::Black>(ClassifiedScores,
-                                     const Position&, Move,
-                                     Piece);
-template
-ClassifiedScores
-Evaluator::evaluateDiff<Turn::White>(ClassifiedScores,
-                                     const Position&, Move,
-                                     Piece);
+
+int32_t Evaluator::calculatePositionalScore(const Position& position) {
+  return operate<FeatureOperationType::Evaluate>
+                (fv_, cv_, position, 0);
+}
+
+Score Evaluator::calculateTotalScore(Score materialScore,
+                                     const Position& position) {
+  Score score;
+  if (cache_.check(position.getHash(), score)) {
+    return score;
+  }
+
+  auto positionalScore = calculatePositionalScore(position);
+  score = materialScore + static_cast<Score::RawType>(positionalScore / positionalScoreScale());
+
+  cache_.entry(position.getHash(), score);
+
+  return score;
+}
 
 } // namespace sunfish

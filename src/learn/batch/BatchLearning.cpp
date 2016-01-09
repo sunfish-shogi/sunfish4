@@ -73,7 +73,7 @@ namespace sunfish {
 
 BatchLearning::BatchLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
-    gradient_(new Gradient){
+    gradient_(new Gradient) {
 }
 
 bool BatchLearning::run() {
@@ -419,10 +419,11 @@ bool BatchLearning::generateGradient() {
   memset(reinterpret_cast<void*>(gradient_.get()), 0, sizeof(Gradient));
   for (auto& ti : threads) {
     loss_ += ti.loss;
-    add(*gradient_, ti.gradient);
+    add(gradient_->g, ti.gradient.g);
+    add(gradient_->c, ti.gradient.c);
   }
-  rcumulate(*gradient_);
-  symmetrize(*gradient_, [](float& g1, float& g2) {
+  rcumulate(gradient_->g, gradient_->c);
+  symmetrize(gradient_->g, [](float& g1, float& g2) {
     g1 = g2 = g1 + g2;
   });
 
@@ -476,7 +477,9 @@ void BatchLearning::generateGradient(const Position& rootPos,
         return;
       }
     }
-    score0 = calculateScore(evaluator_->evaluate(pos0));
+    Score materialScore = evaluator_->calculateMaterialScore(pos0);
+    score0 = evaluator_->calculateTotalScore(materialScore,
+                                             pos0);
   }
 
   for (unsigned i = 1; i < trainingData.size(); i++) {
@@ -492,7 +495,9 @@ void BatchLearning::generateGradient(const Position& rootPos,
       }
     }
 
-    auto score = calculateScore(evaluator_->evaluate(pos));
+    Score materialScore = evaluator_->calculateMaterialScore(pos);
+    auto score = evaluator_->calculateTotalScore(materialScore,
+                                                 pos);
     if (rootPos.getTurn() == Turn::White) {
       score0 = -score0;
       score = -score;
@@ -507,13 +512,13 @@ void BatchLearning::generateGradient(const Position& rootPos,
     if (rootPos.getTurn() == Turn::White) {
       d = -d;
     }
-    operate<FeatureOperationType::Extract>(g, pos0, d);
-    operate<FeatureOperationType::Extract>(g, pos, -d);
+    operate<FeatureOperationType::Extract>(g.g, g.c, pos0, d);
+    operate<FeatureOperationType::Extract>(g.g, g.c, pos, -d);
   }
 }
 
 void BatchLearning::updateParameters() {
-  each(evaluator_->fv(), *gradient_, [this](int16_t& e, float& g) {
+  each(evaluator_->fv(), gradient_->g, [this](int16_t& e, float& g) {
     float n = norm(e, config_.norm);
     int16_t step = random_.bit() + random_.bit();
     if      (g + n > 0.0f && e <= Int16Max - step) { e += step; }
@@ -524,6 +529,8 @@ void BatchLearning::updateParameters() {
   symmetrize(evaluator_->fv(), [](int16_t& e1, int16_t& e2) {
     e1 = e2;
   });
+
+  evaluator_->onChanged();
 }
 
 } // namespace sunfish

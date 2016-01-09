@@ -7,6 +7,7 @@
 #define SUNFISH_CORE_POSITION_BITSET64_HPP__
 
 #include "common/Def.hpp"
+#include "common/bitope/BitOpe.hpp"
 #include <cstdint>
 #include <cassert>
 
@@ -144,6 +145,13 @@ public:
     return !operator==(rhs);
   }
 #endif
+
+  /**
+   * Returns the number of 1-bits.
+   */
+  int count() const {
+    return popcount(bb_);
+  }
 
   /**
    * Get the raw value.

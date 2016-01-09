@@ -10,7 +10,9 @@
 
 namespace sunfish {
 
-struct Gradient : public FeatureVector<float> {
+struct Gradient {
+  FeatureVector<float> g;
+  CumulatedVector<float> c;
 };
 
 } // namespace sunfish

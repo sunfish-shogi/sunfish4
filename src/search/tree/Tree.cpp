@@ -13,7 +13,8 @@ namespace {
 
 using namespace sunfish;
 
-void initializeShekTable(ShekTable& shekTable, const Record* record) {
+void initializeShekTable(ShekTable& shekTable,
+                         const Record* record) {
   shekTable.initialize();
 
   if (record == nullptr) {
@@ -38,13 +39,17 @@ namespace sunfish {
 
 void initializeTree(Tree& tree,
                     const Position& position,
-                    ClassifiedScores scores,
+                    Evaluator& eval,
                     Worker* worker,
                     const Record* record) {
   tree.position = position;
   tree.worker = worker;
   tree.ply = 0;
-  tree.nodes[0].scores = scores;
+
+  Score materialScore = eval.calculateMaterialScore(position);
+  tree.nodes[0].materialScore = materialScore;
+  tree.nodes[0].score = eval.calculateTotalScore(materialScore,
+                                                 position);
 
   // SHEK
   initializeShekTable(tree.shekTable, record);
@@ -109,7 +114,12 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval) {
   tree.ply++;
 
   auto& childNode = tree.nodes[tree.ply];
-  childNode.scores = eval.evaluateDiff(node.scores, tree.position, move, node.captured);
+  childNode.materialScore = eval.calculateMaterialScoreDiff(node.materialScore,
+                                                            tree.position,
+                                                            move,
+                                                            node.captured);
+  childNode.score = eval.calculateTotalScore(childNode.materialScore,
+                                             tree.position);
 
   return true;
 
@@ -132,7 +142,8 @@ void doNullMove(Tree& tree) {
   tree.ply++;
 
   auto& childNode = tree.nodes[tree.ply];
-  childNode.scores = node.scores;
+  childNode.materialScore = node.materialScore;
+  childNode.score = node.score;
 }
 
 void undoNullMove(Tree& tree) {
@@ -148,12 +159,10 @@ bool isImproving(const Tree& tree) {
   auto& curr = tree.nodes[tree.ply];
   auto& front = tree.nodes[tree.ply-2];
 
-  auto currScore = calculateScore(curr.scores);
-  auto frontScore = calculateScore(front.scores);
   if (tree.position.getTurn() == Turn::Black) {
-    return  currScore >= frontScore;
+    return  curr.score >= front.score;
   } else {
-    return  currScore <= frontScore;
+    return  curr.score <= front.score;
   }
 }
 

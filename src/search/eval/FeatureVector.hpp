@@ -12,46 +12,112 @@
 
 namespace sunfish {
 
-namespace KKP_ {
+namespace KingHand_ {
 enum Type {
-  HPawn   = 0,
-  HLance  = HPawn   + 18,
-  HKnight = HLance  + 4,
-  HSilver = HKnight + 4,
-  HGold   = HSilver + 4,
-  HBishop = HGold   + 4,
-  HRook   = HBishop + 2,
-  BPawn   = HRook   + 2,
-  BLance  = BPawn   + 81 - 9,
-  BKnight = BLance  + 81 - 9,
-  BSilver = BKnight + 81 - 18,
-  BGold   = BSilver + 81,
-  BBishop = BGold   + 81,
-  BHorse  = BBishop + 81,
-  BRook   = BHorse  + 81,
-  BDragon = BRook   + 81,
-
-  HandEnd = HRook   + 2,
-  End     = BDragon + 81,
-  Size    = 81 * 81 * End,
+  BPawn   = 0,
+  WPawn   = BPawn   + 18,
+  BLance  = WPawn   + 18,
+  WLance  = BLance  + 4,
+  BKnight = WLance  + 4,
+  WKnight = BKnight + 4,
+  BSilver = WKnight + 4,
+  WSilver = BSilver + 4,
+  BGold   = WSilver + 4,
+  WGold   = BGold   + 4,
+  BBishop = WGold   + 4,
+  WBishop = BBishop + 2,
+  BRook   = WBishop + 2,
+  WRook   = BRook   + 2,
+  End     = WRook + 2,
 };
-} // namespace KKP_
-using KKP = KKP_::Type;
+}; // namespace KingHand_
+using KingHand = KingHand_::Type;
 
-int kkpBoardIndex(PieceType pieceType, Square square);
+namespace KingPiece_ {
+enum Type {
+  BPawn   = 0,
+  WPawn   = BPawn   + 81 - 9,
+  BLance  = WPawn   + 81 - 9,
+  WLance  = BLance  + 81 - 9,
+  BKnight = WLance  + 81 - 9,
+  WKnight = BKnight + 81 - 18,
+  BSilver = WKnight + 81 - 18,
+  WSilver = BSilver + 81,
+  BGold   = WSilver + 81,
+  WGold   = BGold   + 81,
+  BBishop = WGold   + 81,
+  WBishop = BBishop + 81,
+  BHorse  = WBishop + 81,
+  WHorse  = BHorse  + 81,
+  BRook   = WHorse  + 81,
+  WRook   = BRook   + 81,
+  BDragon = WRook   + 81,
+  WDragon = BDragon + 81,
+  End     = WDragon + 81,
+};
+} // namespace KingPiece_
+using KingPiece = KingPiece_::Type;
 
-int kkpHandIndex(PieceType pieceType, Hand::Type n);
+namespace KingGold_ {
+enum Type {
+  LeftUpSilver = 0,
+  UpSilver,
+  RightUpSilver,
+  LeftSilver,
+  RightSilver,
+  LeftDownSilver,
+  DownSilver,
+  RightDownSilver,
+  LeftUpGold,
+  UpGold,
+  RightUpGold,
+  LeftGold,
+  RightGold,
+  LeftDownGold,
+  DownGold,
+  RightDownGold,
+  End,
+};
+} // namespace KingGold_
+using KingGold = KingGold_::Type;
 
-int symmetricalKkpIndex(int index);
+int kingPieceIndex(Piece pieceType, Square square);
+int kingHandIndex(Piece pieceType, Hand::Type n);
+int kingGoldIndex(Direction dir);
+int kingSilverIndex(Direction dir);
+
+int symmetricalKingPieceIndex(int index);
+int symmetricalKingGoldIndex(int index);
 
 template <class T>
 struct FeatureVector {
   using Type = T;
-  using Kkp = Type[81][81][KKP::End];
-  using KkpC = Type[81][81][KKP::HandEnd];
+  using KingHandType = Type[81][KingHand::End];
+  using KingPieceType = Type[81][KingPiece::End];
+  using KingGoldPieceType = Type[81][KingGold::End][KingPiece::End];
+  using KingOpenType = Type[81][81][8];
 
-  Kkp kkp;
-  KkpC kkpc;
+  KingHandType kingHand;
+  KingPieceType kingPiece;
+  KingGoldPieceType kingGoldPiece;
+  KingOpenType kingBRookVer;
+  KingOpenType kingWRookVer;
+  KingOpenType kingBRookHor;
+  KingOpenType kingWRookHor;
+  KingOpenType kingBBishopDiagL45;
+  KingOpenType kingWBishopDiagL45;
+  KingOpenType kingBBishopDiagR45;
+  KingOpenType kingWBishopDiagR45;
+  KingOpenType kingBLance;
+  KingOpenType kingWLance;
+};
+
+template <class T>
+struct CumulatedVector {
+  using Type = T;
+  using KingHandType = Type[81][KingHand::End];
+
+  KingHandType kingHand;
 };
 
 } // namespace sunfish

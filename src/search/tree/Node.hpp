@@ -23,7 +23,8 @@ enum GenPhase : uint8_t {
 
 struct Node {
   Zobrist::Type hash;
-  ClassifiedScores scores;
+  Score materialScore;
+  Score score;
   CheckState checkState;
   bool isHistorical;
 
