@@ -420,11 +420,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBRookVer[bking][bIndex][count];
-        sum -= fv.kingWRookVer[wking][wIndex][count];
+        sum += fv.kingBRookHor[bking][bIndex][count];
+        sum -= fv.kingWRookHor[wking][wIndex][count];
       } else {
-        fv.kingBRookVer[bking][bIndex][count] += delta;
-        fv.kingWRookVer[wking][wIndex][count] -= delta;
+        fv.kingBRookHor[bking][bIndex][count] += delta;
+        fv.kingWRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -448,11 +448,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWRookVer[bking][bIndex][count];
-        sum -= fv.kingBRookVer[wking][wIndex][count];
+        sum += fv.kingWRookHor[bking][bIndex][count];
+        sum -= fv.kingBRookHor[wking][wIndex][count];
       } else {
-        fv.kingWRookVer[bking][bIndex][count] += delta;
-        fv.kingBRookVer[wking][wIndex][count] -= delta;
+        fv.kingWRookHor[bking][bIndex][count] += delta;
+        fv.kingBRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
