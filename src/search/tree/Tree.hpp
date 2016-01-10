@@ -99,7 +99,32 @@ inline Score calculateStandPat(Tree& tree) {
   }
 }
 
+inline Score estimateScore(Tree& tree,
+                           const Move& move,
+                           Evaluator& eval) {
+  auto& node = tree.nodes[tree.ply];
+  Score score = eval.estimateScore(node.score,
+                                   tree.position,
+                                   move);
+  if (tree.position.getTurn() == Turn::Black) {
+    return score;
+  } else {
+    return -score;
+  }
+}
+
 bool isImproving(const Tree& tree);
+
+inline Piece targetPiece(Tree& tree,
+                         const Move& move) {
+  if (!move.isDrop()) {
+    return tree.position.getPieceOnBoard(move.from());
+  } else if (tree.position.getTurn() == Turn::Black) {
+    return move.droppingPieceType().black();
+  } else {
+    return move.droppingPieceType().white();
+  }
+}
 
 std::string getPath(const Tree& tree, int ply);
 

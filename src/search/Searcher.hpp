@@ -6,7 +6,8 @@
 #ifndef SUNFISH_SEARCH_SEARCHER_HPP__
 #define SUNFISH_SEARCH_SEARCHER_HPP__
 
-#include "eval/Score.hpp"
+#include "search/eval/Score.hpp"
+#include "search/eval/Gain.hpp"
 #include "search/SearchConfig.hpp"
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
@@ -113,7 +114,9 @@ private:
 
   Move nextMove(Tree& tree);
 
-  void generateMovesOnQuies(Tree& tree, int qply);
+  void generateMovesOnQuies(Tree& tree,
+                            int qply,
+                            Score alpha);
 
   Move nextMoveOnQuies(Node& node);
 
@@ -145,6 +148,8 @@ private:
   TT tt_;
 
   History history_;
+
+  Gain gain_;
 
   Tree treeOnMainThread_;
   Worker workerOnMainThread_;

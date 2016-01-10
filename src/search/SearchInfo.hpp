@@ -17,6 +17,7 @@ struct SearchInfo {
   uint64_t quiesNodes;
   uint64_t hashCut;
   uint64_t nullMovePruning;
+  uint64_t futilityPruning;
   uint64_t failHigh;
   uint64_t failHighFirst;
 };
@@ -30,6 +31,7 @@ inline void mergeSearchInfo(SearchInfo& dst, const SearchInfo& src) {
   dst.quiesNodes      += src.quiesNodes;
   dst.hashCut         += src.hashCut;
   dst.nullMovePruning += src.nullMovePruning;
+  dst.futilityPruning += src.futilityPruning;
   dst.failHigh        += src.failHigh;
   dst.failHighFirst   += src.failHighFirst;
 }
@@ -47,6 +49,7 @@ inline void printSearchInfo(T& os, const SearchInfo& info, float elapsed) {
   os << "total nodes       : " << totalNodes;
   os << "hash-cut          : " << info.hashCut;
   os << "null move pruning : " << info.nullMovePruning;
+  os << "futility pruning  : " << info.futilityPruning;
   os << "fail high first   : " << failHighFirst << "%";
 }
 

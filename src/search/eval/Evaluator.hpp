@@ -51,13 +51,17 @@ public:
 
   Score calculateMaterialScore(const Position& position) const;
 
-  Score calculateMaterialScoreDiff(Score scores,
+  Score calculateMaterialScoreDiff(Score score,
                                    const Position& position,
                                    Move move,
                                    Piece captured) const;
 
   Score calculateTotalScore(Score materialScore,
                             const Position& position);
+
+  Score estimateScore(Score score,
+                      const Position& position,
+                      Move move);
 
   FVType& fv() {
     return fv_;

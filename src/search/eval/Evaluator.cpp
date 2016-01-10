@@ -174,4 +174,29 @@ Score Evaluator::calculateTotalScore(Score materialScore,
   return score;
 }
 
+Score Evaluator::estimateScore(Score score,
+                               const Position& position,
+                               Move move) {
+  if (move.isPromotion()) {
+    Piece piece = position.getPieceOnBoard(move.from());
+    if (position.getTurn() == Turn::Black) {
+      score += material::promotionScore(piece);
+    } else {
+      score -= material::promotionScore(piece);
+    }
+  }
+
+  Piece captured = position.getPieceOnBoard(move.to());
+  if (!captured.isEmpty()) {
+    if (position.getTurn() == Turn::Black) {
+      score += material::exchangeScore(captured);
+    } else {
+      score -= material::exchangeScore(captured);
+    }
+  }
+
+  return score;
+}
+
+
 } // namespace sunfish

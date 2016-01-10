@@ -16,20 +16,11 @@ namespace {
 
 using namespace sunfish;
 
-#if 0
-void printMoves(const Position& pos, const Moves& moves) {
-  std::ostringstream oss;
-  for (const auto& move : moves) {
-    Score score = moveToScore(move);
-    oss << move.toString(pos) << '(' << score << ") ";
-  }
-  OUT(info) << oss.str();
-}
-#endif
-
-// constants
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
+/**
+ * Check whether the recursive-iterative deepening should be run.
+ */
 inline bool shouldRecursiveIDSearch(int depth) {
   return depth >= 3 * Searcher::Depth1Ply;
 }
@@ -51,6 +42,9 @@ inline int nullDepth(int depth) {
                                                  depth - Searcher::Depth1Ply * 16 / 4); 
 }
 
+/**
+ * values for reducing from the depth.
+ */
 uint8_t ReductionDepth[20][32][2];
 
 void initializeReductionDepth() {
@@ -65,7 +59,7 @@ void initializeReductionDepth() {
 }
 
 /**
- * Get a depth of late move reduction.
+ * Returns a value for reducing from the depth.
  */
 int reductionDepth(int depth,
                    int count,
@@ -74,6 +68,36 @@ int reductionDepth(int depth,
                        [std::min(count / 2, 31)]
                        [improving];
 }
+
+/** the maximum depth to perform futility pruning. */
+CONSTEXPR_CONST int FutilityPruningMaxDepth = 9 * Searcher::Depth1Ply;
+
+/**
+ * Returns the margin for futility pruning.
+ */
+Score futilityPruningMargin(int depth,
+                            int count) {
+  Score margin;
+  if (depth < Searcher::Depth1Ply * 3) {
+    margin = 600;
+  } else {
+    margin = 200 / Searcher::Depth1Ply * std::max(depth, 0);
+  }
+  margin = std::max(margin - 4 * count, Score(600));
+  return margin;
+}
+
+#if 0
+void printMoves(const Position& pos,
+                const Moves& moves) {
+  std::ostringstream oss;
+  for (const auto& move : moves) {
+    Score score = moveToScore(move);
+    oss << move.toString(pos) << '(' << score << ") ";
+  }
+  OUT(info) << oss.str();
+}
+#endif
 
 } // namespace
 
@@ -111,6 +135,8 @@ void Searcher::onSearchStarted() {
   tt_.evolve();
 
   history_.reduce();
+
+  gain_.clear();
 
   if (handler_ != nullptr) {
     handler_->onStart(*this);
@@ -591,13 +617,27 @@ Score Searcher::search(Tree& tree,
                                                  ttScoreType == TTScoreType::Lower));
 
     // cut
-    if (isNullWindow && (ttDepth >= depth || isMate)) {
+    if (nodeStat.isHashCut() &&
+        isNullWindow &&
+        (ttDepth >= depth || isMate)) {
       if (ttScoreType == TTScoreType::Exact ||
          (ttScoreType == TTScoreType::Upper && ttScore <= oldAlpha) ||
          (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
         worker.info.hashCut++;
         return ttScore;
       }
+    }
+
+    // if the score is larger than beta by a considerable margin.
+    if (nodeStat.isHashCut() &&
+        isNullWindow &&
+        (ttScoreType == TTScoreType::Exact ||
+         ttScoreType == TTScoreType::Lower) &&
+        !isCheck(node.checkState) &&
+        !isCheck(tree.nodes[tree.ply-1].checkState) &&
+        depth <= FutilityPruningMaxDepth &&
+        ttScore >= beta + futilityPruningMargin(depth, 0)) {
+      return beta;
     }
 
     if (!shouldRecursiveIDSearch(depth) ||
@@ -636,8 +676,7 @@ Score Searcher::search(Tree& tree,
       standPat >= beta &&
       depth >= Depth1Ply * 2) {
     int newDepth = nullDepth(depth);
-    NodeStat newNodeStat = NodeStat::normal()
-        .unsetNullMoveSearch();
+    NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch();
 
     doNullMove(tree);
 
@@ -674,8 +713,8 @@ Score Searcher::search(Tree& tree,
       nodeStat.isRecursiveIDSearch() &&
       shouldRecursiveIDSearch(depth)) {
     int newDepth = recursiveIDSearchDepth(depth);
-    NodeStat newNodeStat = NodeStat::normal()
-        .unsetNullMoveSearch();
+    NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch()
+                                             .unsetHashCut();
 
     search(tree,
            newDepth,
@@ -725,12 +764,27 @@ Score Searcher::search(Tree& tree,
       newDepth = newDepth - reduced;
     }
 
+    // futility pruning
+    if (!isCheck(node.checkState) &&
+        newDepth <= FutilityPruningMaxDepth &&
+        alpha > -Score::mate()) {
+      Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
+      Score estScore = estimateScore(tree, move, *evaluator_)
+                     + gain_.get(move, targetPiece(tree, move));
+      if (estScore <= futAlpha) {
+        isFirst = false;
+        worker.info.futilityPruning++;
+        continue;
+      }
+    }
+
     bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       moveCount--;
       continue;
     }
 
+    Score newStandPat = -calculateStandPat(tree);
     NodeStat newNodeStat = NodeStat::normal();
 
     Score score;
@@ -771,6 +825,10 @@ Score Searcher::search(Tree& tree,
     if (isInterrupted()) {
       return Score::zero();
     }
+
+    gain_.update(move,
+                 targetPiece(tree, move),
+                 newStandPat - standPat - estimateScore(tree, move, *evaluator_));
 
     auto& childNode = tree.nodes[tree.ply+1];
 
@@ -859,7 +917,9 @@ Score Searcher::quies(Tree& tree,
 
   node.checkState = tree.position.getCheckState();
 
-  generateMovesOnQuies(tree, qply);
+  generateMovesOnQuies(tree,
+                       qply,
+                       alpha);
 
   // expand the branches
   for (;;) {
@@ -978,12 +1038,29 @@ Move Searcher::nextMove(Tree& tree) {
 /**
  * move generation for nodes of quiesence search
  */
-void Searcher::generateMovesOnQuies(Tree& tree, int qply) {
+void Searcher::generateMovesOnQuies(Tree& tree,
+                                    int qply,
+                                    Score alpha) {
   auto& node = tree.nodes[tree.ply];
 
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
     bool excludeSmallCaptures = qply >= 7;
+
+    // futility pruning
+    for (auto ite = node.moveIterator; ite != node.moves.end(); ) {
+      auto& move = *ite;
+
+      Score estScore = estimateScore(tree, move, *evaluator_)
+                     + gain_.get(move, targetPiece(tree, move));
+      if (estScore <= alpha) {
+        ite = node.moves.remove(ite);
+        continue;
+      }
+
+      ite++;
+    }
+
     SEE::sortMoves(tree.position,
                    node.moves,
                    node.moveIterator,

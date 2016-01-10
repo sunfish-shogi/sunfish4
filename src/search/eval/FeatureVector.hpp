@@ -81,8 +81,8 @@ enum Type {
 } // namespace KingGold_
 using KingGold = KingGold_::Type;
 
-int kingPieceIndex(Piece pieceType, Square square);
-int kingHandIndex(Piece pieceType, Hand::Type n);
+int kingPieceIndex(Piece piece, Square square);
+int kingHandIndex(Piece piece, Hand::Type n);
 int kingGoldIndex(Direction dir);
 int kingSilverIndex(Direction dir);
 
