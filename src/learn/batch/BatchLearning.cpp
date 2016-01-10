@@ -14,10 +14,8 @@
 #include "common/string/TablePrinter.hpp"
 #include "common/string/StringUtil.hpp"
 #include "logger/Logger.hpp"
-#include <thread>
 #include <atomic>
 #include <sstream>
-#include <fstream>
 #include <cmath>
 
 namespace {
@@ -188,27 +186,21 @@ bool BatchLearning::generateTrainingData() {
     return false;
   }
 
-  struct ThreadInfo {
-    std::thread thread;
-    std::vector<std::string> files;
-    std::ofstream os;
-    int failLoss;
-    int numberOfData;
-  };
-  std::vector<ThreadInfo> threads(config_.numThreads);
+  std::vector<GenTrDataThread> threads(config_.numThreads);
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& ti = threads[tn];
+    auto& th = threads[tn];
 
     auto path = trainingDataPath(tn);
-    ti.os.open(path, std::ios::out | std::ios::binary);
-    if (!ti.os) {
+    th.os.open(path, std::ios::out | std::ios::binary);
+    if (!th.os) {
       LOG(error) << "could not open a file: " << path;
       return false;
     }
 
-    ti.failLoss = 0;
-    ti.numberOfData = 0;
+    th.searcher.reset(new Searcher(evaluator_));
+    th.failLoss = 0;
+    th.numberOfData = 0;
   }
 
   int tn = 0;
@@ -217,52 +209,41 @@ bool BatchLearning::generateTrainingData() {
     tn = (tn + 1) % config_.numThreads;
   }
 
-  std::atomic<int> succ(0);
-  std::atomic<int> fail(0);
   for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& ti = threads[tn];
-    ti.thread = std::thread([this, &ti, &succ, &fail]() {
-      for (const auto& path : ti.files) {
-        bool ok = generateTrainingData(ti.os,
-                                       path,
-                                       ti.failLoss,
-                                       ti.numberOfData);
-        if (ok) {
-          succ++;
-        } else {
-          fail++;
-        }
-      }
+    auto& th = threads[tn];
+    th.thread = std::thread([this, &th]() {
+      generateTrainingData(th);
     });
   }
 
-  for (auto& ti : threads) {
-    if (ti.thread.joinable()) {
-      ti.thread.join();
+  for (auto& th : threads) {
+    if (th.thread.joinable()) {
+      th.thread.join();
     }
   }
 
   failLoss_ = 0;
   numberOfData_ = 0;
-  for (auto& ti : threads) {
-    failLoss_ += ti.failLoss;
-    numberOfData_ += ti.numberOfData;
+  for (auto& th : threads) {
+    failLoss_ += th.failLoss;
+    numberOfData_ += th.numberOfData;
   }
-
-  OUT(info) << "success: " << succ;
-  OUT(info) << "fail   : " << fail;
 
   return true;
 }
 
-bool BatchLearning::generateTrainingData(std::ostream& os,
-                                         const std::string& path,
-                                         int& failLoss,
-                                         int& numberOfData) {
+void BatchLearning::generateTrainingData(GenTrDataThread& th) {
+  for (const auto& path : th.files) {
+    generateTrainingData(th, path);
+  }
+}
+
+void BatchLearning::generateTrainingData(GenTrDataThread& th,
+                                         const std::string& path) {
   std::ifstream file(path);
   if (!file) {
     LOG(error) << "could not open a file: " << path;
-    return false;
+    return;
   }
   Record record;
   CsaReader::read(file, record);
@@ -270,30 +251,20 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
 
   Position pos = record.initialPosition;
   for (const auto& move : record.moveList) {
-    if (!generateTrainingData(os,
-                              pos,
-                              move,
-                              failLoss,
-                              numberOfData)) {
-      return false;
-    }
+    generateTrainingData(th, pos, move);
 
     Piece captured;
     if (!pos.doMove(move, captured)) {
       LOG(error) << "an illegal move is detected: " << move.toString(pos) << "\n"
                  << pos.toString();
-      return false;
+      return;
     }
   }
-  return true;
 }
 
-bool BatchLearning::generateTrainingData(std::ostream& os,
+void BatchLearning::generateTrainingData(GenTrDataThread& th,
                                          Position& pos,
-                                         Move bestMove,
-                                         int& failLoss,
-                                         int& numberOfData) {
-  Searcher searcher(evaluator_);
+                                         Move bestMove) {
   int depth = config_.depth * Searcher::Depth1Ply;
   Score alpha;
   Score beta;
@@ -308,20 +279,20 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
     if (!pos.doMove(bestMove, captured)) {
       LOG(error) << "an illegal move is detected: " << bestMove.toString(pos) << "\n"
                  << pos.toString();
-      return false;
+      return;
     }
 
-    searcher.search(pos,
-                    depth,
-                    -Score::mate(),
-                    Score::mate());
-    auto& result = searcher.getResult();
+    th.searcher->search(pos,
+                        depth,
+                        -Score::mate(),
+                        Score::mate());
+    auto& result = th.searcher->getResult();
 
     pos.undoMove(bestMove, captured);
 
     if (result.score >= Score::mate() ||
         result.score <= -Score::mate()) {
-      return true;
+      return;
     }
     alpha = -result.score - SearchWindow;
     beta = -result.score + SearchWindow;
@@ -346,13 +317,13 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
     if (!pos.doMove(move, captured)) {
       continue;
     }
-    searcher.search(pos,
-                    depth,
-                    -beta,
-                    -alpha);
+    th.searcher->search(pos,
+                        depth,
+                        -beta,
+                        -alpha);
     pos.undoMove(move, captured);
 
-    auto& result = searcher.getResult();
+    auto& result = th.searcher->getResult();
 
     // fail-low
     if (-result.score <= alpha) {
@@ -361,80 +332,72 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
 
     // fail-high
     if (-result.score >= beta) {
-      failLoss++;
+      th.failLoss++;
       continue;
     }
 
     results.push_back({ move, result.pv });
   }
 
-  numberOfData++;
+  th.numberOfData++;
 
   if (results.size() == 1) {
-    return true;
+    return;
   }
 
   auto mp = pos.getMutablePosition();
-  os.write(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
+  th.os.write(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
 
   for (const auto& result : results) {
     uint8_t length = result.pv.size() + 1;
-    os.write(reinterpret_cast<char*>(&length), sizeof(uint8_t));
+    th.os.write(reinterpret_cast<char*>(&length), sizeof(uint8_t));
     uint16_t firstMove = result.move.serialize16();
-    os.write(reinterpret_cast<char*>(&firstMove), sizeof(uint16_t));
+    th.os.write(reinterpret_cast<char*>(&firstMove), sizeof(uint16_t));
     for (unsigned i = 0; i < result.pv.size(); i++) {
       uint16_t move = result.pv.getMove(i).serialize16();
-      os.write(reinterpret_cast<char*>(&move), sizeof(uint16_t));
+      th.os.write(reinterpret_cast<char*>(&move), sizeof(uint16_t));
     }
   }
   uint8_t end = 0;
-  os.write(reinterpret_cast<char*>(&end), sizeof(uint8_t));
-
-  return true;
+  th.os.write(reinterpret_cast<char*>(&end), sizeof(uint8_t));
 }
 
 bool BatchLearning::generateGradient() {
-  struct ThreadInfo {
-    std::thread thread;
-    std::ifstream is;
-    Gradient gradient;
-    float loss;
-  };
-  std::vector<ThreadInfo> threads(config_.numThreads);
+  std::vector<GenGradThread> threads(config_.numThreads);
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& ti = threads[tn];
+    auto& th = threads[tn];
 
     auto path = trainingDataPath(tn);
-    ti.is.open(path, std::ios::in | std::ios::binary);
-    if (!ti.is) {
+    th.is.open(path, std::ios::in | std::ios::binary);
+    if (!th.is) {
       LOG(error) << "could not open a file: " << path;
       return false;
     }
 
-    memset(reinterpret_cast<void*>(&ti.gradient), 0, sizeof(ti.gradient));
-    ti.loss = 0.0f;
+    memset(reinterpret_cast<void*>(&th.gradient), 0, sizeof(th.gradient));
+    th.loss = 0.0f;
   }
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& ti = threads[tn];
-    ti.thread = std::thread([this, &ti]() {
-      generateGradient(ti.is, ti.gradient, ti.loss);
+    auto& th = threads[tn];
+    th.thread = std::thread([this, &th]() {
+      generateGradient(th);
     });
   }
 
-  for (auto& ti : threads) {
-    if (ti.thread.joinable()) {
-      ti.thread.join();
+  for (auto& th : threads) {
+    if (th.thread.joinable()) {
+      th.thread.join();
     }
   }
 
   loss_ = failLoss_;
   memset(reinterpret_cast<void*>(gradient_.get()), 0, sizeof(Gradient));
-  for (auto& ti : threads) {
-    loss_ += ti.loss;
-    add(gradient_->g, ti.gradient.g);
-    add(gradient_->c, ti.gradient.c);
+  for (auto& th : threads) {
+    loss_ += th.loss;
+    add(gradient_->g, th.gradient.g);
+    add(gradient_->c, th.gradient.c);
   }
   rcumulate(gradient_->g, gradient_->c);
   symmetrize(gradient_->g, [](float& g1, float& g2) {
@@ -444,40 +407,37 @@ bool BatchLearning::generateGradient() {
   return true;
 }
 
-void BatchLearning::generateGradient(std::istream& is,
-                                     Gradient& g,
-                                     float& lsum) {
+void BatchLearning::generateGradient(GenGradThread& th) {
   for (;;) {
     MutablePosition mp;
-    is.read(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
+    th.is.read(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
 
-    if (is.eof()) {
+    if (th.is.eof()) {
       return;
     }
 
     std::vector<std::vector<Move>> trainingData;
     for (;;) {
       uint8_t length;
-      is.read(reinterpret_cast<char*>(&length), sizeof(uint8_t));
+      th.is.read(reinterpret_cast<char*>(&length), sizeof(uint8_t));
       if (length == 0) { break; }
 
       std::vector<Move> pv(length);
       for (unsigned i = 0; i < length; i++) {
         uint16_t move;
-        is.read(reinterpret_cast<char*>(&move), sizeof(uint16_t));
+        th.is.read(reinterpret_cast<char*>(&move), sizeof(uint16_t));
         pv[i] = Move::deserialize(move);
       }
       trainingData.push_back(std::move(pv));
     }
 
-    generateGradient(Position(mp), trainingData, g, lsum);
+    generateGradient(th, Position(mp), trainingData);
   }
 }
 
-void BatchLearning::generateGradient(const Position& rootPos,
-                                     const std::vector<std::vector<Move>>& trainingData,
-                                     Gradient& g,
-                                     float& lsum) {
+void BatchLearning::generateGradient(GenGradThread& th,
+                                     const Position& rootPos,
+                                     const std::vector<std::vector<Move>>& trainingData) {
   Position pos0 = rootPos;
   Score score0;
   {
@@ -521,13 +481,19 @@ void BatchLearning::generateGradient(const Position& rootPos,
     float l = loss(diff.raw());
     float d = gradient(diff.raw());
 
-    lsum += l;
+    th.loss += l;
 
     if (rootPos.getTurn() == Turn::White) {
       d = -d;
     }
-    operate<FeatureOperationType::Extract>(g.g, g.c, pos0, d);
-    operate<FeatureOperationType::Extract>(g.g, g.c, pos, -d);
+    operate<FeatureOperationType::Extract>(th.gradient.g,
+                                           th.gradient.c,
+                                           pos0,
+                                           d);
+    operate<FeatureOperationType::Extract>(th.gradient.g,
+                                           th.gradient.c,
+                                           pos,
+                                           -d);
   }
 }
 

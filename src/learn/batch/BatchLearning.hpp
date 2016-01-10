@@ -10,6 +10,8 @@
 #include "common/math/Random.hpp"
 #include "core/move/Move.hpp"
 #include "learn/batch/Gradient.hpp"
+#include <thread>
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -19,6 +21,7 @@ namespace sunfish {
 
 class Position;
 class Evaluator;
+class Searcher;
 struct Gradient;
 
 class BatchLearning {
@@ -31,6 +34,26 @@ public:
     int depth;
     float norm;
   };
+
+private:
+
+  struct GenTrDataThread {
+    std::thread thread;
+    std::vector<std::string> files;
+    std::ofstream os;
+    std::unique_ptr<Searcher> searcher;
+    int failLoss;
+    int numberOfData;
+  };
+
+  struct GenGradThread {
+    std::thread thread;
+    std::ifstream is;
+    Gradient gradient;
+    float loss;
+  };
+
+public:
 
   BatchLearning();
 
@@ -46,27 +69,22 @@ private:
 
   bool generateTrainingData();
 
-  bool generateTrainingData(std::ostream& os,
-                            const std::string& path,
-                            int& failLoss,
-                            int& numberOfData);
+  void generateTrainingData(GenTrDataThread& th);
 
-  bool generateTrainingData(std::ostream& os,
+  void generateTrainingData(GenTrDataThread& th,
+                            const std::string& path);
+
+  void generateTrainingData(GenTrDataThread& th,
                             Position& pos,
-                            Move bestMove,
-                            int& failLoss,
-                            int& numberOfData);
+                            Move bestMove);
 
   bool generateGradient();
 
-  void generateGradient(std::istream& is,
-                        Gradient& g,
-                        float& lsum);
+  void generateGradient(GenGradThread& th);
 
-  void generateGradient(const Position& rootPos,
-                        const std::vector<std::vector<Move>>& trainingData,
-                        Gradient& g,
-                        float& lsum);
+  void generateGradient(GenGradThread& th,
+                        const Position& rootPos,
+                        const std::vector<std::vector<Move>>& trainingData);
 
   void updateParameters();
 
