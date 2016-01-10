@@ -170,7 +170,7 @@ bool BatchLearning::iterate() {
     OUT(info) << "";
     OUT(info) << "loss = " << lossFirst << " - " << lossLast;
 
-    printSummary();
+    printParametersSummary();
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
   }
@@ -513,7 +513,7 @@ void BatchLearning::updateParameters() {
   evaluator_->onChanged();
 }
 
-void BatchLearning::printSummary() {
+void BatchLearning::printParametersSummary() {
   auto summary = summarize(evaluator_->fv());
   TablePrinter tp;
 
@@ -521,16 +521,19 @@ void BatchLearning::printSummary() {
            << "num"
            << "zero"
            << "non-zero"
+           << "non-zero(%)"
            << "max"
            << "min"
            << "max-abs"
            << "ave-abs"
            << "";
   for (const auto& s : summary) {
+    float nonZeroPer = (float)s.nonZero / s.num * 100.0f;
     tp.row() << s.name
              << s.num
              << s.zero
              << s.nonZero
+             << nonZeroPer
              << s.max
              << s.min
              << s.maxAbs

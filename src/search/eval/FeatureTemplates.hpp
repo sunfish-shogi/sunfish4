@@ -517,24 +517,21 @@ SummaryType summarizePart(const char* name, const T* array, size_t size) {
   summary.name = name;
   summary.num = size;
   summary.zero = 0;
-  summary.nonZero = 0;
   summary.max = array[0];
   summary.min = array[0];
-  summary.maxAbs = std::abs(array[0]);
   double sum = 0;
 
   for (size_t i = 0; i < size; i++) {
     if (array[i] == static_cast<T>(0)) {
       summary.zero++;
-    } else {
-      summary.nonZero++;
     }
     summary.max = std::max(summary.max, array[i]);
     summary.min = std::min(summary.min, array[i]);
     sum += std::abs(array[i]);
-    summary.maxAbs = std::max(summary.maxAbs,
-                              static_cast<T>(std::abs(array[i])));
   }
+  summary.nonZero = summary.num - summary.zero;
+  summary.maxAbs = std::max(static_cast<T>(summary.max),
+                            static_cast<T>(std::abs(summary.min)));
   summary.aveAbs = sum / size;
 
   return summary;

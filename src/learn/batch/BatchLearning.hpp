@@ -88,7 +88,7 @@ private:
 
   void updateParameters();
 
-  void printSummary();
+  void printParametersSummary();
 
 private:
 
