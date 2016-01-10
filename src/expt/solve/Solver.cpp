@@ -115,17 +115,17 @@ bool Solver::solve(const Position& position, Move correct) {
   searcher_.setConfig(config);
 
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
-  bool ok = searcher_.idsearch(position, depth);
-
-  if (!ok) {
-    OUT(info) << "skipped.";
-    result_.skipped++;
-    return true;
-  }
+  searcher_.idsearch(position, depth);
 
   auto& result = searcher_.getResult();
   auto& info = searcher_.getInfo();
   bool isCorrect = result.move == correct;
+
+  if (result.move.isEmpty()) {
+    OUT(info) << "skipped.";
+    result_.skipped++;
+    return true;
+  }
 
   if (isCorrect) {
     result_.corrected++;

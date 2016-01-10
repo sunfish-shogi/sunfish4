@@ -310,16 +310,15 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
                  << pos.toString();
       return false;
     }
-    bool ok = searcher.search(pos,
-                              depth,
-                              -Score::mate(),
-                              Score::mate());
-    pos.undoMove(bestMove, captured);
-    if (!ok) {
-      return true;
-    }
 
+    searcher.search(pos,
+                    depth,
+                    -Score::mate(),
+                    Score::mate());
     auto& result = searcher.getResult();
+
+    pos.undoMove(bestMove, captured);
+
     if (result.score >= Score::mate() ||
         result.score <= -Score::mate()) {
       return true;
@@ -347,14 +346,11 @@ bool BatchLearning::generateTrainingData(std::ostream& os,
     if (!pos.doMove(move, captured)) {
       continue;
     }
-    bool ok = searcher.search(pos,
-                              depth,
-                              -beta,
-                              -alpha);
+    searcher.search(pos,
+                    depth,
+                    -beta,
+                    -alpha);
     pos.undoMove(move, captured);
-    if (!ok) {
-      continue;
-    }
 
     auto& result = searcher.getResult();
 

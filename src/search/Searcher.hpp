@@ -42,17 +42,17 @@ public:
 
   Searcher(std::shared_ptr<Evaluator> evaluator);
 
-  bool search(const Position& pos,
+  void search(const Position& pos,
               int depth,
               Record* record = nullptr) {
-    return search(pos,
-                  depth,
-                  -Score::infinity(),
-                  Score::infinity(),
-                  record);
+    search(pos,
+           depth,
+           -Score::infinity(),
+           Score::infinity(),
+           record);
   }
 
-  bool search(const Position& pos,
+  void search(const Position& pos,
               int depth,
               Score alpha,
               Score beta,
@@ -61,7 +61,7 @@ public:
   /**
    * iterative deepening search.
    */
-  bool idsearch(const Position& pos,
+  void idsearch(const Position& pos,
                 int depth,
                 Record* record = nullptr);
 

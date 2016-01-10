@@ -101,7 +101,7 @@ void Searcher::onSearchStarted() {
   interrupted_ = false;
 
   result_.move = Move::empty();
-  result_.score = Score::zero();
+  result_.score = -Score::infinity();
   result_.pv.clear();
   result_.depth = 0;
   result_.elapsed = 0.0f;
@@ -125,7 +125,7 @@ void Searcher::updateInfo() {
 /**
  * search of root node
  */
-bool Searcher::search(const Position& pos,
+void Searcher::search(const Position& pos,
                       int depth,
                       Score alpha,
                       Score beta,
@@ -235,21 +235,17 @@ bool Searcher::search(const Position& pos,
     isFirst = false;
   }
 
-  bool hasBestMove = !bestMove.isEmpty();
-
   result_.move = bestMove;
   result_.score = alpha;
   result_.pv = node.pv;
   result_.depth = depth;
   result_.elapsed = timer_.elapsed();
-
-  return hasBestMove;
 }
 
 /**
  * iterative deepening search
  */
-bool Searcher::idsearch(const Position& pos,
+void Searcher::idsearch(const Position& pos,
                         int depth,
                         Record* record /*= nullptr*/) {
   onSearchStarted();
@@ -275,9 +271,7 @@ bool Searcher::idsearch(const Position& pos,
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 
-#if 1
   random_.shuffle(node.moves.begin(), node.moves.end());
-#endif
 
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Move move = node.moves[moveCount];
@@ -300,11 +294,11 @@ bool Searcher::idsearch(const Position& pos,
   }
 
   if (node.moves.size() == 0) {
-    return false;
+    return;
   }
 
   if (isInterrupted()) {
-    return false;
+    return;
   }
 
   std::sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
@@ -331,8 +325,6 @@ bool Searcher::idsearch(const Position& pos,
   result_.pv = node.pv;
   result_.depth = completedDepth;
   result_.elapsed = timer_.elapsed();
-
-  return result_.score > -Score::mate();
 }
 
 /**
