@@ -31,8 +31,8 @@ add_executable(sunfish_test
     search/MaterialTest.cpp
     search/ScoreTest.cpp
     search/SCRDetectorTest.cpp
-	search/SEETest.cpp
-	search/ShekTest.cpp
+    search/SEETest.cpp
+    search/ShekTest.cpp
     search/TTTest.cpp
 )
 
