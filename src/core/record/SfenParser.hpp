@@ -88,6 +88,8 @@ bool SfenParser::parseUsiCommand(const iterator& begin,
     return false;
   }
 
+  record.moveList.clear();
+
   if (ite == end) {
     return true;
   }
