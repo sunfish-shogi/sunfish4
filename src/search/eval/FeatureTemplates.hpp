@@ -336,15 +336,13 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     }
   }
 
-  auto occ = nosseOr(position.getBOccupiedBitboard(),
-                     position.getWOccupiedBitboard());
-  auto occ90 = position.get90RotatedBitboard();
   auto occR45 = position.getRight45RotatedBitboard();
   auto occL45 = position.getLeft45RotatedBitboard();
 
   {
-    auto bbishop = position.getBBishopBitboard() |
-                   position.getBHorseBitboard();
+    auto bbishop = nosseAnd(nosseOr(position.getBBishopBitboard(),
+                                    position.getBHorseBitboard()),
+                            Bitboard::nocorner());
     BB_EACH(square, bbishop) {
       int bIndex = square.raw();
       int wIndex = square.dsym().raw();
@@ -372,8 +370,9 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   }
 
   {
-    auto wbishop = position.getWBishopBitboard() |
-                   position.getWHorseBitboard();
+    auto wbishop = nosseAnd(nosseOr(position.getWBishopBitboard(),
+                                    position.getWHorseBitboard()),
+                            Bitboard::nocorner());
     BB_EACH(square, wbishop) {
       int bIndex = square.raw();
       int wIndex = square.dsym().raw();
@@ -400,9 +399,13 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     }
   }
 
+  auto occ = nosseOr(position.getBOccupiedBitboard(),
+                     position.getWOccupiedBitboard());
+  auto occ90 = position.get90RotatedBitboard();
+
   {
-    auto brook = position.getBRookBitboard() |
-                 position.getBDragonBitboard();
+    auto brook = nosseOr(position.getBRookBitboard(),
+                         position.getBDragonBitboard());
     BB_EACH(square, brook) {
       int bIndex = square.raw();
       int wIndex = square.dsym().raw();
@@ -430,7 +433,8 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   }
 
   {
-    auto wrook = position.getWRookBitboard();
+    auto wrook = nosseOr(position.getWRookBitboard(),
+                         position.getWDragonBitboard());
     BB_EACH(square, wrook) {
       int bIndex = square.raw();
       int wIndex = square.dsym().raw();

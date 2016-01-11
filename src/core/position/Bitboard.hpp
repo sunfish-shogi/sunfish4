@@ -154,6 +154,10 @@ public:
     return Bitboard(0x00000000000001ff, 0x0000000000000000);
   }
 
+  static CONSTEXPR Bitboard nocorner() {
+    return Bitboard(0x00001ffffffffefe, 0x00000007f7ffffff);
+  }
+
   std::string toString() const;
 
   friend std::ostream& operator<<(std::ostream& os, const sunfish::Bitboard& bb) {
