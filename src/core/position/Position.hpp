@@ -329,6 +329,14 @@ public:
     return !board_[move.to().raw()].isEmpty();
   }
 
+  bool isCheck(const Move& move) const {
+    if (turn_ == Turn::Black) {
+      return isCheck<Turn::Black>(move);
+    } else {
+      return isCheck<Turn::White>(move);
+    }
+  }
+
   /**
    * Indicate whether the king is checked.
    */
@@ -356,7 +364,7 @@ public:
    */
   bool isMate() const {
     CheckState checkState = getCheckState();
-    if (!isCheck(checkState)) {
+    if (!sunfish::isCheck(checkState)) {
       return false;
     }
     return isMate(checkState);
@@ -488,6 +496,16 @@ private:
 
   template <Turn turn>
   bool hasLongEffect(const Square& square) const;
+
+  template <Turn turn>
+  bool isDirectCheck(Move move) const;
+
+  template <Turn turn,
+            Turn enemy = turn == Turn::Black ? Turn::White : Turn::Black>
+  bool isDiscoveryCheck(Move move) const;
+
+  template <Turn turn>
+  bool isCheck(Move move) const;
 
   template <Turn turn>
   bool inCheck() const;

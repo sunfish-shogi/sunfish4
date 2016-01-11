@@ -1013,6 +1013,172 @@ TEST(PositionTest, testIsCapture) {
   ASSERT_EQ(false, pos.isCapture(Move(Square::s77(), Square::s55(), false)));
 }
 
+TEST(PositionTest, testIsCheck) {
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  * +KE *  * -OU *  *  * \n"
+      "P4 *  *  *  *  *  *  * +GI * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  * +FU *  *  *  *  *  * \n"
+      "P7 *  *  * +KE *  *  *  *  * \n"
+      "P8 *  *  * +KE * -FU *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00FU00KY00KI00GI00KA00HI\n"
+      "P-\n"
+      "+\n");
+
+    // drop
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::pawn(), Square::s44())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::pawn(), Square::s45())));
+
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::lance(), Square::s42())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::lance(), Square::s44())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::lance(), Square::s47())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::lance(), Square::s49())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::silver(), Square::s52())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::silver(), Square::s53())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::gold(), Square::s34())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::gold(), Square::s44())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::gold(), Square::s45())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::gold(), Square::s52())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s16())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s34())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::bishop(), Square::s35())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s61())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s65())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::bishop(), Square::s87())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s13())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s33())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s41())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s47())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::rook(), Square::s49())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s63())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::rook(), Square::s83())));
+
+    // direct
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s67(), Square::s55(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s68(), Square::s56(), false)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s24(), Square::s33(), true)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s24(), Square::s33(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s24(), Square::s23(), true)));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4+RY+FU-FU-OU *  * +TO * +HI\n"
+      "P5 *  *  * +KE *  *  *  *  * \n"
+      "P6 *  *  *  *  * +FU *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  * +UM * \n"
+      "P9 *  *  * +KY+OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+ 
+    // discovery
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s65(), Square::s53(), true)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s46(), Square::s45(), false)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s34(), Square::s33(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s34(), Square::s44(), false)));
+
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s84(), Square::s83(), true)));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  * -KE * +FU *  *  * \n"
+      "P3 *  *  * -KE *  *  *  *  * \n"
+      "P4 *  * -FU *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  * -GI * \n"
+      "P7 *  * -KE *  * +OU *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-00FU00KY00KI00GI00KA00HI\n"
+      "-\n");
+
+    // drop
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::pawn(), Square::s46())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::pawn(), Square::s45())));
+
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::lance(), Square::s48())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::lance(), Square::s46())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::lance(), Square::s43())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::lance(), Square::s41())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::silver(), Square::s58())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::silver(), Square::s57())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::gold(), Square::s36())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::gold(), Square::s46())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::gold(), Square::s45())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::gold(), Square::s58())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s14())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s36())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::bishop(), Square::s35())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s69())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::bishop(), Square::s65())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::bishop(), Square::s83())));
+
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s17())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s37())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s49())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s43())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::rook(), Square::s41())));
+    ASSERT_EQ(true , pos.isCheck(Move(PieceType::rook(), Square::s67())));
+    ASSERT_EQ(false, pos.isCheck(Move(PieceType::rook(), Square::s87())));
+
+    // direct
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s63(), Square::s55(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s62(), Square::s54(), false)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s26(), Square::s37(), true)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s26(), Square::s37(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s26(), Square::s27(), true)));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KY-OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  * -UM * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  * -FU *  *  * \n"
+      "P5 *  *  * -KE *  *  *  *  * \n"
+      "P6-RY-FU+FU+OU *  * -TO * -HI\n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+ 
+    // discovery
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s65(), Square::s57(), true)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s44(), Square::s45(), false)));
+
+    ASSERT_EQ(true , pos.isCheck(Move(Square::s36(), Square::s37(), false)));
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s36(), Square::s46(), false)));
+
+    ASSERT_EQ(false, pos.isCheck(Move(Square::s86(), Square::s87(), true)));
+  }
+}
+
 TEST(PositionTest, testInCheck) {
   {
     // checked by pawn

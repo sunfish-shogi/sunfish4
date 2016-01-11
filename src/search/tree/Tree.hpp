@@ -36,41 +36,49 @@ void initializeTree(Tree& tree,
                     Worker* worker,
                     const Record* record);
 
-inline bool hasKiller1(const Tree& tree) {
+inline
+bool hasKiller1(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
   return !parentNode.killerMove1.isEmpty();
 }
 
-inline bool hasKiller2(const Tree& tree) {
+inline
+bool hasKiller2(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
   return !parentNode.killerMove2.isEmpty();
 }
 
-inline bool isKiller1Good(const Tree& tree) {
+inline
+bool isKiller1Good(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
   return parentNode.killerCount1 >= 0;
 }
 
-inline bool isKiller2Good(const Tree& tree) {
+inline
+bool isKiller2Good(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
   return parentNode.killerCount2 >= 0;
 }
 
-inline bool isKiller1Legal(const Tree& tree) {
+inline
+bool isKiller1Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   auto& parentNode = tree.nodes[tree.ply-1];
   return tree.position.isLegalMoveMaybe(parentNode.killerMove1,
                                         node.checkState);
 }
 
-inline bool isKiller2Legal(const Tree& tree) {
+inline
+bool isKiller2Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   auto& parentNode = tree.nodes[tree.ply-1];
   return tree.position.isLegalMoveMaybe(parentNode.killerMove2,
                                         node.checkState);
 }
 
-inline bool isPriorMove(const Tree& tree, const Move& move) {
+inline
+bool isPriorMove(const Tree& tree,
+                 const Move& move) {
   auto& node = tree.nodes[tree.ply];
   auto& parentNode = tree.nodes[tree.ply-1];
   return move == node.hashMove ||
@@ -90,7 +98,8 @@ void doNullMove(Tree& tree);
 
 void undoNullMove(Tree& tree);
 
-inline Score calculateStandPat(Tree& tree) {
+inline
+Score calculateStandPat(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   if (tree.position.getTurn() == Turn::Black) {
     return node.score;
@@ -99,9 +108,10 @@ inline Score calculateStandPat(Tree& tree) {
   }
 }
 
-inline Score estimateScore(Tree& tree,
-                           const Move& move,
-                           Evaluator& eval) {
+inline
+Score estimateScore(Tree& tree,
+                    const Move& move,
+                    Evaluator& eval) {
   auto& node = tree.nodes[tree.ply];
   Score score = eval.estimateScore(node.score,
                                    tree.position,
@@ -115,7 +125,26 @@ inline Score estimateScore(Tree& tree,
 
 bool isImproving(const Tree& tree);
 
-inline Piece targetPiece(Tree& tree,
+inline
+bool isRecapture(const Tree& tree,
+                 const Move& move) {
+  ASSERT(tree.ply >= 1);
+  auto& frontNode = tree.nodes[tree.ply-1];
+  if (frontNode.move.to() != move.to()) {
+    return false;
+  }
+
+  if (!frontNode.captured.isEmpty()) {
+    return true;
+  }
+
+  Piece piece = tree.position.getPieceOnBoard(frontNode.move.to());
+  return (frontNode.move.isPromotion() &&
+          piece.type() != PieceType::proSilver());
+}
+
+inline
+Piece targetPiece(Tree& tree,
                          const Move& move) {
   if (!move.isDrop()) {
     return tree.position.getPieceOnBoard(move.from());

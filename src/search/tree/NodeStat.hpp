@@ -14,16 +14,18 @@ namespace sunfish {
 class NodeStat {
 public:
 
-  using RawType = uint32_t;
+  using RawType = uint8_t;
 
-  static CONSTEXPR_CONST RawType NullMoveSearch    = 0x01;
-  static CONSTEXPR_CONST RawType RecursiveIDSearch = 0x02;
-  static CONSTEXPR_CONST RawType MateThreat        = 0x04;
-  static CONSTEXPR_CONST RawType HashCut           = 0x08;
+  static CONSTEXPR_CONST RawType NullMoveSearch     = 0x01;
+  static CONSTEXPR_CONST RawType RecursiveIDSearch  = 0x02;
+  static CONSTEXPR_CONST RawType MateThreat         = 0x04;
+  static CONSTEXPR_CONST RawType HashCut            = 0x08;
+  static CONSTEXPR_CONST RawType RecaptureExtension = 0x10;
 
   static CONSTEXPR_CONST RawType Normal = NullMoveSearch
                                         | RecursiveIDSearch
-                                        | HashCut;
+                                        | HashCut
+                                        | RecaptureExtension;
 
 public:
 
@@ -52,6 +54,7 @@ public:
   NODESTAT_METHOD__(RecursiveIDSearch);
   NODESTAT_METHOD__(MateThreat);
   NODESTAT_METHOD__(HashCut);
+  NODESTAT_METHOD__(RecaptureExtension);
 
 #undef NODESTAT_METHOD__
 

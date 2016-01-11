@@ -18,6 +18,11 @@ using namespace sunfish;
 
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
+// extensions
+CONSTEXPR_CONST int ExtensionDepthOfCheck     = Searcher::Depth1Ply * 1;
+CONSTEXPR_CONST int ExtensionDepthOfOneReply  = Searcher::Depth1Ply * 1 / 2;
+CONSTEXPR_CONST int ExtensionDepthOfRecapture = Searcher::Depth1Ply * 1 / 4;
+
 /**
  * Check whether the recursive-iterative deepening should be run.
  */
@@ -743,7 +748,26 @@ Score Searcher::search(Tree& tree,
       break;
     }
 
+    bool currentMoveIsCheck = tree.position.isCheck(move);
     int newDepth = depth - Depth1Ply;
+    NodeStat newNodeStat = NodeStat::normal();
+
+    // extensions
+    if (currentMoveIsCheck) {
+      newDepth += ExtensionDepthOfCheck;
+
+    } else if (isFirst &&
+               isCheck(node.checkState) &&
+               node.moveIterator == node.moves.end()) {
+      newDepth += ExtensionDepthOfOneReply;
+
+    } else if (!isCheck(node.checkState) &&
+               nodeStat.isRecaptureExtension() &&
+               isRecapture(tree, move)) {
+      newDepth += ExtensionDepthOfRecapture;
+      nodeStat.unsetRecaptureExtension();
+      newNodeStat.unsetRecaptureExtension();
+    }
 
     // late move reduction
     int reduced = 0;
@@ -760,7 +784,8 @@ Score Searcher::search(Tree& tree,
     }
 
     // futility pruning
-    if (!isCheck(node.checkState) &&
+    if (!currentMoveIsCheck &&
+        !isCheck(node.checkState) &&
         newDepth <= FutilityPruningMaxDepth &&
         alpha > -Score::mate()) {
       Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
@@ -780,7 +805,6 @@ Score Searcher::search(Tree& tree,
     }
 
     Score newStandPat = -calculateStandPat(tree);
-    NodeStat newNodeStat = NodeStat::normal();
 
     Score score;
     if (isFirst) {

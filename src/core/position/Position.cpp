@@ -556,7 +556,7 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
 
       // TODO: use rotated bitboard
       for (Square square = from.move(dir); square != to; square = square.move(dir)) {
-        ASSERT(from.isValid());
+        ASSERT(square.isValid());
         if (!board_[square.raw()].isEmpty()) {
           return false;
         }
@@ -568,7 +568,9 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
     }
   }
 
-  if (isCheck(checkState) && !isDoubleCheck(checkState) && !isKing) {
+  if (sunfish::isCheck(checkState) &&
+      !isDoubleCheck(checkState) &&
+      !isKing) {
     Square kingSquare = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
 
     Direction targetDir = kingSquare.dir(to);
@@ -993,6 +995,84 @@ bool Position::hasLongEffect(const Square& square) const {
 }
 
 template <Turn turn>
+bool Position::isDirectCheck(Move move) const {
+  auto king = turn == Turn::Black ? whiteKingSquare_
+                                  : blackKingSquare_;
+  auto to = move.to();
+  Direction dir = to.dir(king);
+  auto distance = to.distance(king);
+  Piece piece;
+  if (move.isDrop()) {
+    auto pieceType = move.droppingPieceType();
+    piece = turn == Turn::Black ? pieceType.black()
+                                : pieceType.white();
+  } else {
+    piece = board_[move.from().raw()];
+    piece = move.isPromotion() ? piece.promote()
+                               : piece;
+  }
+
+  if (distance == 1) {
+    return MoveTables::isMovableInOneStep(piece, dir);
+  }
+
+  if (MoveTables::isMovableInLongStep(piece, dir)) {
+    // TODO: use rotated bitboard
+    for (Square square = to.move(dir); square != king; square = square.move(dir)) {
+      ASSERT(square.isValid());
+      if (!board_[square.raw()].isEmpty()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+template <Turn turn, Turn enemy>
+bool Position::isDiscoveryCheck(Move move) const {
+  if (move.isDrop()) {
+    return false;
+  }
+
+  auto king = turn == Turn::Black ? whiteKingSquare_
+                                  : blackKingSquare_;
+  auto from = move.from();
+  auto to = move.to();
+  Direction dir = from.dir(king);
+
+  if (dir == to.dir(king)) {
+    return false;
+  }
+
+  switch (dir) {
+  case Direction::Up:
+  case Direction::Down:
+    return ::isPinned<enemy, LongEffectType::Ver>(*this, from);
+  case Direction::Left:
+  case Direction::Right:
+    return ::isPinned<enemy, LongEffectType::Hor>(*this, from);
+  case Direction::RightUp:
+  case Direction::LeftDown:
+    return ::isPinned<enemy, LongEffectType::DiagRight>(*this, from);
+  case Direction::LeftUp:
+  case Direction::RightDown:
+    return ::isPinned<enemy, LongEffectType::DiagLeft>(*this, from);
+  default:
+    return false;
+  }
+}
+
+template <Turn turn>
+bool Position::isCheck(Move move) const {
+  return isDirectCheck<turn>(move) ||
+         isDiscoveryCheck<turn>(move);
+}
+template bool Position::isCheck<Turn::Black>(Move) const;
+template bool Position::isCheck<Turn::White>(Move) const;
+
+template <Turn turn>
 bool Position::inCheck() const {
   if (turn == Turn::Black) {
     const Square& square = blackKingSquare_;
@@ -1051,20 +1131,20 @@ bool Position::isPinned(const Square& square) const {
   Direction dir = kingSquare.dir(square);
 
   switch (dir) {
-    case Direction::Up:
-    case Direction::Down:
-      return ::isPinned<turn, LongEffectType::Ver>(*this, square);
-    case Direction::Left:
-    case Direction::Right:
-      return ::isPinned<turn, LongEffectType::Hor>(*this, square);
-    case Direction::RightUp:
-    case Direction::LeftDown:
-      return ::isPinned<turn, LongEffectType::DiagRight>(*this, square);
-    case Direction::LeftUp:
-    case Direction::RightDown:
-      return ::isPinned<turn, LongEffectType::DiagLeft>(*this, square);
-    default:
-      return false;
+  case Direction::Up:
+  case Direction::Down:
+    return ::isPinned<turn, LongEffectType::Ver>(*this, square);
+  case Direction::Left:
+  case Direction::Right:
+    return ::isPinned<turn, LongEffectType::Hor>(*this, square);
+  case Direction::RightUp:
+  case Direction::LeftDown:
+    return ::isPinned<turn, LongEffectType::DiagRight>(*this, square);
+  case Direction::LeftUp:
+  case Direction::RightDown:
+    return ::isPinned<turn, LongEffectType::DiagLeft>(*this, square);
+  default:
+    return false;
   }
 }
 template bool Position::isPinned<Turn::Black>(const Square& square) const;
@@ -1291,7 +1371,7 @@ template bool Position::isMovable<Turn::White, true>(const Bitboard&) const;
 
 template <Turn turn>
 bool Position::isMate(const CheckState& checkState) {
-  ASSERT(isCheck(checkState));
+  ASSERT(sunfish::isCheck(checkState));
 
   auto kingSquare = turn == Turn::Black ? blackKingSquare_ : whiteKingSquare_;
 
