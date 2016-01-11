@@ -47,7 +47,9 @@ InputStatus forEach(std::istream& is, T&& f) {
 
 namespace sunfish {
 
-bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::read(std::istream& is,
+                     Record& record,
+                     RecordInfo* info/* = nullptr*/) {
   MutablePosition mp;
   initializeMutablePosition(mp);
 
@@ -87,7 +89,9 @@ bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = null
   return status != InputStatus::Error;
 }
 
-bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::readPosition(std::istream& is,
+                             Position& position,
+                             RecordInfo* info/* = nullptr*/) {
   MutablePosition mp;
   initializeMutablePosition(mp);
 
@@ -100,7 +104,13 @@ bool CsaReader::readPosition(std::istream& is, Position& position, RecordInfo* i
   return ok;
 }
 
-bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* info) {
+bool CsaReader::readPosition(std::istream& is,
+                             MutablePosition& mp,
+                             RecordInfo* info) {
+  if (info != nullptr) {
+    initializeRecordInfo(*info);
+  }
+
   auto status = forEach(is, [&mp, info](const char* line) {
     if (!readPosition(line, mp, info)) {
       LOG(warning) << "invalid position format.";
@@ -117,7 +127,9 @@ bool CsaReader::readPosition(std::istream& is, MutablePosition& mp, RecordInfo* 
   return status != InputStatus::Error;
 }
 
-bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::readPosition(const char* line,
+                             MutablePosition& mp,
+                             RecordInfo* info/* = nullptr*/) {
   switch (line[0]) {
   case 'P':
     if (line[1] >= '1' && line[1] <= '9') {
@@ -150,7 +162,8 @@ bool CsaReader::readPosition(const char* line, MutablePosition& mp, RecordInfo* 
   }
 }
 
-bool CsaReader::readPositionPieces(const char* line, MutablePosition& mp) {
+bool CsaReader::readPositionPieces(const char* line,
+                                   MutablePosition& mp) {
   if (strlen(line) < 2 + 3 * Square::FileMax) {
     LOG(warning) << "invalid format: '" << line << '\'';
     return false;
@@ -163,30 +176,37 @@ bool CsaReader::readPositionPieces(const char* line, MutablePosition& mp) {
   return true;
 }
 
-bool CsaReader::readInfo(const char* line, RecordInfo& info) {
+bool CsaReader::readInfo(const char* line,
+                         RecordInfo& info) {
   if (strncmp(line, "$EVENT:", 7) == 0) {
     info.title = &line[7];
-
-  } else if (strncmp(line, "N+", 2) == 0) {
+    return true;
+  }
+  
+  if (strncmp(line, "N+", 2) == 0) {
     info.blackName = &line[2];
-
-  } else if (strncmp(line, "N-", 2) == 0) {
+    return true;
+  }
+  
+  if (strncmp(line, "N-", 2) == 0) {
     info.whiteName = &line[2];
+    return true;
+  }
 
-  } else if (strncmp(line, "$TIME_LIMIT:", 12) == 0 && strlen(line) >= 20) {
+  if (strncmp(line, "$TIME_LIMIT:", 12) == 0 && strlen(line) >= 20) {
     info.timeLimitHours = std::stoi(&line[12]);
     info.timeLimitMinutes = std::stoi(&line[15]);
     info.timeLimitReadoff = std::stoi(&line[18]);
-
-  } else {
-    LOG(warning) << "unknown command: '" << line << '\'';
-
+    return true;
   }
 
-  return true;
+  LOG(warning) << "unknown command: '" << line << '\'';
+  return false;
 }
 
-bool CsaReader::readHand(const char* line, MutablePosition& mp, Turn turn) {
+bool CsaReader::readHand(const char* line,
+                         MutablePosition& mp,
+                         Turn turn) {
   unsigned length = (unsigned)strlen(line);
 
   for (unsigned i = 2; i + 4 <= length; i += 4) {
@@ -243,7 +263,9 @@ bool CsaReader::readCommand(const char* line) {
   return false;
 }
 
-bool CsaReader::readMove(const char* line, const Position& position, Move& move) {
+bool CsaReader::readMove(const char* line,
+                         const Position& position,
+                         Move& move) {
   if (strlen(line) < 7) {
     return false;
   }

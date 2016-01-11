@@ -5,8 +5,6 @@
 
 #if !defined(NDEBUG)
 
-#endif // !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/position/Bitboard.hpp"
 #include <sstream>
@@ -657,3 +655,5 @@ TEST(BitboardTest, testToString) {
     ASSERT_EQ("0000000000000003", oss.str());
   }
 }
+
+#endif // !defined(NDEBUG)

@@ -166,45 +166,15 @@ bool UsiClient::onPosition(const CommandArguments& args) {
     return false;
   }
 
-  size_t nextIndex;
-  if (args.size() >= 2 && args[1] == "startpos") {
-    record_.initialPosition.initialize(Position::Handicap::Even);
-    nextIndex = 2;
-
-  } else if (args.size() >= 6 && args[1] == "sfen") {
-    bool ok = SfenParser::parsePosition(args[2], args[3], args[4], args[5], record_.initialPosition);
-    if (!ok) {
-      return false;
-    }
-    nextIndex = 6;
-
-  } else {
-    LOG(error) << "illegal arguments.";
+  bool ok = SfenParser::parseUsiCommand(args.begin(),
+                                        args.end(),
+                                        record_);
+  if (!ok) {
+    LOG(error) << "an error is occured in SfenParser";
     return false;
   }
 
   positionIsInitialized_ = true;
-
-  if (args.size() <= nextIndex) {
-    return true;
-  }
-
-  if (args[nextIndex] != "moves") {
-    LOG(error) << "illegal arguments";
-    return false;
-  }
-
-  record_.moveList.clear();
-  for (auto i = nextIndex + 1; i < args.size(); i++) {
-    Move move;
-    bool parseOk = SfenParser::parseMove(args[i], move);
-    if (!parseOk) {
-      LOG(error) << "illegal arguments";
-      return false;
-    }
-    record_.moveList.push_back(move);
-  }
- 
   return true;
 }
 

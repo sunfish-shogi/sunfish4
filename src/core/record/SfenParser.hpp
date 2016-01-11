@@ -8,6 +8,7 @@
 
 #include "core/move/Move.hpp"
 #include "core/position/Position.hpp"
+#include "core/record/Record.hpp"
 
 namespace sunfish {
 
@@ -44,11 +45,68 @@ public:
     return parseMove(data.c_str(), move);
   }
 
+  template <class iterator>
+  static bool parseUsiCommand(const iterator& begin,
+                              const iterator& end,
+                              Record& record);
+
 private:
 
   SfenParser();
 
 };
+
+template <class iterator>
+inline
+bool SfenParser::parseUsiCommand(const iterator& begin,
+                                 const iterator& end,
+                                 Record& record) {
+  iterator ite = begin;
+
+  if (ite == end || *ite != "position") {
+    return false;
+  }
+  ite++;
+
+  if (ite != end && *ite == "startpos") {
+    record.initialPosition.initialize(Position::Handicap::Even);
+    ite++;
+  } else if (ite != end && *ite == "sfen") {
+    auto& arg1 = *(ite++); if (ite == end) { return false; }
+    auto& arg2 = *(ite++); if (ite == end) { return false; }
+    auto& arg3 = *(ite++); if (ite == end) { return false; }
+    auto& arg4 = *(ite++); if (ite == end) { return false; }
+    bool ok = parsePosition(arg1,
+                            arg2,
+                            arg3,
+                            arg4,
+                            record.initialPosition);
+    if (!ok) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  if (ite == end) {
+    return true;
+  }
+
+  if (*ite != "moves") {
+    return false;
+  }
+  ite++;
+
+  for (; ite != end; ite++) {
+    Move move;
+    if (!parseMove(*ite, move)) {
+      return false;
+    }
+    record.moveList.push_back(move);
+  }
+
+  return true;
+}
 
 } // namespace sunfish
 

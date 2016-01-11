@@ -18,6 +18,8 @@ namespace sunfish {
  * Information of the record
  */
 struct RecordInfo {
+  static CONSTEXPR_CONST int InvalidTimeValue = -1;
+
   /** the title of the record */
   std::string title;
 
@@ -36,6 +38,16 @@ struct RecordInfo {
   /** readoff-part of the time limit */
   int timeLimitReadoff;
 };
+
+inline
+void initializeRecordInfo(RecordInfo& info) {
+  info.title = "";
+  info.blackName = "";
+  info.whiteName = "";
+  info.timeLimitHours = RecordInfo::InvalidTimeValue;
+  info.timeLimitMinutes = RecordInfo::InvalidTimeValue;
+  info.timeLimitReadoff = RecordInfo::InvalidTimeValue;
+}
 
 struct Record {
   using MoveListType = std::vector<Move>;

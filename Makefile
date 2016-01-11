@@ -13,6 +13,7 @@ SUNFISH_TEST:=sunfish_test
 SUNFISH_BM:=sunfish_bm
 SUNFISH_LN:=sunfish_ln
 SUNFISH_USI:=sunfish_usi
+SUNFISH_TOOLS:=sunfish_tools
 SUNFISH_DEV:=sunfish_dev
 
 BUILD_DIR:=$(PROJ_ROOT)/out/build
@@ -32,10 +33,10 @@ HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
 .PHONY: expt expt-prof
-.PHONY: test test-sse
-.PHONY: test-nosse
+.PHONY: test test-sse test-nosse
 .PHONY: bm
 .PHONY: usi usi-debug
+.PHONY: tools
 .PHONY: dev
 .PHONY: clean
 
@@ -49,6 +50,7 @@ help:
 	@echo '  make ln'
 	@echo '  make usi'
 	@echo '  make usi-debug'
+	@echo '  make tools'
 	@echo '  make dev'
 	@echo '  make clean'
 
@@ -135,6 +137,12 @@ usi-debug:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=RelWithDebInfo $(PROJ_ROOT)/src/usi
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_USI) $(SUNFISH_USI)
+
+tools:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/tools
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TOOLS) $(SUNFISH_TOOLS)
 
 dev:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
