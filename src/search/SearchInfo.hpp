@@ -40,7 +40,7 @@ template <class T>
 inline void printSearchInfo(T& os, const SearchInfo& info, float elapsed) {
   auto totalNodes = info.nodes + info.quiesNodes;
   auto nps = static_cast<uint32_t>(totalNodes / elapsed);
-  auto failHighFirst = info.failHighFirst * 100 / info.failHigh;
+  auto failHighFirst = info.failHighFirst * 100 / (info.failHigh + 1);
 
   os << "nps               : " << nps;
   os << "elapsed           : " << std::fixed << std::setprecision(3) << elapsed;
