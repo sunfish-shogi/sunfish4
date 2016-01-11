@@ -77,14 +77,8 @@ CONSTEXPR_CONST int FutilityPruningMaxDepth = 9 * Searcher::Depth1Ply;
  */
 Score futilityPruningMargin(int depth,
                             int count) {
-  Score margin;
-  if (depth < Searcher::Depth1Ply * 3) {
-    margin = 600;
-  } else {
-    margin = 200 / Searcher::Depth1Ply * std::max(depth, 0);
-  }
-  margin = std::max(margin - 4 * count, Score(600));
-  return margin;
+  Score margin = 400 / Searcher::Depth1Ply * depth - 8 * count;
+  return std::max(margin, Score(300));
 }
 
 #if 0
