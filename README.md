@@ -34,9 +34,9 @@ make TARGET
 ### Xcode
 
 ```
-mkdir -p build/xcode
-cd build/xcode
-cmake -G Xcode ../../src/app
+mkdir -p out/xcode_test
+cd out/xcode_test
+cmake -G Xcode ../../src/test
 ```
 
 ### Visual Studio (not maitained)
