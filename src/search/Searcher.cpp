@@ -290,6 +290,7 @@ void Searcher::idsearch(const Position& pos,
   node.checkState = tree.position.getCheckState();
 
   // generate moves
+  node.moves.clear();
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
     MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
@@ -963,6 +964,9 @@ void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   auto& parentNode = tree.nodes[tree.ply-1];
 
+  node.moves.clear();
+  node.moveIterator = node.moves.begin();
+
   if (!node.hashMove.isEmpty()) {
     node.moves.add(node.hashMove);
   }
@@ -1042,6 +1046,9 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                                     int qply,
                                     Score alpha) {
   auto& node = tree.nodes[tree.ply];
+
+  node.moves.clear();
+  node.moveIterator = node.moves.begin();
 
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);

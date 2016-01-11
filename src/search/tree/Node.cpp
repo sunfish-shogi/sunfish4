@@ -15,9 +15,6 @@ void arrive(Node& node) {
   node.killerMove1 = Move::empty();
   node.killerMove2 = Move::empty();
 
-  node.moveIterator = node.moves.begin();
-  node.moves.clear();
-
   node.pv.clear();
 }
 
