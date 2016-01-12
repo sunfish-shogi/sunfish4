@@ -17,6 +17,7 @@ CONF_FILE_PATH="config/batch_learn.ini"
 CONF_FILE_NAME=`basename ${CONF_FILE_PATH}`
 
 LOCAL_BACKUP_DIR=${BACKUP_DIR}/${EC2_HOST}
+REVISION_FILE=revision
 
 mkdir -p ${LOCAL_BACKUP_DIR}
 cp ${CONF_FILE_PATH} ${LOCAL_BACKUP_DIR}/
@@ -33,5 +34,8 @@ ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	tar zxf ~/${KIFU_TARBALL_NAME}
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
 	./sunfish_ln > /dev/null 2>&1 &
+	git rev-parse HEAD > ${REVISION_FILE}
 	exit
 EOF
+
+scp -i ${SSH_KEY} ec2-user@${EC2_HOST}:~/${REMOTE_WORK_DIR}/${REVISION_FILE} ${LOCAL_BACKUP_DIR}/${REVISION_FILE}
