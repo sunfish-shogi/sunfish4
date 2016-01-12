@@ -24,5 +24,8 @@
 # CMake
 !CMakeLists.txt
 
+# ec2
+/ec2_backup
+
 # Mac
 Thumbs.db

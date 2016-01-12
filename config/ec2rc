@@ -1,0 +1,15 @@
+# the target host on ec2
+EC2_HOST=
+
+# the key file for SSH login
+SSH_KEY=
+
+# the tar-ball which contains .csa files 
+KIFU_TARBALL=
+
+SUNFISH_REPO="https://github.com/sunfish-shogi/sunfish4.git"
+TARGET_BRANCH=master
+
+REMOTE_WORK_DIR=sunfish4
+
+BACKUP_DIR=ec2_backup
