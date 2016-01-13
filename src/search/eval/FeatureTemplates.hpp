@@ -198,7 +198,7 @@ inline
 T operate(FV& fv, CV& cv, const Position& position, T delta) {
   T sum = 0;
   auto bking = position.getBlackKingSquare().raw();
-  auto wking = position.getWhiteKingSquare().dsym().raw();
+  auto wking = position.getWhiteKingSquare().psym().raw();
 
 #define CALC_BLACK_HAND(t, T) do { \
   auto n = blackHand.get(PieceType::t()); \
@@ -308,7 +308,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     BB_EACH(square, bb) {
       auto piece = position.getPieceOnBoard(square);
       int bkpIndex = kingPieceIndex(piece, square);
-      int wkpIndex = kingPieceIndex(piece.enemy(), square.dsym());
+      int wkpIndex = kingPieceIndex(piece.enemy(), square.psym());
 
       if (type == FeatureOperationType::Evaluate) {
         sum += fv.kingPiece[bking][bkpIndex];
@@ -345,7 +345,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
                             Bitboard::nocorner());
     BB_EACH(square, bbishop) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
@@ -375,7 +375,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
                             Bitboard::nocorner());
     BB_EACH(square, wbishop) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
@@ -408,7 +408,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
                          position.getBDragonBitboard());
     BB_EACH(square, brook) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
@@ -437,7 +437,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
                          position.getWDragonBitboard());
     BB_EACH(square, wrook) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
@@ -465,7 +465,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     auto blance = position.getBLanceBitboard();
     BB_EACH(square, blance) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::blackLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
@@ -483,7 +483,7 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     auto wlance = position.getWLanceBitboard();
     BB_EACH(square, wlance) {
       int bIndex = square.raw();
-      int wIndex = square.dsym().raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::whiteLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);

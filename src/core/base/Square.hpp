@@ -422,21 +422,21 @@ public:
   }
 
   /**
-   * Get a symmetrical square diagonally.
+   * Returns the square of point symmetry.
    */
-  CONSTEXPR Square dsym() const {
+  CONSTEXPR Square psym() const {
     return Square(N - 1 - number_);
   }
 
   /**
-   * Get a symmetrical square in the horizontal direction.
+   * Returns the square of line symmetry in horizontal direction.
    */
   CONSTEXPR Square hsym() const {
     return Square(FileMax + 1 - getFile(), getRank());
   }
 
   /**
-   * Get a symmetrical square in the vertical direction.
+   * Returns the square of line symmetry in vertical direction.
    */
   CONSTEXPR Square vsym() const {
     return Square(getFile(), RankMax + 1 - getRank());
