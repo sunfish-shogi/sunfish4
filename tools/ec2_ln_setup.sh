@@ -19,6 +19,11 @@ CONF_FILE_NAME=`basename ${CONF_FILE_PATH}`
 LOCAL_BACKUP_DIR=${BACKUP_DIR}/${EC2_HOST}
 REVISION_FILE=revision
 
+if [ -e ${LOCAL_BACKUP_DIR} ]; then
+	echo "error: ${LOCAL_BACKUP_DIR} is already exists."
+	exit 1
+fi
+
 mkdir -p ${LOCAL_BACKUP_DIR}
 cp ${CONF_FILE_PATH} ${LOCAL_BACKUP_DIR}/
 
