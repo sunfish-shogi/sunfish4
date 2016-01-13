@@ -38,7 +38,7 @@ ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	make ln -j
 	tar zxf ~/${KIFU_TARBALL_NAME}
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
-	./sunfish_ln > /dev/null 2>&1 &
+	./sunfish_ln --silent &
 	git rev-parse HEAD > ${REVISION_FILE}
 	exit
 EOF

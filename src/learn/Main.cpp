@@ -30,7 +30,6 @@ int main(int argc, char** argv, char**) {
 
   // program options
   ProgramOptions po;
-  po.addOption("gen-zobrist", "generate Zobrist.cpp");
   po.addOption("silent", "s", "silent mode");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);

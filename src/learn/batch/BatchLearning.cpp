@@ -102,15 +102,11 @@ bool BatchLearning::run() {
 void BatchLearning::readConfigFromIniFile() {
   auto ini = Resource::ini(BatchLearnIni);
 
-  config_.kifuDir = getValue(ini, "Learn", "KifuDir");
-  config_.iteration = StringUtil::toInt(getValue(ini, "Learn", "Iteration"),
-                                        DefaultIteration);
-  config_.numThreads = StringUtil::toInt(getValue(ini, "Learn", "NumThreads"),
-                                         std::thread::hardware_concurrency());
-  config_.depth = StringUtil::toInt(getValue(ini, "Learn", "Depth"),
-                                    DefaultDepth);
-  config_.norm = StringUtil::toFloat(getValue(ini, "Learn", "Norm"),
-                                     DefaultNorm);
+  config_.kifuDir    = getValue(ini, "Learn", "KifuDir");
+  config_.iteration  = StringUtil::toInt(getValue(ini, "Learn", "Iteration"), DefaultIteration);
+  config_.numThreads = StringUtil::toInt(getValue(ini, "Learn", "NumThreads"), std::thread::hardware_concurrency());
+  config_.depth      = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
+  config_.norm       = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
 
   OUT(info) << "KifuDir   : " << config_.kifuDir;
   OUT(info) << "Iteration : " << config_.iteration;
