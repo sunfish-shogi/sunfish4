@@ -271,6 +271,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
 
   searcherIsStarted_ = false;
   stopCommandReceived_ = false;
+  inPonder_ = false;
 
   ScopedThread searchThread;
   searchThread.start([this]() {
@@ -280,7 +281,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   });
   waitForSearcherIsStarted();
 
-  auto command = receive();
+  auto command = receiveWithBreak();
   if (command.state == CommandState::Broken) {
     return true;
   }
@@ -357,6 +358,7 @@ void UsiClient::search() {
 bool UsiClient::runPonder(const CommandArguments&) {
   searcherIsStarted_ = false;
   stopCommandReceived_ = false;
+  inPonder_ = true;
 
   ScopedThread searchThread;
   searchThread.start([this]() {
@@ -396,7 +398,8 @@ bool UsiClient::runPonder(const CommandArguments&) {
 void UsiClient::ponder() {
   OUT(info) << "ponder thread is started. tid=" << std::this_thread::get_id();
 
-  auto pos = generatePosition(record_, -1);
+  auto pos = generatePosition(record_,
+                              record_.moveList.size() - 1);
   auto config = searcher_.getConfig();
 
   config.maximumMilliSeconds = SearchConfig::InfinityTime;
@@ -456,34 +459,54 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
     }
   }
 
-  send("info",
-       "time", timeMilliSeconds,
-       "depth", realDepth,
-       "nodes", totalNodes,
-       "nps", nps,
-       "currmove", pv.getMove(0).toStringSFEN(),
-       "score", scoreKey, scoreValue,
-       "pv", pv.toStringSFEN());
+  OUT(info) << std::setw(2) << realDepth << ": "
+            << std::setw(10) << (info.nodes + info.quiesNodes) << ": "
+            << std::setw(7) << timeMilliSeconds << ' '
+            << pv.toString() << ": "
+            << score;
+
+  if (!inPonder_) {
+    send("info",
+         "time", timeMilliSeconds,
+         "depth", realDepth,
+         "nodes", totalNodes,
+         "nps", nps,
+         "currmove", pv.getMove(0).toStringSFEN(),
+         "score", scoreKey, scoreValue,
+         "pv", pv.toStringSFEN());
+  }
 }
 
 void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  send("info", "string", "fail-low");
+  OUT(info) << "fail-low";
+  if (!inPonder_) {
+    send("info", "string", "fail-low");
+  }
 }
 
 void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  send("info", "string", "fail-high");
+  OUT(info) << "fail-low";
+  if (!inPonder_) {
+    send("info", "string", "fail-high");
+  }
 }
 
 UsiClient::Command UsiClient::receive() {
+  for (;;) {
+    auto commandState = receiveWithBreak();
+    if (commandState.state != CommandState::Broken) {
+      return commandState;
+    }
+  }
+}
+
+UsiClient::Command UsiClient::receiveWithBreak() {
   if (!deferredCommands_.empty()) {
     auto command = deferredCommands_.front();
     deferredCommands_.pop();
-    return {
-      CommandState::Ok,
-      command
-    };
+    return { CommandState::Ok, command };
   }
 
   while (!breakReceiver_) {
@@ -499,10 +522,7 @@ UsiClient::Command UsiClient::receive() {
   }
   breakReceiver_ = false;
 
-  return {
-    CommandState::Broken,
-    ""
-  };
+  return { CommandState::Broken, "" };
 }
 
 void UsiClient::receiver() {
@@ -512,8 +532,8 @@ void UsiClient::receiver() {
     std::getline(std::cin, command);
 
     if (std::cin.eof()) {
-      state = CommandState::Eof;
       LOG(warning) << "reached to EOF.";
+      exit(0);
 
     } else if (!std::cin.good()) {
       state = CommandState::Error;

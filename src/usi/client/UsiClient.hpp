@@ -33,7 +33,6 @@ private:
 
   enum class CommandState : uint8_t {
     Ok,
-    Eof,
     Error,
     Broken,
   };
@@ -85,6 +84,8 @@ private:
 
   Command receive();
 
+  Command receiveWithBreak();
+
   void receiver();
 
   void breakReceive();
@@ -115,6 +116,7 @@ private:
   TimeType whiteMilliSeconds_;
   TimeType byoyomiMilliSeconds_;
   bool isInfinite_;
+  bool inPonder_;
 
   Searcher searcher_;
   std::atomic<bool> searcherIsStarted_;
