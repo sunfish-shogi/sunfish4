@@ -19,6 +19,8 @@ namespace sunfish {
 class CsaClient : public LoggingSearchHandler {
 public:
 
+  using TimeType = SearchConfig::TimeType;
+
   struct Config {
     std::string host;
     int port;

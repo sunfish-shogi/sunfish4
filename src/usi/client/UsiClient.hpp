@@ -13,8 +13,9 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <thread>
 #include <mutex>
+#include <thread>
+#include <queue>
 #include <cstdint>
 
 namespace sunfish {
@@ -26,18 +27,15 @@ private:
 
   using TimeType = SearchConfig::TimeType;
 
-  enum class State : uint8_t {
-    None,
-    Ready,
-    Ponder,
-    Search,
-    Mate,
+  struct Options {
+    bool ponder;
   };
 
   enum class CommandState : uint8_t {
     Ok,
     Eof,
     Error,
+    Broken,
   };
 
   struct Command {
@@ -53,25 +51,29 @@ public:
 
 private:
 
-  bool acceptUsiCommand();
+  bool acceptUsi();
 
-  bool runCommandLoop();
+  bool ready();
 
-  bool onIsReady(const CommandArguments&);
+  bool setOption(const CommandArguments&);
 
-  bool onSetOption(const CommandArguments&);
+  bool receiveNewGame();
 
-  bool onUsiNewGame(const CommandArguments&);
+  bool game();
 
-  bool onPosition(const CommandArguments&);
+  bool receiveGo();
 
-  bool onGo(const CommandArguments&);
-
-  bool onStop(const CommandArguments&);
+  bool runSearch(const CommandArguments& args);
 
   void search();
 
+  bool runPonder(const CommandArguments& args);
+
+  void ponder();
+
   void waitForSearcherIsStarted();
+
+  void waitForStopCommand();
 
   void onStart(const Searcher&) override;
 
@@ -81,17 +83,11 @@ private:
 
   void onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
-  void stopSearchIfRunning();
-
-  void sendBestMove();
-
-  void outputSearchInfo();
-
-  bool onPonderhit(const CommandArguments&);
-
-  bool onGameOver(const CommandArguments&);
-
   Command receive();
+
+  void receiver();
+
+  void breakReceive();
 
   template <class T>
   void send(T&& command);
@@ -105,18 +101,14 @@ private:
   template <class T, class... Args>
   void joinOptions(std::ostream& os, T&& arg, Args&&... args);
 
-  bool checkStateIn(State state) const;
+  Options options_;
 
-  template <class... Args>
-  bool checkStateIn(State state, Args... args) const;
+  std::queue<std::string> deferredCommands_;
+  std::queue<Command> commandQueue_;
 
-  void changeState(State state);
+  std::string lastPositionCommand_;
+  std::string lastGoCommand_;
 
-  static std::string toString(State state);
-
-  std::atomic<State> state_;
-
-  bool positionIsInitialized_;
   Record record_;
 
   TimeType blackMilliSeconds_;
@@ -126,9 +118,12 @@ private:
 
   Searcher searcher_;
   std::atomic<bool> searcherIsStarted_;
+  std::atomic<bool> stopCommandReceived_;
+  std::atomic<bool> breakReceiver_;
 
-  std::unique_ptr<std::thread> searchThread_;
   std::mutex sendMutex_;
+  std::mutex receiveMutex_;
+  std::thread receiver_;
 
 };
 

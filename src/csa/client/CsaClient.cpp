@@ -12,6 +12,7 @@
 #include "logger/Logger.hpp"
 #include <functional>
 #include <fstream>
+#include <chrono>
 #include <utility>
 #include <thread>
 #include <sstream>
@@ -214,7 +215,9 @@ bool CsaClient::play() {
     OUT(info) << "";
 
     ScopedThread searchThread;
-    if (gameSummary_.myTurn == position_.getTurn()) {
+    bool isMyTurn = gameSummary_.myTurn == position_.getTurn();
+    if (isMyTurn) {
+      // search
       searcherIsStarted_ = false;
       searchThread.start([this]() {
         search();
@@ -222,7 +225,9 @@ bool CsaClient::play() {
         searcher_.interrupt();
       });
       waitForSearcherIsStarted();
+
     } else if (config_.ponder) {
+      // ponder
       searcherIsStarted_ = false;
       searchThread.start([this]() {
         ponder();
@@ -625,7 +630,7 @@ void CsaClient::search() {
   Turn turn = position_.getTurn();
   auto config = searcher_.getConfig();
 
-  unsigned maximumMilliSeconds = turn == Turn::Black ?
+  TimeType maximumMilliSeconds = turn == Turn::Black ?
                                  blackTime_ * 1000 :
                                  whiteTime_ * 1000;
   maximumMilliSeconds += gameSummary_.byoyomi;
@@ -660,7 +665,7 @@ void CsaClient::ponder() {
 
 void CsaClient::waitForSearcherIsStarted() {
   while (true) {
-    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     if (searcherIsStarted_) { break; }
   }
 }

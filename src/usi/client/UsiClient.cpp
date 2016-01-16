@@ -14,11 +14,14 @@
 #include <utility>
 #include <unordered_map>
 #include <functional>
+#include <chrono>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 
 namespace {
+
+using namespace sunfish;
 
 namespace resources {
 
@@ -27,45 +30,78 @@ const char* Author = "res/strings/usi_author";
 
 } // namespace resources
 
+class ScopedThread {
+public:
+
+  ScopedThread() {
+  }
+
+  ~ScopedThread() {
+    if (thread_.joinable()) {
+      if (stop_) {
+        stop_();
+      }
+      thread_.join();
+    }
+  }
+
+  template <class T, class U>
+  void start(T&& proc,
+             U&& stop) {
+    thread_ = std::thread(proc);
+    stop_ = std::forward<U>(stop);
+  }
+
+private:
+
+  std::thread thread_;
+  std::function<void()> stop_;
+
+};
+
 } // namespace
 
 namespace sunfish {
 
-UsiClient::UsiClient() :
-    state_(State::None),
-    positionIsInitialized_(false) {
+UsiClient::UsiClient() : breakReceiver_(false) {
   searcher_.setHandler(this);
+  receiver_ = std::thread([this]() {
+    receiver();
+  });
 }
 
 bool UsiClient::start() {
-  if (!checkStateIn(State::None)) {
-    LOG(warning) << "invalid state: " << toString(state_);
-    return false;
-  }
-
-  changeState(State::Ready);
-
-  bool usiAccepted = acceptUsiCommand();
+  // >usi
+  // <usiok
+  bool usiAccepted = acceptUsi();
   if (!usiAccepted) {
-    LOG(error) << "invalid command is received.";
     return false;
   }
 
-  bool ok = runCommandLoop();
+  for (;;) {
+    // >isready
+    // <readyok
+    // >usinewgame
+    bool readyOk = ready() && receiveNewGame();
+    if (!readyOk) {
+      return false;
+    }
 
-  changeState(State::None);
-
-  return ok;
+    bool gameOk = game();
+    if (!gameOk) {
+      return false;
+    }
+  }
 }
 
-bool UsiClient::acceptUsiCommand() {
+bool UsiClient::acceptUsi() {
   auto command = receive();
-
   if (command.state != CommandState::Ok) {
     return false;
   }
 
   if (command.value != "usi") {
+    LOG(error) << "invalid command: " << command.value;
     return false;
   }
 
@@ -81,24 +117,68 @@ bool UsiClient::acceptUsiCommand() {
   return true;
 }
 
-bool UsiClient::runCommandLoop() {
-#define MAKE_COMMAND_HANDLER(func) ([this](const CommandArguments& args) { return func(args); })
-  using Handler = bool(const CommandArguments&);
-  using HandlerWrapper = std::function<Handler>;
-  std::unordered_map<std::string, HandlerWrapper> handlerMap = {
-    { "isready", MAKE_COMMAND_HANDLER(onIsReady) },
-    { "setoption", MAKE_COMMAND_HANDLER(onSetOption) },
-    { "usinewgame", MAKE_COMMAND_HANDLER(onUsiNewGame) },
-    { "position", MAKE_COMMAND_HANDLER(onPosition) },
-    { "go", MAKE_COMMAND_HANDLER(onGo) },
-    { "stop", MAKE_COMMAND_HANDLER(onStop) },
-    { "ponderhit", MAKE_COMMAND_HANDLER(onPonderhit) },
-    { "gameover", MAKE_COMMAND_HANDLER(onGameOver) },
-  };
-
+bool UsiClient::ready() {
   for (;;) {
     auto command = receive();
+    if (command.state != CommandState::Ok) {
+      return false;
+    }
 
+    if (command.value == "isready") {
+      send("readyok");
+      return true;
+    }
+
+    auto args = StringUtil::split(command.value, [](char c) {
+      return isspace(c);
+    });
+
+    if (args[0] == "setoption") {
+      if (setOption(args)) {
+        continue;
+      }
+      return false;
+    }
+
+    LOG(error) << "unknown command: " << command.value;
+    return false;
+  }
+}
+
+bool UsiClient::setOption(const CommandArguments& args) {
+  const auto& name = args[2];
+  const auto& value = args[4];
+
+  if (name == "USI_Ponder") {
+    options_.ponder = value == "true";
+    return true;
+  }
+  
+  if (name == "USI_Hash") {
+    // TODO
+    return true;
+  }
+
+  return false;
+}
+
+bool UsiClient::receiveNewGame() {
+  auto command = receive();
+  if (command.state != CommandState::Ok) {
+    return false;
+  }
+
+  if (command.value == "usinewgame") {
+    return true;
+  }
+
+  LOG(error) << "unknown command: " << command.value;
+  return false;
+}
+
+bool UsiClient::game() {
+  for (;;) {
+    auto command = receive();
     if (command.state != CommandState::Ok) {
       return false;
     }
@@ -107,93 +187,63 @@ bool UsiClient::runCommandLoop() {
       return isspace(c);
     });
 
-    if (args.empty()) {
-      LOG(warning) << "empty line is received.";
+    // >position
+    // >go
+    if (args[0] == "position") {
+      if (!SfenParser::parseUsiCommand(args.begin(),
+                                       args.end(),
+                                       record_)) {
+        LOG(error) << "an error is occured in SfenParser";
+        return false;
+      }
+      lastPositionCommand_ = command.value;
+
+
+      if (!receiveGo()) {
+        return false;
+      }
+
       continue;
     }
 
-    if (args[0] == "quit") {
-      stopSearchIfRunning();
-      OUT(info) << "quit";
+    // >gameover
+    if (args[0] == "gameover") {
       return true;
     }
 
-    auto ite = handlerMap.find(args[0]);
-    if (ite == handlerMap.end()) {
-      LOG(warning) << "unsupported command is received. '" << command.value << "'";
-      continue;
-    }
-
-    const auto& handler = ite->second;
-    bool ok = handler(args);
-    if (!ok) {
-      LOG(warning) << "fatal error occurred. '" << command.value << "'";
-    }
+    LOG(error) << "unknown command: " << command.value;
+    return false;
   }
 }
 
-bool UsiClient::onIsReady(const CommandArguments&) {
-  if (!checkStateIn(State::Ready)) {
-    LOG(warning) << "invalid state: " << toString(state_);
+bool UsiClient::receiveGo() {
+  auto command = receive();
+  if (command.state != CommandState::Ok) {
     return false;
   }
 
-  send("readyok");
+  auto args = StringUtil::split(command.value, [](char c) {
+    return isspace(c);
+  });
 
-  return true;
-}
-
-bool UsiClient::onSetOption(const CommandArguments&) {
-  // TODO
- 
-  return true;
-}
-
-bool UsiClient::onUsiNewGame(const CommandArguments&) {
-  if (!checkStateIn(State::Ready)) {
-    LOG(warning) << "invalid state: " << toString(state_);
+  if (args[0] != "go") {
+    LOG(error) << "invalid command: " << command.value;
     return false;
   }
-
-  // TODO
- 
-  return true;
-}
-
-bool UsiClient::onPosition(const CommandArguments& args) {
-  if (!checkStateIn(State::Ready)) {
-    LOG(warning) << "invalid state: " << toString(state_);
-    return false;
-  }
-
-  bool ok = SfenParser::parseUsiCommand(args.begin(),
-                                        args.end(),
-                                        record_);
-  if (!ok) {
-    LOG(error) << "an error is occured in SfenParser";
-    return false;
-  }
-
-  positionIsInitialized_ = true;
-  return true;
-}
-
-bool UsiClient::onGo(const CommandArguments& args) {
-  if (!checkStateIn(State::Ready, State::Ponder)) {
-    LOG(warning) << "invalid state: " << toString(state_);
-    return false;
-  }
-
-  if (!positionIsInitialized_) {
-    LOG(error) << "position command has not received.";
-    return false;
-  }
+  lastGoCommand_ = command.value;
 
   if (args[1] == "ponder") {
-    // TODO
+    return runPonder(args);
+  } else if (args[1] == "mate") {
+    LOG(error) << "mate option is not supported";
+    send("checkmate" "nomate");
     return true;
+  } else {
+    return runSearch(args);
   }
+}
 
+bool UsiClient::runSearch(const CommandArguments& args) {
   blackMilliSeconds_ = 0;
   whiteMilliSeconds_ = 0;
   byoyomiMilliSeconds_ = 0;
@@ -211,39 +261,40 @@ bool UsiClient::onGo(const CommandArguments& args) {
 
     } else if (args[i] == "infinite") {
       isInfinite_ = true;
-
-    } else if (args[i] == "mate") {
-      LOG(error) << "mate option is not supported";
-      return false;
     }
   }
 
-  OUT(info) << "btime     = " << blackMilliSeconds_;
-  OUT(info) << "wtime     = " << whiteMilliSeconds_;
-  OUT(info) << "byoyomi   = " << byoyomiMilliSeconds_;
-  OUT(info) << "inifinite = " << (isInfinite_ ? "true" : "false");
-
-  stopSearchIfRunning();
-
-  changeState(State::Search);
+  OUT(info) << "btime    : " << blackMilliSeconds_;
+  OUT(info) << "wtime    : " << whiteMilliSeconds_;
+  OUT(info) << "byoyomi  : " << byoyomiMilliSeconds_;
+  OUT(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
 
   searcherIsStarted_ = false;
+  stopCommandReceived_ = false;
 
-  searchThread_.reset(new std::thread([this]() {
+  ScopedThread searchThread;
+  searchThread.start([this]() {
     search();
-  }));
-
+  }, [this]() {
+    searcher_.interrupt();
+  });
   waitForSearcherIsStarted();
- 
-  return true;
-}
 
-bool UsiClient::onStop(const CommandArguments&) {
-  stopSearchIfRunning();
-
-  if (isInfinite_) {
-    sendBestMove();
+  auto command = receive();
+  if (command.state == CommandState::Broken) {
+    return true;
   }
+
+  if (command.state != CommandState::Ok) {
+    return false;
+  }
+
+  if (command.value == "stop") {
+    stopCommandReceived_ = true;
+    return true;
+  }
+
+  deferredCommands_.push(command.value);
  
   return true;
 }
@@ -275,21 +326,102 @@ void UsiClient::search() {
 
   searcher_.idsearch(pos, Searcher::DepthInfinity, &record_);
 
-  if (!isInfinite_) {
-    sendBestMove();
+  if (isInfinite_) {
+    waitForStopCommand();
   }
 
-  outputSearchInfo();
+  const auto& result = searcher_.getResult();
+  const auto& info = searcher_.getInfo();
+  bool canPonder = !result.move.isEmpty() &&
+                   result.pv.size() >= 2;
 
-  changeState(State::Ready);
+  // send the result of search
+  if (canPonder) {
+    send("bestmove", result.move.toStringSFEN(),
+           "ponder", result.pv.getMove(1).toStringSFEN());
+  } else if (!result.move.isEmpty()) {
+    send("bestmove", result.move.toStringSFEN());
+  } else {
+    send("bestmove", "resign");
+  }
+
+  // print the result of search
+  printSearchInfo(OUT(info), info, result.elapsed);
+
+  // notify to receiver
+  breakReceive();
 
   OUT(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
 }
 
+bool UsiClient::runPonder(const CommandArguments&) {
+  searcherIsStarted_ = false;
+  stopCommandReceived_ = false;
+
+  ScopedThread searchThread;
+  searchThread.start([this]() {
+    ponder();
+  }, [this]() {
+    searcher_.interrupt();
+  });
+  waitForSearcherIsStarted();
+
+  auto command = receive();
+  if (command.state != CommandState::Ok) {
+    return false;
+  }
+
+  if (command.value == "stop") {
+    send("bestmove", "resign");
+    stopCommandReceived_ = true;
+    return true;
+  }
+
+  if (command.value == "ponderhit") {
+    std::string ponderSection(" ponder");
+    lastGoCommand_.replace(lastGoCommand_.find(ponderSection),
+                           ponderSection.length(),
+                           "");
+    deferredCommands_.push(lastPositionCommand_);
+    deferredCommands_.push(lastGoCommand_);
+    stopCommandReceived_ = true;
+    return true;
+  }
+
+  deferredCommands_.push(command.value);
+ 
+  return true;
+}
+
+void UsiClient::ponder() {
+  OUT(info) << "ponder thread is started. tid=" << std::this_thread::get_id();
+
+  auto pos = generatePosition(record_, -1);
+  auto config = searcher_.getConfig();
+
+  config.maximumMilliSeconds = SearchConfig::InfinityTime;
+  config.optimumMilliSeconds = SearchConfig::InfinityTime;
+
+  searcher_.setConfig(config);
+
+  searcher_.idsearch(pos, Searcher::DepthInfinity, &record_);
+
+  waitForStopCommand();
+
+  OUT(info) << "ponder thread is stopped. tid=" << std::this_thread::get_id();
+}
+
 void UsiClient::waitForSearcherIsStarted() {
   while (true) {
-    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     if (searcherIsStarted_) { break; }
+  }
+}
+
+void UsiClient::waitForStopCommand() {
+  while (true) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (stopCommandReceived_) { break; }
   }
 }
 
@@ -344,60 +476,74 @@ void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed
   send("info", "string", "fail-high");
 }
 
-void UsiClient::stopSearchIfRunning() {
-  if (searchThread_.get() && searchThread_->joinable()) {
-    OUT(info) << "stopping search thread..";
-    searcher_.interrupt();
-    searchThread_->join();
-  }
-}
-
-void UsiClient::sendBestMove() {
-  const auto& result = searcher_.getResult();
-
-  if (!result.move.isEmpty()) {
-    send("bestmove", result.move.toStringSFEN());
-  } else {
-    send("bestmove", "resign");
-  }
-}
-
-void UsiClient::outputSearchInfo() {
-  const auto& info = searcher_.getInfo();
-  const auto& result = searcher_.getResult();
-  printSearchInfo(OUT(info), info, result.elapsed);
-}
-
-bool UsiClient::onPonderhit(const CommandArguments&) {
-  // TODO
- 
-  return true;
-}
-
-bool UsiClient::onGameOver(const CommandArguments&) {
-  changeState(State::Ready);
- 
-  return true;
-}
-
 UsiClient::Command UsiClient::receive() {
-  CommandState state;
-  std::string command;
-
-  std::getline(std::cin, command);
-
-  if (std::cin.eof()) {
-    state = CommandState::Eof;
-    LOG(warning) << "reached to EOF.";
-  } else if (!std::cin.good()) {
-    state = CommandState::Error;
-    LOG(warning) << "an error is occured in STDIN.";
-  } else {
-    state = CommandState::Ok;
-    OUT(receive) << command;
+  if (!deferredCommands_.empty()) {
+    auto command = deferredCommands_.front();
+    deferredCommands_.pop();
+    return {
+      CommandState::Ok,
+      command
+    };
   }
 
-  return { state, command };
+  while (!breakReceiver_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    {
+      std::lock_guard<std::mutex> lock(receiveMutex_);
+      if (!commandQueue_.empty()) {
+        auto cs = commandQueue_.front();
+        commandQueue_.pop();
+        return cs;
+      }
+    }
+  }
+  breakReceiver_ = false;
+
+  return {
+    CommandState::Broken,
+    ""
+  };
+}
+
+void UsiClient::receiver() {
+  for (;;) {
+    CommandState state;
+    std::string command;
+    std::getline(std::cin, command);
+
+    if (std::cin.eof()) {
+      state = CommandState::Eof;
+      LOG(warning) << "reached to EOF.";
+
+    } else if (!std::cin.good()) {
+      state = CommandState::Error;
+      LOG(error) << "an error is occured in STDIN.";
+
+    } else if (command.empty()) {
+      state = CommandState::Error;
+      LOG(error) << "received an empty string.";
+
+    } else if (command == "quit") {
+      OUT(info) << "quit";
+      exit(0);
+
+    } else {
+      state = CommandState::Ok;
+      OUT(receive) << command;
+    }
+
+    {
+      std::lock_guard<std::mutex> lock(receiveMutex_);
+      commandQueue_.push({
+        state,
+        command
+      });
+    }
+  }
+}
+
+void UsiClient::breakReceive() {
+  breakReceiver_ = true;
 }
 
 template <class T>
@@ -426,37 +572,6 @@ template <class T, class... Args>
 void UsiClient::joinOptions(std::ostream& os, T&& arg, Args&&... args) {
   os << ' ' << arg;
   joinOptions(os, std::forward<Args>(args)...);
-}
-
-bool UsiClient::checkStateIn(State state) const {
-  if (state_ == state) {
-    return true;
-  }
-  return false;
-}
-
-template <class... Args>
-bool UsiClient::checkStateIn(State state, Args... args) const {
-  if (state_ == state) {
-    return true;
-  }
-  return checkStateIn(args...);
-}
-
-void UsiClient::changeState(State state) {
-  OUT(info) << "change state: " << toString(state_) << " => " << toString(state);
-  state_ = state;
-}
-
-std::string UsiClient::toString(State state) {
-  switch (state) {
-  case State::None  : return "None";
-  case State::Ready : return "Ready";
-  case State::Ponder: return "Ponder";
-  case State::Search: return "Search";
-  case State::Mate  : return "Mate";
-  }
-  return "";
 }
 
 } // namespace sunfish
