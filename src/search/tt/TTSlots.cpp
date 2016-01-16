@@ -12,10 +12,9 @@ TTStatus TTSlots::set(const TTElement& element) {
 
   // search a slot which has a same hash value.
   for (SizeType i = 0; i < Size; i++) {
-    const SizeType index = (lastAccess + i) % Size;
+    const SizeType index = (lastAccess + Size - i) % Size;
     if (slots_[index].hash() == element.hash()) {
       slots_[index] = element;
-      lastAccess_ = index;
       return TTStatus::Update;
     }
   }
@@ -23,7 +22,7 @@ TTStatus TTSlots::set(const TTElement& element) {
   // find a vacant slot
   for (SizeType i = 0; i < Size; i++) {
     const SizeType index = (lastAccess + 1 + i) % Size;
-    if (slots_[index].age() != element.age()) {
+    if (!slots_[index].isLive()) {
       slots_[index] = element;
       lastAccess_ = index;
       return TTStatus::New;
@@ -43,11 +42,10 @@ bool TTSlots::get(Zobrist::Type hash, TTElement& element) {
 
   // search a slot which has a same hash value.
   for (SizeType i = 0; i < Size; i++) {
-    const SizeType index = (lastAccess + i) % Size;
+    const SizeType index = (lastAccess + Size - i) % Size;
     TTElement e = slots_[index];
     if (e.checkHash(hash)) {
       element = e;
-      lastAccess_ = index;
       return true;
     }
   }

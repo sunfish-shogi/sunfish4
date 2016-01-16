@@ -15,19 +15,16 @@ bool TTElement::update(Zobrist::Type newHash,
                        int newDepth,
                        int ply,
                        Move move,
-                       bool mateThreat,
-                       AgeType newAge) {
-  ASSERT(newAge <= MaxAge);
+                       bool mateThreat) {
   ASSERT(newScoreType < (TTScoreType)(1 << TT_STYPE_WIDTH));
 
   newDepth = std::max(newDepth, 0);
   newDepth = std::min(newDepth, (1 << TT_DEPTH_WIDTH) - 1);
 
-  // check if a hash value of the current data is equal to a value of new data.
+  // check if the hash value of the current data is equal to
   if (checkHash(newHash)) {
     // reject the data which has shallower depth than the current data.
     if (newDepth < depth() &&
-        newAge == age() &&
         newScore < Score::mate() &&
         newScore > -Score::mate()) {
       return false;
@@ -38,7 +35,7 @@ bool TTElement::update(Zobrist::Type newHash,
     w2_ = Move::empty().serialize16() << TT_MOVE_SHIFT;
   }
 
-  // normalize a score
+  // normalize the score
   if (newScore >= Score::mate()) {
     if (newScoreType == TTScoreType::Lower) {
       if (newScore < Score::infinity() - ply) {
@@ -60,7 +57,6 @@ bool TTElement::update(Zobrist::Type newHash,
   // 1st quad word
   w1_ = newHash & TT_HASH_MASK;
   w1_ |= static_cast<QuadWord>(mateThreat) << TT_MATE_SHIFT;
-  w1_ |= static_cast<QuadWord>(newAge) << TT_AGE_SHIFT;
 
   // 2nd quad word
   auto scoreU16 = static_cast<uint16_t>(newScore.raw());
@@ -79,13 +75,12 @@ bool TTElement::update(Zobrist::Type newHash,
 
 void TTElement::updatePV(Zobrist::Type newHash,
                          int newDepth,
-                         Move move,
-                         uint32_t newAge) {
+                         Move move) {
   newDepth = std::max(newDepth, 0);
 
   // check if a hash value of the current data is equal to a value of new data.
   if (checkHash(newHash)) {
-    if (newDepth >= depth() || newAge != age()) {
+    if (newDepth >= depth()) {
       w2_ &= ~(TT_STYPE_MASK | TT_DEPTH_MASK | TT_CSUM_MASK);
       w2_ |= static_cast<QuadWord>(TTScoreType::None) << TT_STYPE_SHIFT;
       w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
@@ -100,7 +95,6 @@ void TTElement::updatePV(Zobrist::Type newHash,
 
   // 1st quad word
   w1_ = newHash & TT_HASH_MASK;
-  w1_ |= static_cast<QuadWord>(newAge) << TT_AGE_SHIFT;
 
   // 2nd quad word
   if (!move.isEmpty()) {

@@ -128,6 +128,22 @@ TEST(TTTest, test) {
   ASSERT_EQ(false, tt.get(pos3.getHash(), tte));
 }
 
+TEST(TTTest, testInitialization) {
+  TTElement tte;
+  ASSERT_FALSE(tte.isLive());
+
+  Position pos = PositionUtil::createPositionFromCsaString(posStr1);
+  tte.update(/* hash  */ pos.getHash(),
+             /* alpha */ Score(-123),
+             /* beta  */ Score(456),
+             /* score */ Score(77),
+             /* depth */ 5,
+             /* ply   */ 3,
+             /* move  */ Move(Square::s77(), Square::s76(), false),
+             /* mate  */ false);
+  ASSERT_TRUE(tte.isLive());
+}
+
 TEST(TTTest, testElement) {
   TT tt;
   TTElement tte;
@@ -213,10 +229,12 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(true, tte.isMateThreat());
 
   success = tt.get(pos4.getHash(), tte);
+  ASSERT_EQ(true, success);
   ASSERT_EQ(Score::infinity() - 8, tte.score(4));
   ASSERT_EQ(TTScoreType::Lower, tte.scoreType());
 
   success = tt.get(pos5.getHash(), tte);
+  ASSERT_EQ(true, success);
   ASSERT_EQ(-Score::infinity() + 6, tte.score(5));
   ASSERT_EQ(TTScoreType::Upper, tte.scoreType());
 

@@ -13,6 +13,14 @@
 
 namespace sunfish {
 
+enum class TTStatus : int {
+  None,
+  Reject,
+  New,
+  Update,
+  Collide,
+};
+
 class TTSlots {
 public:
 

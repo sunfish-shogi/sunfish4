@@ -131,8 +131,6 @@ void Searcher::onSearchStarted() {
 
   initializeWorker(workerOnMainThread_);
 
-  tt_.evolve();
-
   history_.reduce();
 
   gain_.clear();

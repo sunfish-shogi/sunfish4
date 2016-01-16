@@ -29,7 +29,7 @@ private:
   static CONSTEXPR_CONST RawType Promote  = 0x00004000;
   static CONSTEXPR_CONST RawType Drop     = 0x00008000;
   static CONSTEXPR_CONST RawType ExtMask  = 0xffff0000;
-  static CONSTEXPR_CONST RawType Empty    = 0xffffffff;
+  static CONSTEXPR_CONST RawType Empty    = 0x0000ffff;
 
   static CONSTEXPR_CONST int FromOffset = 7;
   static CONSTEXPR_CONST int ExtOffset = 16;
