@@ -64,8 +64,9 @@ public:
   }
 
   void release() {
-    ASSERT((data_ & CountMask) != 0LLU);
-    data_--;
+    if (!isVacant()) {
+      data_--;
+    }
   }
 
   bool isVacant() const {

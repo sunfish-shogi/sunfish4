@@ -15,7 +15,7 @@ namespace sunfish {
 class ShekTable : public HashTable<ShekSlots> {
 public:
 
-  static CONSTEXPR_CONST unsigned Width = 10;
+  static CONSTEXPR_CONST unsigned Width = 16;
 
   static_assert(1LLU << Width > ~ShekElement::HashMask, "invalid hash table size");
 

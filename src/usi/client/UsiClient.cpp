@@ -398,8 +398,8 @@ bool UsiClient::runPonder(const CommandArguments&) {
 void UsiClient::ponder() {
   OUT(info) << "ponder thread is started. tid=" << std::this_thread::get_id();
 
-  auto pos = generatePosition(record_,
-                              record_.moveList.size() - 1);
+  record_.moveList.pop_back();
+  auto pos = generatePosition(record_, -1);
   auto config = searcher_.getConfig();
 
   config.maximumMilliSeconds = SearchConfig::InfinityTime;
