@@ -4,6 +4,7 @@
  */
 
 #include "common/resource/Resource.hpp"
+#include "common/string/Wildcard.hpp"
 #include "common/string/StringUtil.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>
@@ -35,9 +36,8 @@ Resource::INI Resource::ini(const char* path) {
     return Resource::INI{};
   }
 
-  std::regex emptyLine("^\\s*$");
-  std::regex commentLine("^;.*$");
-  std::regex sectionLine("^\\s*\\[[^\\]]*\\]\\s*$");
+  static Wildcard Comment(";*");
+  static Wildcard Section("[*]");
   INI ini;
   std::string sectionName;
 
@@ -54,15 +54,14 @@ Resource::INI Resource::ini(const char* path) {
       return Resource::INI{};
     }
 
-    if (std::regex_match(line, emptyLine) ||
-        std::regex_match(line, commentLine)) {
+    line = StringUtil::trim(line);
+
+    if (line.empty() || Comment.match(line)) {
       continue;
     }
 
-    if (std::regex_match(line, sectionLine)) {
-      auto spos = line.find('[');
-      auto epos = line.find(']');
-      sectionName = line.substr(spos + 1, epos - spos - 1);
+    if (Section.match(line)) {
+      sectionName = line.substr(1, line.length() - 2);
       continue;
     }
 

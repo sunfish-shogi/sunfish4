@@ -46,10 +46,10 @@ public:
     for (spos = 0; spos < line.length(); spos++) {
       if (!isspace(line[spos])) { break; }
     }
-    for (epos = spos; epos < line.length(); epos++) {
-      if (isspace(line[epos])) { break; }
+    for (epos = line.length() - 1; epos > spos; epos--) {
+      if (!isspace(line[epos])) { break; }
     }
-    return line.substr(spos, epos - spos);
+    return line.substr(spos, epos - spos + 1);
   }
 
   static std::string chomp(const std::string& line) {
