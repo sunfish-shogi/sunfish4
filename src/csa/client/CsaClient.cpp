@@ -215,6 +215,7 @@ bool CsaClient::play() {
 
     ScopedThread searchThread;
     if (gameSummary_.myTurn == position_.getTurn()) {
+      searcherIsStarted_ = false;
       searchThread.start([this]() {
         search();
       }, [this]() {
@@ -222,6 +223,7 @@ bool CsaClient::play() {
       });
       waitForSearcherIsStarted();
     } else if (config_.ponder) {
+      searcherIsStarted_ = false;
       searchThread.start([this]() {
         ponder();
       }, [this]() {
