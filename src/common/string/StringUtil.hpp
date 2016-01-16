@@ -91,6 +91,22 @@ public:
     return split(line.c_str(), std::forward<T>(isDelim));
   }
 
+  static std::vector<std::string> split(const char* line, char delim) {
+    return split(line, [delim](char c) { return c == delim; });
+  }
+
+  static std::vector<std::string> split(const std::string line, char delim) {
+    return split(line, [delim](char c) { return c == delim; });
+  }
+
+  static std::pair<std::string, std::string> splitOnce(const std::string& line, char delim) {
+    auto sep = line.find_first_of(delim);
+    if (sep == std::string::npos) {
+      return { line, "" };
+    }
+    return { line.substr(0, sep), line.substr(sep + 1) };
+  }
+
   static int toInt(const std::string str, int defaultValue) {
     if (str.empty()) {
       return defaultValue;

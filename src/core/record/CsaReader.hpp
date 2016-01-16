@@ -47,7 +47,8 @@ private:
                        Turn turn);
   static bool readComment(const char* line);
   static bool readTime(const char* line);
-  static bool readCommand(const char* line);
+  static bool readSpecialMove(const char* line,
+                              Record& record);
 
 };
 

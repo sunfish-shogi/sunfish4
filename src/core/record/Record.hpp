@@ -54,6 +54,7 @@ struct Record {
 
   Position initialPosition;
   MoveListType moveList;
+  std::string specialMove;
 };
 
 /**

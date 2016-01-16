@@ -4,6 +4,7 @@
  */
 
 #include "core/record/CsaReader.hpp"
+#include "common/string/StringUtil.hpp"
 #include "logger/Logger.hpp"
 #include <fstream>
 #include <string>
@@ -12,6 +13,8 @@
 #define LINE_BUFFER_SIZE 1024
 
 namespace {
+
+using namespace sunfish;
 
 enum InputStatus {
   Continue,
@@ -22,10 +25,9 @@ enum InputStatus {
 
 template <class T>
 InputStatus forEach(std::istream& is, T&& f) {
-  char line[LINE_BUFFER_SIZE];
-
+  std::string buffer;
   while (true) {
-    is.getline(line, sizeof(line));
+    getline(is, buffer);
 
     if (is.eof()) {
       return InputStatus::Eof;
@@ -36,9 +38,13 @@ InputStatus forEach(std::istream& is, T&& f) {
       return InputStatus::Error;
     }
 
-    auto status = f(line);
-    if (status != InputStatus::Continue) {
-      return status;
+    auto lines = StringUtil::split(buffer, ',');
+
+    for (const auto& line : lines) {
+      auto status = f(line.c_str());
+      if (status != InputStatus::Continue) {
+        return status;
+      }
     }
   }
 }
@@ -65,7 +71,7 @@ bool CsaReader::read(std::istream& is,
   auto status = forEach(is, [&record, &position, info](const char* line) {
     if (readComment(line) ||
         readTime(line) ||
-        readCommand(line)) {
+        readSpecialMove(line, record)) {
       return InputStatus::Continue;
     }
 
@@ -251,13 +257,16 @@ bool CsaReader::readComment(const char* line) {
 
 bool CsaReader::readTime(const char* line) {
   if (line[0] == 'T') {
+    // TODO
     return true;
   }
   return false;
 }
 
-bool CsaReader::readCommand(const char* line) {
+bool CsaReader::readSpecialMove(const char* line,
+                                Record& record) {
   if (line[0] == '%') {
+    record.specialMove = line;
     return true;
   }
   return false;

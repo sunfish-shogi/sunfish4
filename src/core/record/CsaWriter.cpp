@@ -36,6 +36,10 @@ bool CsaWriter::write(std::ostream& os,
     }
   }
 
+  if (!record.specialMove.empty()) {
+    os << record.specialMove << '\n';
+  }
+
   return true;
 }
 

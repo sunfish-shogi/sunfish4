@@ -12,6 +12,7 @@ SUNFISH_EXPT:=sunfish_expt
 SUNFISH_TEST:=sunfish_test
 SUNFISH_BM:=sunfish_bm
 SUNFISH_LN:=sunfish_ln
+SUNFISH_CSA:=sunfish_csa
 SUNFISH_USI:=sunfish_usi
 SUNFISH_TOOLS:=sunfish_tools
 SUNFISH_DEV:=sunfish_dev
@@ -125,6 +126,12 @@ ln:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/learn
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_LN) $(SUNFISH_LN)
+
+csa:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/csa
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_CSA) $(SUNFISH_CSA)
 
 usi:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
