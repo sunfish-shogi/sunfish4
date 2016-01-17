@@ -121,7 +121,7 @@ void CsaClient::readConfigFromIniFile() {
   config_.port      = StringUtil::toInt(getValue(ini, "Server", "Port"), DefaultPort);
   config_.user      = getValue(ini, "Server", "User");
   config_.pass      = getValue(ini, "Server", "Pass");
-  config_.floodgate = StringUtil::toInt(getValue(ini, "Server", "Pass"), DefaultFloodgate);
+  config_.floodgate = StringUtil::toInt(getValue(ini, "Server", "Floodgate"), DefaultFloodgate);
 
   config_.depth   = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
   config_.limit   = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
