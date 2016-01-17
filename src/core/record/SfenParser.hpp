@@ -72,10 +72,11 @@ bool SfenParser::parseUsiCommand(const iterator& begin,
     record.initialPosition.initialize(Position::Handicap::Even);
     ite++;
   } else if (ite != end && *ite == "sfen") {
-    auto& arg1 = *(ite++); if (ite == end) { return false; }
-    auto& arg2 = *(ite++); if (ite == end) { return false; }
-    auto& arg3 = *(ite++); if (ite == end) { return false; }
-    auto& arg4 = *(ite++); if (ite == end) { return false; }
+    if (++ite == end) { return false; } auto& arg1 = *(ite);
+    if (++ite == end) { return false; } auto& arg2 = *(ite);
+    if (++ite == end) { return false; } auto& arg3 = *(ite);
+    if (++ite == end) { return false; } auto& arg4 = *(ite);
+    ite++;
     bool ok = parsePosition(arg1,
                             arg2,
                             arg3,
