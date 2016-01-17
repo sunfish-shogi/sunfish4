@@ -139,25 +139,25 @@ void CsaClient::readConfigFromIniFile() {
 
   OUT(info) << "Configurations";
   OUT(info) << "  Server";
-  OUT(info) << "    host     : " << config_.host;
-  OUT(info) << "    port     : " << config_.port;
-  OUT(info) << "    user     : " << config_.user;
-  OUT(info) << "    pass     : " << config_.pass;
-  OUT(info) << "    floodgate: " << config_.floodgate;
+  OUT(info) << "    Host     : " << config_.host;
+  OUT(info) << "    Port     : " << config_.port;
+  OUT(info) << "    User     : " << config_.user;
+  OUT(info) << "    Pass     : " << config_.pass;
+  OUT(info) << "    Floodgate: " << config_.floodgate;
   OUT(info) << "  Search";
-  OUT(info) << "    depth    : " << config_.depth;
-  OUT(info) << "    limit    : " << config_.limit;
-  OUT(info) << "    repeat   : " << config_.repeat;
-  OUT(info) << "    worker   : " << config_.worker;
-  OUT(info) << "    ponder   : " << config_.ponder;
-  OUT(info) << "    hashMem  : " << config_.hashMem;
+  OUT(info) << "    Depth    : " << config_.depth;
+  OUT(info) << "    Limit    : " << config_.limit;
+  OUT(info) << "    Repeat   : " << config_.repeat;
+  OUT(info) << "    Worker   : " << config_.worker;
+  OUT(info) << "    Ponder   : " << config_.ponder;
+  OUT(info) << "    HashMem  : " << config_.hashMem;
   OUT(info) << "  KeepAlive";
-  OUT(info) << "    keepalive: " << config_.keepalive;
-  OUT(info) << "    keepidle : " << config_.keepidle ;
-  OUT(info) << "    keepintvl: " << config_.keepintvl;
-  OUT(info) << "    keepcnt  : " << config_.keepcnt;
+  OUT(info) << "    Keepalive: " << config_.keepalive;
+  OUT(info) << "    Keepidle : " << config_.keepidle ;
+  OUT(info) << "    Keepintvl: " << config_.keepintvl;
+  OUT(info) << "    Keepcnt  : " << config_.keepcnt;
   OUT(info) << "  File";
-  OUT(info) << "    kifuDir  : " << config_.kifuDir;
+  OUT(info) << "    KifuDir  : " << config_.kifuDir;
   OUT(info) << "";
 }
 
