@@ -665,9 +665,9 @@ void CsaClient::search() {
     auto score = position_.getTurn() == Turn::Black
                ? result.score.raw()
                : -result.score.raw();
-    oss << ",\'*" << score;
+    oss << ",\'* " << score;
     auto pos = position_;
-    for (unsigned i = 0; i < result.pv.size(); i++) {
+    for (unsigned i = 1; i < result.pv.size(); i++) {
       Move move = result.pv.getMove(i);
       oss << ' ' << move.toString(pos);
       Piece captured;
