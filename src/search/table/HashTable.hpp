@@ -26,8 +26,11 @@ public:
 
 public:
 
-  HashTable(unsigned width = DefaultWidth) : table_(nullptr), size_(0) {
-    initialize(width);
+  HashTable(unsigned width = DefaultWidth) :
+      table_(nullptr),
+      width_(0),
+      size_(0) {
+    resize(width);
   }
   HashTable(const HashTable&) = delete;
   HashTable(HashTable&&) = delete;
@@ -39,24 +42,32 @@ public:
   HashTable& operator=(const HashTable&) = delete;
   HashTable& operator=(HashTable&&) = delete;
 
-  void initialize(unsigned width = 0) {
+  void clear() {
+    for (SizeType i = 0; i < size_; i++) {
+      table_[i] = ElementType();
+    }
+  }
+
+  void resize(unsigned width) {
     SizeType newSize = 1 << width;
+    size_ = newSize;
+    mask_ = size_ - 1;
+    if (table_ != nullptr) {
+      delete[] table_;
+    }
+    table_ = new ElementType[size_];
+  }
 
-    if (width != 0 && size_ != newSize) {
-      // resize
-      size_ = newSize;
-      mask_ = size_ - 1;
-      if (table_ != nullptr) {
-        delete[] table_;
-      }
-      table_ = new ElementType[size_];
-
-    } else {
-      // clear all elements
-      for (SizeType i = 0; i < size_; i++) {
-        table_[i] = ElementType();
+  void resizeMB(unsigned mebiBytes) {
+    unsigned width = 8;
+    for (; width < 32; width++) {
+      SizeType size = 1 << width;
+      size_t sb = sizeof(ElementType) * size;
+      if (sb > mebiBytes * 1024 * 1024) {
+        break;
       }
     }
+    resize(width - 1);
   }
 
   SizeType getSize() const {
@@ -89,6 +100,7 @@ protected:
 
 private:
   ElementType* table_;
+  unsigned width_;
   SizeType size_;
   SizeType mask_;
 

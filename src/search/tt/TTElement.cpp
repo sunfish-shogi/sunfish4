@@ -74,33 +74,27 @@ bool TTElement::update(Zobrist::Type newHash,
 }
 
 void TTElement::updatePV(Zobrist::Type newHash,
+                         Score newScore,
                          int newDepth,
                          Move move) {
   newDepth = std::max(newDepth, 0);
 
   // check if a hash value of the current data is equal to a value of new data.
   if (checkHash(newHash)) {
-    if (newDepth >= depth()) {
-      w2_ &= ~(TT_STYPE_MASK | TT_DEPTH_MASK | TT_CSUM_MASK);
-      w2_ |= static_cast<QuadWord>(TTScoreType::None) << TT_STYPE_SHIFT;
-      w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
-    } else {
-      w2_ &= ~(TT_CSUM_MASK);
+    if (newDepth < depth()) {
+      return;
     }
-  } else {
-    w2_ = Move::empty().serialize16() << TT_MOVE_SHIFT;
-    w2_ |= static_cast<QuadWord>(TTScoreType::None) << TT_STYPE_SHIFT;
-    w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
   }
 
   // 1st quad word
   w1_ = newHash & TT_HASH_MASK;
 
   // 2nd quad word
-  if (!move.isEmpty()) {
-    w2_ &= ~TT_MOVE_MASK;
-    w2_ |= static_cast<QuadWord>(move.serialize16()) << TT_MOVE_SHIFT;
-  }
+  auto scoreU16 = static_cast<uint16_t>(newScore.raw());
+  w2_  = static_cast<QuadWord>(scoreU16) << TT_SCORE_SHIFT;
+  w2_ |= static_cast<QuadWord>(TTScoreType::Exact) << TT_STYPE_SHIFT;
+  w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
+  w2_ |= static_cast<QuadWord>(move.serialize16()) << TT_MOVE_SHIFT;
   w2_ |= calcCheckSum() & TT_CSUM_MASK;
 }
 

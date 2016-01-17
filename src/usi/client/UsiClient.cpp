@@ -155,7 +155,8 @@ bool UsiClient::setOption(const CommandArguments& args) {
   }
   
   if (name == "USI_Hash") {
-    // TODO
+    unsigned mebiBytes = std::stoi(value);
+    searcher_.ttResizeMB(mebiBytes);
     return true;
   }
 
@@ -448,6 +449,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
   auto realDepth = depth / Searcher::Depth1Ply;
   auto totalNodes = info.nodes + info.quiesNodes;
   auto nps = static_cast<uint32_t>(totalNodes / elapsed);
+  auto hashfull = static_cast<int>(searcher_.ttUsageRates() * 1000);
 
   const char* scoreKey;
   int scoreValue;
@@ -477,7 +479,8 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
          "nps", nps,
          "currmove", pv.getMove(0).toStringSFEN(),
          "score", scoreKey, scoreValue,
-         "pv", pv.toStringSFEN());
+         "pv", pv.toStringSFEN(),
+         "hashfull", hashfull);
   }
 }
 

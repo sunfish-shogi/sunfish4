@@ -33,6 +33,7 @@ public:
     int repeat;
     int worker;
     int ponder;
+    int hashMem;
 
     int keepalive;
     int keepidle;

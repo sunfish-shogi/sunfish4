@@ -15,7 +15,7 @@ using namespace sunfish;
 
 void initializeShekTable(ShekTable& shekTable,
                          const Record* record) {
-  shekTable.initialize();
+  shekTable.clear();
 
   if (record == nullptr) {
     return;

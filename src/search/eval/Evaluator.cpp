@@ -88,7 +88,7 @@ bool Evaluator::writeEvalBin() const {
 
 void Evaluator::onChanged() {
   cumulate(fv_, cv_);
-  cache_.initialize();
+  cache_.clear();
 }
 
 Score Evaluator::calculateMaterialScore(const Position& position) const {

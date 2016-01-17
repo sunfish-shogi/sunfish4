@@ -295,27 +295,7 @@ void Searcher::idsearch(const Position& pos,
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
 
-  random_.shuffle(node.moves.begin(), node.moves.end());
-
-  for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
-    Move move = node.moves[moveCount];
-
-    bool moveOk = doMove(tree, move, *evaluator_);
-    if (!moveOk) {
-      node.moves.remove(moveCount);
-      continue;
-    }
-
-    Score score = -quies(tree,
-                         0,
-                         -Score::infinity(),
-                         Score::infinity());
-    setScoreToMove(node.moves[moveCount], score);
-
-    undoMove(tree);
-
-    moveCount++;
-  }
+  sortRootMoves(tree);
 
   if (node.moves.size() == 0) {
     return;
@@ -324,10 +304,6 @@ void Searcher::idsearch(const Position& pos,
   if (isInterrupted()) {
     return;
   }
-
-  std::sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
-    return moveToScore(lhs) > moveToScore(rhs);
-  });
 
   int completedDepth = 0;
   for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
@@ -504,7 +480,10 @@ bool Searcher::aspsearch(Tree& tree,
   }
 
   if (node.pv.size() != 0 && bestScore != -Score::infinity()) {
-    storePV(tree, node.pv, 0);
+    storePV(tree,
+            node.pv,
+            0,
+            bestScore);
 
     if (handler_ != nullptr) {
       handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
@@ -739,7 +718,7 @@ Score Searcher::search(Tree& tree,
 
   generateMoves(tree);
 
-  // expand the branches
+  // expand branches
   for (int moveCount = 0; ; moveCount++) {
     Move move = nextMove(tree);
     if (move.isEmpty()) {
@@ -1117,7 +1096,66 @@ void Searcher::sortMovesOnHistory(Tree& tree) {
   });
 }
 
-void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {
+void Searcher::sortRootMoves(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
+
+  random_.shuffle(node.moves.begin(), node.moves.end());
+
+  Move ttMove = Move::empty();
+  TTElement tte;
+  if (tt_.get(tree.position.getHash(), tte)) {
+    ttMove = tte.move();
+  }
+
+  for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
+    Move move = node.moves[moveCount];
+
+    bool moveOk = doMove(tree, move, *evaluator_);
+    if (!moveOk) {
+      node.moves.remove(moveCount);
+      continue;
+    }
+
+    if (move == ttMove) {
+      undoMove(tree);
+      setScoreToMove(node.moves[moveCount], Score::infinity());
+      moveCount++;
+      continue;
+    }
+
+    Score score = quies(tree,
+                        0,
+                        -Score::infinity(),
+                        Score::infinity());
+
+    if (tt_.get(tree.position.getHash(), tte)) {
+      auto ttScoreType = tte.scoreType();
+      auto ttScore = tte.score(1);
+      if (ttScoreType == TTScoreType::Exact) {
+        score = ttScore;
+      } else if (ttScoreType == TTScoreType::Lower) {
+        score = std::max(score, ttScore);
+      } else if (ttScoreType == TTScoreType::Upper) {
+        score = std::min(score, ttScore);
+      }
+    }
+
+    setScoreToMove(node.moves[moveCount], -score);
+
+    undoMove(tree);
+
+    moveCount++;
+  }
+
+  std::sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
+    return moveToScore(lhs) > moveToScore(rhs);
+  });
+}
+
+void Searcher::storePV(Tree& tree,
+                       const PV& pv,
+                       unsigned ply,
+                       Score score) {
   if (ply >= pv.size()) {
     return;
   }
@@ -1134,15 +1172,18 @@ void Searcher::storePV(Tree& tree, const PV& pv, unsigned ply) {
   }
 
   if (doMove(tree, move, *evaluator_)) {
-    storePV(tree, pv, ply + 1);
+    storePV(tree,
+            pv,
+            ply + 1,
+            -score);
     undoMove(tree);
+    tt_.storePV(tree.position.getHash(),
+                score,
+                depth,
+                move);
   } else {
     LOG(warning) << "the PV contain an illegal move.";
   }
-
-  tt_.storePV(tree.position.getHash(),
-              depth,
-              move);
 }
 
 } // namespace sunfish

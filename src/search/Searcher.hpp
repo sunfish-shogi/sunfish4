@@ -90,6 +90,14 @@ public:
     handler_ = handler;
   }
 
+  float ttUsageRates() const {
+    return tt_.usageRates();
+  }
+
+  void ttResizeMB(unsigned mebiBytes) {
+    tt_.resizeMB(mebiBytes);
+  }
+
 private:
 
   void onSearchStarted();
@@ -122,7 +130,12 @@ private:
 
   void sortMovesOnHistory(Tree& tree);
 
-  void storePV(Tree& tree, const PV& pv, unsigned ply);
+  void sortRootMoves(Tree& tree);
+
+  void storePV(Tree& tree,
+               const PV& pv,
+               unsigned ply,
+               Score score);
 
   bool isInterrupted() const {
     if (interrupted_) {

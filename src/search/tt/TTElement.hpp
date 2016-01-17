@@ -107,12 +107,12 @@ public:
   }
 
   bool update(Zobrist::Type newHash,
-      Score alpha,
-      Score beta,
-      Score newScore,
-      int newDepth, int ply,
-      const Move& move,
-      bool mateThreat) {
+              Score alpha,
+              Score beta,
+              Score newScore,
+              int newDepth, int ply,
+              const Move& move,
+              bool mateThreat) {
     TTScoreType newScoreType;
     if (newScore >= beta) {
       newScoreType = TTScoreType::Lower;
@@ -132,6 +132,7 @@ public:
   }
 
   void updatePV(Zobrist::Type newHash,
+                Score newScore,
                 int newDepth,
                 Move move);
 

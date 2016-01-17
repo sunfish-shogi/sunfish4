@@ -80,4 +80,37 @@ TEST(SfenParserTest, parseMove) {
   }
 }
 
+TEST(SfenParserTest, parseUsiCommand) {
+  {
+    std::vector<std::string> args = {
+      "position",
+      "sfen",
+      "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL",
+      "b",
+      "-",
+      "1"
+    };
+    Record record;
+
+    bool ok = SfenParser::parseUsiCommand(args.begin(),
+                                          args.end(),
+                                          record);
+    ASSERT_TRUE(ok);
+    ASSERT_EQ(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n", record.initialPosition.toString());
+    ASSERT_EQ(0, record.moveList.size());
+  }
+}
+
 #endif // !defined(NDEBUG)

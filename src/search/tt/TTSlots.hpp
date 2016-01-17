@@ -35,6 +35,8 @@ public:
 
   bool get(Zobrist::Type hash, TTElement& element);
 
+  unsigned fullCount() const;
+
 private:
 
   TTElement slots_[Size];

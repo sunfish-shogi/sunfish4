@@ -30,6 +30,7 @@ CONSTEXPR_CONST int DefaultDepth  = 48;
 CONSTEXPR_CONST int DefaultLimit  = 28;
 CONSTEXPR_CONST int DefaultRepeat = 1000;
 CONSTEXPR_CONST int DefaultPonder = 1;
+CONSTEXPR_CONST int DefaultHashMem = 64;
 
 CONSTEXPR_CONST int DefaultKeepAlive = 0;
 CONSTEXPR_CONST int DefaultKeepIdle  = 120;
@@ -106,6 +107,8 @@ bool CsaClient::start() {
     return false;
   }
 
+  searcher_.ttResizeMB(config_.hashMem);
+
   playOnRepeat();
 
   return true;
@@ -120,11 +123,12 @@ void CsaClient::readConfigFromIniFile() {
   config_.pass      = getValue(ini, "Server", "Pass");
   config_.floodgate = StringUtil::toInt(getValue(ini, "Server", "Pass"), DefaultFloodgate);
 
-  config_.depth = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
-  config_.limit = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
-  config_.repeat = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
-  config_.worker = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
-  config_.ponder = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
+  config_.depth   = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
+  config_.limit   = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
+  config_.repeat  = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
+  config_.worker  = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
+  config_.ponder  = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
+  config_.hashMem = StringUtil::toInt(getValue(ini, "Search", "HashMem"), DefaultHashMem);
 
   config_.keepalive = StringUtil::toInt(getValue(ini, "KeepAlive", "KeepAlive"), DefaultKeepAlive);
   config_.keepidle  = StringUtil::toInt(getValue(ini, "KeepIdle", "KeepIdle"), DefaultKeepIdle);
@@ -146,6 +150,7 @@ void CsaClient::readConfigFromIniFile() {
   OUT(info) << "    repeat   : " << config_.repeat;
   OUT(info) << "    worker   : " << config_.worker;
   OUT(info) << "    ponder   : " << config_.ponder;
+  OUT(info) << "    hashMem  : " << config_.hashMem;
   OUT(info) << "  KeepAlive";
   OUT(info) << "    keepalive: " << config_.keepalive;
   OUT(info) << "    keepidle : " << config_.keepidle ;

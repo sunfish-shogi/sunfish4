@@ -120,6 +120,7 @@ TEST(TTTest, test) {
            /* mate  */ false);
 
   tt.storePV(/* hash  */ pos2.getHash(),
+             /* score */ Score(22),
              /* depth */  7,
              /* move  */ Move(Square::s33(), Square::s34(), false));
 
@@ -201,6 +202,7 @@ TEST(TTTest, testElement) {
            /* mate  */ false);
 
   tt.storePV(/* hash  */ pos6.getHash(),
+             /* score */ Score(-22),
              /* depth */ 7,
              /* move  */ Move(Square::s83(), Square::s84(), false));
 
@@ -240,7 +242,8 @@ TEST(TTTest, testElement) {
 
   success = tt.get(pos6.getHash(), tte);
   ASSERT_EQ(true, success);
-  ASSERT_EQ(TTScoreType::None, tte.scoreType());
+  ASSERT_EQ(Score(-22), tte.score(8));
+  ASSERT_EQ(TTScoreType::Exact, tte.scoreType());
   ASSERT_EQ(7, tte.depth());
   ASSERT_EQ(Move(Square::s83(), Square::s84(), false), tte.move());
   ASSERT_EQ(false, tte.isMateThreat());
