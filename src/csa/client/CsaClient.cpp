@@ -648,11 +648,33 @@ void CsaClient::search() {
                      Searcher::DepthInfinity,
                      &record_);
   auto& result = searcher_.getResult();
+
   if (result.move.isEmpty()) {
     send("%TORYO");
-  } else {
-    send(result.move.toString(position_));
+    return;
   }
+
+  std::ostringstream oss;
+  oss << result.move.toString(position_);
+
+  if (config_.floodgate) {
+    auto score = position_.getTurn() == Turn::Black
+               ? result.score.raw()
+               : -result.score.raw();
+    oss << ",\'*" << score;
+    auto pos = position_;
+    for (unsigned i = 0; i < result.pv.size(); i++) {
+      Move move = result.pv.getMove(i);
+      oss << ' ' << move.toString(pos);
+      Piece captured;
+      if (!pos.doMove(move, captured)) {
+        LOG(warning) << "an illegal move is contained in PV.";
+        break;
+      }
+    }
+  }
+
+  send(oss.str());
 }
 
 void CsaClient::ponder() {
