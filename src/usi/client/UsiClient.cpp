@@ -232,15 +232,19 @@ bool UsiClient::receiveGo() {
   }
   lastGoCommand_ = command.value;
 
+  // > go ponder
   if (args[1] == "ponder") {
     return runPonder(args);
-  } else if (args[1] == "mate") {
+  }
+ 
+  // > go mate
+  if (args[1] == "mate") {
     LOG(error) << "mate option is not supported";
     send("checkmate" "nomate");
     return true;
-  } else {
-    return runSearch(args);
   }
+
+  return runSearch(args);
 }
 
 bool UsiClient::runSearch(const CommandArguments& args) {
