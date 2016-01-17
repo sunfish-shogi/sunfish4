@@ -18,7 +18,7 @@ namespace sunfish {
 Solver::Solver() {
   searcher_.setHandler(&searchHandler_);
   config_.muximumDepth = 18;
-  config_.muximumTimeSeconds = 1;
+  config_.muximumTimeSeconds = 3;
   result_.corrected = 0;
   result_.incorrected = 0;
   result_.skipped = 0;

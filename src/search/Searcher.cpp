@@ -54,11 +54,12 @@ uint8_t ReductionDepth[20][32][2];
 
 void initializeReductionDepth() {
   for (int depth = 0; depth < 20; depth++) {
-    for (int count = 0; count < 32; count++) {
-      ReductionDepth[depth][count][0] = sqrt(depth) * atan(count * 0.6) * 0.7 * Searcher::Depth1Ply;
-      ReductionDepth[depth][count][1] = sqrt(depth) * atan(count * 0.4) * 0.4 * Searcher::Depth1Ply;
-      ASSERT(ReductionDepth[depth][count][0] <= depth * Searcher::Depth1Ply);
-      ASSERT(ReductionDepth[depth][count][1] <= depth * Searcher::Depth1Ply);
+    for (int hist = 0; hist < 32; hist++) {
+      float r = std::pow(depth, 0.8f) * std::pow(1.0f - hist/32.0f, 2.3f) * Searcher::Depth1Ply;
+      ReductionDepth[depth][hist][0] = r;
+      ReductionDepth[depth][hist][1] = r * 0.4;
+      ASSERT(ReductionDepth[depth][hist][0] <= depth * Searcher::Depth1Ply);
+      ASSERT(ReductionDepth[depth][hist][1] <= depth * Searcher::Depth1Ply);
     }
   }
 }
@@ -67,10 +68,11 @@ void initializeReductionDepth() {
  * Returns a value for reducing from the depth.
  */
 int reductionDepth(int depth,
-                   int count,
+                   int hist,
                    bool improving) {
+  static_assert(History::Scale >> 8 == 32, "invalid range");
   return ReductionDepth[std::min(depth / Searcher::Depth1Ply, 19)]
-                       [std::min(count / 2, 31)]
+                       [hist >> 8]
                        [improving];
 }
 
@@ -749,11 +751,11 @@ Score Searcher::search(Tree& tree,
     // late move reduction
     int reduced = 0;
     if (!isFirst &&
+        newDepth >= Depth1Ply &&
         !nodeStat.isMateThreat() &&
         !isCheck(node.checkState) &&
-        newDepth >= Depth1Ply &&
-        !isTacticalMove(tree.position, move) &&
-        !isPriorMove(tree, move)) {
+        !isPriorMove(tree, move) &&
+        !isTacticalMove(tree.position, move)) {
       reduced = reductionDepth(depth,
                                moveCount,
                                improving);
@@ -773,6 +775,17 @@ Score Searcher::search(Tree& tree,
         worker.info.futilityPruning++;
         continue;
       }
+    }
+
+    // prune negative SEE moves
+    if (!currentMoveIsCheck &&
+        !isCheck(node.checkState) &&
+        newDepth < Depth1Ply * 2 &&
+        !isPriorMove(tree, move) &&
+        !isTacticalMove(tree.position, move) &&
+        SEE::calculate(tree.position, move) < Score::zero()) {
+      isFirst = false;
+      continue;
     }
 
     bool moveOk = doMove(tree, move, *evaluator_);
@@ -798,7 +811,9 @@ Score Searcher::search(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-      if (!isInterrupted() && score > alpha && reduced != 0) {
+      if (!isInterrupted() &&
+          score > alpha &&
+          reduced != 0) {
         newDepth = newDepth + reduced;
         score = -search(tree,
                         newDepth,
@@ -807,7 +822,10 @@ Score Searcher::search(Tree& tree,
                         newNodeStat);
       }
 
-      if (!isInterrupted() && score > alpha && score < beta && !isNullWindow) {
+      if (!isInterrupted() &&
+          score > alpha &&
+          score < beta &&
+          !isNullWindow) {
         score = -search(tree,
                         newDepth,
                         -beta,
