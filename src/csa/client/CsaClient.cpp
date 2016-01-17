@@ -31,6 +31,7 @@ CONSTEXPR_CONST int DefaultLimit  = 28;
 CONSTEXPR_CONST int DefaultRepeat = 1000;
 CONSTEXPR_CONST int DefaultPonder = 1;
 CONSTEXPR_CONST int DefaultHashMem = 64;
+CONSTEXPR_CONST int DefaultMarginMSec = 1000;
 
 CONSTEXPR_CONST int DefaultKeepAlive = 0;
 CONSTEXPR_CONST int DefaultKeepIdle  = 120;
@@ -123,12 +124,13 @@ void CsaClient::readConfigFromIniFile() {
   config_.pass      = getValue(ini, "Server", "Pass");
   config_.floodgate = StringUtil::toInt(getValue(ini, "Server", "Floodgate"), DefaultFloodgate);
 
-  config_.depth   = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
-  config_.limit   = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
-  config_.repeat  = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
-  config_.worker  = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
-  config_.ponder  = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
-  config_.hashMem = StringUtil::toInt(getValue(ini, "Search", "HashMem"), DefaultHashMem);
+  config_.depth      = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
+  config_.limit      = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
+  config_.repeat     = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
+  config_.worker     = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
+  config_.ponder     = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
+  config_.hashMem    = StringUtil::toInt(getValue(ini, "Search", "HashMem"), DefaultHashMem);
+  config_.marginMSec = StringUtil::toInt(getValue(ini, "Search", "MarginMSec"), DefaultMarginMSec);
 
   config_.keepalive = StringUtil::toInt(getValue(ini, "KeepAlive", "KeepAlive"), DefaultKeepAlive);
   config_.keepidle  = StringUtil::toInt(getValue(ini, "KeepIdle", "KeepIdle"), DefaultKeepIdle);
@@ -145,12 +147,13 @@ void CsaClient::readConfigFromIniFile() {
   OUT(info) << "    Pass     : " << config_.pass;
   OUT(info) << "    Floodgate: " << config_.floodgate;
   OUT(info) << "  Search";
-  OUT(info) << "    Depth    : " << config_.depth;
-  OUT(info) << "    Limit    : " << config_.limit;
-  OUT(info) << "    Repeat   : " << config_.repeat;
-  OUT(info) << "    Worker   : " << config_.worker;
-  OUT(info) << "    Ponder   : " << config_.ponder;
-  OUT(info) << "    HashMem  : " << config_.hashMem;
+  OUT(info) << "    Depth     : " << config_.depth;
+  OUT(info) << "    Limit     : " << config_.limit;
+  OUT(info) << "    Repeat    : " << config_.repeat;
+  OUT(info) << "    Worker    : " << config_.worker;
+  OUT(info) << "    Ponder    : " << config_.ponder;
+  OUT(info) << "    HashMem   : " << config_.hashMem;
+  OUT(info) << "    MarginMSec: " << config_.marginMSec;
   OUT(info) << "  KeepAlive";
   OUT(info) << "    Keepalive: " << config_.keepalive;
   OUT(info) << "    Keepidle : " << config_.keepidle ;
@@ -639,6 +642,7 @@ void CsaClient::search() {
                                  blackTime_ * 1000 :
                                  whiteTime_ * 1000;
   maximumMilliSeconds += gameSummary_.byoyomi;
+  maximumMilliSeconds -= config_.marginMSec;
   config.maximumMilliSeconds = std::min(8000u, maximumMilliSeconds);
   config.optimumMilliSeconds = std::min(8000u, maximumMilliSeconds / 5); // TODO;
 

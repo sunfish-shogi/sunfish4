@@ -318,6 +318,7 @@ void UsiClient::search() {
     bool isBlack = pos.getTurn() == Turn::Black;
     TimeType maximumMilliSeconds = isBlack ?  blackMilliSeconds_ : whiteMilliSeconds_;
     maximumMilliSeconds += byoyomiMilliSeconds_;
+    maximumMilliSeconds -= 500; // TODO: use setoption
     // TODO
 #if 0
     config.maximumMilliSeconds = maximumMilliSeconds;
