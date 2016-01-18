@@ -661,16 +661,21 @@ void CsaClient::search() {
   std::ostringstream oss;
   oss << result.move.toString(position_);
 
+  // floodgate mode
   if (config_.floodgate) {
+    // score
     auto score = position_.getTurn() == Turn::Black
                ? result.score.raw()
                : -result.score.raw();
     oss << ",\'* " << score;
+
+    // PV
     auto pos = position_;
+    Piece captured;
+    pos.doMove(result.move, captured);
     for (unsigned i = 1; i < result.pv.size(); i++) {
       Move move = result.pv.getMove(i);
       oss << ' ' << move.toString(pos);
-      Piece captured;
       if (!pos.doMove(move, captured)) {
         LOG(warning) << "an illegal move is contained in PV.";
         break;
