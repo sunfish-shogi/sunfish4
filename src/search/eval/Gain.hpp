@@ -43,7 +43,8 @@ public:
 
 private:
 
-  Score gains_[PieceNumber::Num][Square::N];
+  Score gains_[Square::N][32];
+  static_assert(PieceNumber::Num <= 32, "invalid size");
 
 };
 

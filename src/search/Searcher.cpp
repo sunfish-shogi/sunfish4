@@ -763,14 +763,15 @@ Score Searcher::search(Tree& tree,
     }
 
     // futility pruning
-    if (!currentMoveIsCheck &&
-        !isCheck(node.checkState) &&
-        newDepth <= FutilityPruningMaxDepth &&
-        alpha > -Score::mate()) {
+    bool doFutilityPruning = !currentMoveIsCheck &&
+                             !isCheck(node.checkState) &&
+                             newDepth <= FutilityPruningMaxDepth &&
+                             alpha > -Score::mate();
+    Score estScore;
+    if (doFutilityPruning) {
       Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
-      Score estScore = estimateScore(tree, move, *evaluator_)
-                     + gain_.get(move, targetPiece(tree, move));
-      if (estScore <= futAlpha) {
+      estScore = estimateScore(tree, move, *evaluator_);
+      if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
         isFirst = false;
         worker.info.futilityPruning++;
         continue;
@@ -840,9 +841,13 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
-    gain_.update(move,
-                 targetPiece(tree, move),
-                 newStandPat - standPat - estimateScore(tree, move, *evaluator_));
+    if (doFutilityPruning) {
+      Score exactScore = score <= alpha ? newStandPat
+                       : std::max(score, newStandPat);
+      gain_.update(move,
+                   targetPiece(tree, move),
+                   exactScore - estScore);
+    }
 
     auto& childNode = tree.nodes[tree.ply+1];
 
