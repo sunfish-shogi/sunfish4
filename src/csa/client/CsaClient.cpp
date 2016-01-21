@@ -173,16 +173,13 @@ bool CsaClient::validateConfig() {
   return true;
 }
 
-bool CsaClient::playOnRepeat() {
+void CsaClient::playOnRepeat() {
   for (int cnt = 0; cnt < config_.repeat; cnt++) {
-    if (!play()) {
-      return false;
-    }
+    play();
   }
-  return true;
 }
 
-bool CsaClient::play() {
+void CsaClient::play() {
   // connect to the CSA server
   Socket::AutoDisconnector ad(socket_);
   socket_.setHost(config_.host);
@@ -194,23 +191,23 @@ bool CsaClient::play() {
   bool connected = socket_.connect();
   if (!connected) {
     LOG(error) << "connection failed";
-    return false;
+    return;
   }
 
   bool loginOk = login();
   if (!loginOk) {
     LOG(error) << "login failed";
-    return false;
+    return;
   }
 
   if (!onGameSummary()) {
     LOG(error) << "an error occured in onGameSummary";
-    return false;
+    return;
   }
 
   if (!agree()) {
     LOG(error) << "an error occured in agree";
-    return false;
+    return;
   }
 
   blackTime_ = gameSummary_.totalTime;
@@ -247,14 +244,14 @@ bool CsaClient::play() {
 
     if (!receive()) {
       LOG(error) << " failed to receive.";
-      return false;
+      return;
     }
 
     if (SpecialMove.match(lastReceivedString_)) {
       record_.specialMove = lastReceivedString_;
       if (!receive()) {
         LOG(error) << " failed to receive.";
-        return false;
+        return;
       }
     }
 
@@ -262,11 +259,11 @@ bool CsaClient::play() {
       if (onGameResult()) {
         break;
       }
-      return false;
+      return;
     }
 
     if (!onMove()) {
-      return false;
+      return;
     }
 
     writeRecord();
@@ -277,10 +274,7 @@ bool CsaClient::play() {
   bool logoutOk = logout();
   if (!logoutOk) {
     LOG(error) << "logout failed";
-    return false;
   }
-
-  return true;
 }
 
 bool CsaClient::login() {

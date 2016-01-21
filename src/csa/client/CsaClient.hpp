@@ -79,9 +79,9 @@ private:
 
   bool validateConfig();
 
-  bool playOnRepeat();
+  void playOnRepeat();
 
-  bool play();
+  void play();
 
   bool login();
 
