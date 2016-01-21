@@ -50,17 +50,15 @@ inline int nullDepth(int depth) {
 /**
  * values for reducing from the depth.
  */
-uint8_t ReductionDepth[20][32][2];
+uint8_t ReductionDepth[32][2][2];
 
 void initializeReductionDepth() {
-  for (int depth = 0; depth < 20; depth++) {
-    for (int hist = 0; hist < 32; hist++) {
-      float r = std::pow(depth, 0.8f) * std::pow(1.0f - hist/32.0f, 2.3f) * Searcher::Depth1Ply;
-      ReductionDepth[depth][hist][0] = r;
-      ReductionDepth[depth][hist][1] = r * 0.4;
-      ASSERT(ReductionDepth[depth][hist][0] <= depth * Searcher::Depth1Ply);
-      ASSERT(ReductionDepth[depth][hist][1] <= depth * Searcher::Depth1Ply);
-    }
+  for (int hist = 0; hist < 32; hist++) {
+    float r = std::pow(1.0f - hist/32.0f, 2.3f) * Searcher::Depth1Ply;
+    ReductionDepth[hist][0][0] = r * 1.4;
+    ReductionDepth[hist][0][1] = r * 2.0;
+    ReductionDepth[hist][1][0] = r * 2.8;
+    ReductionDepth[hist][1][1] = r * 3.8;
   }
 }
 
@@ -69,23 +67,35 @@ void initializeReductionDepth() {
  */
 int reductionDepth(int depth,
                    int hist,
+                   bool isNullWindow,
                    bool improving) {
   static_assert(History::Scale >> 8 == 32, "invalid range");
-  return ReductionDepth[std::min(depth / Searcher::Depth1Ply, 19)]
-                       [hist >> 8]
-                       [improving];
+  return ReductionDepth[hist >> 8]
+                       [!improving && depth < 9 * Searcher::Depth1Ply]
+                       [isNullWindow];
 }
 
 /** the maximum depth to perform futility pruning. */
 CONSTEXPR_CONST int FutilityPruningMaxDepth = 9 * Searcher::Depth1Ply;
+
+Score FutilityPruningMargin[9][32];
+
+void initializeFutilityPruningMargin() {
+  for (int depth = 0; depth < 9; depth++) {
+    for (int count = 0; count < 32; count++) {
+      Score margin = 480 * std::log(2.0f * depth) / std::log(2.9f) - 32 * count;
+      FutilityPruningMargin[depth][count] = std::max(margin, Score(200));
+    }
+  }
+}
 
 /**
  * Returns the margin for futility pruning.
  */
 Score futilityPruningMargin(int depth,
                             int count) {
-  Score margin = 400 / Searcher::Depth1Ply * depth - 8 * count;
-  return std::max(margin, Score(300));
+  return FutilityPruningMargin[depth / Searcher::Depth1Ply]
+                              [std::min(count / 4, 31)];
 }
 
 #if 0
@@ -106,6 +116,7 @@ namespace sunfish {
 
 void Searcher::initialize() {
   initializeReductionDepth();
+  initializeFutilityPruningMargin();
 }
 
 Searcher::Searcher() :
@@ -191,8 +202,9 @@ void Searcher::search(const Position& pos,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move)) {
-      reduced = reductionDepth(depth,
+      reduced = reductionDepth(newDepth,
                                moveCount,
+                               false,
                                true);
       newDepth = newDepth - reduced;
     }
@@ -378,8 +390,9 @@ bool Searcher::aspsearch(Tree& tree,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move)) {
-      reduced = reductionDepth(depth,
+      reduced = reductionDepth(newDepth,
                                moveCount,
+                               false,
                                true);
       newDepth = newDepth - reduced;
     }
@@ -614,7 +627,7 @@ Score Searcher::search(Tree& tree,
          ttScoreType == TTScoreType::Lower) &&
         !isCheck(node.checkState) &&
         !isCheck(tree.nodes[tree.ply-1].checkState) &&
-        depth <= FutilityPruningMaxDepth &&
+        depth < FutilityPruningMaxDepth &&
         ttScore >= beta + futilityPruningMargin(depth, 0)) {
       return beta;
     }
@@ -756,8 +769,9 @@ Score Searcher::search(Tree& tree,
         !isCheck(node.checkState) &&
         !isPriorMove(tree, move) &&
         !isTacticalMove(tree.position, move)) {
-      reduced = reductionDepth(depth,
+      reduced = reductionDepth(newDepth,
                                moveCount,
+                               isNullWindow,
                                improving);
       newDepth = newDepth - reduced;
     }
@@ -765,7 +779,7 @@ Score Searcher::search(Tree& tree,
     // futility pruning
     bool doFutilityPruning = !currentMoveIsCheck &&
                              !isCheck(node.checkState) &&
-                             newDepth <= FutilityPruningMaxDepth &&
+                             newDepth < FutilityPruningMaxDepth &&
                              alpha > -Score::mate();
     Score estScore;
     if (doFutilityPruning) {
@@ -877,20 +891,14 @@ Score Searcher::search(Tree& tree,
       !isCheck(node.checkState)) {
     // killer move
     addKiller(tree, bestMove);
-  }
 
-  if (!bestMove.isEmpty() &&
-      !isCheck(node.checkState) &&
-      !isTacticalMove(tree.position, bestMove)) {
     // history heuristics
     unsigned hval = std::max(depth * 2 / Depth1Ply, 1);
     for (auto& move : node.moves) {
-      if (!isTacticalMove(tree.position, bestMove)) {
-        history_.add(tree.position.getTurn(),
-                     move,
-                     hval,
-                     move == bestMove ? hval : 0);
-      }
+      history_.add(tree.position.getTurn(),
+                   move,
+                   hval,
+                   move == bestMove ? hval : 0);
     }
   }
 
