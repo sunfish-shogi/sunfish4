@@ -96,7 +96,8 @@ struct FeatureVector {
   using KingPieceType = Type[81][KingPiece::End];
   using KingGoldPieceType = Type[81][KingGold::End][KingPiece::End];
   using KingOpenType = Type[81][81][8];
-  using KingNumGoldType = Type[81][9];
+  using KingNumGoldHandType = Type[81][9][KingHand::End];
+  using KingNumGoldPieceType = Type[81][9][KingPiece::End];
 
   KingHandType kingHand;
   KingPieceType kingPiece;
@@ -111,15 +112,18 @@ struct FeatureVector {
   KingOpenType kingWBishopDiagR45;
   KingOpenType kingBLance;
   KingOpenType kingWLance;
-  KingNumGoldType kingNumGold;
+  KingNumGoldHandType kingNumGoldHand;
+  KingNumGoldPieceType kingNumGoldPiece;
 };
 
 template <class T>
 struct CumulatedVector {
   using Type = T;
   using KingHandType = Type[81][KingHand::End];
+  using KingNumGoldHandType = Type[81][9][KingHand::End];
 
   KingHandType kingHand;
+  KingNumGoldHandType kingNumGoldHand;
 };
 
 } // namespace sunfish

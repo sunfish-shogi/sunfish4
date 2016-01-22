@@ -22,10 +22,15 @@ inline
 void cumulate(FV& fv, CV& cv) {
   // generate khpc
 #define CUM_KKPC_HAND(pt, n) do { \
-  typename FV::Type cum = 0; \
+  typename FV::Type khCum = 0; \
+  typename FV::Type knghCum = 0; \
   for (int i = 0; i < n; i++) { \
-    cum += fv.kingHand[king.raw()][KingHand::pt + i]; \
-    cv.kingHand[king.raw()][KingHand::pt + i] = cum; \
+    khCum += fv.kingHand[king.raw()][KingHand::pt + i]; \
+    cv.kingHand[king.raw()][KingHand::pt + i] = khCum; \
+    for (int ng = 0; ng <= 8; ng++) { \
+      knghCum += fv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i]; \
+      cv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i] = knghCum; \
+    } \
   } \
 } while (false)
   SQUARE_EACH(king) {
@@ -52,10 +57,15 @@ inline
 void rcumulate(FV& fv, CV& cv) {
   // generate khpc
 #define RCUM_KKPC_HAND(pt, n) do { \
-  typename FV::Type cum = 0; \
+  typename FV::Type khCum = 0; \
+  typename FV::Type knghCum = 0; \
   for (int i = n - 1; i >= 0; i--) { \
-    cum += cv.kingHand[king.raw()][KingHand:: pt + i]; \
-    fv.kingHand[king.raw()][KingHand:: pt + i] = cum; \
+    khCum += cv.kingHand[king.raw()][KingHand:: pt + i]; \
+    fv.kingHand[king.raw()][KingHand:: pt + i] = khCum; \
+    for (int ng = 0; ng <= 8; ng++) { \
+      knghCum += cv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i]; \
+      fv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i] = knghCum; \
+    } \
   } \
 } while (false)
   SQUARE_EACH(king) {
@@ -112,11 +122,17 @@ void symmetrize(FV& fv, T&& func) {
       continue;
     }
 
-    // KingHand
     if (rking != king) {
       for (int x = 0; x < KingHand::End; x++) {
+        // King Hand
         func(fv.kingHand[king.raw()][x],
              fv.kingHand[rking.raw()][x]);
+
+        // King NumberOfGolds Hand
+        for (int ng = 0; ng <= 8; ng++) {
+          func(fv.kingNumGoldHand[king.raw()][ng][x],
+               fv.kingNumGoldHand[rking.raw()][ng][x]);
+        }
       }
     }
 
@@ -126,7 +142,7 @@ void symmetrize(FV& fv, T&& func) {
         continue;
       }
 
-      // KingGoldPiece
+      // King Gold Piece
       for (int y = 0; y < KingGold::End; y++) {
         int ry = symmetricalKingGoldIndex(y);
         if (rking == king && rx == x && ry <= y) {
@@ -141,9 +157,15 @@ void symmetrize(FV& fv, T&& func) {
         continue;
       }
 
-      // KingPiece
+      // King Piece
       func(fv.kingPiece[king.raw()][x],
            fv.kingPiece[rking.raw()][rx]);
+
+      // King NumberOfGolds Piece
+      for (int ng = 0; ng <= 8; ng++) {
+        func(fv.kingNumGoldPiece[king.raw()][ng][x],
+             fv.kingNumGoldPiece[rking.raw()][ng][rx]);
+      }
     }
 
     SQUARE_EACH(s) {
@@ -153,7 +175,7 @@ void symmetrize(FV& fv, T&& func) {
       }
 
       for (int i = 0; i < 8; i++) {
-        // KingOpen
+        // King Open
         func(fv.kingBRookVer[king.raw()][s.raw()][i],
              fv.kingBRookVer[rking.raw()][rs.raw()][i]);
         func(fv.kingWRookVer[king.raw()][s.raw()][i],
@@ -176,15 +198,6 @@ void symmetrize(FV& fv, T&& func) {
              fv.kingWLance[rking.raw()][rs.raw()][i]);
       }
     }
-
-    if (rking.raw() <= king.raw()) {
-      continue;
-    }
-
-    for (int i = 0; i <= 8; i++) {
-      func(fv.kingNumGold[king.raw()][i],
-           fv.kingNumGold[rking.raw()][i]);
-    }
   }
 }
 
@@ -199,54 +212,6 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   T sum = 0;
   auto bking = position.getBlackKingSquare().raw();
   auto wking = position.getWhiteKingSquare().psym().raw();
-
-#define CALC_BLACK_HAND(t, T) do { \
-  auto n = blackHand.get(PieceType::t()); \
-  if (n != 0) { \
-    if (type == FeatureOperationType::Evaluate) { \
-      sum += cv.kingHand[bking][KingHand::B ## T + n - 1]; \
-      sum -= cv.kingHand[wking][KingHand::W ## T + n - 1]; \
-    } else { \
-      cv.kingHand[bking][KingHand::B ## T + n - 1] += delta; \
-      cv.kingHand[wking][KingHand::W ## T + n - 1] -= delta; \
-    } \
-  } \
-} while (false)
-  {
-    auto& blackHand = position.getBlackHand();
-    CALC_BLACK_HAND(pawn  , Pawn  );
-    CALC_BLACK_HAND(lance , Lance );
-    CALC_BLACK_HAND(knight, Knight);
-    CALC_BLACK_HAND(silver, Silver);
-    CALC_BLACK_HAND(gold  , Gold  );
-    CALC_BLACK_HAND(bishop, Bishop);
-    CALC_BLACK_HAND(rook  , Rook  );
-  }
-#undef CALC_BLACK_HAND
-
-#define CALC_WHITE_HAND(t, T) do { \
-  auto n = whiteHand.get(PieceType::t()); \
-  if (n != 0) { \
-    if (type == FeatureOperationType::Evaluate) { \
-      sum += cv.kingHand[bking][KingHand::W ## T + n - 1]; \
-      sum -= cv.kingHand[wking][KingHand::B ## T + n - 1]; \
-    } else { \
-      cv.kingHand[bking][KingHand::W ## T + n - 1] += delta; \
-      cv.kingHand[wking][KingHand::B ## T + n - 1] -= delta; \
-    } \
-  } \
-} while (false)
-  {
-    auto& whiteHand = position.getWhiteHand();
-    CALC_WHITE_HAND(pawn  , Pawn  );
-    CALC_WHITE_HAND(lance , Lance );
-    CALC_WHITE_HAND(knight, Knight);
-    CALC_WHITE_HAND(silver, Silver);
-    CALC_WHITE_HAND(gold  , Gold  );
-    CALC_WHITE_HAND(bishop, Bishop);
-    CALC_WHITE_HAND(rook  , Rook  );
-  }
-#undef CALC_WHITE_HAND
 
   int bgolds[8];
   int bgoldn = 0;
@@ -289,15 +254,61 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
     }
   }
 
+#define CALC_BLACK_HAND(t, T) do { \
+  auto n = blackHand.get(PieceType::t()); \
+  if (n != 0) { \
+    if (type == FeatureOperationType::Evaluate) { \
+      sum += cv.kingHand[bking][KingHand::B ## T + n - 1]; \
+      sum -= cv.kingHand[wking][KingHand::W ## T + n - 1]; \
+      sum += cv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1]; \
+      sum -= cv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1]; \
+    } else { \
+      cv.kingHand[bking][KingHand::B ## T + n - 1] += delta; \
+      cv.kingHand[wking][KingHand::W ## T + n - 1] -= delta; \
+      cv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1] += delta; \
+      cv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1] -= delta; \
+    } \
+  } \
+} while (false)
   {
-    if (type == FeatureOperationType::Evaluate) {
-      sum += fv.kingNumGold[bking][bgoldn];
-      sum -= fv.kingNumGold[wking][wgoldn];
-    } else {
-      fv.kingNumGold[bking][bgoldn] += delta;
-      fv.kingNumGold[wking][wgoldn] -= delta;
-    }
+    auto& blackHand = position.getBlackHand();
+    CALC_BLACK_HAND(pawn  , Pawn  );
+    CALC_BLACK_HAND(lance , Lance );
+    CALC_BLACK_HAND(knight, Knight);
+    CALC_BLACK_HAND(silver, Silver);
+    CALC_BLACK_HAND(gold  , Gold  );
+    CALC_BLACK_HAND(bishop, Bishop);
+    CALC_BLACK_HAND(rook  , Rook  );
   }
+#undef CALC_BLACK_HAND
+
+#define CALC_WHITE_HAND(t, T) do { \
+  auto n = whiteHand.get(PieceType::t()); \
+  if (n != 0) { \
+    if (type == FeatureOperationType::Evaluate) { \
+      sum += cv.kingHand[bking][KingHand::W ## T + n - 1]; \
+      sum -= cv.kingHand[wking][KingHand::B ## T + n - 1]; \
+      sum += cv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1]; \
+      sum -= cv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1]; \
+    } else { \
+      cv.kingHand[bking][KingHand::W ## T + n - 1] += delta; \
+      cv.kingHand[wking][KingHand::B ## T + n - 1] -= delta; \
+      cv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1] += delta; \
+      cv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1] -= delta; \
+    } \
+  } \
+} while (false)
+  {
+    auto& whiteHand = position.getWhiteHand();
+    CALC_WHITE_HAND(pawn  , Pawn  );
+    CALC_WHITE_HAND(lance , Lance );
+    CALC_WHITE_HAND(knight, Knight);
+    CALC_WHITE_HAND(silver, Silver);
+    CALC_WHITE_HAND(gold  , Gold  );
+    CALC_WHITE_HAND(bishop, Bishop);
+    CALC_WHITE_HAND(rook  , Rook  );
+  }
+#undef CALC_WHITE_HAND
 
   {
     auto bb = nosseOr(position.getBOccupiedBitboard(),
@@ -313,9 +324,13 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       if (type == FeatureOperationType::Evaluate) {
         sum += fv.kingPiece[bking][bkpIndex];
         sum -= fv.kingPiece[wking][wkpIndex];
+        sum += fv.kingNumGoldPiece[bking][bgoldn][bkpIndex];
+        sum -= fv.kingNumGoldPiece[wking][wgoldn][wkpIndex];
       } else {
         fv.kingPiece[bking][bkpIndex] += delta;
         fv.kingPiece[wking][wkpIndex] -= delta;
+        fv.kingNumGoldPiece[bking][bgoldn][bkpIndex] += delta;
+        fv.kingNumGoldPiece[wking][wgoldn][wkpIndex] -= delta;
       }
 
       for (int i = 0; i < bgoldn; i++) {
@@ -563,7 +578,8 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingWBishopDiagR45),
     FV_SUMMARIZE(kingBLance),
     FV_SUMMARIZE(kingWLance),
-    FV_SUMMARIZE(kingNumGold),
+    FV_SUMMARIZE(kingNumGoldHand),
+    FV_SUMMARIZE(kingNumGoldPiece),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),
