@@ -51,10 +51,21 @@ Set parameters into CMake as follows.
 Usage
 -----
 
+### CSA Client
+
+This is a client program of CSA network protocol.
+See ["CSA network Protocol"](http://www.computer-shogi.org/protocol/).
+
+```
+make csa
+vi config/csa.ini
+./sunfish_csa
+```
+
 ### USI Engine
 
 USI(Universal Shogi Interface) is a protocol used for communication between Shogi engine and GUI application.
-See [About USI Protocol](http://www.geocities.jp/shogidokoro/usi.html).
+See ["About USI Protocol"](http://www.geocities.jp/shogidokoro/usi.html).
 
 Build `src/usi`.
 If you use `make`, execute with `usi` target as follows:
@@ -79,8 +90,11 @@ make test
 ```
 make expt
 ./sunfish_expt --help
+```
 
-# profiling
+### Profiling
+
+```
 make prof
 ```
 
@@ -95,6 +109,7 @@ make bm
 
 ```
 make ln
+vi config/batch_learn.ini
 ./sunfish_ln
 ```
 
