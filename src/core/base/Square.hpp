@@ -30,7 +30,10 @@ enum class Direction : int32_t {
   RightUp, RightDown,
   LeftUpKnight, LeftDownKnight,
   RightUpKnight, RightDownKnight,
+  End,
 };
+
+#define DIR_EACH(dir)    for (sunfish::Direction dir = Direction::Up; dir != sunfish::Direction::End; dir = static_cast<sunfish::Direction>(static_cast<int32_t>(dir) + 1))
 
 /**
  * Get reversed direction of specified that.
