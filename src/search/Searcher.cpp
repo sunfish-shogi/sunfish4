@@ -725,6 +725,8 @@ Score Searcher::search(Tree& tree,
         node.hashMove = ttMove;
       }
     }
+
+    arrive(node);
   }
 
   bool isFirst = true;
