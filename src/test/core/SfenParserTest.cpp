@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/position/Position.hpp"
 #include "core/record/SfenParser.hpp"
@@ -112,5 +110,3 @@ TEST(SfenParserTest, parseUsiCommand) {
     ASSERT_EQ(0, record.moveList.size());
   }
 }
-
-#endif // !defined(NDEBUG)

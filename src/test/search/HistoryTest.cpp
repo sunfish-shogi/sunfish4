@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "search/history/History.hpp"
 
@@ -49,5 +47,3 @@ TEST(HistoryTest, test) {
     ASSERT_EQ(0x1bc42, data.good);
   }
 }
-
-#endif // !defined(NDEBUG)

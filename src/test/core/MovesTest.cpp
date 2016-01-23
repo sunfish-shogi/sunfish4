@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/move/Moves.hpp"
 
@@ -136,5 +134,3 @@ TEST(MovesTest, testRemove) {
     ASSERT_EQ(move1, moves[4]);
   }
 }
-
-#endif // !defined(NDEBUG)

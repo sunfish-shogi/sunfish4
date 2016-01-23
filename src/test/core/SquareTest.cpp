@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/base/Square.hpp"
 #include <sstream>
@@ -324,5 +322,3 @@ TEST(SquareTest, testRotate) {
     ASSERT_EQ(0, Square(Square::s79()).rotateLeft45().raw());
   }
 }
-
-#endif // !defined(NDEBUG)

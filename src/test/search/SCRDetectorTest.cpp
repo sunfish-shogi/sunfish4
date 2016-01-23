@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/util/PositionUtil.hpp"
 #include "search/tree/Tree.hpp"
@@ -451,5 +449,3 @@ TEST(SCRDetectorTest, testWhite) {
     ASSERT_EQ(SCRState::Win, scr.detect(tree));
   }
 }
-
-#endif // !defined(NDEBUG)

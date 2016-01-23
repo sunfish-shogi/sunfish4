@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/position/Position.hpp"
 #include "core/util/PositionUtil.hpp"
@@ -2737,5 +2735,3 @@ TEST(PositionTest, testZobrist) {
   ASSERT_EQ(0x00LLU, pos.getTurnHash());
   ASSERT_EQ(0x00LLU, pos.getHash() & 0x01LLU);
 }
-
-#endif // !defined(NDEBUG)

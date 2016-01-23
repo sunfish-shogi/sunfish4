@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/move/Move.hpp"
 #include "core/record/CsaReader.hpp"
@@ -163,5 +161,3 @@ TEST(MoveTest, testToStringSFEN) {
     ASSERT_EQ("B*6e", Move(PieceType::bishop(), Square::s65()).toStringSFEN());
   }
 }
-
-#endif // !defined(NDEBUG)

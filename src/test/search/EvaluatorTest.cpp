@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "search/eval/Material.hpp"
@@ -611,5 +609,3 @@ TEST(EvaluatorTest, testSymmetric) {
   ASSERT_EQ(KingGold::DownGold     , symmetricalKingGoldIndex(KingGold::DownGold));
   ASSERT_EQ(KingGold::RightDownGold, symmetricalKingGoldIndex(KingGold::LeftDownGold));
 }
-
-#endif // !defined(NDEBUG)

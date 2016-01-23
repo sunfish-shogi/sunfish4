@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/record/CsaReader.hpp"
 
@@ -280,5 +278,3 @@ TEST(CsaReaderTest, testReadPosition) {
       "-\n", Position(mp).toString());
   }
 }
-
-#endif // !defined(NDEBUG)

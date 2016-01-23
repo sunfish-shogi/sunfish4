@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "search/eval/Material.hpp"
 
@@ -125,5 +123,3 @@ TEST(MaterialTest, testPromotionScore) {
   ASSERT_EQ(material::Horse     - material::Bishop, material::promotionScore(Piece::whiteHorse()));
   ASSERT_EQ(material::Dragon    - material::Rook  , material::promotionScore(Piece::whiteDragon()));
 }
-
-#endif // !defined(NDEBUG)

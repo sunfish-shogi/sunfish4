@@ -6,8 +6,6 @@
 #ifndef SUNFISH_TEST_TEST_HPP__
 #define SUNFISH_TEST_TEST_HPP__
 
-#if !defined(NDEBUG)
-
 #include "common/time/Timer.hpp"
 #include "logger/Logger.hpp"
 #include <typeinfo>
@@ -279,7 +277,5 @@ public:
 };
 
 } // namespace sunfish
-
-#endif // !defined(NDEBUG)
 
 #endif // SUNFISH_TEST_TEST_HPP__

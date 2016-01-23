@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "search/tt/TT.hpp"
 #include "core/position/Position.hpp"
@@ -300,5 +298,3 @@ TEST(TTTest, testUpdate) {
                  /* mate  */ false);
   ASSERT_TRUE(TTStatus::Update == tts);
 }
-
-#endif // !defined(NDEBUG)

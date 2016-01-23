@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/record/CsaWriter.hpp"
 #include "core/util/PositionUtil.hpp"
@@ -146,5 +144,3 @@ TEST(CsaWriterTest, testWrite) {
     ASSERT_EQ(expect, oss.str());
   }
 }
-
-#endif // !defined(NDEBUG)

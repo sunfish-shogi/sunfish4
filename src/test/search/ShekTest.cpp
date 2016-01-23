@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/util/PositionUtil.hpp"
 #include "search/shek/ShekTable.hpp"
@@ -341,5 +339,3 @@ TEST(ShekTest, testSlot) {
   ASSERT_EQ(ShekState::None    , table.check(pos1));
   ASSERT_EQ(ShekState::None    , table.check(pos2));
 }
-
-#endif // !defined(NDEBUG)

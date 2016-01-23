@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "core/util/PositionUtil.hpp"
@@ -820,5 +818,3 @@ TEST(MoveGeneratorTest, testMateWithPawnDrop) {
     ASSERT_EQ(24, nocaps.size());
   }
 }
-
-#endif // !defined(NDEBUG)

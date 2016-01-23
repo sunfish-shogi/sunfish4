@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "search/eval/Score.hpp"
 #include <sstream>
@@ -101,5 +99,3 @@ TEST(ScoreTest, testSetToMove) {
     ASSERT_EQ(-30725, moveToScore(move));
   }
 }
-
-#endif // !defined(NDEBUG)

@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/util/PositionUtil.hpp"
 #include "search/see/SEE.hpp"
@@ -194,5 +192,3 @@ TEST(ScoreTest, testSortMoves) {
     ASSERT_EQ(Move(Square::s65(), Square::s73(), true ), moves[3]);
   }
 }
-
-#endif // !defined(NDEBUG)

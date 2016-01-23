@@ -3,8 +3,6 @@
  * Kubo Ryosuke
  */
 
-#if !defined(NDEBUG)
-
 #include "test/Test.hpp"
 #include "core/base/Piece.hpp"
 #include <sstream>
@@ -243,5 +241,3 @@ TEST(PieceTest, testParseSFEN) {
   ASSERT_EQ(Piece::whiteDragon(), Piece::parseSFEN("+r"));
   ASSERT_EQ(Piece::empty(), Piece::parseSFEN("hoge"));
 }
-
-#endif // !defined(NDEBUG)
