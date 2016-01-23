@@ -460,4 +460,91 @@ const Bitboard& MoveTables::diagL45(const RotatedBitboard& occ, const Square& sq
   return DiagLeft45[square.raw()][pattern];
 }
 
+AttackableTables::TableType AttackableTables::BlackPawn;
+AttackableTables::TableType AttackableTables::WhitePawn;
+AttackableTables::TableType AttackableTables::BlackLance;
+AttackableTables::TableType AttackableTables::WhiteLance;
+AttackableTables::TableType AttackableTables::BlackKnight;
+AttackableTables::TableType AttackableTables::WhiteKnight;
+AttackableTables::TableType AttackableTables::BlackSilver;
+AttackableTables::TableType AttackableTables::WhiteSilver;
+AttackableTables::TableType AttackableTables::BlackBishop;
+AttackableTables::TableType AttackableTables::WhiteGold;
+AttackableTables::TableType AttackableTables::BlackGold;
+AttackableTables::TableType AttackableTables::WhiteBishop;
+AttackableTables::TableType AttackableTables::Horse;
+
+void AttackableTables::initialize() {
+  initialize(BlackPawn  , Piece::blackPawn  ());
+  initialize(WhitePawn  , Piece::whitePawn  ());
+  initialize(BlackLance , Piece::blackLance ());
+  initialize(WhiteLance , Piece::whiteLance ());
+  initialize(BlackKnight, Piece::blackKnight());
+  initialize(WhiteKnight, Piece::whiteKnight());
+  initialize(BlackSilver, Piece::blackSilver());
+  initialize(WhiteSilver, Piece::whiteSilver());
+  initialize(BlackGold  , Piece::blackGold  ());
+  initialize(WhiteGold  , Piece::whiteGold  ());
+  initialize(BlackBishop, Piece::blackBishop());
+  initialize(WhiteBishop, Piece::whiteBishop());
+  initialize(Horse      , Piece::blackHorse ());
+}
+
+void AttackableTables::initialize(TableType& table, Piece piece) {
+  auto setIfValid = [](Bitboard& bb, const Square& square) {
+    if (square.isValid()) {
+      bb.set(square);
+    }
+  };
+
+  SQUARE_EACH(target) {
+    auto t = target.raw();
+
+    table[t] = Bitboard::zero();
+
+    SQUARE_EACH(from) {
+      if (from == target) {
+        continue;
+      }
+
+      DIR_EACH(dir) {
+        if (!MoveTables::isMovableInOneStep(piece, dir) &&
+            !MoveTables::isMovableInLongStep(piece, dir)) {
+          continue;
+        }
+
+        for (Square to = from.safetyMove(dir); to.isValid(); to = to.safetyMove(dir)) {
+          if (to == target) {
+            break;
+          }
+
+          Direction attackDir = to.dir(target);
+          auto distance = to.distance(target);
+
+          if ((distance == 1 &&
+               MoveTables::isMovableInOneStep(piece, attackDir)) ||
+              MoveTables::isMovableInLongStep(piece, attackDir)) {
+            setIfValid(table[t], from);
+            break;
+          }
+
+          if (piece.isPromotable() &&
+              ((piece.isBlack() && (to.isPromotable<Turn::Black>() || from.isPromotable<Turn::Black>())) ||
+               (piece.isWhite() && (to.isPromotable<Turn::White>() || from.isPromotable<Turn::White>()))) &&
+              ((distance == 1 &&
+                MoveTables::isMovableInOneStep(piece.promote(), attackDir)) ||
+               MoveTables::isMovableInLongStep(piece.promote(), attackDir))) {
+            setIfValid(table[t], from);
+            break;
+          }
+
+          if (!MoveTables::isMovableInLongStep(piece, dir)) {
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 } // namespace sunfish

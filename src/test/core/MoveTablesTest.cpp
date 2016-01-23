@@ -1014,4 +1014,293 @@ TEST(MoveTablesTest, testDiagLeft) {
   }
 }
 
-#endif // !defined(NDEBUG)
+TEST(AttackableTablesTest, test) {
+  // black pawn
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000100\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackPawn(Square::s34()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "001010000\n"
+    "001110000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackPawn(Square::s62()).toString());
+
+  // white pawn
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000010000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whitePawn(Square::s56()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000111\n"
+    "000000101\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whitePawn(Square::s28()).toString());
+
+  // black lance
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000100\n"
+    "000000100\n"
+    "000000100\n"
+    "000000100\n",
+    AttackableTables::blackLance(Square::s34()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "001010000\n"
+    "001110000\n"
+    "001110000\n"
+    "001110000\n"
+    "001110000\n"
+    "001110000\n"
+    "001110000\n",
+    AttackableTables::blackLance(Square::s62()).toString());
+
+  // white lance
+  ASSERT_EQ(
+    "000010000\n"
+    "000010000\n"
+    "000010000\n"
+    "000010000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whiteLance(Square::s56()).toString());
+
+  ASSERT_EQ(
+    "000000111\n"
+    "000000111\n"
+    "000000111\n"
+    "000000111\n"
+    "000000111\n"
+    "000000111\n"
+    "000000101\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whiteLance(Square::s28()).toString());
+
+  // black knight
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000001010\n"
+    "000000000\n"
+    "000000000\n"
+    "000010101\n"
+    "000000000\n",
+    AttackableTables::blackKnight(Square::s34()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "001010000\n"
+    "010101000\n"
+    "011111000\n"
+    "010101000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackKnight(Square::s62()).toString());
+
+  // white knight
+  ASSERT_EQ(
+    "000000000\n"
+    "001010100\n"
+    "000000000\n"
+    "000000000\n"
+    "000101000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whiteKnight(Square::s56()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000001010\n"
+    "000001111\n"
+    "000001010\n"
+    "000000101\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::whiteKnight(Square::s28()).toString());
+
+  // black silver
+  ASSERT_EQ(
+    "000000000\n"
+    "000011111\n"
+    "000010101\n"
+    "000011011\n"
+    "000000000\n"
+    "000011111\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackSilver(Square::s34()).toString());
+
+  ASSERT_EQ(
+    "010101000\n"
+    "011011000\n"
+    "011111000\n"
+    "011111000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackSilver(Square::s62()).toString());
+
+  // white silver
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "001111100\n"
+    "000000000\n"
+    "001101100\n"
+    "001010100\n"
+    "001111100\n"
+    "000000000\n",
+    AttackableTables::whiteSilver(Square::s56()).toString());
+
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "000001111\n"
+    "000001111\n"
+    "000001101\n"
+    "000001010\n",
+    AttackableTables::whiteSilver(Square::s28()).toString());
+
+  // black gold
+  ASSERT_EQ(
+    "000000000\n"
+    "000000100\n"
+    "000001010\n"
+    "000011011\n"
+    "000011111\n"
+    "000011111\n"
+    "000000000\n"
+    "000000000\n"
+    "000000000\n",
+    AttackableTables::blackGold(Square::s34()).toString());
+
+  // white gold
+  ASSERT_EQ(
+    "000000000\n"
+    "000000000\n"
+    "000000000\n"
+    "001111100\n"
+    "001111100\n"
+    "001101100\n"
+    "000101000\n"
+    "000010000\n"
+    "000000000\n",
+    AttackableTables::whiteGold(Square::s56()).toString());
+
+  // black bishop
+  ASSERT_EQ(
+    "011111011\n"
+    "101111111\n"
+    "010111111\n"
+    "101011011\n"
+    "010111011\n"
+    "101110101\n"
+    "011101010\n"
+    "111010101\n"
+    "110101010\n",
+    AttackableTables::blackBishop(Square::s34()).toString());
+
+  ASSERT_EQ(
+    "110101101\n"
+    "011011010\n"
+    "111111101\n"
+    "111111110\n"
+    "111011111\n"
+    "110101111\n"
+    "101010111\n"
+    "010101011\n"
+    "101010101\n",
+    AttackableTables::blackBishop(Square::s62()).toString());
+
+  // white bishop
+  ASSERT_EQ(
+    "010101010\n"
+    "101010101\n"
+    "110101011\n"
+    "111010111\n"
+    "011101110\n"
+    "101101101\n"
+    "011111110\n"
+    "111111111\n"
+    "111101111\n",
+    AttackableTables::whiteBishop(Square::s56()).toString());
+
+  ASSERT_EQ(
+    "111010101\n"
+    "111101010\n"
+    "111110101\n"
+    "011111010\n"
+    "101111101\n"
+    "010111111\n"
+    "101011110\n"
+    "010101101\n"
+    "101011010\n",
+    AttackableTables::whiteBishop(Square::s28()).toString());
+
+  // horse
+  ASSERT_EQ(
+    "011111111\n"
+    "101111111\n"
+    "010110110\n"
+    "101111111\n"
+    "011111111\n"
+    "111110111\n"
+    "111101011\n"
+    "111010101\n"
+    "110101010\n",
+    AttackableTables::horse(Square::s43()).toString());
+}

@@ -17,6 +17,7 @@ public:
   static void initialize() {
     Bitboard::initialize();
     MoveTables::initialize();
+    AttackableTables::initialize();
   }
 
 private:

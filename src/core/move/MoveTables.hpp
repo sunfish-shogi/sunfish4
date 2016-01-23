@@ -24,6 +24,8 @@ private:
 
 public:
 
+  MoveTables() = delete;
+
   static void initialize();
 
   static bool isMovableInOneStep(const Piece& piece, Direction dir) {
@@ -64,8 +66,6 @@ public:
 
 private:
 
-  MoveTables();
-
   static void initializeDirectionTable();
   static void initializeBitboards();
 
@@ -84,6 +84,75 @@ private:
   static HorTableType Hor;
   static DiagTableType DiagRight45;
   static DiagTableType DiagLeft45;
+
+};
+
+class AttackableTables {
+public:
+
+  using TableType = std::array<Bitboard, NUMBER_OF_SQUARES>;
+
+  AttackableTables() = delete;
+
+  static void initialize();
+
+  static const Bitboard& blackPawn(const Square& square) {
+    return BlackPawn[square.raw()];
+  }
+  static const Bitboard& whitePawn(const Square& square) {
+    return WhitePawn[square.raw()];
+  }
+  static const Bitboard& blackLance(const Square& square) {
+    return BlackLance[square.raw()];
+  }
+  static const Bitboard& whiteLance(const Square& square) {
+    return WhiteLance[square.raw()];
+  }
+  static const Bitboard& blackKnight(const Square& square) {
+    return BlackKnight[square.raw()];
+  }
+  static const Bitboard& whiteKnight(const Square& square) {
+    return WhiteKnight[square.raw()];
+  }
+  static const Bitboard& blackSilver(const Square& square) {
+    return BlackSilver[square.raw()];
+  }
+  static const Bitboard& whiteSilver(const Square& square) {
+    return WhiteSilver[square.raw()];
+  }
+  static const Bitboard& blackGold(const Square& square) {
+    return BlackGold[square.raw()];
+  }
+  static const Bitboard& whiteGold(const Square& square) {
+    return WhiteGold[square.raw()];
+  }
+  static const Bitboard& blackBishop(const Square& square) {
+    return BlackBishop[square.raw()];
+  }
+  static const Bitboard& whiteBishop(const Square& square) {
+    return WhiteBishop[square.raw()];
+  }
+  static const Bitboard& horse(const Square& square) {
+    return Horse[square.raw()];
+  }
+
+private:
+
+  static void initialize(TableType& table, Piece piece);
+
+  static TableType BlackPawn;
+  static TableType WhitePawn;
+  static TableType BlackLance;
+  static TableType WhiteLance;
+  static TableType BlackKnight;
+  static TableType WhiteKnight;
+  static TableType BlackSilver;
+  static TableType WhiteSilver;
+  static TableType BlackGold;
+  static TableType WhiteGold;
+  static TableType BlackBishop;
+  static TableType WhiteBishop;
+  static TableType Horse;
 
 };
 
