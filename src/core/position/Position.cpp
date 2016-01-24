@@ -1399,6 +1399,9 @@ bool Position::isMate(const CheckState& checkState) {
   } else {
     bbWOccupied_ = Bitboard::mask(kingSquare).andNot(bbWOccupied_);
   }
+  bbRotated90_.unset(kingSquare.rotate90());
+  bbRotatedR45_.unset(kingSquare.rotateRight45());
+  bbRotatedL45_.unset(kingSquare.rotateLeft45());
 
   BB_EACH(to, tbb) {
     if (turn == Turn::Black) {
@@ -1419,6 +1422,9 @@ bool Position::isMate(const CheckState& checkState) {
   } else {
     bbWOccupied_ |= Bitboard::mask(kingSquare);
   }
+  bbRotated90_.set(kingSquare.rotate90());
+  bbRotatedR45_.set(kingSquare.rotateRight45());
+  bbRotatedL45_.set(kingSquare.rotateLeft45());
 
   return mate;
 }

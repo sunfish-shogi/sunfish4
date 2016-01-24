@@ -2421,6 +2421,23 @@ TEST(PositionTest, testIsMate) {
 
     ASSERT_EQ(true , pos.isMate());
   }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  *  * \n"
+      "P2 *  *  * +GI *  *  *  *  * \n"
+      "P3 *  *  * -GI+KA *  *  *  * \n"
+      "P4 *  * -FU-OU *  *  *  *  * \n"
+      "P5 *  *  * -FU *  *  *  *  * \n"
+      "P6 *  *  *  * +HI *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+00KA\n"
+      "P-00FU\n"
+      "-\n");
+    ASSERT_EQ(true, pos.isMate());
+  }
 }
 
 TEST(PositionTest, testIsMateWithPawnDrop) {

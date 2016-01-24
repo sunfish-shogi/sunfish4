@@ -21,11 +21,13 @@ public:
   static CONSTEXPR_CONST RawType MateThreat         = 0x04;
   static CONSTEXPR_CONST RawType HashCut            = 0x08;
   static CONSTEXPR_CONST RawType RecaptureExtension = 0x10;
+  static CONSTEXPR_CONST RawType MateDetection      = 0x20;
 
   static CONSTEXPR_CONST RawType Normal = NullMoveSearch
                                         | RecursiveIDSearch
                                         | HashCut
-                                        | RecaptureExtension;
+                                        | RecaptureExtension
+                                        | MateDetection;
 
 public:
 
@@ -55,6 +57,7 @@ public:
   NODESTAT_METHOD__(MateThreat);
   NODESTAT_METHOD__(HashCut);
   NODESTAT_METHOD__(RecaptureExtension);
+  NODESTAT_METHOD__(MateDetection);
 
 #undef NODESTAT_METHOD__
 

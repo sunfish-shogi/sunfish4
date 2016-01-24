@@ -5,6 +5,7 @@
 
 #include "search/Searcher.hpp"
 #include "search/see/SEE.hpp"
+#include "search/mate/Mate.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
@@ -658,6 +659,12 @@ Score Searcher::search(Tree& tree,
     }
   }
 
+  if (nodeStat.isMateDetection() &&
+      !isCheck(node.checkState) &&
+      Mate::mate1Ply(tree.position)) {
+    return Score::infinity() - tree.ply - 1;
+  }
+
   Score standPat = calculateStandPat(tree);
 
   // null move pruning
@@ -706,7 +713,8 @@ Score Searcher::search(Tree& tree,
       shouldRecursiveIDSearch(depth)) {
     int newDepth = recursiveIDSearchDepth(depth);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch()
-                                             .unsetHashCut();
+                                             .unsetHashCut()
+                                             .unsetMateDetection();
 
     search(tree,
            newDepth,

@@ -78,6 +78,8 @@ MoveTables::OneStepTableType MoveTables::WhiteSilver;
 MoveTables::OneStepTableType MoveTables::BlackGold;
 MoveTables::OneStepTableType MoveTables::WhiteGold;
 MoveTables::OneStepTableType MoveTables::King;
+MoveTables::OneStepTableType MoveTables::Cross;
+MoveTables::OneStepTableType MoveTables::X;
 MoveTables::VerTableType MoveTables::BlackLance;
 MoveTables::VerTableType MoveTables::WhiteLance;
 MoveTables::VerTableType MoveTables::Ver;
@@ -317,6 +319,20 @@ void MoveTables::initializeBitboards() {
     setIfValid(King[s], square.safetyLeftDown());
     setIfValid(King[s], square.safetyDown());
     setIfValid(King[s], square.safetyRightDown());
+
+    // cross
+    Cross[s] = Bitboard::zero();
+    setIfValid(Cross[s], square.safetyUp());
+    setIfValid(Cross[s], square.safetyLeft());
+    setIfValid(Cross[s], square.safetyRight());
+    setIfValid(Cross[s], square.safetyDown());
+
+    // x
+    X[s] = Bitboard::zero();
+    setIfValid(X[s], square.safetyLeftUp());
+    setIfValid(X[s], square.safetyRightUp());
+    setIfValid(X[s], square.safetyLeftDown());
+    setIfValid(X[s], square.safetyRightDown());
 
     // vertical
     for (uint32_t pattern = 0x00; pattern < 0x80; pattern++) {
