@@ -23,11 +23,13 @@ void cumulate(FV& fv, CV& cv) {
   // generate khpc
 #define CUM_KKPC_HAND(pt, n) do { \
   typename FV::Type khCum = 0; \
-  typename FV::Type knghCum = 0; \
   for (int i = 0; i < n; i++) { \
     khCum += fv.kingHand[king.raw()][KingHand::pt + i]; \
     cv.kingHand[king.raw()][KingHand::pt + i] = khCum; \
-    for (int ng = 0; ng <= 8; ng++) { \
+  } \
+  for (int ng = 0; ng <= 8; ng++) { \
+    typename FV::Type knghCum = 0; \
+    for (int i = 0; i < n; i++) { \
       knghCum += fv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i]; \
       cv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i] = knghCum; \
     } \
@@ -58,11 +60,13 @@ void rcumulate(FV& fv, CV& cv) {
   // generate khpc
 #define RCUM_KKPC_HAND(pt, n) do { \
   typename FV::Type khCum = 0; \
-  typename FV::Type knghCum = 0; \
   for (int i = n - 1; i >= 0; i--) { \
     khCum += cv.kingHand[king.raw()][KingHand:: pt + i]; \
     fv.kingHand[king.raw()][KingHand:: pt + i] = khCum; \
-    for (int ng = 0; ng <= 8; ng++) { \
+  } \
+  for (int ng = 0; ng <= 8; ng++) { \
+    typename FV::Type knghCum = 0; \
+    for (int i = n - 1; i >= 0; i--) { \
       knghCum += cv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i]; \
       fv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i] = knghCum; \
     } \
