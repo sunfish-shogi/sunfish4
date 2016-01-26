@@ -537,7 +537,7 @@ void BatchLearning::printParametersSummary() {
   }
 
   OUT(info) << "";
-  OUT(info) << StringUtil::chomp(tp.stringify());
+  OUT(info) << "Summary:\n" << StringUtil::chomp(tp.stringify());
 }
 
 } // namespace sunfish
