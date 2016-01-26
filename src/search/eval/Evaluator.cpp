@@ -9,6 +9,7 @@
 #include "logger/Logger.hpp"
 #include <fstream>
 #include <mutex>
+#include <memory>
 #include <cstring>
 
 namespace {
@@ -48,7 +49,7 @@ Evaluator::Evaluator(InitType type) {
 }
 
 void Evaluator::initializeZero() {
-  memset(reinterpret_cast<void*>(&fv_), 0, sizeof(fv_));
+  memset(reinterpret_cast<void*>(&ofv_), 0, sizeof(ofv_));
   onChanged();
 }
 
@@ -58,7 +59,10 @@ bool Evaluator::read(const char* path) {
     return false;
   }
 
-  file.read(reinterpret_cast<char*>(&fv_), sizeof(fv_));
+  auto fv = std::unique_ptr<FVType>(new FVType);
+  file.read(reinterpret_cast<char*>(fv.get()), sizeof(FVType));
+  optimize(*fv, ofv_);
+
   file.close();
 
   onChanged();
@@ -72,7 +76,10 @@ bool Evaluator::write(const char* path) const {
     return false;
   }
 
-  file.write(reinterpret_cast<const char*>(&fv_), sizeof(fv_));
+  auto fv = std::unique_ptr<FVType>(new FVType);
+  expand(*fv, ofv_);
+  file.write(reinterpret_cast<const char*>(fv.get()), sizeof(FVType));
+
   file.close();
 
   return true;
@@ -87,7 +94,6 @@ bool Evaluator::writeEvalBin() const {
 }
 
 void Evaluator::onChanged() {
-  cumulate(fv_, cv_);
   cache_.clear();
 }
 
@@ -156,7 +162,7 @@ Score Evaluator::calculateMaterialScoreDiff(Score score,
 
 int32_t Evaluator::calculatePositionalScore(const Position& position) {
   return operate<FeatureOperationType::Evaluate>
-                (fv_, cv_, position, 0);
+                (ofv_, position, 0);
 }
 
 Score Evaluator::calculateTotalScore(Score materialScore,

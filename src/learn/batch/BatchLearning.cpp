@@ -4,7 +4,6 @@
  */
 
 #include "learn/batch/BatchLearning.hpp"
-#include "search/eval/Evaluator.hpp"
 #include "search/eval/FeatureTemplates.hpp"
 #include "search/Searcher.hpp"
 #include "core/move/MoveGenerator.hpp"
@@ -72,6 +71,7 @@ namespace sunfish {
 
 BatchLearning::BatchLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
+    fv_(new Evaluator::FVType),
     gradient_(new Gradient) {
 }
 
@@ -371,7 +371,7 @@ bool BatchLearning::generateGradient() {
       return false;
     }
 
-    memset(reinterpret_cast<void*>(&th.gradient), 0, sizeof(th.gradient));
+    memset(reinterpret_cast<void*>(&th.og), 0, sizeof(th.og));
     th.loss = 0.0f;
   }
 
@@ -389,14 +389,14 @@ bool BatchLearning::generateGradient() {
   }
 
   loss_ = failLoss_;
-  memset(reinterpret_cast<void*>(gradient_.get()), 0, sizeof(Gradient));
+  auto og = std::unique_ptr<OptimizedGradient>(new OptimizedGradient);
+  memset(reinterpret_cast<void*>(og.get()), 0, sizeof(OptimizedGradient));
   for (auto& th : threads) {
     loss_ += th.loss;
-    add(gradient_->g, th.gradient.g);
-    add(gradient_->c, th.gradient.c);
+    add(*og, th.og);
   }
-  rcumulate(gradient_->g, gradient_->c);
-  symmetrize(gradient_->g, [](float& g1, float& g2) {
+  expand(*gradient_, *og);
+  symmetrize(*gradient_, [](float& g1, float& g2) {
     g1 = g2 = g1 + g2;
   });
 
@@ -482,19 +482,13 @@ void BatchLearning::generateGradient(GenGradThread& th,
     if (rootPos.getTurn() == Turn::White) {
       d = -d;
     }
-    operate<FeatureOperationType::Extract>(th.gradient.g,
-                                           th.gradient.c,
-                                           pos0,
-                                           d);
-    operate<FeatureOperationType::Extract>(th.gradient.g,
-                                           th.gradient.c,
-                                           pos,
-                                           -d);
+    operate<FeatureOperationType::Extract>(th.og, pos0, d);
+    operate<FeatureOperationType::Extract>(th.og, pos, -d);
   }
 }
 
 void BatchLearning::updateParameters() {
-  each(evaluator_->fv(), gradient_->g, [this](int16_t& e, float& g) {
+  each(*fv_, *gradient_, [this](int16_t& e, float& g) {
     float n = norm(e, config_.norm);
     int16_t step = random_.bit() + random_.bit();
     if      (g + n > 0.0f && e <= Int16Max - step) { e += step; }
@@ -502,15 +496,16 @@ void BatchLearning::updateParameters() {
     else if (g + n != 0.0f) { LOG(warning) << "A parameter is out of bounce."; }
   });
 
-  symmetrize(evaluator_->fv(), [](int16_t& e1, int16_t& e2) {
+  symmetrize(*fv_, [](int16_t& e1, int16_t& e2) {
     e1 = e2;
   });
 
+  optimize(*fv_, evaluator_->ofv());
   evaluator_->onChanged();
 }
 
 void BatchLearning::printParametersSummary() {
-  auto summary = summarize(evaluator_->fv());
+  auto summary = summarize(*fv_);
   TablePrinter tp;
 
   tp.row() << "name"

@@ -26,7 +26,7 @@ class Evaluator {
 public:
 
   using FVType = FeatureVector<int16_t>;
-  using CVType = CumulatedVector<int16_t>;
+  using OFVType = OptimizedFeatureVector<int16_t>;
 
   enum class InitType {
     EvalBin,
@@ -63,12 +63,8 @@ public:
                       const Position& position,
                       Move move);
 
-  FVType& fv() {
-    return fv_;
-  }
-
-  CVType& cv() {
-    return cv_;
+  OFVType& ofv() {
+    return ofv_;
   }
 
 private:
@@ -79,8 +75,7 @@ private:
 
   EvalCache cache_;
 
-  FVType fv_;
-  CVType cv_;
+  OFVType ofv_;
 
 };
 

@@ -9,6 +9,7 @@
 #include "common/time/Timer.hpp"
 #include "common/math/Random.hpp"
 #include "core/move/Move.hpp"
+#include "search/eval/Evaluator.hpp"
 #include "learn/batch/Gradient.hpp"
 #include <thread>
 #include <fstream>
@@ -20,9 +21,7 @@
 namespace sunfish {
 
 class Position;
-class Evaluator;
 class Searcher;
-struct Gradient;
 
 class BatchLearning {
 public:
@@ -49,7 +48,7 @@ private:
   struct GenGradThread {
     std::thread thread;
     std::ifstream is;
-    Gradient gradient;
+    OptimizedGradient og;
     float loss;
   };
 
@@ -101,6 +100,7 @@ private:
   int numberOfData_;
 
   std::shared_ptr<Evaluator> evaluator_;
+  std::unique_ptr<Evaluator::FVType> fv_;
   std::unique_ptr<Gradient> gradient_;
 
 };

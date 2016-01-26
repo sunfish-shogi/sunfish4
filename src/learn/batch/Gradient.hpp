@@ -10,10 +10,8 @@
 
 namespace sunfish {
 
-struct Gradient {
-  FeatureVector<float> g;
-  CumulatedVector<float> c;
-};
+using Gradient = FeatureVector<float>;
+using OptimizedGradient = OptimizedFeatureVector<float>;
 
 } // namespace sunfish
 

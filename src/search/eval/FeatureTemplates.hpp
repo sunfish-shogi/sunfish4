@@ -12,83 +12,133 @@
 #include "search/eval/FeatureVector.hpp"
 #include <vector>
 #include <algorithm>
+#include <cstring>
+
+#define FV_PART_COPY(out, in, part) memcpy( \
+    reinterpret_cast<typename FV::Type*>(out.part), \
+    reinterpret_cast<const typename FV::Type*>(in.part), \
+    sizeof(fv.part))
 
 namespace {
 
 using namespace sunfish;
 
-template <class FV, class CV>
+template <class FV, class OFV>
 inline
-void cumulate(FV& fv, CV& cv) {
-  // generate khpc
-#define CUM_KKPC_HAND(pt, n) do { \
-  typename FV::Type khCum = 0; \
-  for (int i = 0; i < n; i++) { \
-    khCum += fv.kingHand[king.raw()][KingHand::pt + i]; \
-    cv.kingHand[king.raw()][KingHand::pt + i] = khCum; \
-  } \
-  for (int ng = 0; ng <= 8; ng++) { \
-    typename FV::Type knghCum = 0; \
-    for (int i = 0; i < n; i++) { \
-      knghCum += fv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i]; \
-      cv.kingNumGoldHand[king.raw()][ng][KingHand::pt + i] = knghCum; \
-    } \
-  } \
-} while (false)
+void optimize(FV& fv, OFV& ofv) {
+  FV_PART_COPY(ofv, fv, kingGoldPiece);
+  FV_PART_COPY(ofv, fv, kingBRookVer);
+  FV_PART_COPY(ofv, fv, kingWRookVer);
+  FV_PART_COPY(ofv, fv, kingBRookHor);
+  FV_PART_COPY(ofv, fv, kingWRookHor);
+  FV_PART_COPY(ofv, fv, kingBBishopDiagL45);
+  FV_PART_COPY(ofv, fv, kingWBishopDiagL45);
+  FV_PART_COPY(ofv, fv, kingBBishopDiagR45);
+  FV_PART_COPY(ofv, fv, kingWBishopDiagR45);
+  FV_PART_COPY(ofv, fv, kingBLance);
+  FV_PART_COPY(ofv, fv, kingWLance);
+
+  // kingHand, kingNumGoldHand
+  //   => kingNumGoldHand
+  auto optimKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
+    typename FV::Type khCum = 0;
+    typename FV::Type knghCum[9] = { 0 };
+    for (int i = 0; i < n; i++) {
+      khCum += fv.kingHand[king.raw()][kh + i];
+      for (int ng = 0; ng <= 8; ng++) {
+        knghCum[ng] += fv.kingNumGoldHand[king.raw()][ng][kh + i];
+        ofv.kingNumGoldHand[king.raw()][ng][kh + i] = khCum + knghCum[ng];
+      }
+    }
+  };
   SQUARE_EACH(king) {
-    CUM_KKPC_HAND(BPawn  , 18);
-    CUM_KKPC_HAND(WPawn  , 18);
-    CUM_KKPC_HAND(BLance ,  4);
-    CUM_KKPC_HAND(WLance ,  4);
-    CUM_KKPC_HAND(BKnight,  4);
-    CUM_KKPC_HAND(WKnight,  4);
-    CUM_KKPC_HAND(BSilver,  4);
-    CUM_KKPC_HAND(WSilver,  4);
-    CUM_KKPC_HAND(BGold  ,  4);
-    CUM_KKPC_HAND(WGold  ,  4);
-    CUM_KKPC_HAND(BBishop,  2);
-    CUM_KKPC_HAND(WBishop,  2);
-    CUM_KKPC_HAND(BRook  ,  2);
-    CUM_KKPC_HAND(WRook  ,  2);
+    optimKingNumGoldHand(king, KingHand::BPawn  , 18);
+    optimKingNumGoldHand(king, KingHand::WPawn  , 18);
+    optimKingNumGoldHand(king, KingHand::BLance ,  4);
+    optimKingNumGoldHand(king, KingHand::WLance ,  4);
+    optimKingNumGoldHand(king, KingHand::BKnight,  4);
+    optimKingNumGoldHand(king, KingHand::WKnight,  4);
+    optimKingNumGoldHand(king, KingHand::BSilver,  4);
+    optimKingNumGoldHand(king, KingHand::WSilver,  4);
+    optimKingNumGoldHand(king, KingHand::BGold  ,  4);
+    optimKingNumGoldHand(king, KingHand::WGold  ,  4);
+    optimKingNumGoldHand(king, KingHand::BBishop,  2);
+    optimKingNumGoldHand(king, KingHand::WBishop,  2);
+    optimKingNumGoldHand(king, KingHand::BRook  ,  2);
+    optimKingNumGoldHand(king, KingHand::WRook  ,  2);
   }
-#undef CUM_KKPC_HAND
+
+  // kingPiece, kingNumGoldPiece
+  //   => kingNumGoldPiece
+  SQUARE_EACH(king) {
+    for (int i = 0; i < KingPiece::End; i++) {
+      for (int ng = 0; ng <= 8; ng++) {
+        ofv.kingNumGoldPiece[king.raw()][ng][i]
+          = fv.kingNumGoldPiece[king.raw()][ng][i]
+          + fv.kingPiece[king.raw()][i];
+      }
+    }
+  }
 }
 
-template <class FV, class CV>
+template <class FV, class OFV>
 inline
-void rcumulate(FV& fv, CV& cv) {
-  // generate khpc
-#define RCUM_KKPC_HAND(pt, n) do { \
-  typename FV::Type khCum = 0; \
-  for (int i = n - 1; i >= 0; i--) { \
-    khCum += cv.kingHand[king.raw()][KingHand:: pt + i]; \
-    fv.kingHand[king.raw()][KingHand:: pt + i] = khCum; \
-  } \
-  for (int ng = 0; ng <= 8; ng++) { \
-    typename FV::Type knghCum = 0; \
-    for (int i = n - 1; i >= 0; i--) { \
-      knghCum += cv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i]; \
-      fv.kingNumGoldHand[king.raw()][ng][KingHand:: pt + i] = knghCum; \
-    } \
-  } \
-} while (false)
+void expand(FV& fv, OFV& ofv) {
+  FV_PART_COPY(fv, ofv, kingGoldPiece);
+  FV_PART_COPY(fv, ofv, kingBRookVer);
+  FV_PART_COPY(fv, ofv, kingWRookVer);
+  FV_PART_COPY(fv, ofv, kingBRookHor);
+  FV_PART_COPY(fv, ofv, kingWRookHor);
+  FV_PART_COPY(fv, ofv, kingBBishopDiagL45);
+  FV_PART_COPY(fv, ofv, kingWBishopDiagL45);
+  FV_PART_COPY(fv, ofv, kingBBishopDiagR45);
+  FV_PART_COPY(fv, ofv, kingWBishopDiagR45);
+  FV_PART_COPY(fv, ofv, kingBLance);
+  FV_PART_COPY(fv, ofv, kingWLance);
+
+  // kingNumGoldHand
+  //   => kingHand, kingNumGoldHand
+  auto expandKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
+    typename FV::Type khCum = 0;
+    typename FV::Type knghCum[9] = { 0 };
+    for (int i = n - 1; i >= 0; i--) {
+      for (int ng = 0; ng <= 8; ng++) {
+        khCum += ofv.kingNumGoldHand[king.raw()][ng][kh + i];
+        knghCum[ng] += ofv.kingNumGoldHand[king.raw()][ng][kh + i];
+        fv.kingNumGoldHand[king.raw()][ng][kh + i] = knghCum[ng];
+      }
+      fv.kingHand[king.raw()][kh + i] = khCum;
+    }
+  };
   SQUARE_EACH(king) {
-    RCUM_KKPC_HAND(BPawn  , 18);
-    RCUM_KKPC_HAND(WPawn  , 18);
-    RCUM_KKPC_HAND(BLance ,  4);
-    RCUM_KKPC_HAND(WLance ,  4);
-    RCUM_KKPC_HAND(BKnight,  4);
-    RCUM_KKPC_HAND(WKnight,  4);
-    RCUM_KKPC_HAND(BSilver,  4);
-    RCUM_KKPC_HAND(WSilver,  4);
-    RCUM_KKPC_HAND(BGold  ,  4);
-    RCUM_KKPC_HAND(WGold  ,  4);
-    RCUM_KKPC_HAND(BBishop,  2);
-    RCUM_KKPC_HAND(WBishop,  2);
-    RCUM_KKPC_HAND(BRook  ,  2);
-    RCUM_KKPC_HAND(WRook  ,  2);
+    expandKingNumGoldHand(king, KingHand::BPawn  , 18);
+    expandKingNumGoldHand(king, KingHand::WPawn  , 18);
+    expandKingNumGoldHand(king, KingHand::BLance ,  4);
+    expandKingNumGoldHand(king, KingHand::WLance ,  4);
+    expandKingNumGoldHand(king, KingHand::BKnight,  4);
+    expandKingNumGoldHand(king, KingHand::WKnight,  4);
+    expandKingNumGoldHand(king, KingHand::BSilver,  4);
+    expandKingNumGoldHand(king, KingHand::WSilver,  4);
+    expandKingNumGoldHand(king, KingHand::BGold  ,  4);
+    expandKingNumGoldHand(king, KingHand::WGold  ,  4);
+    expandKingNumGoldHand(king, KingHand::BBishop,  2);
+    expandKingNumGoldHand(king, KingHand::WBishop,  2);
+    expandKingNumGoldHand(king, KingHand::BRook  ,  2);
+    expandKingNumGoldHand(king, KingHand::WRook  ,  2);
   }
-#undef RCUM_KKPC_HAND
+
+  // kingNumGoldPiece
+  //   => kingPiece, kingNumGoldPiece
+  SQUARE_EACH(king) {
+    for (int i = 0; i < KingPiece::End; i++) {
+      typename FV::Type kpCum = 0;
+      for (int ng = 0; ng <= 8; ng++) {
+        fv.kingNumGoldPiece[king.raw()][ng][i] = ofv.kingNumGoldPiece[king.raw()][ng][i];
+        kpCum += ofv.kingNumGoldPiece[king.raw()][ng][i];
+      }
+      fv.kingPiece[king.raw()][i] = kpCum;
+    }
+  }
 }
 
 template <class FV>
@@ -210,9 +260,9 @@ enum FeatureOperationType {
   Extract,
 };
 
-template <FeatureOperationType type, class FV, class CV, class T>
+template <FeatureOperationType type, class OFV, class T>
 inline
-T operate(FV& fv, CV& cv, const Position& position, T delta) {
+T operate(OFV& ofv, const Position& position, T delta) {
   T sum = 0;
   auto bking = position.getBlackKingSquare().raw();
   auto wking = position.getWhiteKingSquare().psym().raw();
@@ -262,15 +312,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   auto n = blackHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += cv.kingHand[bking][KingHand::B ## T + n - 1]; \
-      sum -= cv.kingHand[wking][KingHand::W ## T + n - 1]; \
-      sum += cv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1]; \
-      sum -= cv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1]; \
+      sum += ofv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1]; \
+      sum -= ofv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1]; \
     } else { \
-      cv.kingHand[bking][KingHand::B ## T + n - 1] += delta; \
-      cv.kingHand[wking][KingHand::W ## T + n - 1] -= delta; \
-      cv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1] += delta; \
-      cv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1] -= delta; \
+      ofv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1] += delta; \
+      ofv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1] -= delta; \
     } \
   } \
 } while (false)
@@ -290,15 +336,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
   auto n = whiteHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += cv.kingHand[bking][KingHand::W ## T + n - 1]; \
-      sum -= cv.kingHand[wking][KingHand::B ## T + n - 1]; \
-      sum += cv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1]; \
-      sum -= cv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1]; \
+      sum += ofv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1]; \
+      sum -= ofv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1]; \
     } else { \
-      cv.kingHand[bking][KingHand::W ## T + n - 1] += delta; \
-      cv.kingHand[wking][KingHand::B ## T + n - 1] -= delta; \
-      cv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1] += delta; \
-      cv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1] -= delta; \
+      ofv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1] += delta; \
+      ofv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1] -= delta; \
     } \
   } \
 } while (false)
@@ -326,30 +368,26 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int wkpIndex = kingPieceIndex(piece.enemy(), square.psym());
 
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingPiece[bking][bkpIndex];
-        sum -= fv.kingPiece[wking][wkpIndex];
-        sum += fv.kingNumGoldPiece[bking][bgoldn][bkpIndex];
-        sum -= fv.kingNumGoldPiece[wking][wgoldn][wkpIndex];
+        sum += ofv.kingNumGoldPiece[bking][bgoldn][bkpIndex];
+        sum -= ofv.kingNumGoldPiece[wking][wgoldn][wkpIndex];
       } else {
-        fv.kingPiece[bking][bkpIndex] += delta;
-        fv.kingPiece[wking][wkpIndex] -= delta;
-        fv.kingNumGoldPiece[bking][bgoldn][bkpIndex] += delta;
-        fv.kingNumGoldPiece[wking][wgoldn][wkpIndex] -= delta;
+        ofv.kingNumGoldPiece[bking][bgoldn][bkpIndex] += delta;
+        ofv.kingNumGoldPiece[wking][wgoldn][wkpIndex] -= delta;
       }
 
       for (int i = 0; i < bgoldn; i++) {
         if (type == FeatureOperationType::Evaluate) {
-          sum += fv.kingGoldPiece[bking][bgolds[i]][bkpIndex];
+          sum += ofv.kingGoldPiece[bking][bgolds[i]][bkpIndex];
         } else {
-          fv.kingGoldPiece[bking][bgolds[i]][bkpIndex] += delta;
+          ofv.kingGoldPiece[bking][bgolds[i]][bkpIndex] += delta;
         }
       }
 
       for (int i = 0; i < wgoldn; i++) {
         if (type == FeatureOperationType::Evaluate) {
-          sum -= fv.kingGoldPiece[wking][wgolds[i]][wkpIndex];
+          sum -= ofv.kingGoldPiece[wking][wgolds[i]][wkpIndex];
         } else {
-          fv.kingGoldPiece[wking][wgolds[i]][wkpIndex] -= delta;
+          ofv.kingGoldPiece[wking][wgolds[i]][wkpIndex] -= delta;
         }
       }
     }
@@ -369,21 +407,21 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBBishopDiagR45[bking][bIndex][count];
-        sum -= fv.kingWBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingBBishopDiagR45[bking][bIndex][count];
+        sum -= ofv.kingWBishopDiagR45[wking][wIndex][count];
       } else {
-        fv.kingBBishopDiagR45[bking][bIndex][count] += delta;
-        fv.kingWBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingBBishopDiagR45[bking][bIndex][count] += delta;
+        ofv.kingWBishopDiagR45[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBBishopDiagL45[bking][bIndex][count];
-        sum -= fv.kingWBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingBBishopDiagL45[bking][bIndex][count];
+        sum -= ofv.kingWBishopDiagL45[wking][wIndex][count];
       } else {
-        fv.kingBBishopDiagL45[bking][bIndex][count] += delta;
-        fv.kingWBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingBBishopDiagL45[bking][bIndex][count] += delta;
+        ofv.kingWBishopDiagL45[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -399,21 +437,21 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWBishopDiagR45[bking][bIndex][count];
-        sum -= fv.kingBBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagR45[bking][bIndex][count];
+        sum -= ofv.kingBBishopDiagR45[wking][wIndex][count];
       } else {
-        fv.kingWBishopDiagR45[bking][bIndex][count] += delta;
-        fv.kingBBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagR45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagR45[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWBishopDiagL45[bking][bIndex][count];
-        sum -= fv.kingBBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagL45[bking][bIndex][count];
+        sum -= ofv.kingBBishopDiagL45[wking][wIndex][count];
       } else {
-        fv.kingWBishopDiagL45[bking][bIndex][count] += delta;
-        fv.kingBBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagL45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagL45[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -432,21 +470,21 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBRookVer[bking][bIndex][count];
-        sum -= fv.kingWRookVer[wking][wIndex][count];
+        sum += ofv.kingBRookVer[bking][bIndex][count];
+        sum -= ofv.kingWRookVer[wking][wIndex][count];
       } else {
-        fv.kingBRookVer[bking][bIndex][count] += delta;
-        fv.kingWRookVer[wking][wIndex][count] -= delta;
+        ofv.kingBRookVer[bking][bIndex][count] += delta;
+        ofv.kingWRookVer[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBRookHor[bking][bIndex][count];
-        sum -= fv.kingWRookHor[wking][wIndex][count];
+        sum += ofv.kingBRookHor[bking][bIndex][count];
+        sum -= ofv.kingWRookHor[wking][wIndex][count];
       } else {
-        fv.kingBRookHor[bking][bIndex][count] += delta;
-        fv.kingWRookHor[wking][wIndex][count] -= delta;
+        ofv.kingBRookHor[bking][bIndex][count] += delta;
+        ofv.kingWRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -461,21 +499,21 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWRookVer[bking][bIndex][count];
-        sum -= fv.kingBRookVer[wking][wIndex][count];
+        sum += ofv.kingWRookVer[bking][bIndex][count];
+        sum -= ofv.kingBRookVer[wking][wIndex][count];
       } else {
-        fv.kingWRookVer[bking][bIndex][count] += delta;
-        fv.kingBRookVer[wking][wIndex][count] -= delta;
+        ofv.kingWRookVer[bking][bIndex][count] += delta;
+        ofv.kingBRookVer[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWRookHor[bking][bIndex][count];
-        sum -= fv.kingBRookHor[wking][wIndex][count];
+        sum += ofv.kingWRookHor[bking][bIndex][count];
+        sum -= ofv.kingBRookHor[wking][wIndex][count];
       } else {
-        fv.kingWRookHor[bking][bIndex][count] += delta;
-        fv.kingBRookHor[wking][wIndex][count] -= delta;
+        ofv.kingWRookHor[bking][bIndex][count] += delta;
+        ofv.kingBRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -489,11 +527,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::blackLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingBLance[bking][bIndex][count];
-        sum -= fv.kingWLance[wking][wIndex][count];
+        sum += ofv.kingBLance[bking][bIndex][count];
+        sum -= ofv.kingWLance[wking][wIndex][count];
       } else {
-        fv.kingBLance[bking][bIndex][count] += delta;
-        fv.kingWLance[wking][wIndex][count] -= delta;
+        ofv.kingBLance[bking][bIndex][count] += delta;
+        ofv.kingWLance[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -507,11 +545,11 @@ T operate(FV& fv, CV& cv, const Position& position, T delta) {
       int count = MoveTables::whiteLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += fv.kingWLance[bking][bIndex][count];
-        sum -= fv.kingBLance[wking][wIndex][count];
+        sum += ofv.kingWLance[bking][bIndex][count];
+        sum -= ofv.kingBLance[wking][wIndex][count];
       } else {
-        fv.kingWLance[bking][bIndex][count] += delta;
-        fv.kingBLance[wking][wIndex][count] -= delta;
+        ofv.kingWLance[bking][bIndex][count] += delta;
+        ofv.kingBLance[wking][wIndex][count] -= delta;
       }
     }
   }

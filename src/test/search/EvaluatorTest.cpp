@@ -10,6 +10,7 @@
 #include "core/position/Position.hpp"
 #include "core/util/PositionUtil.hpp"
 #include "common/math/Random.hpp"
+#include <memory>
 
 using namespace sunfish;
 
@@ -21,12 +22,14 @@ Evaluator g_eval(Evaluator::InitType::Zero);
 
 TEST_BEFORE(EvaluatorTest) {
   Random r;
-  each(g_eval.fv(), [&r](int16_t& v) {
+  auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
+  each(*fv, [&r](int16_t& v) {
     v = r.int16() % 21 - 10;
   });
-  symmetrize(g_eval.fv(), [](int16_t& e1, int16_t& e2) {
+  symmetrize(*fv, [](int16_t& e1, int16_t& e2) {
     e1 = e2;
   });
+  optimize(*fv, g_eval.ofv());
   g_eval.onChanged();
 }
 
