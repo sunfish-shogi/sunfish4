@@ -230,7 +230,8 @@ public:
     auto ins = getInstance();
     std::ostringstream oss;
 
-    oss << R"(<?xml version=\"1.0\"?>)" "\n";
+    oss << R"(<?xml version="1.0"?>)" "\n";
+    oss << R"(<testsuites>)" << "\n";
     for (const auto& pair : ins->results_) {
       const auto& suiteName = pair.first;
       const auto& tsr = pair.second;
@@ -256,6 +257,7 @@ public:
 
       oss << R"(</testsuite>)" << "\n";
     }
+    oss << R"(</testsuites>)" << "\n";
 
     return oss.str();
   }
