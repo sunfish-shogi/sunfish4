@@ -55,11 +55,11 @@ uint8_t ReductionDepth[32][2][2];
 
 void initializeReductionDepth() {
   for (int hist = 0; hist < 32; hist++) {
-    float r = std::pow(1.0f - hist/32.0f, 2.3f) * Searcher::Depth1Ply;
-    ReductionDepth[hist][0][0] = r * 1.4;
-    ReductionDepth[hist][0][1] = r * 2.0;
-    ReductionDepth[hist][1][0] = r * 2.8;
-    ReductionDepth[hist][1][1] = r * 3.8;
+    float r = std::pow(1.0f - hist/32.0f, 2.0f) * Searcher::Depth1Ply;
+    ReductionDepth[hist][0][0] = r * 1.4f;
+    ReductionDepth[hist][0][1] = r * 2.0f;
+    ReductionDepth[hist][1][0] = r * 2.8f;
+    ReductionDepth[hist][1][1] = r * 3.8f;
   }
 }
 
@@ -67,13 +67,13 @@ void initializeReductionDepth() {
  * Returns a value for reducing from the depth.
  */
 int reductionDepth(int depth,
-                   int hist,
+                   History::CountType hist,
                    bool isNullWindow,
                    bool improving) {
   static_assert(History::Scale >> 8 == 32, "invalid range");
   return ReductionDepth[hist >> 8]
-                       [!improving && depth < 9 * Searcher::Depth1Ply]
-                       [isNullWindow];
+                       [(!improving && depth < 9 * Searcher::Depth1Ply) ? 1 : 0]
+                       [isNullWindow ? 1: 0];
 }
 
 /** the maximum depth to perform futility pruning. */
@@ -84,7 +84,7 @@ Score FutilityPruningMargin[9][32];
 void initializeFutilityPruningMargin() {
   for (int depth = 0; depth < 9; depth++) {
     for (int count = 0; count < 32; count++) {
-      Score margin = 480 * std::log(2.0f * depth) / std::log(2.9f) - 32 * count;
+      Score margin = 320 * std::log(2.0f * (depth + 1.0f)) / std::log(4.0f) - 32 * count;
       FutilityPruningMargin[depth][count] = std::max(margin, Score(200));
     }
   }
@@ -95,7 +95,7 @@ void initializeFutilityPruningMargin() {
  */
 Score futilityPruningMargin(int depth,
                             int count) {
-  return FutilityPruningMargin[depth / Searcher::Depth1Ply]
+  return FutilityPruningMargin[std::max(depth / Searcher::Depth1Ply, 0)]
                               [std::min(count / 4, 31)];
 }
 
@@ -203,8 +203,9 @@ void Searcher::search(const Position& pos,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move)) {
+      auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               moveCount,
+                               history_.ratio(turn, move),
                                false,
                                true);
       newDepth = newDepth - reduced;
@@ -391,8 +392,9 @@ bool Searcher::aspsearch(Tree& tree,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move)) {
+      auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               moveCount,
+                               history_.ratio(turn, move),
                                false,
                                true);
       newDepth = newDepth - reduced;
@@ -779,8 +781,9 @@ Score Searcher::search(Tree& tree,
         !isCheck(node.checkState) &&
         !isPriorMove(tree, move) &&
         !isTacticalMove(tree.position, move)) {
+      auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               moveCount,
+                               history_.ratio(turn, move),
                                isNullWindow,
                                improving);
       newDepth = newDepth - reduced;
@@ -795,11 +798,13 @@ Score Searcher::search(Tree& tree,
     if (doFutilityPruning) {
       Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
       estScore = estimateScore(tree, move, *evaluator_);
+#if 1
       if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
         isFirst = false;
         worker.info.futilityPruning++;
         continue;
       }
+#endif
     }
 
     // prune negative SEE moves
@@ -1082,6 +1087,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                                     int qply,
                                     Score alpha) {
   auto& node = tree.nodes[tree.ply];
+  auto& worker = *tree.worker;
 
   node.moves.clear();
   node.moveIterator = node.moves.begin();
@@ -1098,6 +1104,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                      + gain_.get(move, targetPiece(tree, move));
       if (estScore <= alpha) {
         ite = node.moves.remove(ite);
+        worker.info.futilityPruning++;
         continue;
       }
 

@@ -41,7 +41,7 @@ public:
   }
 
   void clear() {
-    memset((void*)hist_, 0, sizeof(RawType) * From * To);
+    memset((void*)hist_, 0, sizeof(hist_));
   }
 
   void reduce() {
