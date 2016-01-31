@@ -9,6 +9,7 @@
 #include "common/file_system/FileUtil.hpp"
 #include "common/string/StringUtil.hpp"
 #include "core/record/CsaReader.hpp"
+#include "search/tree/ErrorCounter.hpp"
 #include "logger/Logger.hpp"
 
 #include <fstream>
@@ -69,6 +70,10 @@ bool Solver::solve(const char* path) {
                                << " (" << percentage(result_.skipped, total) << "%)";
   OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
   OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected));
+
+#if ENABLE_ERR_COUNT
+  printErrorCount();
+#endif
 
   return true;
 }

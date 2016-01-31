@@ -61,6 +61,12 @@ expt:
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
+expt-errcnt:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_ERR_COUNT=ON $(PROJ_ROOT)/src/expt
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
+
 expt-prof:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE=ON $(PROJ_ROOT)/src/expt
