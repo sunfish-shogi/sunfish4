@@ -41,13 +41,12 @@ void optimize(FV& fv, OFV& ofv) {
   // kingHand, kingNumGoldHand
   //   => kingNumGoldHand
   auto optimKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
-    typename FV::Type khCum = 0;
-    typename FV::Type knghCum[9] = { 0 };
-    for (int i = 0; i < n; i++) {
-      khCum += fv.kingHand[king.raw()][kh + i];
-      for (int ng = 0; ng <= 8; ng++) {
-        knghCum[ng] += fv.kingNumGoldHand[king.raw()][ng][kh + i];
-        ofv.kingNumGoldHand[king.raw()][ng][kh + i] = khCum + knghCum[ng];
+    for (int ng = 0; ng <= 8; ng++) {
+      typename FV::Type cum = 0;
+      for (int i = 0; i < n; i++) {
+        cum += fv.kingNumGoldHand[king.raw()][ng][kh + i]
+             + fv.kingHand[king.raw()][kh + i];
+        ofv.kingNumGoldHand[king.raw()][ng][kh + i] = cum;
       }
     }
   };
@@ -99,15 +98,16 @@ void expand(FV& fv, OFV& ofv) {
   // kingNumGoldHand
   //   => kingHand, kingNumGoldHand
   auto expandKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
-    typename FV::Type khCum = 0;
-    typename FV::Type knghCum[9] = { 0 };
     for (int i = n - 1; i >= 0; i--) {
-      for (int ng = 0; ng <= 8; ng++) {
-        khCum += ofv.kingNumGoldHand[king.raw()][ng][kh + i];
-        knghCum[ng] += ofv.kingNumGoldHand[king.raw()][ng][kh + i];
-        fv.kingNumGoldHand[king.raw()][ng][kh + i] = knghCum[ng];
+      fv.kingHand[king.raw()][kh + i] = 0;
+    }
+    for (int ng = 0; ng <= 8; ng++) {
+      typename FV::Type cum = 0;
+      for (int i = n - 1; i >= 0; i--) {
+        cum += ofv.kingNumGoldHand[king.raw()][ng][kh + i];
+        fv.kingHand[king.raw()][kh + i] += cum;
+        fv.kingNumGoldHand[king.raw()][ng][kh + i] = cum;
       }
-      fv.kingHand[king.raw()][kh + i] = khCum;
     }
   };
   SQUARE_EACH(king) {
@@ -131,12 +131,11 @@ void expand(FV& fv, OFV& ofv) {
   //   => kingPiece, kingNumGoldPiece
   SQUARE_EACH(king) {
     for (int i = 0; i < KingPiece::End; i++) {
-      typename FV::Type kpCum = 0;
+      fv.kingPiece[king.raw()][i] = 0;
       for (int ng = 0; ng <= 8; ng++) {
+        fv.kingPiece[king.raw()][i] += ofv.kingNumGoldPiece[king.raw()][ng][i];
         fv.kingNumGoldPiece[king.raw()][ng][i] = ofv.kingNumGoldPiece[king.raw()][ng][i];
-        kpCum += ofv.kingNumGoldPiece[king.raw()][ng][i];
       }
-      fv.kingPiece[king.raw()][i] = kpCum;
     }
   }
 }
