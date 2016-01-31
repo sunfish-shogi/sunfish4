@@ -1,6 +1,8 @@
 Sunfish
 ========
 
+[![Circle CI](https://circleci.com/gh/sunfish-shogi/sunfish4.svg?style=svg)](https://circleci.com/gh/sunfish-shogi/sunfish4)
+
 Sunfish is computer Shogi(Jpanese Chess) program. This is 4th version of Sunfish.
 
 ##### Older Versions
