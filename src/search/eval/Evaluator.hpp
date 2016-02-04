@@ -41,11 +41,11 @@ public:
 
   bool read(const char* path);
 
-  bool write(const char* path) const;
+  static bool write(const char* path, const FVType& fv);
 
   bool readEvalBin();
 
-  bool writeEvalBin() const;
+  bool writeEvalBin(const FVType& fv) const;
 
   void onChanged();
 

@@ -70,15 +70,13 @@ bool Evaluator::read(const char* path) {
   return true;
 }
 
-bool Evaluator::write(const char* path) const {
+bool Evaluator::write(const char* path, const FVType& fv) {
   std::ofstream file(path, std::ios::out | std::ios::binary);
   if (!file) {
     return false;
   }
 
-  auto fv = std::unique_ptr<FVType>(new FVType);
-  expand(*fv, ofv_);
-  file.write(reinterpret_cast<const char*>(fv.get()), sizeof(FVType));
+  file.write(reinterpret_cast<const char*>(&fv), sizeof(FVType));
 
   file.close();
 
@@ -89,8 +87,8 @@ bool Evaluator::readEvalBin() {
   return read(EvalBin);
 }
 
-bool Evaluator::writeEvalBin() const {
-  return write(EvalBin);
+bool Evaluator::writeEvalBin(const FVType& fv) const {
+  return write(EvalBin, fv);
 }
 
 void Evaluator::onChanged() {
