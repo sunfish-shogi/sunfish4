@@ -19,6 +19,11 @@
     reinterpret_cast<const typename FV::Type*>(in.part), \
     sizeof(fv.part))
 
+#define FV_PART_ZERO(fv, part) memset( \
+    reinterpret_cast<typename FV::Type*>(fv.part), \
+    0, \
+    sizeof(fv.part))
+
 namespace {
 
 using namespace sunfish;
@@ -26,21 +31,9 @@ using namespace sunfish;
 template <class FV, class OFV>
 inline
 void optimize(FV& fv, OFV& ofv) {
-  FV_PART_COPY(ofv, fv, kingGoldPiece);
-  FV_PART_COPY(ofv, fv, kingBRookVer);
-  FV_PART_COPY(ofv, fv, kingWRookVer);
-  FV_PART_COPY(ofv, fv, kingBRookHor);
-  FV_PART_COPY(ofv, fv, kingWRookHor);
-  FV_PART_COPY(ofv, fv, kingBBishopDiagL45);
-  FV_PART_COPY(ofv, fv, kingWBishopDiagL45);
-  FV_PART_COPY(ofv, fv, kingBBishopDiagR45);
-  FV_PART_COPY(ofv, fv, kingWBishopDiagR45);
-  FV_PART_COPY(ofv, fv, kingBLance);
-  FV_PART_COPY(ofv, fv, kingWLance);
-
   // kingHand, kingNumGoldHand
   //   => kingNumGoldHand
-  auto optimKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
+  auto optimKingNumGoldHand = [&fv, &ofv](Square king, EvalHandIndex kh, int n) {
     for (int ng = 0; ng <= 8; ng++) {
       typename FV::Type cum = 0;
       for (int i = 0; i < n; i++) {
@@ -51,56 +44,70 @@ void optimize(FV& fv, OFV& ofv) {
     }
   };
   SQUARE_EACH(king) {
-    optimKingNumGoldHand(king, KingHand::BPawn  , 18);
-    optimKingNumGoldHand(king, KingHand::WPawn  , 18);
-    optimKingNumGoldHand(king, KingHand::BLance ,  4);
-    optimKingNumGoldHand(king, KingHand::WLance ,  4);
-    optimKingNumGoldHand(king, KingHand::BKnight,  4);
-    optimKingNumGoldHand(king, KingHand::WKnight,  4);
-    optimKingNumGoldHand(king, KingHand::BSilver,  4);
-    optimKingNumGoldHand(king, KingHand::WSilver,  4);
-    optimKingNumGoldHand(king, KingHand::BGold  ,  4);
-    optimKingNumGoldHand(king, KingHand::WGold  ,  4);
-    optimKingNumGoldHand(king, KingHand::BBishop,  2);
-    optimKingNumGoldHand(king, KingHand::WBishop,  2);
-    optimKingNumGoldHand(king, KingHand::BRook  ,  2);
-    optimKingNumGoldHand(king, KingHand::WRook  ,  2);
+    optimKingNumGoldHand(king, EvalHandIndex::BPawn  , 18);
+    optimKingNumGoldHand(king, EvalHandIndex::WPawn  , 18);
+    optimKingNumGoldHand(king, EvalHandIndex::BLance ,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::WLance ,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::BKnight,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::WKnight,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::BSilver,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::WSilver,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::BGold  ,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::WGold  ,  4);
+    optimKingNumGoldHand(king, EvalHandIndex::BBishop,  2);
+    optimKingNumGoldHand(king, EvalHandIndex::WBishop,  2);
+    optimKingNumGoldHand(king, EvalHandIndex::BRook  ,  2);
+    optimKingNumGoldHand(king, EvalHandIndex::WRook  ,  2);
   }
 
-  // kingPiece, kingNumGoldPiece
+  // kingPieceR, kingPiece, kingNumGoldPiece
   //   => kingNumGoldPiece
   SQUARE_EACH(king) {
-    for (int i = 0; i < KingPiece::End; i++) {
-      for (int ng = 0; ng <= 8; ng++) {
-        ofv.kingNumGoldPiece[king.raw()][ng][i]
-          = fv.kingNumGoldPiece[king.raw()][ng][i]
-          + fv.kingPiece[king.raw()][i];
+    SQUARE_EACH(square) {
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        for (int ng = 0; ng <= 8; ng++) {
+          ofv.kingNumGoldPiece[king.raw()][ng][square.raw()][i]
+            = fv.kingNumGoldPiece[king.raw()][ng][square.raw()][i]
+            + fv.kingPiece[king.raw()][square.raw()][i]
+            + fv.kingPieceR[RelativeSquare(king, square).raw()][i];
+        }
       }
     }
   }
+
+  // kingGoldPieceR, kingGoldPiece
+  //   => kingGoldPiece
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int g = 0; g < KingGold::End; g++) {
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          ofv.kingGoldPiece[king.raw()][g][square.raw()][i]
+            = fv.kingGoldPiece[king.raw()][g][square.raw()][i]
+            + fv.kingGoldPieceR[g][RelativeSquare(king, square).raw()][i];
+        }
+      }
+    }
+  }
+
+  FV_PART_COPY(ofv, fv, kingBRookVer);
+  FV_PART_COPY(ofv, fv, kingWRookVer);
+  FV_PART_COPY(ofv, fv, kingBRookHor);
+  FV_PART_COPY(ofv, fv, kingWRookHor);
+  FV_PART_COPY(ofv, fv, kingBBishopDiagL45);
+  FV_PART_COPY(ofv, fv, kingWBishopDiagL45);
+  FV_PART_COPY(ofv, fv, kingBBishopDiagR45);
+  FV_PART_COPY(ofv, fv, kingWBishopDiagR45);
+  FV_PART_COPY(ofv, fv, kingBLance);
+  FV_PART_COPY(ofv, fv, kingWLance);
 }
 
 template <class FV, class OFV>
 inline
 void expand(FV& fv, OFV& ofv) {
-  FV_PART_COPY(fv, ofv, kingGoldPiece);
-  FV_PART_COPY(fv, ofv, kingBRookVer);
-  FV_PART_COPY(fv, ofv, kingWRookVer);
-  FV_PART_COPY(fv, ofv, kingBRookHor);
-  FV_PART_COPY(fv, ofv, kingWRookHor);
-  FV_PART_COPY(fv, ofv, kingBBishopDiagL45);
-  FV_PART_COPY(fv, ofv, kingWBishopDiagL45);
-  FV_PART_COPY(fv, ofv, kingBBishopDiagR45);
-  FV_PART_COPY(fv, ofv, kingWBishopDiagR45);
-  FV_PART_COPY(fv, ofv, kingBLance);
-  FV_PART_COPY(fv, ofv, kingWLance);
-
   // kingNumGoldHand
   //   => kingHand, kingNumGoldHand
-  auto expandKingNumGoldHand = [&fv, &ofv](Square king, KingHand kh, int n) {
-    for (int i = n - 1; i >= 0; i--) {
-      fv.kingHand[king.raw()][kh + i] = 0;
-    }
+  FV_PART_ZERO(fv, kingHand);
+  auto expandKingNumGoldHand = [&fv, &ofv](Square king, EvalHandIndex kh, int n) {
     for (int ng = 0; ng <= 8; ng++) {
       typename FV::Type cum = 0;
       for (int i = n - 1; i >= 0; i--) {
@@ -111,33 +118,64 @@ void expand(FV& fv, OFV& ofv) {
     }
   };
   SQUARE_EACH(king) {
-    expandKingNumGoldHand(king, KingHand::BPawn  , 18);
-    expandKingNumGoldHand(king, KingHand::WPawn  , 18);
-    expandKingNumGoldHand(king, KingHand::BLance ,  4);
-    expandKingNumGoldHand(king, KingHand::WLance ,  4);
-    expandKingNumGoldHand(king, KingHand::BKnight,  4);
-    expandKingNumGoldHand(king, KingHand::WKnight,  4);
-    expandKingNumGoldHand(king, KingHand::BSilver,  4);
-    expandKingNumGoldHand(king, KingHand::WSilver,  4);
-    expandKingNumGoldHand(king, KingHand::BGold  ,  4);
-    expandKingNumGoldHand(king, KingHand::WGold  ,  4);
-    expandKingNumGoldHand(king, KingHand::BBishop,  2);
-    expandKingNumGoldHand(king, KingHand::WBishop,  2);
-    expandKingNumGoldHand(king, KingHand::BRook  ,  2);
-    expandKingNumGoldHand(king, KingHand::WRook  ,  2);
+    expandKingNumGoldHand(king, EvalHandIndex::BPawn  , 18);
+    expandKingNumGoldHand(king, EvalHandIndex::WPawn  , 18);
+    expandKingNumGoldHand(king, EvalHandIndex::BLance ,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::WLance ,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::BKnight,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::WKnight,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::BSilver,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::WSilver,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::BGold  ,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::WGold  ,  4);
+    expandKingNumGoldHand(king, EvalHandIndex::BBishop,  2);
+    expandKingNumGoldHand(king, EvalHandIndex::WBishop,  2);
+    expandKingNumGoldHand(king, EvalHandIndex::BRook  ,  2);
+    expandKingNumGoldHand(king, EvalHandIndex::WRook  ,  2);
   }
 
   // kingNumGoldPiece
-  //   => kingPiece, kingNumGoldPiece
+  //   => kingPieceR, kingPiece, kingNumGoldPiece
+  FV_PART_ZERO(fv, kingPieceR);
+  FV_PART_ZERO(fv, kingPiece);
   SQUARE_EACH(king) {
-    for (int i = 0; i < KingPiece::End; i++) {
-      fv.kingPiece[king.raw()][i] = 0;
-      for (int ng = 0; ng <= 8; ng++) {
-        fv.kingPiece[king.raw()][i] += ofv.kingNumGoldPiece[king.raw()][ng][i];
-        fv.kingNumGoldPiece[king.raw()][ng][i] = ofv.kingNumGoldPiece[king.raw()][ng][i];
+    SQUARE_EACH(square) {
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        for (int ng = 0; ng <= 8; ng++) {
+          auto val = ofv.kingNumGoldPiece[king.raw()][ng][square.raw()][i];
+          fv.kingPieceR[RelativeSquare(king, square).raw()][i] += val;
+          fv.kingPiece[king.raw()][square.raw()][i] += val;
+          fv.kingNumGoldPiece[king.raw()][ng][square.raw()][i] = val;
+        }
       }
     }
   }
+
+  // kingGoldPiece
+  //   => kingGoldPieceR, kingGoldPiece
+  FV_PART_ZERO(fv, kingGoldPieceR);
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int g = 0; g < KingGold::End; g++) {
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          auto val = ofv.kingGoldPiece[king.raw()][g][square.raw()][i];
+          fv.kingGoldPieceR[g][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingGoldPiece[king.raw()][g][square.raw()][i] = val;
+        }
+      }
+    }
+  }
+
+  FV_PART_COPY(fv, ofv, kingBRookVer);
+  FV_PART_COPY(fv, ofv, kingWRookVer);
+  FV_PART_COPY(fv, ofv, kingBRookHor);
+  FV_PART_COPY(fv, ofv, kingWRookHor);
+  FV_PART_COPY(fv, ofv, kingBBishopDiagL45);
+  FV_PART_COPY(fv, ofv, kingWBishopDiagL45);
+  FV_PART_COPY(fv, ofv, kingBBishopDiagR45);
+  FV_PART_COPY(fv, ofv, kingWBishopDiagR45);
+  FV_PART_COPY(fv, ofv, kingBLance);
+  FV_PART_COPY(fv, ofv, kingWLance);
 }
 
 template <class FV>
@@ -176,7 +214,7 @@ void symmetrize(FV& fv, T&& func) {
     }
 
     if (rking != king) {
-      for (int x = 0; x < KingHand::End; x++) {
+      for (int x = 0; x < EvalHandIndex::End; x++) {
         // King Hand
         func(fv.kingHand[king.raw()][x],
              fv.kingHand[rking.raw()][x]);
@@ -189,35 +227,45 @@ void symmetrize(FV& fv, T&& func) {
       }
     }
 
-    for (int x = 0; x < KingPiece::End; x++) {
-      int rx = symmetricalKingPieceIndex(x);
-      if (rking == king && rx < x) {
+    SQUARE_EACH(square) {
+      auto rsquare = square.hsym();
+      if (rking == king && rsquare.raw() < square.raw()) {
         continue;
       }
 
-      // King Gold Piece
-      for (int y = 0; y < KingGold::End; y++) {
-        int ry = symmetricalKingGoldIndex(y);
-        if (rking == king && rx == x && ry <= y) {
+      for (int x = 0; x < EvalPieceIndex::End; x++) {
+        for (int y = 0; y < KingGold::End; y++) {
+          int ry = symmetricalKingGoldIndex(y);
+          if (rking == king && rsquare == square && ry <= y) {
+            continue;
+          }
+
+          // King Gold Piece Relative
+          func(fv.kingGoldPieceR[y][RelativeSquare(king, square).raw()][x],
+               fv.kingGoldPieceR[ry][RelativeSquare(rking, rsquare).raw()][x]);
+
+          // King Gold Piece
+          func(fv.kingGoldPiece[king.raw()][y][square.raw()][x],
+               fv.kingGoldPiece[rking.raw()][ry][rsquare.raw()][x]);
+        }
+
+        if (rking == king && rsquare.raw() <= square.raw()) {
           continue;
         }
 
-        func(fv.kingGoldPiece[king.raw()][y][x],
-             fv.kingGoldPiece[rking.raw()][ry][rx]);
-      }
+        // King Piece Relative
+        func(fv.kingPieceR[RelativeSquare(king, square).raw()][x],
+             fv.kingPieceR[RelativeSquare(rking, rsquare).raw()][x]);
 
-      if (rking == king && rx <= x) {
-        continue;
-      }
+        // King Piece
+        func(fv.kingPiece[king.raw()][square.raw()][x],
+             fv.kingPiece[rking.raw()][rsquare.raw()][x]);
 
-      // King Piece
-      func(fv.kingPiece[king.raw()][x],
-           fv.kingPiece[rking.raw()][rx]);
-
-      // King NumberOfGolds Piece
-      for (int ng = 0; ng <= 8; ng++) {
-        func(fv.kingNumGoldPiece[king.raw()][ng][x],
-             fv.kingNumGoldPiece[rking.raw()][ng][rx]);
+        // King NumberOfGolds Piece
+        for (int ng = 0; ng <= 8; ng++) {
+          func(fv.kingNumGoldPiece[king.raw()][ng][square.raw()][x],
+               fv.kingNumGoldPiece[rking.raw()][ng][rsquare.raw()][x]);
+        }
       }
     }
 
@@ -276,7 +324,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
                           MoveTables::king(position.getBlackKingSquare()));
     BB_EACH(square, bgold) {
       Direction dir = position.getBlackKingSquare().dir(square);
-      bgolds[bgoldn++] = kingGoldIndex(dir);
+      bgolds[bgoldn++] = getEvalGoldIndex(dir);
     }
   }
 
@@ -285,7 +333,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
                             MoveTables::king(position.getBlackKingSquare()));
     BB_EACH(square, bsilver) {
       Direction dir = position.getBlackKingSquare().dir(square);
-      bgolds[bgoldn++] = kingSilverIndex(dir);
+      bgolds[bgoldn++] = getEvalSilverIndex(dir);
     }
   }
 
@@ -294,7 +342,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
                           MoveTables::king(position.getWhiteKingSquare()));
     BB_EACH(square, wgold) {
       Direction dir = square.dir(position.getWhiteKingSquare());
-      wgolds[wgoldn++] = kingGoldIndex(dir);
+      wgolds[wgoldn++] = getEvalGoldIndex(dir);
     }
   }
 
@@ -303,7 +351,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
                             MoveTables::king(position.getWhiteKingSquare()));
     BB_EACH(square, wsilver) {
       Direction dir = square.dir(position.getWhiteKingSquare());
-      wgolds[wgoldn++] = kingSilverIndex(dir);
+      wgolds[wgoldn++] = getEvalSilverIndex(dir);
     }
   }
 
@@ -311,11 +359,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto n = blackHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1]; \
-      sum -= ofv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1]; \
+      sum += ofv.kingNumGoldHand[bking][bgoldn][EvalHandIndex::B ## T + n - 1]; \
+      sum -= ofv.kingNumGoldHand[wking][wgoldn][EvalHandIndex::W ## T + n - 1]; \
     } else { \
-      ofv.kingNumGoldHand[bking][bgoldn][KingHand::B ## T + n - 1] += delta; \
-      ofv.kingNumGoldHand[wking][wgoldn][KingHand::W ## T + n - 1] -= delta; \
+      ofv.kingNumGoldHand[bking][bgoldn][EvalHandIndex::B ## T + n - 1] += delta; \
+      ofv.kingNumGoldHand[wking][wgoldn][EvalHandIndex::W ## T + n - 1] -= delta; \
     } \
   } \
 } while (false)
@@ -335,11 +383,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto n = whiteHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1]; \
-      sum -= ofv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1]; \
+      sum += ofv.kingNumGoldHand[bking][bgoldn][EvalHandIndex::W ## T + n - 1]; \
+      sum -= ofv.kingNumGoldHand[wking][wgoldn][EvalHandIndex::B ## T + n - 1]; \
     } else { \
-      ofv.kingNumGoldHand[bking][bgoldn][KingHand::W ## T + n - 1] += delta; \
-      ofv.kingNumGoldHand[wking][wgoldn][KingHand::B ## T + n - 1] -= delta; \
+      ofv.kingNumGoldHand[bking][bgoldn][EvalHandIndex::W ## T + n - 1] += delta; \
+      ofv.kingNumGoldHand[wking][wgoldn][EvalHandIndex::B ## T + n - 1] -= delta; \
     } \
   } \
 } while (false)
@@ -363,30 +411,32 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
     BB_EACH(square, bb) {
       auto piece = position.getPieceOnBoard(square);
-      int bkpIndex = kingPieceIndex(piece, square);
-      int wkpIndex = kingPieceIndex(piece.enemy(), square.psym());
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      int bIndex = getEvalPieceIndex(piece);
+      int wIndex = getEvalPieceIndex(piece.enemy());
 
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingNumGoldPiece[bking][bgoldn][bkpIndex];
-        sum -= ofv.kingNumGoldPiece[wking][wgoldn][wkpIndex];
+        sum += ofv.kingNumGoldPiece[bking][bgoldn][bs][bIndex];
+        sum -= ofv.kingNumGoldPiece[wking][wgoldn][ws][wIndex];
       } else {
-        ofv.kingNumGoldPiece[bking][bgoldn][bkpIndex] += delta;
-        ofv.kingNumGoldPiece[wking][wgoldn][wkpIndex] -= delta;
+        ofv.kingNumGoldPiece[bking][bgoldn][bs][bIndex] += delta;
+        ofv.kingNumGoldPiece[wking][wgoldn][ws][wIndex] -= delta;
       }
 
       for (int i = 0; i < bgoldn; i++) {
         if (type == FeatureOperationType::Evaluate) {
-          sum += ofv.kingGoldPiece[bking][bgolds[i]][bkpIndex];
+          sum += ofv.kingGoldPiece[bking][bgolds[i]][bs][bIndex];
         } else {
-          ofv.kingGoldPiece[bking][bgolds[i]][bkpIndex] += delta;
+          ofv.kingGoldPiece[bking][bgolds[i]][bs][bIndex] += delta;
         }
       }
 
       for (int i = 0; i < wgoldn; i++) {
         if (type == FeatureOperationType::Evaluate) {
-          sum -= ofv.kingGoldPiece[wking][wgolds[i]][wkpIndex];
+          sum -= ofv.kingGoldPiece[wking][wgolds[i]][ws][wIndex];
         } else {
-          ofv.kingGoldPiece[wking][wgolds[i]][wkpIndex] -= delta;
+          ofv.kingGoldPiece[wking][wgolds[i]][ws][wIndex] -= delta;
         }
       }
     }
@@ -607,7 +657,11 @@ SummaryListType summarize(const FV& fv) {
 #define FV_SUMMARIZE(part) (summarizePart<SummaryType>(#part, FV_PART_PTR(part), FV_PART_SIZE(part)))
   return SummaryListType {
     FV_SUMMARIZE(kingHand),
+    FV_SUMMARIZE(kingNumGoldHand),
+    FV_SUMMARIZE(kingPieceR),
     FV_SUMMARIZE(kingPiece),
+    FV_SUMMARIZE(kingNumGoldPiece),
+    FV_SUMMARIZE(kingGoldPieceR),
     FV_SUMMARIZE(kingGoldPiece),
     FV_SUMMARIZE(kingBRookVer),
     FV_SUMMARIZE(kingWRookVer),
@@ -619,8 +673,6 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingWBishopDiagR45),
     FV_SUMMARIZE(kingBLance),
     FV_SUMMARIZE(kingWLance),
-    FV_SUMMARIZE(kingNumGoldHand),
-    FV_SUMMARIZE(kingNumGoldPiece),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

@@ -322,3 +322,9 @@ TEST(SquareTest, testRotate) {
     ASSERT_EQ(0, Square(Square::s79()).rotateLeft45().raw());
   }
 }
+
+TEST(SquareTest, testRelativeSquare) {
+  ASSERT_EQ(RelativeSquare(144), RelativeSquare(Square::s62(), Square::s62()));
+  ASSERT_EQ(RelativeSquare(73), RelativeSquare(Square::s48(), Square::s85()));
+  ASSERT_EQ(RelativeSquare(285), RelativeSquare(Square::s93(), Square::s18()));
+}

@@ -582,27 +582,6 @@ TEST(EvaluatorTest, testDiff) {
 }
 
 TEST(EvaluatorTest, testSymmetric) {
-  ASSERT_EQ(KingPiece::BPawn   + 64, symmetricalKingPieceIndex(KingPiece::BPawn   +  0));
-  ASSERT_EQ(KingPiece::BPawn   + 50, symmetricalKingPieceIndex(KingPiece::BPawn   + 18));
-  ASSERT_EQ(KingPiece::BPawn   + 18, symmetricalKingPieceIndex(KingPiece::BPawn   + 50));
-  ASSERT_EQ(KingPiece::BPawn   +  7, symmetricalKingPieceIndex(KingPiece::BPawn   + 71));
-
-  ASSERT_EQ(KingPiece::BLance  + 64, symmetricalKingPieceIndex(KingPiece::BLance  +  0));
-  ASSERT_EQ(KingPiece::BLance  + 50, symmetricalKingPieceIndex(KingPiece::BLance  + 18));
-  ASSERT_EQ(KingPiece::BLance  + 18, symmetricalKingPieceIndex(KingPiece::BLance  + 50));
-  ASSERT_EQ(KingPiece::BLance  +  7, symmetricalKingPieceIndex(KingPiece::BLance  + 71));
-
-  ASSERT_EQ(KingPiece::BKnight + 56, symmetricalKingPieceIndex(KingPiece::BKnight +  0));
-  ASSERT_EQ(KingPiece::BKnight + 52, symmetricalKingPieceIndex(KingPiece::BKnight + 10));
-  ASSERT_EQ(KingPiece::BKnight + 10, symmetricalKingPieceIndex(KingPiece::BKnight + 52));
-  ASSERT_EQ(KingPiece::BKnight +  6, symmetricalKingPieceIndex(KingPiece::BKnight + 62));
-
-  ASSERT_EQ(KingPiece::BSilver + 72, symmetricalKingPieceIndex(KingPiece::BSilver +  0));
-  ASSERT_EQ(KingPiece::BSilver +  8, symmetricalKingPieceIndex(KingPiece::BSilver + 80));
-
-  ASSERT_EQ(KingPiece::BRook   + 72, symmetricalKingPieceIndex(KingPiece::BRook   +  0));
-  ASSERT_EQ(KingPiece::BRook   +  8, symmetricalKingPieceIndex(KingPiece::BRook   + 80));
-
   ASSERT_EQ(KingGold::LeftUpGold   , symmetricalKingGoldIndex(KingGold::RightUpGold));
   ASSERT_EQ(KingGold::UpGold       , symmetricalKingGoldIndex(KingGold::UpGold));
   ASSERT_EQ(KingGold::RightUpGold  , symmetricalKingGoldIndex(KingGold::LeftUpGold));

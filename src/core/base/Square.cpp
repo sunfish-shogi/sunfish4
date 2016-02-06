@@ -144,4 +144,10 @@ Square Square::parseSFEN(const char* str) {
   return Square::invalid();
 }
 
+std::string RelativeSquare::toString() const {
+  std::ostringstream oss;
+  oss << '[' << (getFile() - 8) << ',' << (getRank() - 8) << ']';
+  return oss.str();
+}
+
 } // namespace sunfish

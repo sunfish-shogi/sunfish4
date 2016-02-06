@@ -184,20 +184,8 @@ public:
   static CONSTEXPR_CONST SquareRawType Begin = 0;
   static CONSTEXPR_CONST SquareRawType End = Begin + N;
 
-  /**
-   * Default constructor
-   */
-  Square() {
-  }
-
-  /**
-   * Copy constructor
-   */
+  Square() = default;
   CONSTEXPR Square(const Square&) = default;
-
-  /**
-   * Move constructor
-   */
   CONSTEXPR Square(Square&&) = default;
 
   /**
@@ -727,7 +715,7 @@ public:
    */
   static Square parseSFEN(const char* str);
 
-  friend std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {
+  friend std::ostream& operator<<(std::ostream& os, const Square& square) {
     os << square.toString();
     return os;
   }
@@ -742,15 +730,70 @@ private:
 
 };
 
+class RelativeSquare {
+public:
+
+  static CONSTEXPR_CONST SquareRawType W = 17;
+  static CONSTEXPR_CONST SquareRawType H = 17;
+  static CONSTEXPR_CONST SquareRawType N = W * H;
+
+  RelativeSquare() = default;
+  CONSTEXPR RelativeSquare(const RelativeSquare&) = default;
+  CONSTEXPR RelativeSquare(RelativeSquare&&) = default;
+
+  explicit CONSTEXPR RelativeSquare(SquareRawType number) : number_(number) {
+  }
+
+  CONSTEXPR RelativeSquare(const Square& from, const Square& to) :
+      number_(sqaureToRelativeSquare(from, to)) {
+  }
+
+  CONSTEXPR SquareRawType raw() const {
+    return number_;
+  }
+
+  CONSTEXPR SquareRawType getFile() const {
+    return number_ / H;
+  }
+
+  CONSTEXPR SquareRawType getRank() const {
+    return number_ % H;
+  }
+
+  CONSTEXPR bool operator==(const RelativeSquare& rhs) const {
+    return number_ == rhs.number_;
+  }
+
+  CONSTEXPR bool operator!=(const RelativeSquare& rhs) const {
+    return number_ != rhs.number_;
+  }
+
+  std::string toString() const;
+
+  friend std::ostream& operator<<(std::ostream& os, const RelativeSquare& square) {
+    os << square.toString();
+    return os;
+  }
+
+private:
+
+  static CONSTEXPR SquareRawType sqaureToRelativeSquare(const Square& from, const Square& to) {
+    return (from.getFile() - to.getFile() + 8) * H + (to.getRank() - from.getRank() + 8);
+  }
+
+  SquareRawType number_;
+
+};
+
 } // namespace sunfish
 
 #define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::begin(); (sq) != sunfish::Square::end(); (sq) = (sq).next())
 
-inline bool operator==(uint8_t lhs, const sunfish::Square& rhs) {
+inline bool operator==(sunfish::SquareRawType lhs, const sunfish::Square& rhs) {
   return lhs == rhs.raw();
 }
 
-inline bool operator!=(uint8_t lhs, const sunfish::Square& rhs) {
+inline bool operator!=(sunfish::SquareRawType lhs, const sunfish::Square& rhs) {
   return lhs != rhs.raw();
 }
 

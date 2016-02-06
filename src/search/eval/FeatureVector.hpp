@@ -12,7 +12,7 @@
 
 namespace sunfish {
 
-namespace KingHand_ {
+namespace EvalHandIndex_ {
 enum Type {
   BPawn   = 0,
   WPawn   = BPawn   + 18,
@@ -30,33 +30,33 @@ enum Type {
   WRook   = BRook   + 2,
   End     = WRook + 2,
 };
-}; // namespace KingHand_
-using KingHand = KingHand_::Type;
+}; // namespace EvalHandIndex_
+using EvalHandIndex = EvalHandIndex_::Type;
 
-namespace KingPiece_ {
+namespace EvalPieceIndex_ {
 enum Type {
-  BPawn   = 0,
-  WPawn   = BPawn   + 81 - 9,
-  BLance  = WPawn   + 81 - 9,
-  WLance  = BLance  + 81 - 9,
-  BKnight = WLance  + 81 - 9,
-  WKnight = BKnight + 81 - 18,
-  BSilver = WKnight + 81 - 18,
-  WSilver = BSilver + 81,
-  BGold   = WSilver + 81,
-  WGold   = BGold   + 81,
-  BBishop = WGold   + 81,
-  WBishop = BBishop + 81,
-  BHorse  = WBishop + 81,
-  WHorse  = BHorse  + 81,
-  BRook   = WHorse  + 81,
-  WRook   = BRook   + 81,
-  BDragon = WRook   + 81,
-  WDragon = BDragon + 81,
-  End     = WDragon + 81,
+  BPawn = 0,
+  WPawn,
+  BLance,
+  WLance,
+  BKnight,
+  WKnight,
+  BSilver,
+  WSilver,
+  BGold,
+  WGold,
+  BBishop,
+  WBishop,
+  BHorse,
+  WHorse,
+  BRook,
+  WRook,
+  BDragon,
+  WDragon,
+  End,
 };
 } // namespace KingPiece_
-using KingPiece = KingPiece_::Type;
+using EvalPieceIndex = EvalPieceIndex_::Type;
 
 namespace KingGold_ {
 enum Type {
@@ -81,27 +81,34 @@ enum Type {
 } // namespace KingGold_
 using KingGold = KingGold_::Type;
 
-int kingPieceIndex(Piece piece, Square square);
-int kingHandIndex(Piece piece, Hand::Type n);
-int kingGoldIndex(Direction dir);
-int kingSilverIndex(Direction dir);
+int getEvalPieceIndex(Piece piece);
+int getEvalGoldIndex(Direction dir);
+int getEvalSilverIndex(Direction dir);
 
-int symmetricalKingPieceIndex(int index);
 int symmetricalKingGoldIndex(int index);
 
 template <class T>
 struct FeatureVector {
   using Type = T;
-  using KingHandType = Type[81][KingHand::End];
-  using KingPieceType = Type[81][KingPiece::End];
-  using KingGoldPieceType = Type[81][KingGold::End][KingPiece::End];
-  using KingOpenType = Type[81][81][8];
-  using KingNumGoldHandType = Type[81][9][KingHand::End];
-  using KingNumGoldPieceType = Type[81][9][KingPiece::End];
+  using KingHandType = Type[Square::N][EvalHandIndex::End];
+  using KingNumGoldHandType = Type[Square::N][9][EvalHandIndex::End];
+  using KingPieceTypeR = Type[RelativeSquare::N][EvalPieceIndex::End];
+  using KingPieceType = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingNumGoldPieceType = Type[Square::N][9][Square::N][EvalPieceIndex::End];
+  using KingGoldPieceTypeR = Type[KingGold::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingGoldPieceType = Type[Square::N][KingGold::End][Square::N][EvalPieceIndex::End];
+  using KingOpenType = Type[Square::N][Square::N][8];
 
   KingHandType kingHand;
+  KingNumGoldHandType kingNumGoldHand;
+
+  KingPieceTypeR kingPieceR;
   KingPieceType kingPiece;
+  KingNumGoldPieceType kingNumGoldPiece;
+
+  KingGoldPieceTypeR kingGoldPieceR;
   KingGoldPieceType kingGoldPiece;
+
   KingOpenType kingBRookVer;
   KingOpenType kingWRookVer;
   KingOpenType kingBRookHor;
@@ -112,19 +119,22 @@ struct FeatureVector {
   KingOpenType kingWBishopDiagR45;
   KingOpenType kingBLance;
   KingOpenType kingWLance;
-  KingNumGoldHandType kingNumGoldHand;
-  KingNumGoldPieceType kingNumGoldPiece;
 };
 
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingGoldPieceType = Type[81][KingGold::End][KingPiece::End];
-  using KingOpenType = Type[81][81][8];
-  using KingNumGoldHandType = Type[81][9][KingHand::End];
-  using KingNumGoldPieceType = Type[81][9][KingPiece::End];
+  using KingNumGoldHandType = Type[Square::N][9][EvalHandIndex::End];
+  using KingNumGoldPieceType = Type[Square::N][9][Square::N][EvalPieceIndex::End];
+  using KingGoldPieceType = Type[Square::N][KingGold::End][Square::N][EvalPieceIndex::End];
+  using KingOpenType = Type[Square::N][Square::N][8];
+
+  KingNumGoldHandType kingNumGoldHand;
+
+  KingNumGoldPieceType kingNumGoldPiece;
 
   KingGoldPieceType kingGoldPiece;
+
   KingOpenType kingBRookVer;
   KingOpenType kingWRookVer;
   KingOpenType kingBRookHor;
@@ -135,8 +145,6 @@ struct OptimizedFeatureVector {
   KingOpenType kingWBishopDiagR45;
   KingOpenType kingBLance;
   KingOpenType kingWLance;
-  KingNumGoldHandType kingNumGoldHand;
-  KingNumGoldPieceType kingNumGoldPiece;
 };
 
 } // namespace sunfish

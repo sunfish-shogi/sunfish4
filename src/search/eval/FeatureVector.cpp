@@ -58,111 +58,44 @@ const int8_t SqIndexWKnight[] = {
   56, 57, 58, 59, 60, 61, 62, -1, -1,
 };
 
-struct TableInfo {
-  const int8_t* table;
-  int begin;
-  int end;
-};
-
-const TableInfo KpTableInfo[] = {
-  { SqIndexBPawn  , KingPiece::BPawn  , KingPiece::WPawn   },
-  { SqIndexWPawn  , KingPiece::WPawn  , KingPiece::BLance  },
-  { SqIndexBPawn  , KingPiece::BLance , KingPiece::WLance  },
-  { SqIndexWPawn  , KingPiece::WLance , KingPiece::BKnight },
-  { SqIndexBKnight, KingPiece::BKnight, KingPiece::WKnight },
-  { SqIndexWKnight, KingPiece::WKnight, KingPiece::BSilver },
-  { nullptr       , KingPiece::BSilver, KingPiece::WSilver },
-  { nullptr       , KingPiece::WSilver, KingPiece::BGold   },
-  { nullptr       , KingPiece::BGold  , KingPiece::WGold   },
-  { nullptr       , KingPiece::WGold  , KingPiece::BBishop },
-  { nullptr       , KingPiece::BBishop, KingPiece::WBishop },
-  { nullptr       , KingPiece::WBishop, KingPiece::BHorse  },
-  { nullptr       , KingPiece::BHorse , KingPiece::WHorse  },
-  { nullptr       , KingPiece::WHorse , KingPiece::BRook   },
-  { nullptr       , KingPiece::BRook  , KingPiece::WRook   },
-  { nullptr       , KingPiece::WRook  , KingPiece::BDragon },
-  { nullptr       , KingPiece::BDragon, KingPiece::WDragon },
-  { nullptr       , KingPiece::WDragon, KingPiece::End     },
-};
-
-int squareToIndex(const int8_t* table, Square square) {
-  return table == nullptr ? square.raw() : table[square.raw()];
-}
-
-Square indexToSquare(const int8_t* table, int index) {
-  if (table == nullptr) {
-    return Square(index);
-  }
-
-  SQUARE_EACH(square) {
-    if (static_cast<int>(table[square.raw()]) == index) {
-      return square;
-    }
-  }
-
-  ASSERT(false);
-  return Square::invalid();
-}
-
 } // namespace
 
 namespace sunfish {
 
-int kingPieceIndex(Piece piece, Square square) {
+int getEvalPieceIndex(Piece piece) {
   switch (piece.raw()) {
-  case PieceNumber::BPawn     : return KingPiece::BPawn   + SqIndexBPawn[square.raw()];
-  case PieceNumber::WPawn     : return KingPiece::WPawn   + SqIndexWPawn[square.raw()];
-  case PieceNumber::BLance    : return KingPiece::BLance  + SqIndexBPawn[square.raw()];
-  case PieceNumber::WLance    : return KingPiece::WLance  + SqIndexWPawn[square.raw()];
-  case PieceNumber::BKnight   : return KingPiece::BKnight + SqIndexBKnight[square.raw()];
-  case PieceNumber::WKnight   : return KingPiece::WKnight + SqIndexWKnight[square.raw()];
-  case PieceNumber::BSilver   : return KingPiece::BSilver + square.raw();
-  case PieceNumber::WSilver   : return KingPiece::WSilver + square.raw();
+  case PieceNumber::BPawn     : return EvalPieceIndex::BPawn;
+  case PieceNumber::WPawn     : return EvalPieceIndex::WPawn;
+  case PieceNumber::BLance    : return EvalPieceIndex::BLance;
+  case PieceNumber::WLance    : return EvalPieceIndex::WLance;
+  case PieceNumber::BKnight   : return EvalPieceIndex::BKnight;
+  case PieceNumber::WKnight   : return EvalPieceIndex::WKnight;
+  case PieceNumber::BSilver   : return EvalPieceIndex::BSilver;
+  case PieceNumber::WSilver   : return EvalPieceIndex::WSilver;
   case PieceNumber::BGold     : // fall through
   case PieceNumber::WTokin    : // fall through
   case PieceNumber::BProLance : // fall through
   case PieceNumber::WProKnight: // fall through
-  case PieceNumber::BProSilver: return KingPiece::BGold   + square.raw();
+  case PieceNumber::BProSilver: return EvalPieceIndex::BGold;
   case PieceNumber::WGold     : // fall through
   case PieceNumber::BTokin    : // fall through
   case PieceNumber::WProLance : // fall through
   case PieceNumber::BProKnight: // fall through
-  case PieceNumber::WProSilver: return KingPiece::WGold   + square.raw();
-  case PieceNumber::BBishop   : return KingPiece::BBishop + square.raw();
-  case PieceNumber::WBishop   : return KingPiece::WBishop + square.raw();
-  case PieceNumber::BRook     : return KingPiece::BRook   + square.raw();
-  case PieceNumber::WRook     : return KingPiece::WRook   + square.raw();
-  case PieceNumber::BHorse    : return KingPiece::BHorse  + square.raw();
-  case PieceNumber::WHorse    : return KingPiece::WHorse  + square.raw();
-  case PieceNumber::BDragon   : return KingPiece::BDragon + square.raw();
-  case PieceNumber::WDragon   : return KingPiece::WDragon + square.raw();
+  case PieceNumber::WProSilver: return EvalPieceIndex::WGold;
+  case PieceNumber::BBishop   : return EvalPieceIndex::BBishop;
+  case PieceNumber::WBishop   : return EvalPieceIndex::WBishop;
+  case PieceNumber::BRook     : return EvalPieceIndex::BRook;
+  case PieceNumber::WRook     : return EvalPieceIndex::WRook;
+  case PieceNumber::BHorse    : return EvalPieceIndex::BHorse;
+  case PieceNumber::WHorse    : return EvalPieceIndex::WHorse;
+  case PieceNumber::BDragon   : return EvalPieceIndex::BDragon;
+  case PieceNumber::WDragon   : return EvalPieceIndex::WDragon;
   }
   ASSERT(false);
   return 0; // unreachable
 }
 
-int kingHandIndex(Piece piece, Hand::Type n) {
-  switch (piece.raw()) {
-  case PieceNumber::BPawn     : return KingHand::BPawn   + n - 1;
-  case PieceNumber::WPawn     : return KingHand::WPawn   + n - 1;
-  case PieceNumber::BLance    : return KingHand::BLance  + n - 1;
-  case PieceNumber::WLance    : return KingHand::WLance  + n - 1;
-  case PieceNumber::BKnight   : return KingHand::BKnight + n - 1;
-  case PieceNumber::WKnight   : return KingHand::WKnight + n - 1;
-  case PieceNumber::BSilver   : return KingHand::BSilver + n - 1;
-  case PieceNumber::WSilver   : return KingHand::WSilver + n - 1;
-  case PieceNumber::BGold     : return KingHand::BGold   + n - 1;
-  case PieceNumber::WGold     : return KingHand::WGold   + n - 1;
-  case PieceNumber::BBishop   : return KingHand::BBishop + n - 1;
-  case PieceNumber::WBishop   : return KingHand::WBishop + n - 1;
-  case PieceNumber::BRook     : return KingHand::BRook   + n - 1;
-  case PieceNumber::WRook     : return KingHand::WRook   + n - 1;
-  }
-  ASSERT(false);
-  return 0; // unreachable
-}
-
-int kingGoldIndex(Direction dir) {
+int getEvalGoldIndex(Direction dir) {
   switch (dir) {
   case Direction::LeftUp   : return KingGold::LeftUpGold;
   case Direction::Up       : return KingGold::UpGold;
@@ -178,7 +111,7 @@ int kingGoldIndex(Direction dir) {
   }
 }
 
-int kingSilverIndex(Direction dir) {
+int getEvalSilverIndex(Direction dir) {
   switch (dir) {
   case Direction::LeftUp   : return KingGold::LeftUpSilver;
   case Direction::Up       : return KingGold::UpSilver;
@@ -192,19 +125,6 @@ int kingSilverIndex(Direction dir) {
     ASSERT(false);
     return 0;
   }
-}
-
-int symmetricalKingPieceIndex(int index) {
-  auto tableSize = sizeof(KpTableInfo) / sizeof(KpTableInfo[0]);
-  for (unsigned i = 0; i < tableSize; i++) {
-    const auto& ti = KpTableInfo[i];
-    if (ti.begin <= index && index < ti.end) {
-      auto square = indexToSquare(ti.table, index - ti.begin);
-      return ti.begin + squareToIndex(ti.table, square.hsym());
-    }
-  }
-  ASSERT(false);
-  return 0;
 }
 
 int symmetricalKingGoldIndex(int index) {
