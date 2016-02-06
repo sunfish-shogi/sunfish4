@@ -2,6 +2,7 @@
 /out/test_result_sse.xml
 /out/test_result_nosse.xml
 /out/build
+/out/date
 
 *.html
 *.csa

@@ -16,8 +16,12 @@ YUM_PACKAGES="git gcc-c++ cmake"
 CONF_FILE_PATH="config/batch_learn.ini"
 CONF_FILE_NAME=`basename ${CONF_FILE_PATH}`
 
-LOCAL_BACKUP_DIR=${BACKUP_DIR}/${EC2_HOST}
 REVISION_FILE=revision
+
+DATE=`date "+%Y-%m-%d"`
+DATE_FILE=date
+
+LOCAL_BACKUP_DIR=${BACKUP_DIR}/${DATE}_${EC2_HOST}
 
 if [ -e ${LOCAL_BACKUP_DIR} ]; then
 	echo "error: ${LOCAL_BACKUP_DIR} is already exists."
@@ -40,6 +44,7 @@ ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
 	./sunfish_ln --silent &
 	git rev-parse HEAD > ${REVISION_FILE}
+	echo ${DATE} > ${DATE_FILE}
 	exit
 EOF
 
