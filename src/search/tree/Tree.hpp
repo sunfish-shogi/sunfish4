@@ -98,32 +98,15 @@ void doNullMove(Tree& tree);
 
 void undoNullMove(Tree& tree);
 
-inline
-Score calculateStandPat(Tree& tree) {
-  auto& node = tree.nodes[tree.ply];
-  if (tree.position.getTurn() == Turn::Black) {
-    return node.score;
-  } else {
-    return -node.score;
-  }
-}
+Score calculateStandPat(Tree& tree,
+                        Evaluator& eval);
 
-inline
 Score estimateScore(Tree& tree,
                     const Move& move,
-                    Evaluator& eval) {
-  auto& node = tree.nodes[tree.ply];
-  Score score = eval.estimateScore(node.score,
-                                   tree.position,
-                                   move);
-  if (tree.position.getTurn() == Turn::Black) {
-    return score;
-  } else {
-    return -score;
-  }
-}
+                    Evaluator& eval);
 
-bool isImproving(const Tree& tree);
+bool isImproving(Tree& tree,
+                 Evaluator& eval);
 
 inline
 bool isRecapture(const Tree& tree,

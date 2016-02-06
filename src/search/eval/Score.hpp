@@ -22,6 +22,7 @@ public:
   static CONSTEXPR_CONST RawType Infinity = 20000;
   static CONSTEXPR_CONST RawType Mate = 15000;
   static CONSTEXPR_CONST RawType MaterialInfinity = 5000;
+  static CONSTEXPR_CONST RawType Invalid = 30000;
 
   static CONSTEXPR Score zero() {
     return Score(Zero);
@@ -37,6 +38,10 @@ public:
 
   static CONSTEXPR Score materialInfinity() {
     return Score(MaterialInfinity);
+  }
+
+  static CONSTEXPR Score invalid() {
+    return Score(Invalid);
   }
 
   Score() {

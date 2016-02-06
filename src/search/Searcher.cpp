@@ -606,7 +606,7 @@ Score Searcher::search(Tree& tree,
 
   if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
-    return calculateStandPat(tree);
+    return calculateStandPat(tree, *evaluator_);
   }
 
   const Score oldAlpha = alpha;
@@ -703,7 +703,7 @@ Score Searcher::search(Tree& tree,
     return Score::infinity() - tree.ply - 1;
   }
 
-  Score standPat = calculateStandPat(tree);
+  Score standPat = calculateStandPat(tree, *evaluator_);
 
   // null move pruning
   if (isNullWindow &&
@@ -776,7 +776,7 @@ Score Searcher::search(Tree& tree,
   }
 
   bool isFirst = true;
-  bool improving = isImproving(tree);
+  bool improving = isImproving(tree, *evaluator_);
   Move bestMove = Move::empty();
 
   generateMoves(tree);
@@ -826,14 +826,12 @@ Score Searcher::search(Tree& tree,
     }
 
     // futility pruning
-    bool doFutilityPruning = !currentMoveIsCheck &&
-                             !isCheck(node.checkState) &&
-                             newDepth < FutilityPruningMaxDepth &&
-                             alpha > -Score::mate();
-    Score estScore;
-    if (doFutilityPruning) {
+    Score estScore = estimateScore(tree, move, *evaluator_);
+    if (!currentMoveIsCheck &&
+        !isCheck(node.checkState) &&
+        newDepth < FutilityPruningMaxDepth &&
+        alpha > -Score::mate()) {
       Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
-      estScore = estimateScore(tree, move, *evaluator_);
       if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
         isFirst = false;
         worker.info.futilityPruning++;
@@ -867,8 +865,6 @@ Score Searcher::search(Tree& tree,
       moveCount--;
       continue;
     }
-
-    Score newStandPat = -calculateStandPat(tree);
 
     Score score;
     if (isFirst) {
@@ -928,15 +924,19 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
-    if (doFutilityPruning) {
-      Score exactScore = score <= alpha ? newStandPat
-                       : std::max(score, newStandPat);
-      gain_.update(move,
-                   targetPiece(tree, move),
-                   exactScore - estScore);
-    }
-
     auto& childNode = tree.nodes[tree.ply+1];
+
+    auto newStandPat = -Score::infinity();
+    if (childNode.score != Score::invalid()) {
+      auto turn = tree.position.getTurn();
+      newStandPat = turn == Turn::Black
+                  ? childNode.score
+                  : -childNode.score;
+    }
+    newStandPat = std::max(newStandPat, std::max(score, alpha));
+    gain_.update(move,
+                 targetPiece(tree, move),
+                 newStandPat - estScore);
 
     if (score > alpha) {
       alpha = score;
@@ -1002,7 +1002,7 @@ Score Searcher::quies(Tree& tree,
   auto& worker = *tree.worker;
   worker.info.quiesNodes++;
 
-  Score standPat = calculateStandPat(tree);
+  Score standPat = calculateStandPat(tree, *evaluator_);
 
   if (standPat >= beta) {
     return standPat;

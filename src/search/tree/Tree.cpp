@@ -46,10 +46,8 @@ void initializeTree(Tree& tree,
   tree.worker = worker;
   tree.ply = 0;
 
-  Score materialScore = eval.calculateMaterialScore(position);
-  tree.nodes[0].materialScore = materialScore;
-  tree.nodes[0].score = eval.calculateTotalScore(materialScore,
-                                                 position);
+  tree.nodes[0].materialScore = eval.calculateMaterialScore(tree.position);
+  tree.nodes[0].score = Score::invalid();
 
   // SHEK
   initializeShekTable(tree.shekTable, record);
@@ -118,8 +116,7 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval) {
                                                             tree.position,
                                                             move,
                                                             node.captured);
-  childNode.score = eval.calculateTotalScore(childNode.materialScore,
-                                             tree.position);
+  childNode.score = Score::invalid();
 
   return true;
 
@@ -151,13 +148,46 @@ void undoNullMove(Tree& tree) {
   tree.position.undoNullMove();
 }
 
-bool isImproving(const Tree& tree) {
+Score calculateStandPat(Tree& tree,
+                        Evaluator& eval) {
+  auto& node = tree.nodes[tree.ply];
+
+  if (node.score == Score::invalid()) {
+    node.score = eval.calculateTotalScore(node.materialScore,
+                                          tree.position);
+  }
+
+  if (tree.position.getTurn() == Turn::Black) {
+    return node.score;
+  } else {
+    return -node.score;
+  }
+}
+
+Score estimateScore(Tree& tree,
+                    const Move& move,
+                    Evaluator& eval) {
+  auto& node = tree.nodes[tree.ply];
+  Score score = eval.estimateScore(node.score,
+                                   tree.position,
+                                   move);
+  if (tree.position.getTurn() == Turn::Black) {
+    return score;
+  } else {
+    return -score;
+  }
+}
+
+bool isImproving(Tree& tree,
+                 Evaluator& eval) {
   if (tree.ply < 2) {
     return false;
   }
 
   auto& curr = tree.nodes[tree.ply];
   auto& front = tree.nodes[tree.ply-2];
+
+  calculateStandPat(tree, eval);
 
   if (tree.position.getTurn() == Turn::Black) {
     return  curr.score >= front.score;
