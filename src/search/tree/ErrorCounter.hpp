@@ -8,11 +8,22 @@
 
 #include <cstdint>
 
+#define EC_DEPTH                64
+#define EC_NUM_SAMPLE           10
+
+#define EC_SHOULD(type, depth)  ( \
+    g_ecs.type.succ[std::max(std::min(depth, EC_DEPTH-1), 0)] \
+  + g_ecs.type.err [std::max(std::min(depth, EC_DEPTH-1), 0)] < EC_NUM_SAMPLE)
+#define EC_SUCCESS(type, depth) (g_ecs.type.succ[std::max(std::min(depth, EC_DEPTH-1), 0)]++)
+#define EC_ERROR(type, depth)   (g_ecs.type.err [std::max(std::min(depth, EC_DEPTH-1), 0)]++)
+
 namespace sunfish {
 
+using ErrorCounterType = uint64_t;
+
 struct ErrorCounter {
-  uint64_t succ[64];
-  uint64_t err[64];
+  ErrorCounterType succ[EC_DEPTH];
+  ErrorCounterType err[EC_DEPTH];
 };
 
 struct ErrorCounters {
@@ -20,13 +31,13 @@ struct ErrorCounters {
   ErrorCounter LMR;
 };
 
-extern ErrorCounters ecs;
+extern ErrorCounters g_ecs;
 
-void printErrorCount();
+void resetErrorCounts();
 
-#define EC_SUCCESS(type, depth) (ecs.type.succ[std::max(std::min(depth, 63), 0)]++)
+void continueErrorCounts();
 
-#define EC_ERROR(type, depth) (ecs.type.err[std::max(std::min(depth, 63), 0)]++)
+void printErrorCounts();
 
 } // namespace sunfish
 

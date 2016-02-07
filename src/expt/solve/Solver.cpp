@@ -30,6 +30,10 @@ bool Solver::solve(const char* path) {
   result_.nodesSum = 0;
   result_.elapsedSum = 0.0;
 
+#if ENABLE_ERR_COUNT
+  resetErrorCounts();
+#endif
+
   if (FileUtil::isDirectory(path)) {
     // 'path' point to a directory
     Directory directory(path);
@@ -72,7 +76,7 @@ bool Solver::solve(const char* path) {
   OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected));
 
 #if ENABLE_ERR_COUNT
-  printErrorCount();
+  printErrorCounts();
 #endif
 
   return true;
@@ -121,6 +125,10 @@ bool Solver::solve(const Position& position, Move correct) {
 
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
   searcher_.idsearch(position, depth);
+
+#if ENABLE_ERR_COUNT
+  continueErrorCounts();
+#endif
 
   auto& result = searcher_.getResult();
   auto& info = searcher_.getInfo();
