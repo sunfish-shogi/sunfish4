@@ -26,6 +26,7 @@ COVOUT_NOSSE:=$(PROJ_ROOT)/out/coverage_nosse.txt
 
 KIFU_PROF1:=$(PROJ_ROOT)/kifu/prof1
 KIFU_PROF5:=$(PROJ_ROOT)/kifu/prof5
+KIFU_PROBLEM:=$(PROJ_ROOT)/kifu/problem
 
 GEN_COV:=$(PROJ_ROOT)/tools/gen_cov_report.py
 GROUP_PROF:=$(PROJ_ROOT)/tools/group_prof.pl
@@ -44,6 +45,7 @@ HAS_COV:=$(shell which $(COV))
 help:
 	@echo 'usage:'
 	@echo '  make expt'
+	@echo '  make errc'
 	@echo '  make prof'
 	@echo '  make prof1'
 	@echo '  make test'
@@ -61,11 +63,15 @@ expt:
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
-expt-errcnt:
+expt-errc:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_ERR_COUNT=ON $(PROJ_ROOT)/src/expt
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
+
+errc:
+	$(MAKE) expt-errc
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 5 --depth 18
 
 expt-prof:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
