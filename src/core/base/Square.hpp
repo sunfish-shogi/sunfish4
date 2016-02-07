@@ -24,16 +24,18 @@
 namespace sunfish {
 
 enum class Direction : int32_t {
-  None,
   Up, Down, Left, Right,
   LeftUp, LeftDown,
   RightUp, RightDown,
   LeftUpKnight, LeftDownKnight,
   RightUpKnight, RightDownKnight,
   End,
+  None,
+  EndS = 8,
 };
 
 #define DIR_EACH(dir)    for (sunfish::Direction dir = Direction::Up; dir != sunfish::Direction::End; dir = static_cast<sunfish::Direction>(static_cast<int32_t>(dir) + 1))
+#define DIR_EACH_S(dir)  for (sunfish::Direction dir = Direction::Up; dir != sunfish::Direction::EndS; dir = static_cast<sunfish::Direction>(static_cast<int32_t>(dir) + 1))
 
 /**
  * Get reversed direction of specified that.
@@ -52,6 +54,24 @@ inline Direction getReversedDir(Direction dir) {
     case Direction::LeftDownKnight:  return Direction::RightUpKnight;
     case Direction::RightUpKnight:   return Direction::LeftDownKnight;
     case Direction::RightDownKnight: return Direction::LeftUpKnight;
+    default: return Direction::None;
+  }
+}
+
+inline Direction getHSymDir(Direction dir) {
+  switch (dir) {
+    case Direction::Up:              return Direction::Up;
+    case Direction::Down:            return Direction::Down;
+    case Direction::Left:            return Direction::Right;
+    case Direction::Right:           return Direction::Left;
+    case Direction::LeftUp:          return Direction::RightUp;
+    case Direction::LeftDown:        return Direction::RightDown;
+    case Direction::RightUp:         return Direction::LeftUp;
+    case Direction::RightDown:       return Direction::LeftDown;
+    case Direction::LeftUpKnight:    return Direction::RightUpKnight;
+    case Direction::LeftDownKnight:  return Direction::RightDownKnight;
+    case Direction::RightUpKnight:   return Direction::LeftUpKnight;
+    case Direction::RightDownKnight: return Direction::LeftDownKnight;
     default: return Direction::None;
   }
 }

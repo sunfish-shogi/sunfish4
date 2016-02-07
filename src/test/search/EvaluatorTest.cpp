@@ -580,14 +580,3 @@ TEST(EvaluatorTest, testDiff) {
     ASSERT_EQ(expect, scoreAfter);
   }
 }
-
-TEST(EvaluatorTest, testSymmetric) {
-  ASSERT_EQ(KingGold::LeftUpGold   , symmetricalKingGoldIndex(KingGold::RightUpGold));
-  ASSERT_EQ(KingGold::UpGold       , symmetricalKingGoldIndex(KingGold::UpGold));
-  ASSERT_EQ(KingGold::RightUpGold  , symmetricalKingGoldIndex(KingGold::LeftUpGold));
-  ASSERT_EQ(KingGold::LeftGold     , symmetricalKingGoldIndex(KingGold::RightGold));
-  ASSERT_EQ(KingGold::RightGold    , symmetricalKingGoldIndex(KingGold::LeftGold));
-  ASSERT_EQ(KingGold::LeftDownGold , symmetricalKingGoldIndex(KingGold::RightDownGold));
-  ASSERT_EQ(KingGold::DownGold     , symmetricalKingGoldIndex(KingGold::DownGold));
-  ASSERT_EQ(KingGold::RightDownGold, symmetricalKingGoldIndex(KingGold::LeftDownGold));
-}

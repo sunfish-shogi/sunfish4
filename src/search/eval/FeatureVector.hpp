@@ -58,56 +58,36 @@ enum Type {
 } // namespace KingPiece_
 using EvalPieceIndex = EvalPieceIndex_::Type;
 
-namespace KingGold_ {
-enum Type {
-  LeftUpSilver = 0,
-  UpSilver,
-  RightUpSilver,
-  LeftSilver,
-  RightSilver,
-  LeftDownSilver,
-  DownSilver,
-  RightDownSilver,
-  LeftUpGold,
-  UpGold,
-  RightUpGold,
-  LeftGold,
-  RightGold,
-  LeftDownGold,
-  DownGold,
-  RightDownGold,
-  End,
-};
-} // namespace KingGold_
-using KingGold = KingGold_::Type;
-
 int getEvalPieceIndex(Piece piece);
-int getEvalGoldIndex(Direction dir);
-int getEvalSilverIndex(Direction dir);
-
-int symmetricalKingGoldIndex(int index);
 
 template <class T>
 struct FeatureVector {
   using Type = T;
   using KingHandType = Type[Square::N][EvalHandIndex::End];
-  using KingNumGoldHandType = Type[Square::N][9][EvalHandIndex::End];
   using KingPieceTypeR = Type[RelativeSquare::N][EvalPieceIndex::End];
+  using KingPieceTypeXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
+  using KingPieceTypeYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
   using KingPieceType = Type[Square::N][Square::N][EvalPieceIndex::End];
-  using KingNumGoldPieceType = Type[Square::N][9][Square::N][EvalPieceIndex::End];
-  using KingGoldPieceTypeR = Type[KingGold::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingGoldPieceType = Type[Square::N][KingGold::End][Square::N][EvalPieceIndex::End];
+  using KingNeighborHandType = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
+  using KingNeighborPieceTypeR = Type[8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceTypeXR = Type[SQUARE_FILES][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceTypeYR = Type[SQUARE_RANKS][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceType = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpenType = Type[Square::N][Square::N][8];
 
   KingHandType kingHand;
-  KingNumGoldHandType kingNumGoldHand;
 
   KingPieceTypeR kingPieceR;
+  KingPieceTypeXR kingPieceXR;
+  KingPieceTypeYR kingPieceYR;
   KingPieceType kingPiece;
-  KingNumGoldPieceType kingNumGoldPiece;
 
-  KingGoldPieceTypeR kingGoldPieceR;
-  KingGoldPieceType kingGoldPiece;
+  KingNeighborHandType kingNeighborHand;
+
+  KingNeighborPieceTypeR kingNeighborPieceR;
+  KingNeighborPieceTypeXR kingNeighborPieceXR;
+  KingNeighborPieceTypeYR kingNeighborPieceYR;
+  KingNeighborPieceType kingNeighborPiece;
 
   KingOpenType kingBRookVer;
   KingOpenType kingWRookVer;
@@ -124,16 +104,19 @@ struct FeatureVector {
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingNumGoldHandType = Type[Square::N][9][EvalHandIndex::End];
-  using KingNumGoldPieceType = Type[Square::N][9][Square::N][EvalPieceIndex::End];
-  using KingGoldPieceType = Type[Square::N][KingGold::End][Square::N][EvalPieceIndex::End];
+  using KingHandType = Type[Square::N][EvalHandIndex::End];
+  using KingPieceType = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingNeighborHandType = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
+  using KingNeighborPieceType = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpenType = Type[Square::N][Square::N][8];
 
-  KingNumGoldHandType kingNumGoldHand;
+  KingHandType kingHand;
 
-  KingNumGoldPieceType kingNumGoldPiece;
+  KingPieceType kingPiece;
 
-  KingGoldPieceType kingGoldPiece;
+  KingNeighborHandType kingNeighborHand;
+
+  KingNeighborPieceType kingNeighborPiece;
 
   KingOpenType kingBRookVer;
   KingOpenType kingWRookVer;
