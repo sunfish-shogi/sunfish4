@@ -1,16 +1,15 @@
-N+Bonafish_0.42
-N-gpsfish_Corei7-4771_4c
-$EVENT:wdoor+floodgate-600-10+Bonafish_0.42+gpsfish_Corei7-4771_4c+20151225180005
-P1-KY-KE *  *  *  *  *  * -KY
-P2 *  * -OU-KI *  * -KI *  * 
-P3-FU-FU * -FU *  * -KE-FU-FU
-P4 *  * -FU * -FU *  *  *  * 
-P5+FU *  *  *  *  * +GI+FU * 
-P6 *  * +FU *  *  *  *  *  * 
-P7 * +FU * +FU+FU-TO *  * +FU
-P8 *  * +GI *  *  * +HI *  * 
-P9+KY+KE+OU+KI *  *  * +KE+KY
-P+00HI00GI00GI00FU
-P-00KA00KA00KI00FU00FU
+N+
+N-
+P1-KY-KE * +RY *  * -KI-KE-OU
+P2 *  *  *  *  * -GI * -GI-KY
+P3 *  *  * -FU *  *  * -FU-FU
+P4-FU * -FU * +KA-FU+FU-KI * 
+P5 *  *  * +FU *  * -FU * +FU
+P6+FU * +FU-KA+FU+FU *  *  * 
+P7 *  * +KE *  * +KI * +GI * 
+P8 *  *  *  *  * +GI+KI+OU * 
+P9+KY-RY *  * -TO *  * +KE+KY
+P+00FU
+P-00FU00FU
 +
-+3544GI
++3433TO

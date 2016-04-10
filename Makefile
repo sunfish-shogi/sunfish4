@@ -45,7 +45,8 @@ HAS_COV:=$(shell which $(COV))
 help:
 	@echo 'usage:'
 	@echo '  make expt'
-	@echo '  make errc'
+	@echo '  make solve'
+	@echo '  make err'
 	@echo '  make prof'
 	@echo '  make prof1'
 	@echo '  make test'
@@ -63,14 +64,18 @@ expt:
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
-expt-errc:
+solve:
+	$(MAKE) expt
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 5 --depth 18
+
+expt-err:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_ERR_COUNT=ON $(PROJ_ROOT)/src/expt
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_ERR_RATE=ON $(PROJ_ROOT)/src/expt
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
-errc:
-	$(MAKE) expt-errc
+err:
+	$(MAKE) expt-err
 	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 5 --depth 18
 
 expt-prof:

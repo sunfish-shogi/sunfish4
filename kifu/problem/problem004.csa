@@ -1,16 +1,16 @@
-V2.2
-$START_TIME:2015/12/23 16:22:28
-$END_TIME:2015/12/23 16:24:59
-P1-KY-KE *  * +TO *  * -KE-KY
-P2 * -OU-GI * +HI *  *  *  * 
-P3 * -FU-FU-FU * +UM *  *  * 
-P4-FU * -KI * +FU * +FU * -FU
-P5 *  *  *  *  * -FU *  *  * 
-P6 *  *  *  * -FU *  *  * +FU
-P7+FU+FU+FU-TO *  * +KE *  * 
-P8+KY+GI+KE-RY *  *  *  *  * 
-P9+OU+KI * -GI * +KI *  * +KY
-P+00KA00FU
-P-00KI00GI00FU00FU
-+
-+0071KA
+N+Bonafish_0.42
+N-gpsfish_Corei7-4771_4c
+$EVENT:wdoor+floodgate-600-10+Bonafish_0.42+gpsfish_Corei7-4771_4c+20151223033002
+P1-KY-KE * -FU * -KI *  * -KY
+P2 *  *  * -GI * -OU-GI+TO * 
+P3-FU *  *  * -FU *  *  * -FU
+P4 *  * -FU *  *  * -KI-FU * 
+P5 *  * +FU * +KA * -FU *  * 
+P6 * +FU-KI-TO+FU *  *  *  * 
+P7+FU-FU *  *  * +FU *  * +FU
+P8+OU * +GI *  *  *  * +HI * 
+P9+KY+KE+GI *  *  *  * +KE+KY
+P+00KA00KE00FU
+P-00HI00KI00FU
+-
+-0088KI

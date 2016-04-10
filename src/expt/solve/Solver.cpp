@@ -135,10 +135,9 @@ bool Solver::solve(const Position& position, Move correct) {
   auto& info = searcher_.getInfo();
   bool isCorrect = result.move == correct;
 
-  if (result.move.isEmpty() ||
-      result.score >= Score::mate() ||
-      result.score <= -Score::mate()) {
+  if (result.move.isEmpty()) {
     OUT(info) << "skipped.";
+    OUT(info) << "";
     result_.skipped++;
     return true;
   }
