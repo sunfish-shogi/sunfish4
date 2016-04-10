@@ -37,7 +37,7 @@ void resetErrorCounts();
 
 void continueErrorCounts();
 
-void printErrorCounts();
+void printErrorRate();
 
 } // namespace sunfish
 

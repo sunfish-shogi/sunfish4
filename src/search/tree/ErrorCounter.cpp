@@ -13,27 +13,27 @@
 
 namespace sunfish {
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
 ErrorCounters g_ecs;
 std::list<ErrorCounters> g_ecsList;
 #endif
 
 void resetErrorCounts() {
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
   memset(&g_ecs, 0, sizeof(g_ecs));
   g_ecsList.clear();
 #endif
 }
 
 void continueErrorCounts() {
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
   g_ecsList.push_back(g_ecs);
   memset(&g_ecs, 0, sizeof(g_ecs));
 #endif
 }
 
-void printErrorCounts() {
-#if ENABLE_ERR_COUNT
+void printErrorRate() {
+#if ENABLE_ERR_RATE
   OUT(info) << "error counts:";
 
   auto print = [](const char* name, const ErrorCounter& ec) {
@@ -54,13 +54,13 @@ void printErrorCounts() {
         continue;
       }
 
-      auto p = s * 100.0f / (s + e);
-      oss << std::fixed << std::setprecision(2) << depth;
-      oss << '(' << std::fixed << std::setprecision(2) << p << "%) ";
+      auto p = e * 100.0f / (s + e);
+      oss << std::fixed << std::setprecision(2) << p << "%";
+      oss << "(dep=" << std::fixed << std::setprecision(2) << depth << ") ";
     }
 
     OUT(info) << "  " << name << ':';
-    OUT(info) << "    " << oss.str() << " (max_depth=" << maxDepth << ")";
+    OUT(info) << "    " << oss.str() << " (max_dep=" << maxDepth << ")";
   };
 
   auto ecs = g_ecs;

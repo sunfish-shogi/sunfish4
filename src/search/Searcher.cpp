@@ -236,7 +236,7 @@ void Searcher::search(const Position& pos,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
       if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
         if (-search(tree,
                     newDepth + reduced,
@@ -248,7 +248,7 @@ void Searcher::search(const Position& pos,
           EC_ERROR(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_COUNT
+#endif // ENABLE_ERR_RATE
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -440,7 +440,7 @@ bool Searcher::aspsearch(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
       if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
         if (-search(tree,
                     newDepth + reduced,
@@ -452,7 +452,7 @@ bool Searcher::aspsearch(Tree& tree,
           EC_ERROR(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_COUNT
+#endif // ENABLE_ERR_RATE
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -662,7 +662,7 @@ Score Searcher::search(Tree& tree,
         !isCheck(tree.nodes[tree.ply-1].checkState) &&
         depth < FutilityPruningMaxDepth &&
         ttScore >= beta + futilityPruningMargin(depth, 0)) {
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
       if (EC_SHOULD(futilityPruning, depth)) {
         if (search(tree, depth, alpha, beta, nodeStat.unsetHashCut()) >= beta) {
           EC_SUCCESS(futilityPruning, depth);
@@ -670,7 +670,7 @@ Score Searcher::search(Tree& tree,
           EC_ERROR(futilityPruning, depth);
         }
       }
-#endif // ENABLE_ERR_COUNT
+#endif // ENABLE_ERR_RATE
       return beta;
     }
 
@@ -838,7 +838,7 @@ Score Searcher::search(Tree& tree,
       if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
         isFirst = false;
         worker.info.futilityPruning++;
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
         if (EC_SHOULD(futilityPruning, depth) &&
             doMove(tree, move, *evaluator_)) {
           if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
@@ -848,7 +848,7 @@ Score Searcher::search(Tree& tree,
           }
           undoMove(tree);
         }
-#endif // ENABLE_ERR_COUNT
+#endif // ENABLE_ERR_RATE
         continue;
       }
     }
@@ -885,7 +885,7 @@ Score Searcher::search(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
       if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
         if (-search(tree,
                     newDepth + reduced,
@@ -897,7 +897,7 @@ Score Searcher::search(Tree& tree,
           EC_ERROR(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_COUNT
+#endif // ENABLE_ERR_RATE
 
       if (!isInterrupted() &&
           score > alpha &&

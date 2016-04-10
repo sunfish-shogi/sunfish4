@@ -30,7 +30,7 @@ bool Solver::solve(const char* path) {
   result_.nodesSum = 0;
   result_.elapsedSum = 0.0;
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
   resetErrorCounts();
 #endif
 
@@ -38,9 +38,10 @@ bool Solver::solve(const char* path) {
     // 'path' point to a directory
     Directory directory(path);
     auto files = directory.files("*.csa");
-    int count = 0;
+    int n = 0;
     for (const auto& path : files) {
-      OUT(info) << "------------------------ [" << ++count << "] ------------------------";
+      n++;
+      OUT(info) << "------------------------ [" << n << "] ------------------------";
       if (!solveCsaFile(path.c_str())) {
         return false;
       }
@@ -75,8 +76,8 @@ bool Solver::solve(const char* path) {
   OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
   OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected));
 
-#if ENABLE_ERR_COUNT
-  printErrorCounts();
+#if ENABLE_ERR_RATE
+  printErrorRate();
 #endif
 
   return true;
@@ -126,7 +127,7 @@ bool Solver::solve(const Position& position, Move correct) {
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
   searcher_.idsearch(position, depth);
 
-#if ENABLE_ERR_COUNT
+#if ENABLE_ERR_RATE
   continueErrorCounts();
 #endif
 
