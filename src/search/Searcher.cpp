@@ -162,7 +162,7 @@ void Searcher::updateInfo() {
 }
 
 /**
- * search of root node
+ * search from root node
  */
 void Searcher::search(const Position& pos,
                       int depth,
@@ -184,7 +184,7 @@ void Searcher::search(const Position& pos,
 
   node.checkState = tree.position.getCheckState();
 
-  generateMoves(tree);
+  generateMoves<true>(tree);
 
   Move bestMove = Move::empty();
 
@@ -782,7 +782,7 @@ Score Searcher::search(Tree& tree,
   bool improving = isImproving(tree, *evaluator_);
   Move bestMove = Move::empty();
 
-  generateMoves(tree);
+  generateMoves<false>(tree);
 
   // expand branches
   for (int moveCount = 0; ; moveCount++) {
@@ -1061,11 +1061,11 @@ Score Searcher::quies(Tree& tree,
 }
 
 /**
- * move generation for full expanding nodes
+ * generate moves for full expanding nodes
  */
+template <bool isRootNode>
 void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-  auto& parentNode = tree.nodes[tree.ply-1];
 
   node.moves.clear();
   node.moveIterator = node.moves.begin();
@@ -1074,17 +1074,21 @@ void Searcher::generateMoves(Tree& tree) {
     node.moves.add(node.hashMove);
   }
 
-  if (!isCheck(node.checkState) &&
+  if (!isRootNode &&
+      !isCheck(node.checkState) &&
       hasKiller1(tree) &&
       isKiller1Good(tree) &&
       isKiller1Legal(tree)) {
+    auto& parentNode = tree.nodes[tree.ply-1];
     node.moves.add(parentNode.killerMove1);
   }
 
-  if (!isCheck(node.checkState) &&
+  if (!isRootNode &&
+      !isCheck(node.checkState) &&
       hasKiller2(tree) &&
       isKiller2Good(tree) &&
       isKiller2Legal(tree)) {
+    auto& parentNode = tree.nodes[tree.ply-1];
     node.moves.add(parentNode.killerMove2);
   }
 
@@ -1143,7 +1147,7 @@ Move Searcher::nextMove(Tree& tree) {
 }
 
 /**
- * move generation for nodes of quiesence search
+ * generate moves for quiesence search
  */
 void Searcher::generateMovesOnQuies(Tree& tree,
                                     int qply,

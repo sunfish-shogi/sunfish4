@@ -131,14 +131,14 @@ bool BatchLearning::iterate() {
     OUT(info) << "";
     OUT(info) << "ITERATION - " << i;
 
-    OUT(info) << "Training-Data-Generation Phase";
+    OUT(info) << "generating training data..";
 
     bool ok = generateTrainingData();
     if (!ok) {
       return false;
     }
 
-    OUT(info) << "Parameter-Adjustment Phase";
+    OUT(info) << "adjusting parameters..";
 
     float lossFirst = 0.0f;
     float lossLast = 0.0f;
@@ -159,7 +159,7 @@ bool BatchLearning::iterate() {
       }
     }
 
-    OUT(info) << "Write-To-File Phase";
+    OUT(info) << "writing to file..";
 
     evaluator_->writeEvalBin(*fv_);
 
