@@ -22,10 +22,10 @@ enum Type : PieceRawType {
   Promotion  = 0x08,
   White      = 0x10,
   Empty      = 0x20,
-            
+
   HandMask   = 0x27,
   TypeMask   = 0x2f,
-            
+
   Pawn       = 0,
   Lance      = 1,
   Knight     = 2,
@@ -40,15 +40,15 @@ enum Type : PieceRawType {
   ProSilver  = Promotion | Silver,
   Horse      = Promotion | Bishop,
   Dragon     = Promotion | Rook,
-            
+
   TypeNum    = Dragon + 1,
   TypeBegin  = Pawn,
   TypeEnd    = Dragon + 1,
-            
+
   HandNum    = Rook + 1,
   HandBegin  = Pawn,
   HandEnd    = Rook + 1,
-            
+
   BPawn      = Pawn,
   BLance     = Lance,
   BKnight    = Knight,

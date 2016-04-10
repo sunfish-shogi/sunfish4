@@ -164,8 +164,8 @@ private:
 
   Gain gain_;
 
-  Tree treeOnMainThread_;
-  Worker workerOnMainThread_;
+  Tree mainThreadTree_;
+  Worker mainThreadWorker_;
 
   Random random_;
 

@@ -144,7 +144,7 @@ void Searcher::onSearchStarted() {
   result_.depth = 0;
   result_.elapsed = 0.0f;
 
-  initializeWorker(workerOnMainThread_);
+  initializeWorker(mainThreadWorker_);
 
   history_.reduce();
 
@@ -157,7 +157,8 @@ void Searcher::onSearchStarted() {
 
 void Searcher::updateInfo() {
   initializeSearchInfo(info_);
-  mergeSearchInfo(info_, workerOnMainThread_.info);
+  mergeSearchInfo(info_, mainThreadWorker_.info);
+  // TODO: other threads
 }
 
 /**
@@ -170,8 +171,8 @@ void Searcher::search(const Position& pos,
                       Record* record /*= nullptr*/) {
   onSearchStarted();
 
-  auto& tree = treeOnMainThread_;
-  auto& worker = workerOnMainThread_;
+  auto& tree = mainThreadTree_;
+  auto& worker = mainThreadWorker_;
   initializeTree(tree,
                  pos,
                  *evaluator_,
@@ -304,8 +305,8 @@ void Searcher::idsearch(const Position& pos,
                         Record* record /*= nullptr*/) {
   onSearchStarted();
 
-  auto& tree = treeOnMainThread_;
-  auto& worker = workerOnMainThread_;
+  auto& tree = mainThreadTree_;
+  auto& worker = mainThreadWorker_;
   initializeTree(tree,
                  pos,
                  *evaluator_,
@@ -389,7 +390,7 @@ bool Searcher::aspsearch(Tree& tree,
 
   bool isFirst = true;
 
-  // expand the branches
+  // expand branches
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Score alpha = std::max(alphas[alphaIndex], bestScore);
     Score beta = betas[betaIndex];

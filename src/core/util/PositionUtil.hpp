@@ -32,7 +32,7 @@ private:
   PositionUtil();
 
 };
-  
+
 } // sunfish
 
 #endif // SUNFISH_CORE_UTIL_POSITIONUTIL_HPP__
