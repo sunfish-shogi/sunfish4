@@ -20,12 +20,12 @@ Solver::Solver() {
   searcher_.setHandler(&searchHandler_);
   config_.muximumDepth = 18;
   config_.muximumTimeSeconds = 3;
-  result_.corrected = 0;
-  result_.incorrected = 0;
-  result_.skipped = 0;
 }
 
 bool Solver::solve(const char* path) {
+  result_.corrected = 0;
+  result_.incorrected = 0;
+  result_.mate = 0;
   result_.depthSum = 0;
   result_.nodesSum = 0;
   result_.elapsedSum = 0.0;
@@ -64,17 +64,15 @@ bool Solver::solve(const char* path) {
   auto percentage = [](float n, float d) {
     return n / d * 100.0f;
   };
-  auto total = result_.corrected + result_.incorrected + result_.skipped;
+  auto total = result_.corrected + result_.incorrected;
   OUT(info) << "summary:";
   OUT(info) << "  total    : " << total;
   OUT(info) << "  correct  : " << result_.corrected
                                << " (" << percentage(result_.corrected, total) << "%)";
   OUT(info) << "  incorrect: " << result_.incorrected
                                << " (" << percentage(result_.incorrected, total) << "%)";
-  OUT(info) << "  skipped  : " << result_.skipped
-                               << " (" << percentage(result_.skipped, total) << "%)";
   OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
-  OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected));
+  OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected - result_.mate));
 
 #if ENABLE_ERR_RATE
   printErrorRate();
@@ -135,25 +133,23 @@ bool Solver::solve(const Position& position, Move correct) {
   auto& info = searcher_.getInfo();
   bool isCorrect = result.move == correct;
 
-  if (result.move.isEmpty()) {
-    OUT(info) << "skipped.";
-    OUT(info) << "";
-    result_.skipped++;
-    return true;
-  }
-
   if (isCorrect) {
     result_.corrected++;
   } else {
     result_.incorrected++;
   }
-  result_.depthSum += result.depth;
-  result_.nodesSum += info.nodes + info.quiesNodes;
-  result_.elapsedSum += result.elapsed;
+
+  if (result.move.isEmpty() || result.score >= Score::mate() || result.score <= -Score::mate()) {
+    result_.mate++;
+  } else {
+    result_.depthSum += result.depth;
+    result_.nodesSum += info.nodes + info.quiesNodes;
+    result_.elapsedSum += result.elapsed;
+  }
 
   printSearchInfo(OUT(info), info, result.elapsed);
   OUT(info) << "";
-  OUT(info) << "answer : " << result.move.toString(position);
+  OUT(info) << "answer : " << (result.move.isEmpty() ? "(empty)" : result.move.toString(position));
   OUT(info) << "correct: " << correct.toString(position);
   OUT(info) << "result : " << (isCorrect ? "correct" : "incorrect");
   OUT(info) << "";

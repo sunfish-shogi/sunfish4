@@ -25,7 +25,8 @@ public:
   struct Result {
     unsigned corrected;
     unsigned incorrected;
-    unsigned skipped;
+
+    unsigned mate;
 
     unsigned depthSum;
     uint64_t nodesSum;
