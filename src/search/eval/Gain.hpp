@@ -23,9 +23,9 @@ public:
       for (int i = 0; i < 32; i++) {
         if (i == Piece::blackKing().raw() ||
             i == Piece::whiteKing().raw()) {
-          gains_[square.raw()][i] = 400;
-        } else {
           gains_[square.raw()][i] = 200;
+        } else {
+          gains_[square.raw()][i] = 100;
         }
       }
     }

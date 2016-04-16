@@ -930,17 +930,15 @@ Score Searcher::search(Tree& tree,
 
     auto& childNode = tree.nodes[tree.ply+1];
 
-    auto newStandPat = -Score::infinity();
     if (childNode.score != Score::invalid()) {
       auto turn = tree.position.getTurn();
-      newStandPat = turn == Turn::Black
-                  ? childNode.score
-                  : -childNode.score;
+      auto newStandPat = turn == Turn::Black
+                       ? childNode.score
+                       : -childNode.score;
+      gain_.update(move,
+                   targetPiece(tree, move),
+                   newStandPat - estScore);
     }
-    newStandPat = std::max(newStandPat, std::max(score, alpha));
-    gain_.update(move,
-                 targetPiece(tree, move),
-                 newStandPat - estScore);
 
     if (score > alpha) {
       alpha = score;
