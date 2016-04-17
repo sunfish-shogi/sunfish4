@@ -34,7 +34,7 @@ InputStatus forEach(std::istream& is, T&& f) {
     }
 
     if (is.fail()) {
-      LOG(warning) << "file io error";
+      LOG(error) << "file I/O error";
       return InputStatus::Error;
     }
 
@@ -119,7 +119,6 @@ bool CsaReader::readPosition(std::istream& is,
 
   auto status = forEach(is, [&mp, info](const char* line) {
     if (!readPosition(line, mp, info)) {
-      LOG(warning) << "invalid position format.";
       return InputStatus::Error;
     }
 
@@ -145,7 +144,7 @@ bool CsaReader::readPosition(const char* line,
     } else if (line[1] == '-') {
       return readHand(line, mp, Turn::White);
     }
-    LOG(warning) << "invalid command: '" << line << '\'';
+    LOG(error) << "invalid format: " << line;
     return false;
 
   case '+':
@@ -163,7 +162,7 @@ bool CsaReader::readPosition(const char* line,
     return true;
 
   default:
-    LOG(warning) << "invalid command: '" << line << '\'';
+    LOG(error) << "invalid format: " << line;
     return false;
   }
 }
@@ -171,7 +170,7 @@ bool CsaReader::readPosition(const char* line,
 bool CsaReader::readPositionPieces(const char* line,
                                    MutablePosition& mp) {
   if (strlen(line) < 2 + 3 * Square::FileMax) {
-    LOG(warning) << "invalid format: '" << line << '\'';
+    LOG(error) << "invalid format: " << line;
     return false;
   }
   int rank = line[1] - '0';
@@ -206,7 +205,7 @@ bool CsaReader::readInfo(const char* line,
     return true;
   }
 
-  LOG(warning) << "unknown command: '" << line << '\'';
+  LOG(error) << "invalid format: " << line;
   return false;
 }
 
@@ -235,12 +234,12 @@ bool CsaReader::readHand(const char* line,
         }
 
       } else {
-        LOG(warning) << "invalid format: '" << line << '\'';
+        LOG(error) << "invalid format: " << line;
         return false;
       }
 
     } else {
-      LOG(warning) << "invalid format: '" << line << '\'';
+      LOG(error) << "invalid format: " << line;
       return false;
     }
   }

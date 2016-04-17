@@ -27,6 +27,29 @@ public:
     return pos;
   }
 
+  static bool isEvenInitialPosition(const Position& pos) {
+    return isSamePosition(pos, Position(Position::Handicap::Even));
+  }
+
+  static bool isSamePosition(const Position& pos1, const Position& pos2) {
+    SQUARE_EACH(square) {
+      if (pos1.getPieceOnBoard(square) != pos2.getPieceOnBoard(square)) {
+        return false;
+      }
+    }
+
+    HAND_EACH(piece) {
+      if (pos1.getBlackHandPieceCount(piece) != pos2.getBlackHandPieceCount(piece)) {
+        return false;
+      }
+      if (pos1.getWhiteHandPieceCount(piece) != pos2.getWhiteHandPieceCount(piece)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
 private:
 
   PositionUtil();

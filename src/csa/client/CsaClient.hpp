@@ -6,8 +6,10 @@
 #ifndef SUNFISH_CSA_CLIENT_USICLIENT_HPP__
 #define SUNFISH_CSA_CLIENT_USICLIENT_HPP__
 
+#include "common/math/Random.hpp"
 #include "search/Searcher.hpp"
 #include "core/record/Record.hpp"
+#include "book/Book.hpp"
 #include "csa/client/Socket.hpp"
 #include <string>
 #include <atomic>
@@ -15,6 +17,8 @@
 #include <mutex>
 
 namespace sunfish {
+
+class ScopedThread;
 
 class CsaClient : public LoggingSearchHandler {
 public:
@@ -101,7 +105,11 @@ private:
 
   bool onMove();
 
+  void runSearch(ScopedThread& searchThread);
+
   void search();
+
+  void runPonder(ScopedThread& searchThread);
 
   void ponder();
 
@@ -132,6 +140,10 @@ private:
   Searcher searcher_;
   std::atomic<bool> searcherIsStarted_;
   std::mutex sendMutex_;
+
+  Book book_;
+
+  Random random_;
 
 };
 

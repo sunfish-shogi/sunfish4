@@ -11,6 +11,7 @@ using namespace sunfish;
 TEST(CsaReaderTest, testRead) {
   {
     std::string src =
+      "V2.2\n"
       "$EVENT:WCSC2016\n"
       "N+Sunfish\n"
       "N-Firefly\n"
@@ -65,6 +66,7 @@ TEST(CsaReaderTest, testRead) {
 
   {
     std::string src =
+      "V2.2\n"
       "$EVENT:WCSC2016\n"
       "N+Sunfish\n"
       "N-Firefly\n"

@@ -6,6 +6,8 @@
 #include "usi/client/UsiClient.hpp"
 #include "common/string/StringUtil.hpp"
 #include "common/resource/Resource.hpp"
+#include "common/thread/ScopedThread.hpp"
+#include "book/BookUtil.hpp"
 #include "core/record/SfenParser.hpp"
 #include "search/eval/Material.hpp"
 #include "logger/Logger.hpp"
@@ -30,35 +32,6 @@ const char* Author = "res/strings/usi_author";
 
 } // namespace resources
 
-class ScopedThread {
-public:
-
-  ScopedThread() {
-  }
-
-  ~ScopedThread() {
-    if (thread_.joinable()) {
-      if (stop_) {
-        stop_();
-      }
-      thread_.join();
-    }
-  }
-
-  template <class T, class U>
-  void start(T&& proc,
-             U&& stop) {
-    thread_ = std::thread(proc);
-    stop_ = std::forward<U>(stop);
-  }
-
-private:
-
-  std::thread thread_;
-  std::function<void()> stop_;
-
-};
-
 } // namespace
 
 namespace sunfish {
@@ -71,6 +44,8 @@ UsiClient::UsiClient() : breakReceiver_(false) {
 }
 
 bool UsiClient::start() {
+  book_.load();
+
   // >usi
   // <usiok
   bool usiAccepted = acceptUsi();
@@ -273,6 +248,15 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   OUT(info) << "wtime    : " << whiteTimeMs_;
   OUT(info) << "byoyomi  : " << byoyomiMs_;
   OUT(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
+
+  // check opening book
+  auto pos = generatePosition(record_, -1);
+  Move bookMove = BookUtil::select(book_, pos, random_);
+  if (!bookMove.isNone()) {
+    OUT(info) << "opening book hit";
+    send("bestmove", bookMove.toStringSFEN());
+    return true;
+  }
 
   searcherIsStarted_ = false;
   stopCommandReceived_ = false;

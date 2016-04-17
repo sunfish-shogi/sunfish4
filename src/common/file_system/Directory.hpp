@@ -19,6 +19,7 @@ public:
 
 public:
   Directory(const char* directory);
+  Directory(const std::string& directory);
   Directory(const Directory&) = default;
   Directory(Directory&& src) NOEXCEPT = default;
   ~Directory() = default;
@@ -26,6 +27,8 @@ public:
   Files files(const char* wildcard);
 
 private:
+  void init(const char* directory);
+
   std::string path_;
 
 };

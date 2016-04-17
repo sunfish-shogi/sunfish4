@@ -78,7 +78,7 @@ public:
         // option key
         bool isFullSpell = (arg[1] == '-');
         if (lastKey != nullptr) {
-          invalidArguments_.push_back({ lastKeyFull, "this option require a value" });
+          invalidArguments_.push_back({ lastKeyFull, "this option requires a value" });
           lastKey = nullptr;
         }
         lastKey = &arg[isFullSpell?2:1];
@@ -98,7 +98,7 @@ public:
           setValue(lastKey, arg);
           lastKey = nullptr;
         } else {
-          invalidArguments_.push_back({ lastKeyFull, "this option require a value" });
+          invalidArguments_.push_back({ lastKeyFull, "this option requires a value" });
           lastKey = nullptr;
         }
 

@@ -6,6 +6,8 @@
 #include "common/console/Console.hpp"
 #include "common/program_options/ProgramOptions.hpp"
 #include "core/util/CoreUtil.hpp"
+#include "book/Book.hpp"
+#include "book/BookGenerator.hpp"
 #include "logger/Logger.hpp"
 #include "tools/sfen2csa/Sfen2Csa.hpp"
 
@@ -17,7 +19,8 @@ int main(int argc, char** argv, char**) {
 
   // program options
   ProgramOptions po;
-  po.addOption("sfen2csa", "SFEN => CSA converter");
+  po.addOption("sfen2csa", "SFEN-CSA converter");
+  po.addOption("gen-book", "generate opening book", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -49,6 +52,18 @@ int main(int argc, char** argv, char**) {
     Sfen2Csa s2c;
     bool ok = s2c.run();
     return ok ? 0 : 1;
+  }
+
+  // gen-book
+  if (po.has("gen-book")) {
+    auto path = po.getValue("gen-book");
+    BookGenerator bg(path);
+    bg.setLimit(20);
+    if (!bg.generate()) {
+      return 1;
+    }
+    bg.getBook().save();
+    return 0;
   }
 
   OUT(error) << "No action is specified.";

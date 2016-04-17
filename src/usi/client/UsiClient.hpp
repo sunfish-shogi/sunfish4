@@ -6,8 +6,10 @@
 #ifndef SUNFISH_USI_CLIENT_USICLIENT_HPP__
 #define SUNFISH_USI_CLIENT_USICLIENT_HPP__
 
+#include "common/math/Random.hpp"
 #include "core/position/Position.hpp"
 #include "core/record/Record.hpp"
+#include "book/Book.hpp"
 #include "search/Searcher.hpp"
 #include <iostream>
 #include <string>
@@ -122,6 +124,10 @@ private:
   std::atomic<bool> searcherIsStarted_;
   std::atomic<bool> stopCommandReceived_;
   std::atomic<bool> breakReceiver_;
+
+  Book book_;
+
+  Random random_;
 
   std::mutex sendMutex_;
   std::mutex receiveMutex_;

@@ -30,6 +30,14 @@ const char Slash = '/';
 namespace sunfish {
 
 Directory::Directory(const char* directory) {
+  init(directory);
+}
+
+Directory::Directory(const std::string& directory) {
+  init(directory.c_str());
+}
+
+void Directory::init(const char* directory) {
   auto dlen = strlen(directory);
   if (directory[dlen-1] == Slash) {
     dlen--;

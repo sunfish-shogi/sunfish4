@@ -3,9 +3,11 @@
  * Kubo Ryosuke
  */
 
+#include "common/thread/ScopedThread.hpp"
 #include "csa/client/CsaClient.hpp"
 #include "core/record/CsaReader.hpp"
 #include "core/record/CsaWriter.hpp"
+#include "book/BookUtil.hpp"
 #include "common/resource/Resource.hpp"
 #include "common/string/StringUtil.hpp"
 #include "common/string/Wildcard.hpp"
@@ -14,7 +16,6 @@
 #include <fstream>
 #include <chrono>
 #include <utility>
-#include <thread>
 #include <sstream>
 
 namespace {
@@ -61,35 +62,6 @@ const Wildcard Jishogi("#JISHOGI");
 const Wildcard MaxMoves("#MAX_MOVES");
 const Wildcard Censored("#CENSORED");
 
-class ScopedThread {
-public:
-
-  ScopedThread() {
-  }
-
-  ~ScopedThread() {
-    if (thread_.joinable()) {
-      if (stop_) {
-        stop_();
-      }
-      thread_.join();
-    }
-  }
-
-  template <class T, class U>
-  void start(T&& proc,
-             U&& stop) {
-    thread_ = std::thread(proc);
-    stop_ = std::forward<U>(stop);
-  }
-
-private:
-
-  std::thread thread_;
-  std::function<void()> stop_;
-
-};
-
 } // namespace
 
 namespace sunfish {
@@ -102,6 +74,8 @@ bool CsaClient::start() {
   OUT(info) << "####################################################################";
   OUT(info) << "##                           CSA Client                           ##";
   OUT(info) << "####################################################################";
+
+  book_.load();
 
   readConfigFromIniFile();
   if (!validateConfig()) {
@@ -222,24 +196,9 @@ void CsaClient::play() {
     ScopedThread searchThread;
     bool isMyTurn = gameSummary_.myTurn == position_.getTurn();
     if (isMyTurn) {
-      // search
-      searcherIsStarted_ = false;
-      searchThread.start([this]() {
-        search();
-      }, [this]() {
-        searcher_.interrupt();
-      });
-      waitForSearcherIsStarted();
-
+      runSearch(searchThread);
     } else if (config_.ponder) {
-      // ponder
-      searcherIsStarted_ = false;
-      searchThread.start([this]() {
-        ponder();
-      }, [this]() {
-        searcher_.interrupt();
-      });
-      waitForSearcherIsStarted();
+      runPonder(searchThread);
     }
 
     if (!receive()) {
@@ -628,6 +587,25 @@ bool CsaClient::onMove() {
   return true;
 }
 
+void CsaClient::runSearch(ScopedThread& searchThread) {
+  // check opening book
+  Move bookMove = BookUtil::select(book_, position_, random_);
+  if (!bookMove.isNone()) {
+    OUT(info) << "opening book hit";
+    send(bookMove.toString(position_));
+    return;
+  }
+
+  // search
+  searcherIsStarted_ = false;
+  searchThread.start([this]() {
+    search();
+  }, [this]() {
+    searcher_.interrupt();
+  });
+  waitForSearcherIsStarted();
+}
+
 void CsaClient::search() {
   Turn turn = position_.getTurn();
   auto config = searcher_.getConfig();
@@ -678,6 +656,17 @@ void CsaClient::search() {
   }
 
   send(oss.str());
+}
+
+void CsaClient::runPonder(ScopedThread& searchThread) {
+  // ponder
+  searcherIsStarted_ = false;
+  searchThread.start([this]() {
+    ponder();
+  }, [this]() {
+    searcher_.interrupt();
+  });
+  waitForSearcherIsStarted();
 }
 
 void CsaClient::ponder() {

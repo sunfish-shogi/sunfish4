@@ -16,9 +16,6 @@ namespace sunfish {
 
 template <class GenType>
 class BaseRandom {
-private:
-  GenType rgen;
-
 public:
   BaseRandom() : rgen(static_cast<unsigned>(time(NULL))) {
   }
@@ -60,10 +57,33 @@ public:
     return dstBit(rgen);
   }
 
+  template <class T>
+  unsigned nonuniform(unsigned num, T&& weightFunc) {
+    uint64_t total = 0.0f;
+    for (unsigned i = 0; i < num; i++) {
+      total += weightFunc(i);
+    }
+
+    uint64_t r = int64(total);
+
+    for (unsigned i = 0; i < num - 1; i++) {
+      uint64_t w = weightFunc(i);
+      if (r < w) {
+        return i;
+      }
+      r -= w;
+    }
+    return num - 1;
+  }
+
   template <class Iterator>
   void shuffle(Iterator begin, Iterator end) {
     std::shuffle(begin, end, rgen);
   }
+
+private:
+  GenType rgen;
+
 };
 
 using Random = BaseRandom<std::mt19937>;

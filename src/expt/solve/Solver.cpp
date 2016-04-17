@@ -35,7 +35,7 @@ bool Solver::solve(const char* path) {
 #endif
 
   if (FileUtil::isDirectory(path)) {
-    // 'path' point to a directory
+    // 'path' points to a directory
     Directory directory(path);
     auto files = directory.files("*.csa");
     int n = 0;
@@ -48,7 +48,7 @@ bool Solver::solve(const char* path) {
     }
 
   } else if (FileUtil::isFile(path)) {
-    // 'path' point to a file
+    // 'path' points to a file
     if (!solveCsaFile(path)) {
       return false;
     }
