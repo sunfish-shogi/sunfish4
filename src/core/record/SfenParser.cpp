@@ -132,6 +132,11 @@ bool SfenParser::parseMove(const char* data, Move& move) {
     return false;
   }
 
+  if (strcmp(data, "none") == 0) {
+    move = Move::none();
+    return true;
+  }
+
   if (isdigit(data[0])) {
     Square from = Square::parseSFEN(&data[0]);
     Square to = Square::parseSFEN(&data[2]);

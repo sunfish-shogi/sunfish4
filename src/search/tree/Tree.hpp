@@ -39,13 +39,13 @@ void initializeTree(Tree& tree,
 inline
 bool hasKiller1(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
-  return !parentNode.killerMove1.isEmpty();
+  return !parentNode.killerMove1.isNone();
 }
 
 inline
 bool hasKiller2(const Tree& tree) {
   auto& parentNode = tree.nodes[tree.ply-1];
-  return !parentNode.killerMove2.isEmpty();
+  return !parentNode.killerMove2.isNone();
 }
 
 inline

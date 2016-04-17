@@ -76,6 +76,14 @@ TEST(SfenParserTest, parseMove) {
     ASSERT_EQ(true, ok);
     ASSERT_EQ(Move(PieceType::gold(), Square::s45()), move);
   }
+
+  {
+    const char* data = "none";
+    Move move;
+    bool ok = SfenParser::parseMove(data, move);
+    ASSERT_EQ(true, ok);
+    ASSERT_EQ(Move::none(), move);
+  }
 }
 
 TEST(SfenParserTest, parseUsiCommand) {

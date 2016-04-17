@@ -139,7 +139,7 @@ bool Solver::solve(const Position& position, Move correct) {
     result_.incorrected++;
   }
 
-  if (result.move.isEmpty() || result.score >= Score::mate() || result.score <= -Score::mate()) {
+  if (result.move.isNone() || result.score >= Score::mate() || result.score <= -Score::mate()) {
     result_.mate++;
   } else {
     result_.depthSum += result.depth;
@@ -149,7 +149,7 @@ bool Solver::solve(const Position& position, Move correct) {
 
   printSearchInfo(OUT(info), info, result.elapsed);
   OUT(info) << "";
-  OUT(info) << "answer : " << (result.move.isEmpty() ? "(empty)" : result.move.toString(position));
+  OUT(info) << "answer : " << result.move.toString(position);
   OUT(info) << "correct: " << correct.toString(position);
   OUT(info) << "result : " << (isCorrect ? "correct" : "incorrect");
   OUT(info) << "";

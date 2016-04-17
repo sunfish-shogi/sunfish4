@@ -102,6 +102,7 @@ TEST(MoveTest, testToString) {
     ASSERT_EQ("3736", Move(Square::s37(), Square::s36(), false).toString());
     ASSERT_EQ("2822+", Move(Square::s28(), Square::s22(), true).toString());
     ASSERT_EQ("63KE", Move(PieceType::knight(), Square::s63()).toString());
+    ASSERT_EQ("none", Move::none().toString());
   }
 
   {
@@ -131,6 +132,7 @@ TEST(MoveTest, testToStringCsa) {
     ASSERT_EQ("+3736FU", Move(Square::s37(), Square::s36(), false).toString(pos));
     ASSERT_EQ("+2822RY", Move(Square::s28(), Square::s22(), true).toString(pos));
     ASSERT_EQ("+0063KE", Move(PieceType::knight(), Square::s63()).toString(pos));
+    ASSERT_EQ("none", Move::none().toString(pos));
   }
 
   {
@@ -159,5 +161,6 @@ TEST(MoveTest, testToStringSFEN) {
     ASSERT_EQ("5a6b", Move(Square::s51(), Square::s62(), false).toStringSFEN());
     ASSERT_EQ("2h2b+", Move(Square::s28(), Square::s22(), true).toStringSFEN());
     ASSERT_EQ("B*6e", Move(PieceType::bishop(), Square::s65()).toStringSFEN());
+    ASSERT_EQ("none", Move::none().toStringSFEN());
   }
 }

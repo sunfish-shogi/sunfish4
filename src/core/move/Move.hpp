@@ -29,7 +29,7 @@ private:
   static CONSTEXPR_CONST RawType Promote  = 0x00004000;
   static CONSTEXPR_CONST RawType Drop     = 0x00008000;
   static CONSTEXPR_CONST RawType ExtMask  = 0xffff0000;
-  static CONSTEXPR_CONST RawType Empty    = 0x0000ffff;
+  static CONSTEXPR_CONST RawType None     = 0x0000ffff;
 
   static CONSTEXPR_CONST int FromOffset = 7;
   static CONSTEXPR_CONST int ExtOffset = 16;
@@ -64,17 +64,17 @@ public:
   }
 
   /**
-   * Get an object representing empty.
+   * Get an object representing none.
    */
-  static CONSTEXPR Move empty() {
-    return Move(Empty);
+  static CONSTEXPR Move none() {
+    return Move(None);
   }
 
   /**
-   * Check the current object is empty.
+   * Check the current object is none.
    */
-  bool CONSTEXPR isEmpty() const {
-    return move_ == Empty;
+  bool CONSTEXPR isNone() const {
+    return move_ == None;
   }
 
   /**

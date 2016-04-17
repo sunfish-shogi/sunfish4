@@ -70,11 +70,11 @@ void sortKiller(Node& node) {
 void addKiller(Tree& tree, Move move) {
   auto& node = tree.nodes[tree.ply-1];
 
-  if (node.killerMove1.isEmpty()) {
+  if (node.killerMove1.isNone()) {
     node.killerMove1 = move;
     node.killerCount1 = 0;
     node.killerCount2 -= 1;
-  } else if (node.killerMove2.isEmpty()) {
+  } else if (node.killerMove2.isNone()) {
     node.killerMove2 = move;
     node.killerCount2 = 0;
     node.killerCount1 -= 1;
@@ -135,7 +135,7 @@ void doNullMove(Tree& tree) {
 
   tree.position.doNullMove();
 
-  node.move = Move::empty();
+  node.move = Move::none();
   tree.ply++;
 
   auto& childNode = tree.nodes[tree.ply];

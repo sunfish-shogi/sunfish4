@@ -6,6 +6,10 @@
 namespace sunfish {
 
 std::string Move::toString() const {
+  if (isNone()) {
+    return "none";
+  }
+
   std::ostringstream oss;
 
   if (isDrop()) {
@@ -24,6 +28,10 @@ std::string Move::toString() const {
 }
 
 std::string Move::toString(const Position& position) const {
+  if (isNone()) {
+    return "none";
+  }
+
   std::ostringstream oss;
 
   Turn turn = position.getTurn();
@@ -51,6 +59,10 @@ std::string Move::toString(const Position& position) const {
 }
 
 std::string Move::toStringSFEN() const {
+  if (isNone()) {
+    return "none";
+  }
+
   std::ostringstream oss;
 
   if (isDrop()) {

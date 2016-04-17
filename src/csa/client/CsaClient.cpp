@@ -647,7 +647,7 @@ void CsaClient::search() {
                      &record_);
   auto& result = searcher_.getResult();
 
-  if (result.move.isEmpty()) {
+  if (result.move.isNone()) {
     send("%TORYO");
     return;
   }

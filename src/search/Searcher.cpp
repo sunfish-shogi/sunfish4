@@ -138,7 +138,7 @@ void Searcher::onSearchStarted() {
 
   interrupted_ = false;
 
-  result_.move = Move::empty();
+  result_.move = Move::none();
   result_.score = -Score::infinity();
   result_.pv.clear();
   result_.depth = 0;
@@ -186,14 +186,14 @@ void Searcher::search(const Position& pos,
 
   generateMoves<true>(tree);
 
-  Move bestMove = Move::empty();
+  Move bestMove = Move::none();
 
   bool isFirst = true;
 
   // expand the branches
   for (int moveCount = 0; ; moveCount++) {
     Move move = nextMove(tree);
-    if (move.isEmpty()) {
+    if (move.isNone()) {
       break;
     }
 
@@ -738,7 +738,7 @@ Score Searcher::search(Tree& tree,
                 score,
                 depth,
                 tree.ply,
-                Move::empty(),
+                Move::none(),
                 false);
       return score;
     }
@@ -749,7 +749,7 @@ Score Searcher::search(Tree& tree,
   }
 
   // recursive iterative deepening
-  if (node.hashMove.isEmpty() &&
+  if (node.hashMove.isNone() &&
       nodeStat.isRecursiveIDSearch() &&
       shouldRecursiveIDSearch(depth)) {
     int newDepth = recursiveIDSearchDepth(depth);
@@ -780,14 +780,14 @@ Score Searcher::search(Tree& tree,
 
   bool isFirst = true;
   bool improving = isImproving(tree, *evaluator_);
-  Move bestMove = Move::empty();
+  Move bestMove = Move::none();
 
   generateMoves<false>(tree);
 
   // expand branches
   for (int moveCount = 0; ; moveCount++) {
     Move move = nextMove(tree);
-    if (move.isEmpty()) {
+    if (move.isNone()) {
       break;
     }
 
@@ -962,7 +962,7 @@ Score Searcher::search(Tree& tree,
     isFirst = false;
   }
 
-  if (!bestMove.isEmpty() &&
+  if (!bestMove.isNone() &&
       !isCheck(node.checkState)) {
     // killer move
     addKiller(tree, bestMove);
@@ -1026,7 +1026,7 @@ Score Searcher::quies(Tree& tree,
   // expand the branches
   for (;;) {
     Move move = nextMoveOnQuies(node);
-    if (move.isEmpty()) {
+    if (move.isNone()) {
       break;
     }
 
@@ -1068,7 +1068,7 @@ void Searcher::generateMoves(Tree& tree) {
   node.moves.clear();
   node.moveIterator = node.moves.begin();
 
-  if (!node.hashMove.isEmpty()) {
+  if (!node.hashMove.isNone()) {
     node.moves.add(node.hashMove);
   }
 
@@ -1138,7 +1138,7 @@ Move Searcher::nextMove(Tree& tree) {
       break;
 
     case GenPhase::End:
-      return Move::empty();
+      return Move::none();
 
     }
   }
@@ -1187,7 +1187,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
 
 Move Searcher::nextMoveOnQuies(Node& node) {
   if (node.moveIterator == node.moves.end()) {
-    return Move::empty();
+    return Move::none();
   }
 
   return *(node.moveIterator++);
@@ -1213,7 +1213,7 @@ void Searcher::sortRootMoves(Tree& tree) {
 
   random_.shuffle(node.moves.begin(), node.moves.end());
 
-  Move ttMove = Move::empty();
+  Move ttMove = Move::none();
   TTElement tte;
   if (tt_.get(tree.position.getHash(), tte)) {
     ttMove = tte.move();
@@ -1278,7 +1278,7 @@ void Searcher::storePV(Tree& tree,
   }
 
   Move move = pv.getMove(ply);
-  if (move.isEmpty()) {
+  if (move.isNone()) {
     LOG(warning) << "the PV contain an invalid move.";
     return;
   }

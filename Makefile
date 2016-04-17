@@ -34,6 +34,7 @@ GROUP_PROF:=$(PROJ_ROOT)/tools/group_prof.pl
 HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
+.PHONY: all
 .PHONY: expt expt-prof
 .PHONY: test test-sse test-nosse
 .PHONY: bm
@@ -44,6 +45,7 @@ HAS_COV:=$(shell which $(COV))
 
 help:
 	@echo 'usage:'
+	@echo '  make all'
 	@echo '  make expt'
 	@echo '  make solve'
 	@echo '  make err'
@@ -52,11 +54,14 @@ help:
 	@echo '  make test'
 	@echo '  make bm'
 	@echo '  make ln'
+	@echo '  make csa'
 	@echo '  make usi'
 	@echo '  make usi-debug'
 	@echo '  make tools'
 	@echo '  make dev'
 	@echo '  make clean'
+
+all: test expt bm ln csa usi tools dev
 
 expt:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null

@@ -32,7 +32,7 @@ bool TTElement::update(Zobrist::Type newHash,
     w2_ &= TT_MOVE_MASK;
   } else {
     // overwrite
-    w2_ = Move::empty().serialize16() << TT_MOVE_SHIFT;
+    w2_ = Move::none().serialize16() << TT_MOVE_SHIFT;
   }
 
   // normalize the score
@@ -63,7 +63,7 @@ bool TTElement::update(Zobrist::Type newHash,
   w2_ |= static_cast<QuadWord>(scoreU16) << TT_SCORE_SHIFT;
   w2_ |= static_cast<QuadWord>(newScoreType) << TT_STYPE_SHIFT;
   w2_ |= static_cast<QuadWord>(newDepth) << TT_DEPTH_SHIFT;
-  if (!move.isEmpty()) {
+  if (!move.isNone()) {
     w2_ &= ~TT_MOVE_MASK;
     w2_ |= static_cast<QuadWord>(move.serialize16()) << TT_MOVE_SHIFT;
   }

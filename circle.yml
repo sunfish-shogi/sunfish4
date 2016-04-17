@@ -1,6 +1,6 @@
 test:
   override:
-    - make test
+    - make all
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/sunfish_test/
     - find out -name "test_result_*.xml" -exec cp {} $CIRCLE_TEST_REPORTS/sunfish_test/ \; 

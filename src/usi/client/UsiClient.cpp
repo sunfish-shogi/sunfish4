@@ -339,14 +339,14 @@ void UsiClient::search() {
 
   const auto& result = searcher_.getResult();
   const auto& info = searcher_.getInfo();
-  bool canPonder = !result.move.isEmpty() &&
+  bool canPonder = !result.move.isNone() &&
                    result.pv.size() >= 2;
 
   // send the result of search
   if (canPonder) {
     send("bestmove", result.move.toStringSFEN(),
            "ponder", result.pv.getMove(1).toStringSFEN());
-  } else if (!result.move.isEmpty()) {
+  } else if (!result.move.isNone()) {
     send("bestmove", result.move.toStringSFEN());
   } else {
     send("bestmove", "resign");
