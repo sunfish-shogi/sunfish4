@@ -118,8 +118,8 @@ bool Solver::solve(const Position& position, Move correct) {
   OUT(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
-  config.maximumMilliSeconds = config_.muximumTimeSeconds * 1000;
-  config.optimumMilliSeconds = config_.muximumTimeSeconds * 1000;
+  config.maximumTimeMs = config_.muximumTimeSeconds * 1000;
+  config.optimumTimeMs = config_.muximumTimeSeconds * 1000;
   searcher_.setConfig(config);
 
   int depth = config_.muximumDepth * Searcher::Depth1Ply;

@@ -34,7 +34,7 @@ public:
     int worker;
     int ponder;
     int hashMem;
-    int marginMSec;
+    int marginMs;
 
     int keepalive;
     int keepidle;

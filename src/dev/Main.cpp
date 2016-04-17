@@ -33,7 +33,9 @@ int main(int argc, char** argv, char**) {
     Loggers::info.addStream(std::cerr);
     Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
+#ifndef NDEBUG
     Loggers::debug.addStream(std::cerr, ESC_SEQ_COLOR_CYAN, ESC_SEQ_COLOR_RESET);
+#endif //NDEBUG
   }
 
   // invalid arguments

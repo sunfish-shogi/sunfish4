@@ -112,9 +112,9 @@ private:
 
   Record record_;
 
-  TimeType blackMilliSeconds_;
-  TimeType whiteMilliSeconds_;
-  TimeType byoyomiMilliSeconds_;
+  TimeType blackTimeMs_;
+  TimeType whiteTimeMs_;
+  TimeType byoyomiMs_;
   bool isInfinite_;
   bool inPonder_;
 

@@ -249,29 +249,29 @@ bool UsiClient::receiveGo() {
 }
 
 bool UsiClient::runSearch(const CommandArguments& args) {
-  blackMilliSeconds_ = 0;
-  whiteMilliSeconds_ = 0;
-  byoyomiMilliSeconds_ = 0;
+  blackTimeMs_ = 0;
+  whiteTimeMs_ = 0;
+  byoyomiMs_ = 0;
   isInfinite_ = false;
 
   for (size_t i = 1; i < args.size(); i++) {
     if (args[i] == "btime") {
-      blackMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
+      blackTimeMs_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "wtime") {
-      whiteMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
+      whiteTimeMs_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "byoyomi") {
-      byoyomiMilliSeconds_ = strtol(args[++i].c_str(), nullptr, 10);
+      byoyomiMs_ = strtol(args[++i].c_str(), nullptr, 10);
 
     } else if (args[i] == "infinite") {
       isInfinite_ = true;
     }
   }
 
-  OUT(info) << "btime    : " << blackMilliSeconds_;
-  OUT(info) << "wtime    : " << whiteMilliSeconds_;
-  OUT(info) << "byoyomi  : " << byoyomiMilliSeconds_;
+  OUT(info) << "btime    : " << blackTimeMs_;
+  OUT(info) << "wtime    : " << whiteTimeMs_;
+  OUT(info) << "byoyomi  : " << byoyomiMs_;
   OUT(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
 
   searcherIsStarted_ = false;
@@ -312,20 +312,20 @@ void UsiClient::search() {
   auto config = searcher_.getConfig();
 
   if (isInfinite_) {
-    config.maximumMilliSeconds = SearchConfig::InfinityTime;
-    config.optimumMilliSeconds = SearchConfig::InfinityTime;
+    config.maximumTimeMs = SearchConfig::InfinityTime;
+    config.optimumTimeMs = SearchConfig::InfinityTime;
   } else {
     bool isBlack = pos.getTurn() == Turn::Black;
-    TimeType maximumMilliSeconds = isBlack ?  blackMilliSeconds_ : whiteMilliSeconds_;
-    maximumMilliSeconds += byoyomiMilliSeconds_;
-    maximumMilliSeconds -= 500; // TODO: use setoption
+    TimeType maximumTimeMs = isBlack ?  blackTimeMs_ : whiteTimeMs_;
+    maximumTimeMs += byoyomiMs_;
+    maximumTimeMs -= 500; // TODO: use setoption
     // TODO
 #if 0
-    config.maximumMilliSeconds = maximumMilliSeconds;
-    config.optimumMilliSeconds = maximumMilliSeconds / 5; // TODO
+    config.maximumTimeMs = maximumTimeMs;
+    config.optimumTimeMs = maximumTimeMs / 5; // TODO
 #else
-    config.maximumMilliSeconds = std::min(8000u, maximumMilliSeconds);
-    config.optimumMilliSeconds = std::min(8000u, maximumMilliSeconds / 5); // TODO
+    config.maximumTimeMs = std::min(8000u, maximumTimeMs);
+    config.optimumTimeMs = std::min(8000u, maximumTimeMs / 5); // TODO
 #endif
   }
 
@@ -408,8 +408,8 @@ void UsiClient::ponder() {
   auto pos = generatePosition(record_, -1);
   auto config = searcher_.getConfig();
 
-  config.maximumMilliSeconds = SearchConfig::InfinityTime;
-  config.optimumMilliSeconds = SearchConfig::InfinityTime;
+  config.maximumTimeMs = SearchConfig::InfinityTime;
+  config.optimumTimeMs = SearchConfig::InfinityTime;
 
   searcher_.setConfig(config);
 
@@ -446,7 +446,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
 
   auto& info = searcher.getInfo();
 
-  auto timeMilliSeconds = static_cast<uint32_t>(elapsed * 1e3);
+  auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
   auto realDepth = depth / Searcher::Depth1Ply;
   auto totalNodes = info.nodes + info.quiesNodes;
   auto nps = static_cast<uint32_t>(totalNodes / elapsed);
@@ -468,13 +468,13 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
 
   OUT(info) << std::setw(2) << realDepth << ": "
             << std::setw(10) << (info.nodes + info.quiesNodes) << ": "
-            << std::setw(7) << timeMilliSeconds << ' '
+            << std::setw(7) << timeMs << ' '
             << pv.toString() << ": "
             << score;
 
   if (!inPonder_) {
     send("info",
-         "time", timeMilliSeconds,
+         "time", timeMs,
          "depth", realDepth,
          "nodes", totalNodes,
          "nps", nps,
