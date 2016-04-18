@@ -19,9 +19,9 @@ std::string LoggerUtil::getIso8601() {
 #else
   gmtime_r(&t, &m);
 #endif
-  std::string buf(22, '\0');
-  std::strftime(&buf[0], 22, "%FT%TZ ", &m);
-  return buf;
+  char buf[22];
+  std::strftime(&buf[0], sizeof(buf), "%FT%TZ ", &m);
+  return std::string(buf);
 }
 
 std::mutex Logger::mutex_;
