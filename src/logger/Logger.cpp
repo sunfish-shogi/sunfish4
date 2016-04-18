@@ -7,13 +7,11 @@
 #include "common/Def.hpp"
 #include <chrono>
 #include <ctime>
-#include <cassert>
 
 namespace sunfish {
 
-const char* LoggerUtil::getIso8601() {
+std::string LoggerUtil::getIso8601() {
   using namespace std::chrono;
-  THREAD_LOCAL char buf[22];
   std::time_t t = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   std::tm m;
 #ifdef WIN32
@@ -21,7 +19,8 @@ const char* LoggerUtil::getIso8601() {
 #else
   gmtime_r(&t, &m);
 #endif
-  std::strftime(buf, sizeof(buf), "%FT%TZ ", &m);
+  std::string buf(22, '\0');
+  std::strftime(&buf[0], 22, "%FT%TZ ", &m);
   return buf;
 }
 

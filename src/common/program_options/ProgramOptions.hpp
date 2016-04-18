@@ -59,11 +59,11 @@ public:
   ProgramOptions(ProgramOptions&&) = delete;
 
   void addOption(const char* key, const char* description, bool arg = false) {
-    options_.push_back(std::move(Option{ key, "", description, arg, false, "" }));
+    options_.push_back(Option{ key, "", description, arg, false, "" });
   }
 
   void addOption(const char* key, const char* shortKey, const char* description, bool arg = false) {
-    options_.push_back(std::move(Option{ key, shortKey, description, arg, false, "" }));
+    options_.push_back(Option{ key, shortKey, description, arg, false, "" });
   }
 
   void parse(int argc, char** argv) {

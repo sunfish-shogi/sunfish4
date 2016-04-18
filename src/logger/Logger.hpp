@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 #include <ctime>
 #include <mutex>
 #include <memory>
@@ -26,7 +27,7 @@ private:
 
 public:
 
-  static const char* getIso8601();
+  static std::string getIso8601();
 
 };
 
