@@ -161,7 +161,7 @@ bool BatchLearning::iterate() {
 
     OUT(info) << "writing to file..";
 
-    evaluator_->writeEvalBin(*fv_);
+    save(*fv_);
 
     OUT(info) << "";
     OUT(info) << "loss = " << lossFirst << " - " << lossLast;

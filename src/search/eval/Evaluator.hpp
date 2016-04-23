@@ -39,14 +39,6 @@ public:
 
   void initializeZero();
 
-  bool read(const char* path);
-
-  static bool write(const char* path, const FVType& fv);
-
-  bool readEvalBin();
-
-  bool writeEvalBin(const FVType& fv) const;
-
   void onChanged();
 
   Score calculateMaterialScore(const Position& position) const;
@@ -78,6 +70,18 @@ private:
   OFVType ofv_;
 
 };
+
+bool load(const char* path, Evaluator::FVType& fv);
+
+bool load(Evaluator::FVType& fv);
+
+bool load(const char* path, Evaluator& eval);
+
+bool load(Evaluator& eval);
+
+bool save(const char* path, const Evaluator::FVType& fv);
+
+bool save(const Evaluator::FVType& fv);
 
 } // namespace sunfish
 

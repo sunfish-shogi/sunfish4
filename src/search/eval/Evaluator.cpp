@@ -37,7 +37,7 @@ std::shared_ptr<Evaluator> Evaluator::sharedEvaluator() {
 Evaluator::Evaluator(InitType type) {
   switch (type) {
   case InitType::EvalBin:
-    if (!readEvalBin()) {
+    if (!load(*this)) {
       initializeZero();
     }
     break;
@@ -51,44 +51,6 @@ Evaluator::Evaluator(InitType type) {
 void Evaluator::initializeZero() {
   memset(reinterpret_cast<void*>(&ofv_), 0, sizeof(ofv_));
   onChanged();
-}
-
-bool Evaluator::read(const char* path) {
-  std::ifstream file(path, std::ios::in | std::ios::binary);
-  if (!file) {
-    return false;
-  }
-
-  auto fv = std::unique_ptr<FVType>(new FVType);
-  file.read(reinterpret_cast<char*>(fv.get()), sizeof(FVType));
-  optimize(*fv, ofv_);
-
-  file.close();
-
-  onChanged();
-
-  return true;
-}
-
-bool Evaluator::write(const char* path, const FVType& fv) {
-  std::ofstream file(path, std::ios::out | std::ios::binary);
-  if (!file) {
-    return false;
-  }
-
-  file.write(reinterpret_cast<const char*>(&fv), sizeof(FVType));
-
-  file.close();
-
-  return true;
-}
-
-bool Evaluator::readEvalBin() {
-  return read(EvalBin);
-}
-
-bool Evaluator::writeEvalBin(const FVType& fv) const {
-  return write(EvalBin, fv);
 }
 
 void Evaluator::onChanged() {
@@ -202,5 +164,50 @@ Score Evaluator::estimateScore(Score score,
   return score;
 }
 
+bool load(const char* path, Evaluator::FVType& fv) {
+  std::ifstream file(path, std::ios::in | std::ios::binary);
+  if (!file) {
+    return false;
+  }
+
+  file.read(reinterpret_cast<char*>(&fv), sizeof(Evaluator::FVType));
+
+  file.close();
+
+  return true;
+}
+
+bool load(Evaluator::FVType& fv) {
+  return load(EvalBin, fv);
+}
+
+bool load(const char* path, Evaluator& eval) {
+  auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
+  load(path, *fv.get());
+  optimize(*fv, eval.ofv());
+  eval.onChanged();
+  return true;
+}
+
+bool load(Evaluator& eval) {
+  return load(EvalBin, eval);
+}
+
+bool save(const char* path, const Evaluator::FVType& fv) {
+  std::ofstream file(path, std::ios::out | std::ios::binary);
+  if (!file) {
+    return false;
+  }
+
+  file.write(reinterpret_cast<const char*>(&fv), sizeof(Evaluator::FVType));
+
+  file.close();
+
+  return true;
+}
+
+bool save(const Evaluator::FVType& fv) {
+  return save(EvalBin, fv);
+}
 
 } // namespace sunfish
