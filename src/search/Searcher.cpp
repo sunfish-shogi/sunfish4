@@ -375,12 +375,12 @@ bool Searcher::aspsearch(Tree& tree,
   Score prevScore = moveToScore(node.moves[0]);
   Score alphas[] = {
     prevScore - 128,
-    prevScore - 256,
+    prevScore - 512,
     -Score::infinity()
   };
   Score betas[] = {
     prevScore + 128,
-    prevScore + 256,
+    prevScore + 512,
     Score::infinity()
   };
   int alphaIndex = doAsp ? 0 : 2;
@@ -1015,9 +1015,14 @@ Score Searcher::quies(Tree& tree,
     return standPat;
   }
 
-  alpha = std::max(alpha, standPat);
-
   node.checkState = tree.position.getCheckState();
+
+  if (!isCheck(node.checkState) &&
+      Mate::mate1Ply(tree.position)) {
+    return Score::infinity() - tree.ply - 1;
+  }
+
+  alpha = std::max(alpha, standPat);
 
   generateMovesOnQuies(tree,
                        qply,
