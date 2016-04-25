@@ -200,6 +200,6 @@ public:
 
 } // namespace sunfish
 
-#define BB_EACH(square, bb) for (sunfish::Square square(bb.pickFirst()); square.isValid(); square = Square(bb.pickFirst()))
+#define BB_EACH(square, bb) for (sunfish::Square square(bb.pickForward()); square.isValid(); square = Square(bb.pickForward()))
 
 #endif // SUNFISH_CORE_POSITION_BITBOARD_HPP__

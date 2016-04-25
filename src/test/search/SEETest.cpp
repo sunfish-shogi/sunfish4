@@ -10,7 +10,7 @@
 
 using namespace sunfish;
 
-TEST(ScoreTest, testGenerateAttackers) {
+TEST(SEETest, testExtractAttackers) {
   {
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  * -OU *  *  *  * \n"
@@ -28,21 +28,13 @@ TEST(ScoreTest, testGenerateAttackers) {
     Square from = Square::s37();
     Square to = Square::s46();
 
-    SEE::Attackers ba;
-    SEE::Attackers wa;
-    std::tie(ba, wa) = SEE::generateAttackers(pos, from, to);
+    auto bb = SEE::extractAttackers(pos, from, to);
 
-    ASSERT_EQ(2, ba.num);
-    ASSERT_EQ(Score::zero()     , ba.list[0].prom);
-    ASSERT_EQ(material::BishopEx, ba.list[0].exch);
-    ASSERT_EQ(Score::zero()     , ba.list[1].prom);
-    ASSERT_EQ(material::DragonEx, ba.list[1].exch);
-
-    ASSERT_EQ(2, wa.num);
-    ASSERT_EQ(Score::zero()     , wa.list[0].prom);
-    ASSERT_EQ(material::KnightEx, wa.list[0].exch);
-    ASSERT_EQ(Score::zero()     , wa.list[1].prom);
-    ASSERT_EQ(material::GoldEx  , wa.list[1].exch);
+    ASSERT_EQ(4, bb.count());
+    ASSERT_TRUE(bb.check(Square::s19()));
+    ASSERT_TRUE(bb.check(Square::s43()));
+    ASSERT_TRUE(bb.check(Square::s34()));
+    ASSERT_TRUE(bb.check(Square::s56()));
   }
 
   {
@@ -62,27 +54,18 @@ TEST(ScoreTest, testGenerateAttackers) {
     Square from = Square::s86();
     Square to = Square::s75();
 
-    SEE::Attackers ba;
-    SEE::Attackers wa;
-    std::tie(ba, wa) = SEE::generateAttackers(pos, from, to);
+    auto bb = SEE::extractAttackers(pos, from, to);
 
-    ASSERT_EQ(3, ba.num);
-    ASSERT_EQ(Score::zero()     , ba.list[0].prom);
-    ASSERT_EQ(material::PawnEx  , ba.list[0].exch);
-    ASSERT_EQ(Score::zero()     , ba.list[1].prom);
-    ASSERT_EQ(material::KnightEx, ba.list[1].exch);
-    ASSERT_EQ(Score::zero()     , ba.list[2].prom);
-    ASSERT_EQ(material::RookEx  , ba.list[2].exch);
-
-    ASSERT_EQ(2, wa.num);
-    ASSERT_EQ(Score::zero()     , wa.list[0].prom);
-    ASSERT_EQ(material::LanceEx , wa.list[0].exch);
-    ASSERT_EQ(Score::zero()     , wa.list[1].prom);
-    ASSERT_EQ(material::BishopEx, wa.list[1].exch);
+    ASSERT_EQ(5, bb.count());
+    ASSERT_TRUE(bb.check(Square::s45()));
+    ASSERT_TRUE(bb.check(Square::s67()));
+    ASSERT_TRUE(bb.check(Square::s76()));
+    ASSERT_TRUE(bb.check(Square::s71()));
+    ASSERT_TRUE(bb.check(Square::s93()));
   }
 }
 
-TEST(ScoreTest, testCalculate) {
+TEST(SEETest, testCalculate) {
   {
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  *  *  * -OU *  *  *  * \n"
@@ -125,9 +108,86 @@ TEST(ScoreTest, testCalculate) {
             - material::SilverEx,
               SEE::calculate(pos, move));
   }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  * -KY *  *  * \n"
+      "P3 *  *  *  *  * -KY *  *  * \n"
+      "P4 *  *  *  *  * -FU *  *  * \n"
+      "P5 *  *  *  *  * +FU *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * +KY *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU+KY *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s45(), Square::s44(), false);
+    ASSERT_EQ(material::PawnEx,
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  * -KY *  *  * \n"
+      "P3 *  *  *  *  * -KY *  *  * \n"
+      "P4 *  *  *  *  * -FU *  *  * \n"
+      "P5 *  *  *  *  * +FU *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  * +KY *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s45(), Square::s44(), false);
+    ASSERT_EQ(Score::zero(),
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -TO * +NG+HI-HI * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s46(), Square::s56(), false);
+    ASSERT_EQ(-material::ProSilverEx,
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  * -TO * +NG+HI *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s46(), Square::s56(), false);
+    ASSERT_EQ(-material::ProSilverEx
+             + material::TokinEx,
+              SEE::calculate(pos, move));
+  }
 }
 
-TEST(ScoreTest, testSortMoves) {
+TEST(SEETest, testSortMoves) {
   {
     Position pos = PositionUtil::createPositionFromCsaString(
       "P1 *  * -GI * -OU *  *  *  * \n"
@@ -151,12 +211,10 @@ TEST(ScoreTest, testSortMoves) {
 
     SEE::sortMoves(pos, moves, moves.begin(), false);
 
-    ASSERT_EQ(5, moves.size());
+    ASSERT_EQ(3, moves.size());
     ASSERT_EQ(Move(Square::s74(), Square::s71(), true ), moves[0]);
     ASSERT_EQ(Move(Square::s85(), Square::s84(), false), moves[1]);
     ASSERT_EQ(Move(Square::s46(), Square::s45(), false), moves[2]);
-    ASSERT_EQ(Move(Square::s56(), Square::s45(), false), moves[3]);
-    ASSERT_EQ(Move(Square::s74(), Square::s84(), false), moves[4]);
   }
 
   {

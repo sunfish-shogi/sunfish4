@@ -307,15 +307,28 @@ public:
   }
 
   /**
+   * find the first set bit.
+   */
+  U findForward() const {
+    if (first()) {
+      return findForward(first()) - 1;
+    } else if (second()) {
+      return findForward(second()) + (Width1 - 1);
+    } else {
+      return InvalidOffset;
+    }
+  }
+
+  /**
    * Pick the first set bit.
    */
-  U pickFirst() {
+  U pickForward() {
     U offset;
     if (first()) {
-      offset = getFirst(first()) - 1;
+      offset = findForward(first()) - 1;
       unset1(offset);
     } else if (second()) {
-      offset = getFirst(second()) - 1;
+      offset = findForward(second()) - 1;
       unset2(offset);
       offset += Width1;
     } else {
@@ -437,7 +450,7 @@ protected:
     return bb_.u64[1];
   }
 
-  static U getFirst(uint64_t data) {
+  static U findForward(uint64_t data) {
 #if defined(WIN32) && !defined(__MINGW32__)
     unsigned long offset;
     return _BitScanForward64((DWORD*)&offset, data) ? (offset + 1) : 0;

@@ -10,7 +10,6 @@
 #include "core/move/Moves.hpp"
 #include "core/move/Move.hpp"
 #include "search/eval/Score.hpp"
-#include <utility>
 
 void test_method_ScoreTest_testGenerateAttackers();
 
@@ -20,16 +19,11 @@ class SEE {
 public:
 
   struct Attacker {
+    PieceType piece;
+    Square square;
     Score prom;
     Score exch;
   };
-
-  struct Attackers {
-    int num;
-    Attacker list[10];
-  };
-
-  using AttackerSet = std::tuple<Attackers, Attackers>;
 
   SEE() = delete;
 
@@ -41,20 +35,27 @@ public:
                         Moves::iterator begin,
                         bool excludeSmallCaptures);
 
+  static Bitboard extractAttackers(const Position& position,
+                                   Square from,
+                                   Square to);
+
+  static Bitboard extractShadowAttacker(const Position& position,
+                                        Bitboard bb,
+                                        Square from,
+                                        Square to);
+
 private:
 
-  static AttackerSet generateAttackers(const Position& position,
-                                       Square from,
-                                       Square to);
-
-  static Score search(const Attackers& ba,
-                      const Attackers& wa,
-                      int b,
-                      int w,
+  static Score search(const Position& position,
+                      Bitboard bb,
+                      Square to,
                       Score score,
                       Score materialScore);
 
-  friend void ::test_method_ScoreTest_testGenerateAttackers();
+  template <Turn turn>
+  static Attacker pickAttacker(const Position& position,
+                               Bitboard& bb,
+                               Square to);
 
 };
 

@@ -243,8 +243,8 @@ bool isPinned(const Position& pos, Square square) {
     bb = MoveTables::diagL45(bbRotatedL45, square) & occ;
   }
 
-  auto square1 = Square(bb.pickFirst());
-  auto square2 = Square(bb.pickFirst());
+  auto square1 = Square(bb.pickForward());
+  auto square2 = Square(bb.pickForward());
   if (!square1.isValid() || !square2.isValid()) {
     return false;
   }
