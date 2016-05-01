@@ -63,71 +63,71 @@ int getEvalPieceIndex(Piece piece);
 template <class T>
 struct FeatureVector {
   using Type = T;
-  using KingHandType = Type[Square::N][EvalHandIndex::End];
-  using KingPieceTypeR = Type[RelativeSquare::N][EvalPieceIndex::End];
-  using KingPieceTypeXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
-  using KingPieceTypeYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
-  using KingPieceType = Type[Square::N][Square::N][EvalPieceIndex::End];
-  using KingNeighborHandType = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
-  using KingNeighborPieceTypeR = Type[8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPieceTypeXR = Type[SQUARE_FILES][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPieceTypeYR = Type[SQUARE_RANKS][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPieceType = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
-  using KingOpenType = Type[Square::N][Square::N][8];
+  using KingHand = Type[Square::N][EvalHandIndex::End];
+  using KingPieceR = Type[RelativeSquare::N][EvalPieceIndex::End];
+  using KingPieceXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
+  using KingPieceYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
+  using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
+  using KingNeighborPieceR = Type[8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceXR = Type[SQUARE_FILES][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceYR = Type[SQUARE_RANKS][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
+  using KingOpen = Type[Square::N][Square::N][8];
 
-  KingHandType kingHand;
+  KingHand kingHand;
 
-  KingPieceTypeR kingPieceR;
-  KingPieceTypeXR kingPieceXR;
-  KingPieceTypeYR kingPieceYR;
-  KingPieceType kingPiece;
+  KingPieceR kingPieceR;
+  KingPieceXR kingPieceXR;
+  KingPieceYR kingPieceYR;
+  KingPiece kingPiece;
 
-  KingNeighborHandType kingNeighborHand;
+  KingNeighborHand kingNeighborHand;
 
-  KingNeighborPieceTypeR kingNeighborPieceR;
-  KingNeighborPieceTypeXR kingNeighborPieceXR;
-  KingNeighborPieceTypeYR kingNeighborPieceYR;
-  KingNeighborPieceType kingNeighborPiece;
+  KingNeighborPieceR kingNeighborPieceR;
+  KingNeighborPieceXR kingNeighborPieceXR;
+  KingNeighborPieceYR kingNeighborPieceYR;
+  KingNeighborPiece kingNeighborPiece;
 
-  KingOpenType kingBRookVer;
-  KingOpenType kingWRookVer;
-  KingOpenType kingBRookHor;
-  KingOpenType kingWRookHor;
-  KingOpenType kingBBishopDiagL45;
-  KingOpenType kingWBishopDiagL45;
-  KingOpenType kingBBishopDiagR45;
-  KingOpenType kingWBishopDiagR45;
-  KingOpenType kingBLance;
-  KingOpenType kingWLance;
+  KingOpen kingBRookVer;
+  KingOpen kingWRookVer;
+  KingOpen kingBRookHor;
+  KingOpen kingWRookHor;
+  KingOpen kingBBishopDiagL45;
+  KingOpen kingWBishopDiagL45;
+  KingOpen kingBBishopDiagR45;
+  KingOpen kingWBishopDiagR45;
+  KingOpen kingBLance;
+  KingOpen kingWLance;
 };
 
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingHandType = Type[Square::N][EvalHandIndex::End];
-  using KingPieceType = Type[Square::N][Square::N][EvalPieceIndex::End];
-  using KingNeighborHandType = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
-  using KingNeighborPieceType = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
-  using KingOpenType = Type[Square::N][Square::N][8];
+  using KingHand = Type[Square::N][EvalHandIndex::End];
+  using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
+  using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
+  using KingOpen = Type[Square::N][Square::N][8];
 
-  KingHandType kingHand;
+  KingHand kingHand;
 
-  KingPieceType kingPiece;
+  KingPiece kingPiece;
 
-  KingNeighborHandType kingNeighborHand;
+  KingNeighborHand kingNeighborHand;
 
-  KingNeighborPieceType kingNeighborPiece;
+  KingNeighborPiece kingNeighborPiece;
 
-  KingOpenType kingBRookVer;
-  KingOpenType kingWRookVer;
-  KingOpenType kingBRookHor;
-  KingOpenType kingWRookHor;
-  KingOpenType kingBBishopDiagL45;
-  KingOpenType kingWBishopDiagL45;
-  KingOpenType kingBBishopDiagR45;
-  KingOpenType kingWBishopDiagR45;
-  KingOpenType kingBLance;
-  KingOpenType kingWLance;
+  KingOpen kingBRookVer;
+  KingOpen kingWRookVer;
+  KingOpen kingBRookHor;
+  KingOpen kingWRookHor;
+  KingOpen kingBBishopDiagL45;
+  KingOpen kingWBishopDiagL45;
+  KingOpen kingBBishopDiagR45;
+  KingOpen kingWBishopDiagR45;
+  KingOpen kingBLance;
+  KingOpen kingWLance;
 };
 
 } // namespace sunfish
