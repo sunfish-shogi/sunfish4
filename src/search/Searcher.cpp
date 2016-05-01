@@ -65,7 +65,7 @@ void initializeReductionDepth() {
 }
 
 /**
- * Returns a value for reducing from the depth.
+ * Returns reducing depth.
  */
 int reductionDepth(int depth,
                    History::CountType hist,
@@ -77,7 +77,9 @@ int reductionDepth(int depth,
                        [isNullWindow ? 1: 0];
 }
 
-/** the maximum depth to perform futility pruning. */
+/**
+ * the maximum depth of futility pruning.
+ */
 CONSTEXPR_CONST int FutilityPruningMaxDepth = 9 * Searcher::Depth1Ply;
 
 Score FutilityPruningMargin[9][32];
@@ -85,14 +87,14 @@ Score FutilityPruningMargin[9][32];
 void initializeFutilityPruningMargin() {
   for (int depth = 0; depth < 9; depth++) {
     for (int count = 0; count < 32; count++) {
-      Score margin = 220 * std::log(2.0f * (depth + 1.0f)) / std::log(4.0f) - 32 * count;
-      FutilityPruningMargin[depth][count] = std::max(margin, Score(220));
+      Score margin = 400 * std::log(4.0f * (depth + 1.0f)) - 32 * count;
+      FutilityPruningMargin[depth][count] = std::max(margin, Score(320));
     }
   }
 }
 
 /**
- * Returns the margin for futility pruning.
+ * Returns the margin of futility pruning.
  */
 Score futilityPruningMargin(int depth,
                             int count) {
