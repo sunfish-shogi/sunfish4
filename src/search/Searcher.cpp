@@ -392,6 +392,10 @@ bool Searcher::aspsearch(Tree& tree,
 
   bool isFirst = true;
 
+  for (Moves::size_type i = 1; i < node.moves.size(); i++) {
+    setScoreToMove(node.moves[i], -Score::infinity());
+  }
+
   // expand branches
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Score alpha = std::max(alphas[alphaIndex], bestScore);
@@ -495,6 +499,8 @@ bool Searcher::aspsearch(Tree& tree,
       continue;
     }
 
+    setScoreToMove(node.moves[moveCount], score);
+
     // fail-high
     if (score >= beta && beta != Score::infinity()) {
       betaIndex++;
@@ -515,19 +521,14 @@ bool Searcher::aspsearch(Tree& tree,
       node.pv.set(move, depth, childNode.pv);
     }
 
-    // insertion
-    int i;
-    for (i = moveCount - 1; i >= 0; i--) {
-      if (moveToScore(node.moves[i]) >= score) { break; }
-      node.moves[i+1] = node.moves[i];
-    }
-    node.moves[i+1] = move;
-    setScoreToMove(node.moves[i+1], score);
-
     moveCount++;
 
     isFirst = false;
   }
+
+  std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
+    return moveToScore(lhs) > moveToScore(rhs);
+  });
 
   if (node.pv.size() != 0 && bestScore != -Score::infinity()) {
     storePV(tree,
