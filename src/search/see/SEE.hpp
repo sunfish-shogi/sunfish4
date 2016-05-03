@@ -33,6 +33,7 @@ public:
   static void sortMoves(const Position& position,
                         Moves& moves,
                         Moves::iterator begin,
+                        bool excludeNegative,
                         bool excludeSmallCaptures);
 
   static Bitboard extractAttackers(const Position& position,

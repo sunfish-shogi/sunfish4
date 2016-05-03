@@ -1125,7 +1125,8 @@ Move Searcher::nextMove(Tree& tree) {
       SEE::sortMoves(tree.position,
                      node.moves,
                      node.moveIterator,
-                     false /* excludeSmallCaptures */);
+                     false, /* excludeNegative */
+                     false  /* excludeSmallCaptures */);
       node.genPhase = GenPhase::NotCapturingMoves;
       break;
 
@@ -1186,6 +1187,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
     SEE::sortMoves(tree.position,
                    node.moves,
                    node.moveIterator,
+                   true, /* excludeNegative */
                    excludeSmallCaptures);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);

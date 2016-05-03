@@ -308,6 +308,7 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
 void SEE::sortMoves(const Position& position,
                     Moves& moves,
                     Moves::iterator begin,
+                    bool excludeNegative,
                     bool excludeSmallCaptures) {
   for (auto ite = begin; ite != moves.end(); ) {
     auto& move = *ite;
@@ -324,7 +325,7 @@ void SEE::sortMoves(const Position& position,
 
     Score score = calculate(position, move);
 
-    if (score < Score::zero()) {
+    if (excludeNegative && score < Score::zero()) {
       ite = moves.remove(ite);
       continue;
     }
