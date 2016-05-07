@@ -122,6 +122,8 @@ bool Solver::solve(const Position& position, Move correct) {
   config.optimumTimeMs = config_.muximumTimeSeconds * 1000;
   searcher_.setConfig(config);
 
+  searcher_.clean();
+
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
   searcher_.idsearch(position, depth);
 

@@ -99,6 +99,8 @@ bool UsiClient::ready() {
       return false;
     }
 
+    searcher_.clean();
+
     if (command.value == "isready") {
       send("readyok");
       return true;

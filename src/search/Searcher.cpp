@@ -135,6 +135,11 @@ Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
   handler_(nullptr) {
 }
 
+void Searcher::clean() {
+  tt_.clear();
+  history_.clear();
+}
+
 void Searcher::onSearchStarted() {
   timer_.start();
 

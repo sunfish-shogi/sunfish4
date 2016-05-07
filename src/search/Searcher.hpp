@@ -43,6 +43,8 @@ public:
 
   Searcher(std::shared_ptr<Evaluator> evaluator);
 
+  void clean();
+
   void search(const Position& pos,
               int depth,
               Record* record = nullptr) {

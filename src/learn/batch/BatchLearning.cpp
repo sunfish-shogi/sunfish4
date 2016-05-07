@@ -245,6 +245,8 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
   CsaReader::read(file, record);
   file.close();
 
+  th.searcher->clean();
+
   Position pos = record.initialPosition;
   for (const auto& move : record.moveList) {
     generateTrainingData(th, pos, move);

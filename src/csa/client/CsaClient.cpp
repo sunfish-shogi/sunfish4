@@ -154,6 +154,9 @@ void CsaClient::playOnRepeat() {
 }
 
 void CsaClient::play() {
+
+  searcher_.clean();
+
   // connect to the CSA server
   Socket::AutoDisconnector ad(socket_);
   socket_.setHost(config_.host);
