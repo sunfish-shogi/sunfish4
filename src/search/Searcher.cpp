@@ -87,8 +87,8 @@ Score FutilityPruningMargin[9][32];
 void initializeFutilityPruningMargin() {
   for (int depth = 0; depth < 9; depth++) {
     for (int count = 0; count < 32; count++) {
-      Score margin = 400 * std::log(4.0f * (depth + 1.0f)) - 32 * count;
-      FutilityPruningMargin[depth][count] = std::max(margin, Score(320));
+      Score margin = 150 * std::log(3.0f * (depth + 1.0f)) - 32 * count;
+      FutilityPruningMargin[depth][count] = std::max(margin, Score(120));
     }
   }
 }
@@ -244,8 +244,10 @@ void Searcher::search(const Position& pos,
                       newNodeStat);
 
 #if ENABLE_ERR_RATE
-      if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
-        if (-search(tree,
+      if (EC_SHOULD(LMR, newDepth)) {
+        if (reduced == 0 ||
+            score > alpha ||
+            -search(tree,
                     newDepth + reduced,
                     -(alpha + 1),
                     -alpha,
@@ -452,8 +454,10 @@ bool Searcher::aspsearch(Tree& tree,
                       newNodeStat);
 
 #if ENABLE_ERR_RATE
-      if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
-        if (-search(tree,
+      if (EC_SHOULD(LMR, newDepth)) {
+        if (reduced == 0 ||
+            score > alpha ||
+            -search(tree,
                     newDepth + reduced,
                     -(alpha + 1),
                     -alpha,
@@ -681,6 +685,11 @@ Score Searcher::search(Tree& tree,
 #endif // ENABLE_ERR_RATE
       return beta;
     }
+#if ENABLE_ERR_RATE
+    if (EC_SHOULD(futilityPruning, depth)) {
+      EC_SUCCESS(futilityPruning, depth);
+    }
+#endif // ENABLE_ERR_RATE
 
     if (!shouldRecursiveIDSearch(depth) ||
         ttDepth >= recursiveIDSearchDepth(depth)) {
@@ -860,6 +869,13 @@ Score Searcher::search(Tree& tree,
         continue;
       }
     }
+#if ENABLE_ERR_RATE
+    if (EC_SHOULD(futilityPruning, depth) &&
+        doMove(tree, move, *evaluator_)) {
+      EC_SUCCESS(futilityPruning, newDepth);
+      undoMove(tree);
+    }
+#endif // ENABLE_ERR_RATE
 
     // prune negative SEE moves
     if (!currentMoveIsCheck &&
@@ -894,8 +910,10 @@ Score Searcher::search(Tree& tree,
                       newNodeStat);
 
 #if ENABLE_ERR_RATE
-      if (score <= alpha && EC_SHOULD(LMR, newDepth)) {
-        if (-search(tree,
+      if (EC_SHOULD(LMR, newDepth)) {
+        if (reduced == 0 ||
+            score > alpha ||
+            -search(tree,
                     newDepth + reduced,
                     -(alpha + 1),
                     -alpha,

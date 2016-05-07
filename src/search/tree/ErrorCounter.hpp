@@ -9,7 +9,7 @@
 #include <cstdint>
 
 #define EC_DEPTH                64
-#define EC_NUM_SAMPLE           10
+#define EC_NUM_SAMPLE           1000
 
 #define EC_SHOULD(type, depth)  ( \
     g_ecs.type.succ[std::max(std::min(depth, EC_DEPTH-1), 0)] \
