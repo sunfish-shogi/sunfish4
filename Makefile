@@ -35,9 +35,12 @@ HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
 .PHONY: all
-.PHONY: expt expt-prof
+.PHONY: expt solve expt-measure measure
+.PHONY: expt-prof prof prof1
 .PHONY: test test-sse test-nosse
 .PHONY: bm
+.PHONY: ln
+.PHONY: csa
 .PHONY: usi usi-debug
 .PHONY: tools
 .PHONY: dev
@@ -48,7 +51,7 @@ help:
 	@echo '  make all'
 	@echo '  make expt'
 	@echo '  make solve'
-	@echo '  make err'
+	@echo '  make measure'
 	@echo '  make prof'
 	@echo '  make prof1'
 	@echo '  make test'
@@ -71,17 +74,17 @@ expt:
 
 solve:
 	$(MAKE) expt
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 5 --depth 18
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 1 --depth 18
 
-expt-err:
+expt-measure:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_ERR_RATE=ON $(PROJ_ROOT)/src/expt
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_MEASUREMENT=ON $(PROJ_ROOT)/src/expt
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
 
-err:
-	$(MAKE) expt-err
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 5 --depth 18
+measure:
+	$(MAKE) expt-measure
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 1 --depth 18
 
 expt-prof:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
@@ -181,4 +184,11 @@ dev:
 
 clean:
 	$(RM) -r $(BUILD_DIR)
-	$(RM) $(SUNFISH_EXPT) $(SUNFISH_TEST) $(SUNFISH_BM) $(SUNFISH_LN) $(SUNFISH_USI) $(SUNFISH_DEV)
+	$(RM) $(SUNFISH_EXPT) \
+		$(SUNFISH_TEST) \
+		$(SUNFISH_BM) \
+		$(SUNFISH_LN) \
+		$(SUNFISH_CSA) \
+		$(SUNFISH_USI) \
+		$(SUNFISH_TOOLS) \
+		$(SUNFISH_DEV)

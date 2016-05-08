@@ -7,7 +7,7 @@
 #include "search/see/SEE.hpp"
 #include "search/mate/Mate.hpp"
 #include "search/eval/Evaluator.hpp"
-#include "search/tree/ErrorCounter.hpp"
+#include "search/tree/Measure.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
@@ -57,7 +57,7 @@ uint8_t ReductionDepth[32][2][2];
 void initializeReductionDepth() {
   for (int hist = 0; hist < 32; hist++) {
     float r = std::pow(1.0f - hist/32.0f, 2.2f) * Searcher::Depth1Ply;
-    ReductionDepth[hist][0][0] = r * 1.0f;
+    ReductionDepth[hist][0][0] = r * 0.8f;
     ReductionDepth[hist][0][1] = r * 1.6f;
     ReductionDepth[hist][1][0] = r * 1.8f;
     ReductionDepth[hist][1][1] = r * 2.4f;
@@ -243,21 +243,24 @@ void Searcher::search(const Position& pos,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_RATE
-      if (EC_SHOULD(LMR, newDepth)) {
-        if (reduced == 0 ||
-            score > alpha ||
-            -search(tree,
-                    newDepth + reduced,
-                    -(alpha + 1),
-                    -alpha,
-                    newNodeStat) <= alpha) {
-          EC_SUCCESS(LMR, newDepth);
+#if ENABLE_MEASUREMENT
+      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
+        auto realScore = -search(tree,
+                                 newDepth + reduced,
+                                 -(alpha + 1),
+                                 -alpha,
+                                 newNodeStat);
+        if (score <= alpha && realScore <= alpha) {
+          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+        } else if (score <= alpha && realScore > alpha) {
+          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+        } else if (score > alpha && realScore > alpha) {
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
         } else {
-          EC_ERROR(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_RATE
+#endif // ENABLE_MEASUREMENT
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -453,21 +456,24 @@ bool Searcher::aspsearch(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_RATE
-      if (EC_SHOULD(LMR, newDepth)) {
-        if (reduced == 0 ||
-            score > alpha ||
-            -search(tree,
-                    newDepth + reduced,
-                    -(alpha + 1),
-                    -alpha,
-                    newNodeStat) <= alpha) {
-          EC_SUCCESS(LMR, newDepth);
+#if ENABLE_MEASUREMENT
+      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
+        auto realScore = -search(tree,
+                                 newDepth + reduced,
+                                 -(alpha + 1),
+                                 -alpha,
+                                 newNodeStat);
+        if (score <= alpha && realScore <= alpha) {
+          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+        } else if (score <= alpha && realScore > alpha) {
+          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+        } else if (score > alpha && realScore > alpha) {
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
         } else {
-          EC_ERROR(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_RATE
+#endif // ENABLE_MEASUREMENT
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -674,22 +680,8 @@ Score Searcher::search(Tree& tree,
         !isCheck(tree.nodes[tree.ply-1].checkState) &&
         depth < FutilityPruningMaxDepth &&
         ttScore >= beta + futilityPruningMargin(depth, 0)) {
-#if ENABLE_ERR_RATE
-      if (EC_SHOULD(futilityPruning, depth)) {
-        if (search(tree, depth, alpha, beta, nodeStat.unsetHashCut()) >= beta) {
-          EC_SUCCESS(futilityPruning, depth);
-        } else {
-          EC_ERROR(futilityPruning, depth);
-        }
-      }
-#endif // ENABLE_ERR_RATE
       return beta;
     }
-#if ENABLE_ERR_RATE
-    if (EC_SHOULD(futilityPruning, depth)) {
-      EC_SUCCESS(futilityPruning, depth);
-    }
-#endif // ENABLE_ERR_RATE
 
     if (!shouldRecursiveIDSearch(depth) ||
         ttDepth >= recursiveIDSearchDepth(depth)) {
@@ -855,27 +847,29 @@ Score Searcher::search(Tree& tree,
       if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
         isFirst = false;
         worker.info.futilityPruning++;
-#if ENABLE_ERR_RATE
-        if (EC_SHOULD(futilityPruning, depth) &&
-            doMove(tree, move, *evaluator_)) {
+#if ENABLE_MEASUREMENT
+        if (MEASURE_SHOULD(futilityPruning, depth) && doMove(tree, move, *evaluator_)) {
           if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
-            EC_SUCCESS(futilityPruning, newDepth);
+            MEASURE_TRUE_POSITIVE(futilityPruning, newDepth);
           } else {
-            EC_ERROR(futilityPruning, newDepth);
+            MEASURE_FALSE_POSITIVE(futilityPruning, newDepth);
           }
           undoMove(tree);
         }
-#endif // ENABLE_ERR_RATE
+#endif // ENABLE_MEASUREMENT
         continue;
       }
     }
-#if ENABLE_ERR_RATE
-    if (EC_SHOULD(futilityPruning, depth) &&
-        doMove(tree, move, *evaluator_)) {
-      EC_SUCCESS(futilityPruning, newDepth);
+#if ENABLE_MEASUREMENT
+    if (MEASURE_SHOULD(futilityPruning, depth) && doMove(tree, move, *evaluator_)) {
+      if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
+        MEASURE_FALSE_NEGATIVE(futilityPruning, newDepth);
+      } else {
+        MEASURE_TRUE_NEGATIVE(futilityPruning, newDepth);
+      }
       undoMove(tree);
     }
-#endif // ENABLE_ERR_RATE
+#endif // ENABLE_MEASUREMENT
 
     // prune negative SEE moves
     if (!currentMoveIsCheck &&
@@ -909,21 +903,24 @@ Score Searcher::search(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-#if ENABLE_ERR_RATE
-      if (EC_SHOULD(LMR, newDepth)) {
-        if (reduced == 0 ||
-            score > alpha ||
-            -search(tree,
-                    newDepth + reduced,
-                    -(alpha + 1),
-                    -alpha,
-                    newNodeStat) <= alpha) {
-          EC_SUCCESS(LMR, newDepth);
+#if ENABLE_MEASUREMENT
+      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
+        auto realScore = -search(tree,
+                                 newDepth + reduced,
+                                 -(alpha + 1),
+                                 -alpha,
+                                 newNodeStat);
+        if (score <= alpha && realScore <= alpha) {
+          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+        } else if (score <= alpha && realScore > alpha) {
+          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+        } else if (score > alpha && realScore > alpha) {
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
         } else {
-          EC_ERROR(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
         }
       }
-#endif // ENABLE_ERR_RATE
+#endif // ENABLE_MEASUREMENT
 
       if (!isInterrupted() &&
           score > alpha &&

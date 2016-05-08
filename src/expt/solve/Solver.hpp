@@ -14,7 +14,7 @@
 
 namespace sunfish {
 
-class Solver {
+class Solver : LoggingSearchHandler {
 public:
 
   struct Config {
@@ -49,6 +49,8 @@ public:
     config_ = config;
   }
 
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
+
 private:
 
   bool solveCsaFile(const char* path);
@@ -57,10 +59,10 @@ private:
 
 private:
 
-  LoggingSearchHandler searchHandler_;
   Searcher searcher_;
   Config config_;
   Result result_;
+  Move correct_;
 
 };
 

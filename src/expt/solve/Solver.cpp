@@ -9,7 +9,7 @@
 #include "common/file_system/FileUtil.hpp"
 #include "common/string/StringUtil.hpp"
 #include "core/record/CsaReader.hpp"
-#include "search/tree/ErrorCounter.hpp"
+#include "search/tree/Measure.hpp"
 #include "logger/Logger.hpp"
 
 #include <fstream>
@@ -17,7 +17,7 @@
 namespace sunfish {
 
 Solver::Solver() {
-  searcher_.setHandler(&searchHandler_);
+  searcher_.setHandler(this);
   config_.muximumDepth = 18;
   config_.muximumTimeSeconds = 3;
 }
@@ -30,8 +30,8 @@ bool Solver::solve(const char* path) {
   result_.nodesSum = 0;
   result_.elapsedSum = 0.0;
 
-#if ENABLE_ERR_RATE
-  resetErrorCounts();
+#if ENABLE_MEASUREMENT
+  resetMeasurement();
 #endif
 
   if (FileUtil::isDirectory(path)) {
@@ -74,8 +74,8 @@ bool Solver::solve(const char* path) {
   OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
   OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected - result_.mate));
 
-#if ENABLE_ERR_RATE
-  printErrorRate();
+#if ENABLE_MEASUREMENT
+  printMeasurementResults();
 #endif
 
   return true;
@@ -125,10 +125,11 @@ bool Solver::solve(const Position& position, Move correct) {
   searcher_.clean();
 
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
+  correct_ = correct;
   searcher_.idsearch(position, depth);
 
-#if ENABLE_ERR_RATE
-  continueErrorCounts();
+#if ENABLE_MEASUREMENT
+  continueMeasurement();
 #endif
 
   auto& result = searcher_.getResult();
@@ -157,6 +158,13 @@ bool Solver::solve(const Position& position, Move correct) {
   OUT(info) << "";
 
   return true;
+}
+
+void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+  LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
+  if (pv.size() >= 1 && pv.getMove(0) == correct_) {
+    searcher_.interrupt();
+  }
 }
 
 } // namespace sunfish
