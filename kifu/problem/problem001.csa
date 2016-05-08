@@ -1,16 +1,14 @@
-V2.2
-$START_TIME:2015/12/23 16:22:28
-$END_TIME:2015/12/23 16:24:59
-P1-KY-KE *  * +TO *  * -KE-KY
-P2 * -OU-GI * +HI *  *  *  * 
-P3 * -FU-FU-FU * +UM *  *  * 
-P4-FU * -KI * +FU * +FU * -FU
-P5 *  *  *  *  * -FU *  *  * 
-P6 *  *  *  * -FU *  *  * +FU
-P7+FU+FU+FU-TO *  * +KE *  * 
-P8+KY+GI+KE-RY *  *  *  *  * 
-P9+OU+KI * -GI * +KI *  * +KY
-P+00KA00FU
-P-00KI00GI00FU00FU
+P1-KY-KE-GI *  *  *  *  * -KY
+P2 *  *  *  *  *  *  *  *  * 
+P3+GI-OU * -GI * -RY-KE *  * 
+P4 * +KA * -FU-FU * -FU-GI * 
+P5-FU+KI *  *  *  *  *  * -FU
+P6-UM *  *  *  *  * +FU+FU * 
+P7 *  *  *  * +FU * +KE+OU+FU
+P8-RY *  *  *  * -TO * +KY+KY
+P9 * +KE *  *  *  *  *  *  * 
+P+00KI
+P-00KI00KI
+P-00FU00FU00FU00FU00FU00FU00FU00FU
 +
-+0071KA
++8594KI
