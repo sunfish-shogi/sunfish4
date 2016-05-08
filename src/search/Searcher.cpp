@@ -732,8 +732,27 @@ Score Searcher::search(Tree& tree,
     Score score = -search(tree,
                           newDepth,
                           -beta,
-                          -alpha,
+                          -beta+1,
                           newNodeStat);
+
+#if ENABLE_MEASUREMENT
+    if (MEASURE_SHOULD(NullMovePruning, depth)) {
+      auto realScore = -search(tree,
+                               depth - Depth1Ply,
+                               -beta,
+                               -beta+1,
+                               newNodeStat);
+      if (score >= beta && realScore >= beta) {
+        MEASURE_TRUE_POSITIVE(NullMovePruning, newDepth);
+      } else if (score >= beta && realScore < beta) {
+        MEASURE_FALSE_POSITIVE(NullMovePruning, newDepth);
+      } else if (score < beta && realScore < beta) {
+        MEASURE_TRUE_NEGATIVE(NullMovePruning, newDepth);
+      } else {
+        MEASURE_FALSE_NEGATIVE(NullMovePruning, newDepth);
+      }
+    }
+#endif // ENABLE_MEASUREMENT
 
     undoNullMove(tree);
 
@@ -848,11 +867,11 @@ Score Searcher::search(Tree& tree,
         isFirst = false;
         worker.info.futilityPruning++;
 #if ENABLE_MEASUREMENT
-        if (MEASURE_SHOULD(futilityPruning, depth) && doMove(tree, move, *evaluator_)) {
+        if (MEASURE_SHOULD(FutilityPruning, depth) && doMove(tree, move, *evaluator_)) {
           if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
-            MEASURE_TRUE_POSITIVE(futilityPruning, newDepth);
+            MEASURE_TRUE_POSITIVE(FutilityPruning, newDepth);
           } else {
-            MEASURE_FALSE_POSITIVE(futilityPruning, newDepth);
+            MEASURE_FALSE_POSITIVE(FutilityPruning, newDepth);
           }
           undoMove(tree);
         }
@@ -861,11 +880,11 @@ Score Searcher::search(Tree& tree,
       }
     }
 #if ENABLE_MEASUREMENT
-    if (MEASURE_SHOULD(futilityPruning, depth) && doMove(tree, move, *evaluator_)) {
+    if (MEASURE_SHOULD(FutilityPruning, depth) && doMove(tree, move, *evaluator_)) {
       if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
-        MEASURE_FALSE_NEGATIVE(futilityPruning, newDepth);
+        MEASURE_FALSE_NEGATIVE(FutilityPruning, newDepth);
       } else {
-        MEASURE_TRUE_NEGATIVE(futilityPruning, newDepth);
+        MEASURE_TRUE_NEGATIVE(FutilityPruning, newDepth);
       }
       undoMove(tree);
     }

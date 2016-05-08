@@ -9,17 +9,17 @@
 #include <cstdint>
 
 #define MEASURE_DEPTH                8
-#define MEASURE_NUM_SAMPLE           1000
+#define MEASURE_NUM_SAMPLE           100
 
 #define MEASURE_SHOULD(type, depth)  ( \
-    g_mes.type.tp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
-  + g_mes.type.fp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
-  + g_mes.type.tn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
-  + g_mes.type.fn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] < MEASURE_NUM_SAMPLE)
-#define MEASURE_TRUE_POSITIVE(type, depth) (g_mes.type.tp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
-#define MEASURE_FALSE_POSITIVE(type, depth) (g_mes.type.fp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
-#define MEASURE_TRUE_NEGATIVE(type, depth) (g_mes.type.tn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
-#define MEASURE_FALSE_NEGATIVE(type, depth) (g_mes.type.fn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
+    g_mes.m ## type.tp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
+  + g_mes.m ## type.fp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
+  + g_mes.m ## type.tn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] \
+  + g_mes.m ## type.fn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)] < MEASURE_NUM_SAMPLE)
+#define MEASURE_TRUE_POSITIVE(type, depth) (g_mes.m ## type.tp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
+#define MEASURE_FALSE_POSITIVE(type, depth) (g_mes.m ## type.fp[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
+#define MEASURE_TRUE_NEGATIVE(type, depth) (g_mes.m ## type.tn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
+#define MEASURE_FALSE_NEGATIVE(type, depth) (g_mes.m ## type.fn[std::max(std::min(depth / Searcher::Depth1Ply, MEASURE_DEPTH-1), 0)]++)
 
 namespace sunfish {
 
@@ -33,8 +33,9 @@ struct Measurement {
 };
 
 struct Measurements {
-  Measurement futilityPruning;
-  Measurement LMR;
+  Measurement mFutilityPruning;
+  Measurement mLMR;
+  Measurement mNullMovePruning;
 };
 
 extern Measurements g_mes;

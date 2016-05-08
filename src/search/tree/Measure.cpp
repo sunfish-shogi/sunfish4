@@ -66,8 +66,9 @@ void printMeasurementResults() {
     }
   }
 
-  print("futility pruning", mes.futilityPruning);
-  print("LMR", mes.LMR);
+  print("futility pruning", mes.mFutilityPruning);
+  print("LMR", mes.mLMR);
+  print("null move pruning", mes.mNullMovePruning);
 #endif
 }
 
