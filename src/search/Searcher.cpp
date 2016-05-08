@@ -87,7 +87,7 @@ Score FutilityPruningMargin[9][32];
 void initializeFutilityPruningMargin() {
   for (int depth = 0; depth < 9; depth++) {
     for (int count = 0; count < 32; count++) {
-      Score margin = 150 * std::log(3.0f * (depth + 1.0f)) - 32 * count;
+      Score margin = 150 * std::log(4.0f * (depth + 1.0f)) - 32 * count;
       FutilityPruningMargin[depth][count] = std::max(margin, Score(120));
     }
   }
