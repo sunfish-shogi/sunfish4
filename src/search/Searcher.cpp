@@ -251,13 +251,13 @@ void Searcher::search(const Position& pos,
                                  -alpha,
                                  newNodeStat);
         if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
         } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
         } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
         } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
         }
       }
 #endif // ENABLE_MEASUREMENT
@@ -464,13 +464,13 @@ bool Searcher::aspsearch(Tree& tree,
                                  -alpha,
                                  newNodeStat);
         if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
         } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
         } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
         } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
         }
       }
 #endif // ENABLE_MEASUREMENT
@@ -743,13 +743,13 @@ Score Searcher::search(Tree& tree,
                                -beta+1,
                                newNodeStat);
       if (score >= beta && realScore >= beta) {
-        MEASURE_TRUE_POSITIVE(NullMovePruning, newDepth);
+        MEASURE_TRUE_POSITIVE(NullMovePruning, depth);
       } else if (score >= beta && realScore < beta) {
-        MEASURE_FALSE_POSITIVE(NullMovePruning, newDepth);
+        MEASURE_FALSE_POSITIVE(NullMovePruning, depth);
       } else if (score < beta && realScore < beta) {
-        MEASURE_TRUE_NEGATIVE(NullMovePruning, newDepth);
+        MEASURE_TRUE_NEGATIVE(NullMovePruning, depth);
       } else {
-        MEASURE_FALSE_NEGATIVE(NullMovePruning, newDepth);
+        MEASURE_FALSE_NEGATIVE(NullMovePruning, depth);
       }
     }
 #endif // ENABLE_MEASUREMENT
@@ -930,13 +930,13 @@ Score Searcher::search(Tree& tree,
                                  -alpha,
                                  newNodeStat);
         if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth);
+          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
         } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth);
+          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
         } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth);
+          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
         } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth);
+          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
         }
       }
 #endif // ENABLE_MEASUREMENT

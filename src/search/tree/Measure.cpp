@@ -49,6 +49,10 @@ void printMeasurementResults() {
         continue;
       }
 
+      if (tp == 0) {
+        continue;
+      }
+
       auto p = (float)tp / (tp + fp);
       auto r = (float)tp / (tp + fn);
       auto f = 2.0f * p * r / (p + r);
