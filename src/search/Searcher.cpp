@@ -198,7 +198,7 @@ void Searcher::search(const Position& pos,
   bool isFirst = true;
 
   // expand the branches
-  for (int moveCount = 0; ; moveCount++) {
+  for (;;) {
     Move move = nextMove(tree);
     if (move.isNone()) {
       break;
@@ -222,7 +222,6 @@ void Searcher::search(const Position& pos,
 
     bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
-      moveCount--;
       continue;
     }
 
