@@ -108,6 +108,8 @@ Directory::Files Directory::files(const char* wildcard) {
 #endif
   }
 
+  files.sort();
+
   return files;
 }
 
