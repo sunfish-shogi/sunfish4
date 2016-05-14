@@ -13,6 +13,7 @@
 #include "logger/Logger.hpp"
 
 #include <fstream>
+#include <cstdlib>
 
 namespace sunfish {
 
@@ -23,12 +24,7 @@ Solver::Solver() {
 }
 
 bool Solver::solve(const char* path) {
-  result_.corrected = 0;
-  result_.incorrected = 0;
-  result_.mate = 0;
-  result_.depthSum = 0;
-  result_.nodesSum = 0;
-  result_.elapsedSum = 0.0;
+  memset(&result_, 0, sizeof(Result));
 
 #if ENABLE_MEASUREMENT
   resetMeasurement();
@@ -66,13 +62,18 @@ bool Solver::solve(const char* path) {
   };
   auto total = result_.corrected + result_.incorrected;
   OUT(info) << "summary:";
-  OUT(info) << "  total    : " << total;
-  OUT(info) << "  correct  : " << result_.corrected
-                               << " (" << percentage(result_.corrected, total) << "%)";
-  OUT(info) << "  incorrect: " << result_.incorrected
-                               << " (" << percentage(result_.incorrected, total) << "%)";
-  OUT(info) << "  nps      : " << static_cast<uint64_t>(result_.nodesSum / result_.elapsedSum);
-  OUT(info) << "  depth    : " << (static_cast<float>(result_.depthSum) / Searcher::Depth1Ply / (result_.corrected + result_.incorrected - result_.mate));
+  OUT(info) << "  total     : " << total;
+  OUT(info) << "  correct   : " << result_.corrected
+                              << " (" << percentage(result_.corrected, total) << "%)";
+  OUT(info) << "  incorrect : " << result_.incorrected
+                              << " (" << percentage(result_.incorrected, total) << "%)";
+  OUT(info) << "  nps       : " << static_cast<uint64_t>(result_.nodes / result_.elapsed);
+  for (int i = 0; i < MaxDepthOfNodeCount; i++) {
+    if (result_.nodesEachDepth[i].sample != 0) {
+      OUT(info) << "  nodes " << std::setw(2) << (i+1) << "  : "
+        << (result_.nodesEachDepth[i].nodes / result_.nodesEachDepth[i].sample);
+    }
+  }
 
 #if ENABLE_MEASUREMENT
   printMeasurementResults();
@@ -145,9 +146,8 @@ bool Solver::solve(const Position& position, Move correct) {
   if (result.move.isNone() || result.score >= Score::mate() || result.score <= -Score::mate()) {
     result_.mate++;
   } else {
-    result_.depthSum += result.depth;
-    result_.nodesSum += info.nodes + info.quiesNodes;
-    result_.elapsedSum += result.elapsed;
+    result_.nodes += info.nodes + info.quiesNodes;
+    result_.elapsed += result.elapsed;
   }
 
   printSearchInfo(OUT(info), info, result.elapsed);
@@ -164,6 +164,15 @@ void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, i
   LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
   if (depth >= 5 && pv.size() >= 1 && pv.getMove(0) == correct_) {
     searcher_.interrupt();
+  }
+
+  auto& info = searcher.getInfo();
+  auto realDepth = depth / Searcher::Depth1Ply;
+  for (int i = 0; i < MaxDepthOfNodeCount; i++) {
+    if (realDepth == i + 1) {
+      result_.nodesEachDepth[i].nodes += info.nodes + info.quiesNodes;
+      result_.nodesEachDepth[i].sample++;
+    }
   }
 }
 

@@ -22,15 +22,20 @@ public:
     SearchConfig::TimeType muximumTimeSeconds;
   };
 
+  struct Nodes {
+    uint64_t nodes;
+    uint64_t sample;
+  };
+
+  static CONSTEXPR_CONST int MaxDepthOfNodeCount = 10;
+
   struct Result {
     unsigned corrected;
     unsigned incorrected;
-
     unsigned mate;
-
-    unsigned depthSum;
-    uint64_t nodesSum;
-    double elapsedSum;
+    uint64_t nodes;
+    double elapsed;
+    Nodes nodesEachDepth[MaxDepthOfNodeCount];
   };
 
   Solver();
