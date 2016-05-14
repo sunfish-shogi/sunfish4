@@ -162,7 +162,7 @@ bool Solver::solve(const Position& position, Move correct) {
 
 void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
-  if (pv.size() >= 1 && pv.getMove(0) == correct_) {
+  if (depth >= 5 && pv.size() >= 1 && pv.getMove(0) == correct_) {
     searcher_.interrupt();
   }
 }
