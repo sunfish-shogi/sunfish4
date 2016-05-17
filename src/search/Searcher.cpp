@@ -902,6 +902,7 @@ Score Searcher::search(Tree& tree,
 
     bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
+      node.moveIterator = node.moves.remove(node.moveIterator-1);
       moveCount--;
       continue;
     }
@@ -1009,7 +1010,7 @@ Score Searcher::search(Tree& tree,
     addKiller(tree, bestMove);
 
     // history heuristics
-    unsigned hval = std::max(depth * 2 / Depth1Ply, 1);
+    unsigned hval = std::max(depth * 8 / Depth1Ply, 1);
     for (auto& move : node.moves) {
       history_.add(tree.position.getTurn(),
                    move,
@@ -1147,10 +1148,10 @@ Move Searcher::nextMove(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
   for (;;) {
-    if (node.moveIterator != node.moves.end() &&
+    if (node.moveIterator != node.moves.end()/* &&
         // if the move has minus SEE value, carry foward it to NotCapturingMoves phase.
         (node.genPhase != GenPhase::NotCapturingMoves ||
-         moveToScore(*node.moveIterator) >= Score::zero())) {
+         moveToScore(*node.moveIterator) >= Score::zero())*/) {
       return *(node.moveIterator++);
     }
 
