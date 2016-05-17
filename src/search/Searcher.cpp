@@ -1288,16 +1288,8 @@ void Searcher::sortRootMoves(Tree& tree) {
                         -Score::infinity(),
                         Score::infinity());
 
-    if (tt_.get(tree.position.getHash(), tte)) {
-      auto ttScoreType = tte.scoreType();
-      auto ttScore = tte.score(1);
-      if (ttScoreType == TTScoreType::Exact) {
-        score = ttScore;
-      } else if (ttScoreType == TTScoreType::Lower) {
-        score = std::max(score, ttScore);
-      } else if (ttScoreType == TTScoreType::Upper) {
-        score = std::min(score, ttScore);
-      }
+    if (move.isPromotion()) {
+      score += 1;
     }
 
     setScoreToMove(node.moves[moveCount], -score);
