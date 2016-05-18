@@ -44,7 +44,7 @@ inline int recursiveIDSearchDepth(int depth) {
  * Calculate a depth of null move search.
  */
 inline int nullDepth(int depth) {
-  return depth <  Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
+  return depth <= Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
         (depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 :
                                                  depth - Searcher::Depth1Ply * 16 / 4); 
 }
@@ -718,11 +718,11 @@ Score Searcher::search(Tree& tree,
 
   // null move pruning
   if (isNullWindow &&
-      nodeStat.isNullMoveSearch() &&
-      !nodeStat.isMateThreat() &&
-      !isCheck(node.checkState) &&
+      depth >= Depth1Ply * 2 &&
       standPat >= beta &&
-      depth >= Depth1Ply * 2) {
+      nodeStat.isNullMoveSearch() &&
+      !isCheck(node.checkState) &&
+      !nodeStat.isMateThreat()) {
     int newDepth = nullDepth(depth);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch();
 
@@ -1206,7 +1206,6 @@ void Searcher::generateMovesOnQuies(Tree& tree,
 
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    bool excludeSmallCaptures = qply >= 7;
 
     // futility pruning
     for (auto ite = node.moveIterator; ite != node.moves.end(); ) {
@@ -1227,7 +1226,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                    node.moves,
                    node.moveIterator,
                    true, /* excludeNegative */
-                   excludeSmallCaptures);
+                   qply >= 6 /* excludeSmallCaptures */);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
     sortMovesOnHistory(tree);
