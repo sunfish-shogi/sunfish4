@@ -501,8 +501,8 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     // fail-low
-    if (score <= alphas[alphaIndex] && score >= bestScore) {
-      alphaIndex++;
+    if (score <= alphas[alphaIndex] && score >= bestScore && score > -Score::mate()) {
+      for (; score <= alphas[alphaIndex]; alphaIndex++) {}
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
@@ -517,7 +517,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     // fail-high
     if (score >= beta && beta != Score::infinity()) {
-      betaIndex++;
+      for (; score >= betas[betaIndex]; betaIndex++) {}
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
