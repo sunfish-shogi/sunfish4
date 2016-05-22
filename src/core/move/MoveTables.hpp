@@ -63,6 +63,9 @@ public:
   static const Bitboard& x(const Square& square) {
     return X[square.raw()];
   }
+  static const Bitboard& neighbor5x5(const Square& square) {
+    return Neighbor5x5[square.raw()];
+  }
   static const Bitboard& blackLance(const Bitboard& occ, const Square& square);
   static const Bitboard& whiteLance(const Bitboard& occ, const Square& square);
   static const Bitboard& ver(const Bitboard& occ, const Square& square);
@@ -86,6 +89,7 @@ private:
   static OneStepTableType King;
   static OneStepTableType Cross;
   static OneStepTableType X;
+  static OneStepTableType Neighbor5x5;
   static VerTableType BlackLance;
   static VerTableType WhiteLance;
   static VerTableType Ver;

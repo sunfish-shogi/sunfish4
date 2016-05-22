@@ -12,6 +12,8 @@
 
 namespace sunfish {
 
+class Position;
+
 namespace EvalHandIndex_ {
 enum Type {
   BPawn   = 0,
@@ -60,6 +62,15 @@ using EvalPieceIndex = EvalPieceIndex_::Type;
 
 int getEvalPieceIndex(Piece piece);
 
+enum {
+  MaxKingSafety = 8,
+  MinKingSafety = -7,
+  KingSafetyLen = MaxKingSafety - MinKingSafety + 1,
+};
+
+template <Turn turn>
+int safetyOfKing(const Position& pos);
+
 template <class T>
 struct FeatureVector {
   using Type = T;
@@ -74,6 +85,11 @@ struct FeatureVector {
   using KingNeighborPieceYR = Type[SQUARE_RANKS][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
   using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
+  using KingSafetyPieceR = Type[KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPieceXR = Type[SQUARE_FILES][KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPieceYR = Type[SQUARE_RANKS][KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
 
   KingHand kingHand;
 
@@ -99,6 +115,12 @@ struct FeatureVector {
   KingOpen kingWBishopDiagR45;
   KingOpen kingBLance;
   KingOpen kingWLance;
+
+  KingSafetyHand kingSafetyHand;
+  KingSafetyPieceR kingSafetyPieceR;
+  KingSafetyPieceXR kingSafetyPieceXR;
+  KingSafetyPieceYR kingSafetyPieceYR;
+  KingSafetyPiece kingSafetyPiece;
 };
 
 template <class T>
@@ -109,6 +131,8 @@ struct OptimizedFeatureVector {
   using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
   using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
+  using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
 
   KingHand kingHand;
 
@@ -128,6 +152,9 @@ struct OptimizedFeatureVector {
   KingOpen kingWBishopDiagR45;
   KingOpen kingBLance;
   KingOpen kingWLance;
+
+  KingSafetyHand kingSafetyHand;
+  KingSafetyPiece kingSafetyPiece;
 };
 
 } // namespace sunfish

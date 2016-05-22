@@ -49,7 +49,7 @@ void optimize(FV& fv, OFV& ofv) {
 
   FV_PART_COPY(ofv, fv, kingNeighborHand);
 
-  // kingNeighborPieceR, kingNeighborPiece
+  // kingNeighborPieceR, kingNeighborPieceXR, kingNeighborPieceYR, kingNeighborPiece
   //   => kingNeighborPiece
   SQUARE_EACH(king) {
     DIR_EACH_S(dir) {
@@ -78,6 +78,24 @@ void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingWBishopDiagR45);
   FV_PART_COPY(ofv, fv, kingBLance);
   FV_PART_COPY(ofv, fv, kingWLance);
+
+  FV_PART_COPY(ofv, fv, kingSafetyHand);
+
+  // kingSafetyPieceR, kingSafetyPieceXR, kingSafetyPieceYR, kingSafetyPiece
+  //   => kingSafetyPiece
+  SQUARE_EACH(king) {
+    for (int s = 0; s < KingSafetyLen; s++) {
+      SQUARE_EACH(square) {
+        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+          ofv.kingSafetyPiece[king.raw()][s][square.raw()][i2]
+            = fv.kingSafetyPiece[king.raw()][s][square.raw()][i2]
+            + fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i2]
+            + fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i2]
+            + fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i2];
+        }
+      }
+    }
+  }
 }
 
 template <class FV, class OFV>
@@ -136,6 +154,27 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingWBishopDiagR45);
   FV_PART_COPY(fv, ofv, kingBLance);
   FV_PART_COPY(fv, ofv, kingWLance);
+
+  FV_PART_COPY(fv, ofv, kingSafetyHand);
+
+  // kingSafetyPiece
+  //   => kingSafetyPieceR, kingSafetyPieceXR, kingSafetyPieceYR, kingSafetyPiece
+  FV_PART_ZERO(fv, kingSafetyPieceR);
+  FV_PART_ZERO(fv, kingSafetyPieceXR);
+  FV_PART_ZERO(fv, kingSafetyPieceYR);
+  SQUARE_EACH(king) {
+    for (int s = 0; s < KingSafetyLen; s++) {
+      SQUARE_EACH(square) {
+        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+          auto val = ofv.kingSafetyPiece[king.raw()][s][square.raw()][i2];
+          fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i2] += val;
+          fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i2] += val;
+          fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i2] += val;
+          fv.kingSafetyPiece[king.raw()][s][square.raw()][i2] = val;
+        }
+      }
+    }
+  }
 }
 
 template <class FV>
@@ -175,10 +214,35 @@ void symmetrize(FV& fv, T&& func) {
 
     if (rking != king) {
       for (int h = 0; h < EvalHandIndex::End; h++) {
-        // King Hand
         func(fv.kingHand[king.raw()][h],
              fv.kingHand[rking.raw()][h]);
       }
+    }
+
+    SQUARE_EACH(square) {
+      auto rsquare = square.hsym();
+      if (rking == king && rsquare.raw() <= square.raw()) {
+        continue;
+      }
+
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        func(fv.kingPieceR[RelativeSquare(king, square).raw()][i],
+             fv.kingPieceR[RelativeSquare(rking, rsquare).raw()][i]);
+        func(fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i],
+             fv.kingPieceXR[rking.getFile()-1][RelativeSquare(rking, rsquare).raw()][i]);
+        func(fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i],
+             fv.kingPieceYR[rking.getRank()-1][RelativeSquare(rking, rsquare).raw()][i]);
+        func(fv.kingPiece[king.raw()][square.raw()][i],
+             fv.kingPiece[rking.raw()][rsquare.raw()][i]);
+      }
+    }
+  }
+
+  // neighbor
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() < king.raw()) {
+      continue;
     }
 
     DIR_EACH_S(dir) {
@@ -190,7 +254,6 @@ void symmetrize(FV& fv, T&& func) {
 
       for (int i = 0; i < EvalPieceIndex::End; i++) {
         for (int h = 0; h < EvalHandIndex::End; h++) {
-          // King Neighbor Hand
           func(fv.kingNeighborHand[king.raw()][d][i][h],
                fv.kingNeighborHand[rking.raw()][rd][i][h]);
         }
@@ -212,7 +275,6 @@ void symmetrize(FV& fv, T&& func) {
 
         for (int i1 = 0; i1 < EvalPieceIndex::End; i1++) {
           for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-            // King Neighbor Piece
             func(fv.kingNeighborPieceR[d][i1][RelativeSquare(king, square).raw()][i2],
                  fv.kingNeighborPieceR[rd][i1][RelativeSquare(rking, rsquare).raw()][i2]);
             func(fv.kingNeighborPieceXR[king.getFile()-1][d][i1][RelativeSquare(king, square).raw()][i2],
@@ -224,22 +286,14 @@ void symmetrize(FV& fv, T&& func) {
           }
         }
       }
+    }
+  }
 
-      if (rking == king && rsquare.raw() == square.raw()) {
-        continue;
-      }
-
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        // King Piece
-        func(fv.kingPieceR[RelativeSquare(king, square).raw()][i],
-             fv.kingPieceR[RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i],
-             fv.kingPieceXR[rking.getFile()-1][RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i],
-             fv.kingPieceYR[rking.getRank()-1][RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPiece[king.raw()][square.raw()][i],
-             fv.kingPiece[rking.raw()][rsquare.raw()][i]);
-      }
+  // open
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() < king.raw()) {
+      continue;
     }
 
     SQUARE_EACH(s) {
@@ -249,7 +303,6 @@ void symmetrize(FV& fv, T&& func) {
       }
 
       for (int i = 0; i < 8; i++) {
-        // King Open
         func(fv.kingBRookVer[king.raw()][s.raw()][i],
              fv.kingBRookVer[rking.raw()][rs.raw()][i]);
         func(fv.kingWRookVer[king.raw()][s.raw()][i],
@@ -270,6 +323,41 @@ void symmetrize(FV& fv, T&& func) {
              fv.kingBLance[rking.raw()][rs.raw()][i]);
         func(fv.kingWLance[king.raw()][s.raw()][i],
              fv.kingWLance[rking.raw()][rs.raw()][i]);
+      }
+    }
+  }
+
+  // safety
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() < king.raw()) {
+      continue;
+    }
+
+    for (int s = 0; s < KingSafetyLen; s++) {
+      if (rking != king) {
+        for (int h = 0; h < EvalHandIndex::End; h++) {
+          func(fv.kingSafetyHand[king.raw()][s][h],
+               fv.kingSafetyHand[rking.raw()][s][h]);
+        }
+      }
+
+      SQUARE_EACH(square) {
+        auto rsquare = square.hsym();
+        if (rking == king && rsquare.raw() <= square.raw()) {
+          continue;
+        }
+
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          func(fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i],
+               fv.kingSafetyPieceR[s][RelativeSquare(rking, rsquare).raw()][i]);
+          func(fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i],
+               fv.kingSafetyPieceXR[rking.getFile()-1][s][RelativeSquare(rking, rsquare).raw()][i]);
+          func(fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i],
+               fv.kingSafetyPieceYR[rking.getRank()-1][s][RelativeSquare(rking, rsquare).raw()][i]);
+          func(fv.kingSafetyPiece[king.raw()][s][square.raw()][i],
+               fv.kingSafetyPiece[rking.raw()][s][rsquare.raw()][i]);
+        }
       }
     }
   }
@@ -325,12 +413,17 @@ T operate(OFV& ofv, const Position& position, T delta) {
     }
   }
 
+  auto bsafety = safetyOfKing<Turn::Black>(position);
+  auto wsafety = safetyOfKing<Turn::White>(position);
+
 #define CALC_BLACK_HAND(t, T) do { \
   auto n = blackHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
       sum += ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1]; \
       sum -= ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1]; \
+      sum += ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::B ## T + n - 1]; \
+      sum -= ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::W ## T + n - 1]; \
       for (int i = 0; i < bnn; i++) { \
         sum += ofv.kingNeighborHand[bking][bns[i].dir][bns[i].idx][EvalHandIndex::B ## T + n - 1]; \
       } \
@@ -340,6 +433,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
     } else { \
       ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1] += delta; \
       ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1] -= delta; \
+      ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::B ## T + n - 1] += delta; \
+      ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::W ## T + n - 1] -= delta; \
       for (int i = 0; i < bnn; i++) { \
         ofv.kingNeighborHand[bking][bns[i].dir][bns[i].idx][EvalHandIndex::B ## T + n - 1] += delta; \
       } \
@@ -367,6 +462,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
     if (type == FeatureOperationType::Evaluate) { \
       sum += ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1]; \
       sum -= ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1]; \
+      sum += ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::W ## T + n - 1]; \
+      sum -= ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::B ## T + n - 1]; \
       for (int i = 0; i < bnn; i++) { \
         sum += ofv.kingNeighborHand[bking][bns[i].dir][bns[i].idx][EvalHandIndex::W ## T + n - 1]; \
       } \
@@ -376,6 +473,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
     } else { \
       ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1] += delta; \
       ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1] -= delta; \
+      ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::W ## T + n - 1] += delta; \
+      ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::B ## T + n - 1] -= delta; \
       for (int i = 0; i < bnn; i++) { \
         ofv.kingNeighborHand[bking][bns[i].dir][bns[i].idx][EvalHandIndex::W ## T + n - 1] += delta; \
       } \
@@ -409,6 +508,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingPiece[bking][bs][bIndex];
         sum -= ofv.kingPiece[wking][ws][wIndex];
+        sum += ofv.kingSafetyPiece[bking][bsafety][bs][bIndex];
+        sum -= ofv.kingSafetyPiece[wking][wsafety][ws][wIndex];
         for (int i = 0; i < bnn; i++) {
           sum += ofv.kingNeighborPiece[bking][bns[i].dir][bns[i].idx][bs][bIndex];
         }
@@ -418,6 +519,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       } else {
         ofv.kingPiece[bking][bs][bIndex] += delta;
         ofv.kingPiece[wking][ws][wIndex] -= delta;
+        ofv.kingSafetyPiece[bking][bsafety][bs][bIndex] += delta;
+        ofv.kingSafetyPiece[wking][wsafety][ws][wIndex] -= delta;
         for (int i = 0; i < bnn; i++) {
           ofv.kingNeighborPiece[bking][bns[i].dir][bns[i].idx][bs][bIndex] += delta;
         }
@@ -662,6 +765,11 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingWBishopDiagR45),
     FV_SUMMARIZE(kingBLance),
     FV_SUMMARIZE(kingWLance),
+    FV_SUMMARIZE(kingSafetyHand),
+    FV_SUMMARIZE(kingSafetyPieceR),
+    FV_SUMMARIZE(kingSafetyPieceXR),
+    FV_SUMMARIZE(kingSafetyPieceYR),
+    FV_SUMMARIZE(kingSafetyPiece),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

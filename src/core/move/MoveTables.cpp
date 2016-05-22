@@ -80,6 +80,7 @@ MoveTables::OneStepTableType MoveTables::WhiteGold;
 MoveTables::OneStepTableType MoveTables::King;
 MoveTables::OneStepTableType MoveTables::Cross;
 MoveTables::OneStepTableType MoveTables::X;
+MoveTables::OneStepTableType MoveTables::Neighbor5x5;
 MoveTables::VerTableType MoveTables::BlackLance;
 MoveTables::VerTableType MoveTables::WhiteLance;
 MoveTables::VerTableType MoveTables::Ver;
@@ -333,6 +334,33 @@ void MoveTables::initializeBitboards() {
     setIfValid(X[s], square.safetyRightUp());
     setIfValid(X[s], square.safetyLeftDown());
     setIfValid(X[s], square.safetyRightDown());
+
+    // neighborhood 5x5
+    Neighbor5x5[s] = Bitboard::zero();
+    setIfValid(Neighbor5x5[s], square.safetyUp(2).safetyLeft(2));
+    setIfValid(Neighbor5x5[s], square.safetyUp(2).safetyLeft(1));
+    setIfValid(Neighbor5x5[s], square.safetyUp(2));
+    setIfValid(Neighbor5x5[s], square.safetyUp(2).safetyRight(1));
+    setIfValid(Neighbor5x5[s], square.safetyUp(2).safetyRight(2));
+    setIfValid(Neighbor5x5[s], square.safetyUp(1).safetyLeft(2));
+    setIfValid(Neighbor5x5[s], square.safetyUp(1).safetyLeft(1));
+    setIfValid(Neighbor5x5[s], square.safetyUp(1));
+    setIfValid(Neighbor5x5[s], square.safetyUp(1).safetyRight(1));
+    setIfValid(Neighbor5x5[s], square.safetyUp(1).safetyRight(2));
+    setIfValid(Neighbor5x5[s], square.safetyLeft(2));
+    setIfValid(Neighbor5x5[s], square.safetyLeft(1));
+    setIfValid(Neighbor5x5[s], square.safetyRight(1));
+    setIfValid(Neighbor5x5[s], square.safetyRight(2));
+    setIfValid(Neighbor5x5[s], square.safetyDown(1).safetyLeft(2));
+    setIfValid(Neighbor5x5[s], square.safetyDown(1).safetyLeft(1));
+    setIfValid(Neighbor5x5[s], square.safetyDown(1));
+    setIfValid(Neighbor5x5[s], square.safetyDown(1).safetyRight(1));
+    setIfValid(Neighbor5x5[s], square.safetyDown(1).safetyRight(2));
+    setIfValid(Neighbor5x5[s], square.safetyDown(2).safetyLeft(2));
+    setIfValid(Neighbor5x5[s], square.safetyDown(2).safetyLeft(1));
+    setIfValid(Neighbor5x5[s], square.safetyDown(2));
+    setIfValid(Neighbor5x5[s], square.safetyDown(2).safetyRight(1));
+    setIfValid(Neighbor5x5[s], square.safetyDown(2).safetyRight(2));
 
     // vertical
     for (uint32_t pattern = 0x00; pattern < 0x80; pattern++) {

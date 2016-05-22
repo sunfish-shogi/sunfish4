@@ -845,6 +845,21 @@ TEST(MoveTablesTest, testOneStep) {
       "000000000\n",
       bb.toString());
   }
+
+  {
+    const auto& bb = MoveTables::neighbor5x5(Square::s67());
+    ASSERT_EQ(
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "000000000\n"
+      "011111000\n"
+      "011111000\n"
+      "011011000\n"
+      "011111000\n"
+      "011111000\n",
+      bb.toString());
+  }
 }
 
 TEST(MoveTablesTest, testVer) {
