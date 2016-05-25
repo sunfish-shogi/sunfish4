@@ -21,9 +21,9 @@ using namespace sunfish;
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
 // extensions
-CONSTEXPR_CONST int ExtensionDepthOfCheck     = Searcher::Depth1Ply * 1;
-CONSTEXPR_CONST int ExtensionDepthOfOneReply  = Searcher::Depth1Ply * 1 / 2;
-CONSTEXPR_CONST int ExtensionDepthOfRecapture = Searcher::Depth1Ply * 1 / 4;
+CONSTEXPR_CONST int ExtensionDepthForCheck     = Searcher::Depth1Ply * 1;
+CONSTEXPR_CONST int ExtensionDepthForOneReply  = Searcher::Depth1Ply * 1 / 2;
+CONSTEXPR_CONST int ExtensionDepthForRecapture = Searcher::Depth1Ply * 1 / 4;
 
 /**
  * Check whether the recursive-iterative deepening should be run.
@@ -349,7 +349,7 @@ void Searcher::idsearch(const Position& pos,
   }
 
   int completedDepth = 0;
-  for (int currDepth = Depth1Ply;; currDepth += Depth1Ply) {
+  for (int currDepth = Depth1Ply * 3 / 2; ; currDepth += Depth1Ply) {
     bool cont = aspsearch(tree, currDepth);
 
     if (isInterrupted()) {
@@ -824,17 +824,17 @@ Score Searcher::search(Tree& tree,
 
     // extensions
     if (currentMoveIsCheck) {
-      newDepth += ExtensionDepthOfCheck;
+      newDepth += ExtensionDepthForCheck;
 
     } else if (isFirst &&
                isCheck(node.checkState) &&
                node.moveIterator == node.moves.end()) {
-      newDepth += ExtensionDepthOfOneReply;
+      newDepth += ExtensionDepthForOneReply;
 
     } else if (!isCheck(node.checkState) &&
                nodeStat.isRecaptureExtension() &&
                isRecapture(tree, move)) {
-      newDepth += ExtensionDepthOfRecapture;
+      newDepth += ExtensionDepthForRecapture;
       nodeStat.unsetRecaptureExtension();
       newNodeStat.unsetRecaptureExtension();
     }

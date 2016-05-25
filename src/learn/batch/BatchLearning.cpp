@@ -263,7 +263,7 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
 void BatchLearning::generateTrainingData(GenTrDataThread& th,
                                          Position& pos,
                                          Move bestMove) {
-  int depth = config_.depth * Searcher::Depth1Ply;
+  int depth = Searcher::Depth1Ply * config_.depth + Searcher::Depth1Ply / 2;
   Score alpha;
   Score beta;
   struct Data {
@@ -273,6 +273,11 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
   std::vector<Data> results;
 
   {
+    int newDepth = depth;
+    if (pos.isCheck(bestMove)){
+      newDepth += Searcher::Depth1Ply;
+    }
+
     Piece captured;
     if (!pos.doMove(bestMove, captured)) {
       LOG(error) << "an illegal move is detected: " << bestMove.toString(pos) << "\n"
@@ -281,7 +286,7 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
     }
 
     th.searcher->search(pos,
-                        depth,
+                        newDepth,
                         -Score::mate(),
                         Score::mate());
     auto& result = th.searcher->getResult();
@@ -311,12 +316,17 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
       continue;
     }
 
+    int newDepth = depth;
+    if (pos.isCheck(move)){
+      newDepth += Searcher::Depth1Ply;
+    }
+
     Piece captured;
     if (!pos.doMove(move, captured)) {
       continue;
     }
     th.searcher->search(pos,
-                        depth,
+                        newDepth,
                         -beta,
                         -alpha);
     pos.undoMove(move, captured);
