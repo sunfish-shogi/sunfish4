@@ -126,17 +126,11 @@ struct FeatureVector {
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingHand = Type[Square::N][EvalHandIndex::End];
-  using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
   using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
   using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
   using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
   using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
-
-  KingHand kingHand;
-
-  KingPiece kingPiece;
 
   KingNeighborHand kingNeighborHand;
 

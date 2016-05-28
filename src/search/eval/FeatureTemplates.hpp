@@ -31,22 +31,6 @@ using namespace sunfish;
 template <class FV, class OFV>
 inline
 void optimize(FV& fv, OFV& ofv) {
-  FV_PART_COPY(ofv, fv, kingHand);
-
-  // kingPieceR, kingPieceXR, kingPieceYR, kingPiece
-  //   => kingPiece
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        ofv.kingPiece[king.raw()][square.raw()][i]
-          = fv.kingPiece[king.raw()][square.raw()][i]
-          + fv.kingPieceR[RelativeSquare(king, square).raw()][i]
-          + fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
-          + fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i];
-      }
-    }
-  }
-
   FV_PART_COPY(ofv, fv, kingNeighborHand);
 
   // kingNeighborPieceR, kingNeighborPieceXR, kingNeighborPieceYR, kingNeighborPiece
@@ -79,19 +63,34 @@ void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingBLance);
   FV_PART_COPY(ofv, fv, kingWLance);
 
-  FV_PART_COPY(ofv, fv, kingSafetyHand);
+  // kingHand, kingSafetyHand
+  //   => kingSafetyHand
+  SQUARE_EACH(king) {
+    for (int s = 0; s < KingSafetyLen; s++) {
+      for (int h = 0; h < EvalHandIndex::End; h++) {
+        ofv.kingSafetyHand[king.raw()][s][h]
+          = fv.kingHand[king.raw()][h]
+          + fv.kingSafetyHand[king.raw()][s][h];
+      }
+    }
+  }
 
+  // kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
   // kingSafetyPieceR, kingSafetyPieceXR, kingSafetyPieceYR, kingSafetyPiece
   //   => kingSafetyPiece
   SQUARE_EACH(king) {
     for (int s = 0; s < KingSafetyLen; s++) {
       SQUARE_EACH(square) {
-        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-          ofv.kingSafetyPiece[king.raw()][s][square.raw()][i2]
-            = fv.kingSafetyPiece[king.raw()][s][square.raw()][i2]
-            + fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i2]
-            + fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i2]
-            + fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i2];
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          ofv.kingSafetyPiece[king.raw()][s][square.raw()][i]
+            = fv.kingPiece[king.raw()][square.raw()][i]
+            + fv.kingPieceR[RelativeSquare(king, square).raw()][i]
+            + fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
+            + fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i]
+            + fv.kingSafetyPiece[king.raw()][s][square.raw()][i]
+            + fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i]
+            + fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i]
+            + fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i];
         }
       }
     }
@@ -101,25 +100,6 @@ void optimize(FV& fv, OFV& ofv) {
 template <class FV, class OFV>
 inline
 void expand(FV& fv, OFV& ofv) {
-  FV_PART_COPY(fv, ofv, kingHand);
-
-  // kingPiece
-  //   => kingPieceR, kingPieceXR, kingPieceYR, kingPiece
-  FV_PART_ZERO(fv, kingPieceR);
-  FV_PART_ZERO(fv, kingPieceXR);
-  FV_PART_ZERO(fv, kingPieceYR);
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        auto val = ofv.kingPiece[king.raw()][square.raw()][i];
-        fv.kingPieceR[RelativeSquare(king, square).raw()][i] += val;
-        fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
-        fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
-        fv.kingPiece[king.raw()][square.raw()][i] = val;
-      }
-    }
-  }
-
   FV_PART_COPY(fv, ofv, kingNeighborHand);
 
   // kingNeighborPiece
@@ -155,22 +135,42 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingBLance);
   FV_PART_COPY(fv, ofv, kingWLance);
 
-  FV_PART_COPY(fv, ofv, kingSafetyHand);
+  // kingSafetyHand
+  //   => kingHand, kingSafetyHand
+  FV_PART_ZERO(fv, kingHand);
+  SQUARE_EACH(king) {
+    for (int s = 0; s < KingSafetyLen; s++) {
+      for (int h = 0; h < EvalHandIndex::End; h++) {
+        auto val = ofv.kingSafetyHand[king.raw()][s][h];
+        fv.kingHand[king.raw()][h] += val;
+        fv.kingSafetyHand[king.raw()][s][h] = val;
+      }
+    }
+  }
 
   // kingSafetyPiece
-  //   => kingSafetyPieceR, kingSafetyPieceXR, kingSafetyPieceYR, kingSafetyPiece
+  //   => kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
+  //      kingSafetyPieceR, kingSafetyPieceXR, kingSafetyPieceYR, kingSafetyPiece
+  FV_PART_ZERO(fv, kingPieceR);
+  FV_PART_ZERO(fv, kingPieceXR);
+  FV_PART_ZERO(fv, kingPieceYR);
+  FV_PART_ZERO(fv, kingPiece);
   FV_PART_ZERO(fv, kingSafetyPieceR);
   FV_PART_ZERO(fv, kingSafetyPieceXR);
   FV_PART_ZERO(fv, kingSafetyPieceYR);
   SQUARE_EACH(king) {
     for (int s = 0; s < KingSafetyLen; s++) {
       SQUARE_EACH(square) {
-        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-          auto val = ofv.kingSafetyPiece[king.raw()][s][square.raw()][i2];
-          fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i2] += val;
-          fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i2] += val;
-          fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i2] += val;
-          fv.kingSafetyPiece[king.raw()][s][square.raw()][i2] = val;
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          auto val = ofv.kingSafetyPiece[king.raw()][s][square.raw()][i];
+          fv.kingPieceR[RelativeSquare(king, square).raw()][i] += val;
+          fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingPiece[king.raw()][square.raw()][i] += val;
+          fv.kingSafetyPieceR[s][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingSafetyPieceXR[king.getFile()-1][s][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingSafetyPieceYR[king.getRank()-1][s][RelativeSquare(king, square).raw()][i] += val;
+          fv.kingSafetyPiece[king.raw()][s][square.raw()][i] = val;
         }
       }
     }
@@ -420,8 +420,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto n = blackHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1]; \
-      sum -= ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1]; \
       sum += ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::B ## T + n - 1]; \
       sum -= ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::W ## T + n - 1]; \
       for (int i = 0; i < bnn; i++) { \
@@ -431,8 +429,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
         sum -= ofv.kingNeighborHand[wking][wns[i].dir][wns[i].idx][EvalHandIndex::W ## T + n - 1]; \
       } \
     } else { \
-      ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1] += delta; \
-      ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1] -= delta; \
       ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::B ## T + n - 1] += delta; \
       ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::W ## T + n - 1] -= delta; \
       for (int i = 0; i < bnn; i++) { \
@@ -460,8 +456,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto n = whiteHand.get(PieceType::t()); \
   if (n != 0) { \
     if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1]; \
-      sum -= ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1]; \
       sum += ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::W ## T + n - 1]; \
       sum -= ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::B ## T + n - 1]; \
       for (int i = 0; i < bnn; i++) { \
@@ -471,8 +465,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
         sum -= ofv.kingNeighborHand[wking][wns[i].dir][wns[i].idx][EvalHandIndex::B ## T + n - 1]; \
       } \
     } else { \
-      ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1] += delta; \
-      ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1] -= delta; \
       ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::W ## T + n - 1] += delta; \
       ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::B ## T + n - 1] -= delta; \
       for (int i = 0; i < bnn; i++) { \
@@ -506,8 +498,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
       int wIndex = getEvalPieceIndex(piece.enemy());
 
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPiece[bking][bs][bIndex];
-        sum -= ofv.kingPiece[wking][ws][wIndex];
         sum += ofv.kingSafetyPiece[bking][bsafety][bs][bIndex];
         sum -= ofv.kingSafetyPiece[wking][wsafety][ws][wIndex];
         for (int i = 0; i < bnn; i++) {
@@ -517,8 +507,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
           sum -= ofv.kingNeighborPiece[wking][wns[i].dir][wns[i].idx][ws][wIndex];
         }
       } else {
-        ofv.kingPiece[bking][bs][bIndex] += delta;
-        ofv.kingPiece[wking][ws][wIndex] -= delta;
         ofv.kingSafetyPiece[bking][bsafety][bs][bIndex] += delta;
         ofv.kingSafetyPiece[wking][wsafety][ws][wIndex] -= delta;
         for (int i = 0; i < bnn; i++) {
