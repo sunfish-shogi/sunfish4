@@ -31,6 +31,7 @@ private:
 
   struct Options {
     bool ponder;
+    unsigned hash;
     bool useBook;
   };
 
@@ -121,12 +122,13 @@ private:
   bool isInfinite_;
   bool inPonder_;
 
-  Searcher searcher_;
+  std::unique_ptr<Searcher> searcher_;
   std::atomic<bool> searcherIsStarted_;
   std::atomic<bool> stopCommandReceived_;
   std::atomic<bool> breakReceiver_;
 
   Book book_;
+  bool isBookLoaded;
 
   Random random_;
 

@@ -36,19 +36,17 @@ const char* Author = "res/strings/usi_author";
 
 namespace sunfish {
 
-UsiClient::UsiClient() : breakReceiver_(false) {
-  searcher_.setHandler(this);
+UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   receiver_ = std::thread([this]() {
     receiver();
   });
 
   options_.ponder = true;
+  options_.hash = 0;
   options_.useBook = true;
 }
 
 bool UsiClient::start() {
-  book_.load();
-
   // >usi
   // <usiok
   bool usiAccepted = acceptUsi();
@@ -102,9 +100,23 @@ bool UsiClient::ready() {
       return false;
     }
 
-    searcher_.clean();
-
     if (command.value == "isready") {
+      if (!searcher_) {
+        searcher_.reset(new Searcher());
+        searcher_->setHandler(this);
+      } else {
+        searcher_->clean();
+      }
+
+      if (options_.hash != 0) {
+        searcher_->ttResizeMB(options_.hash);
+      }
+
+      if (!isBookLoaded) {
+        book_.load();
+        isBookLoaded = true;
+      }
+
       send("readyok");
       return true;
     }
@@ -135,8 +147,7 @@ bool UsiClient::setOption(const CommandArguments& args) {
   }
   
   if (name == "USI_Hash") {
-    unsigned mebiBytes = std::stoi(value);
-    searcher_.ttResizeMB(mebiBytes);
+    options_.hash = std::stoi(value);
     return true;
   }
 
@@ -279,7 +290,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   searchThread.start([this]() {
     search();
   }, [this]() {
-    searcher_.interrupt();
+    searcher_->interrupt();
   });
   waitForSearcherIsStarted();
 
@@ -306,7 +317,7 @@ void UsiClient::search() {
   OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
   auto pos = generatePosition(record_, -1);
-  auto config = searcher_.getConfig();
+  auto config = searcher_->getConfig();
 
   if (isInfinite_) {
     config.maximumTimeMs = SearchConfig::InfinityTime;
@@ -326,16 +337,16 @@ void UsiClient::search() {
 #endif
   }
 
-  searcher_.setConfig(config);
+  searcher_->setConfig(config);
 
-  searcher_.idsearch(pos, Searcher::DepthInfinity, &record_);
+  searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
 
   if (isInfinite_) {
     waitForStopCommand();
   }
 
-  const auto& result = searcher_.getResult();
-  const auto& info = searcher_.getInfo();
+  const auto& result = searcher_->getResult();
+  const auto& info = searcher_->getInfo();
   bool canPonder = !result.move.isNone() &&
                    result.pv.size() >= 2;
 
@@ -367,7 +378,7 @@ bool UsiClient::runPonder(const CommandArguments&) {
   searchThread.start([this]() {
     ponder();
   }, [this]() {
-    searcher_.interrupt();
+    searcher_->interrupt();
   });
   waitForSearcherIsStarted();
 
@@ -403,14 +414,14 @@ void UsiClient::ponder() {
 
   record_.moveList.pop_back();
   auto pos = generatePosition(record_, -1);
-  auto config = searcher_.getConfig();
+  auto config = searcher_->getConfig();
 
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
 
-  searcher_.setConfig(config);
+  searcher_->setConfig(config);
 
-  searcher_.idsearch(pos, Searcher::DepthInfinity, &record_);
+  searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
 
   waitForStopCommand();
 
@@ -447,7 +458,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
   auto realDepth = depth / Searcher::Depth1Ply;
   auto totalNodes = info.nodes + info.quiesNodes;
   auto nps = static_cast<uint32_t>(totalNodes / elapsed);
-  auto hashfull = static_cast<int>(searcher_.ttUsageRates() * 1000);
+  auto hashfull = static_cast<int>(searcher_->ttUsageRates() * 1000);
 
   const char* scoreKey;
   int scoreValue;
