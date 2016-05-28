@@ -31,6 +31,7 @@ private:
 
   struct Options {
     bool ponder;
+    bool useBook;
   };
 
   enum class CommandState : uint8_t {

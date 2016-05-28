@@ -41,6 +41,9 @@ UsiClient::UsiClient() : breakReceiver_(false) {
   receiver_ = std::thread([this]() {
     receiver();
   });
+
+  options_.ponder = true;
+  options_.useBook = true;
 }
 
 bool UsiClient::start() {
@@ -85,7 +88,7 @@ bool UsiClient::acceptUsi() {
   send("id", "name", name);
   send("id", "author", author);
 
-  // TODO: send options
+  send("option", "name", "UseBook", "type", "check", "default", "true");
 
   send("usiok");
 
@@ -137,7 +140,13 @@ bool UsiClient::setOption(const CommandArguments& args) {
     return true;
   }
 
-  return false;
+  if (name == "UseBook") {
+    options_.useBook = value == "true";
+    return true;
+  }
+
+  LOG(warning) << "unknown option: " << name;
+  return true;
 }
 
 bool UsiClient::receiveNewGame() {
@@ -252,12 +261,14 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   OUT(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
 
   // check opening book
-  auto pos = generatePosition(record_, -1);
-  Move bookMove = BookUtil::select(book_, pos, random_);
-  if (!bookMove.isNone()) {
-    OUT(info) << "opening book hit";
-    send("bestmove", bookMove.toStringSFEN());
-    return true;
+  if (options_.useBook) {
+    auto pos = generatePosition(record_, -1);
+    Move bookMove = BookUtil::select(book_, pos, random_);
+    if (!bookMove.isNone()) {
+      OUT(info) << "opening book hit";
+      send("bestmove", bookMove.toStringSFEN());
+      return true;
+    }
   }
 
   searcherIsStarted_ = false;

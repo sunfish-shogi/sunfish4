@@ -27,12 +27,13 @@ const char* const CsaIni = "config/csa.ini";
 CONSTEXPR_CONST int DefaultPort      = 4081;
 CONSTEXPR_CONST int DefaultFloodgate = 0;
 
-CONSTEXPR_CONST int DefaultDepth  = 48;
-CONSTEXPR_CONST int DefaultLimit  = 28;
-CONSTEXPR_CONST int DefaultRepeat = 1000;
-CONSTEXPR_CONST int DefaultPonder = 1;
-CONSTEXPR_CONST int DefaultHashMem = 64;
-CONSTEXPR_CONST int DefaultMarginMs = 1000;
+CONSTEXPR_CONST int DefaultDepth     = 48;
+CONSTEXPR_CONST int DefaultLimit     = 28;
+CONSTEXPR_CONST int DefaultRepeat    = 1000;
+CONSTEXPR_CONST int DefaultPonder    = 1;
+CONSTEXPR_CONST int DefaultUseBook   = 1;
+CONSTEXPR_CONST int DefaultHashMem   = 64;
+CONSTEXPR_CONST int DefaultMarginMs  = 1000;
 
 CONSTEXPR_CONST int DefaultKeepAlive = 0;
 CONSTEXPR_CONST int DefaultKeepIdle  = 120;
@@ -103,6 +104,7 @@ void CsaClient::readConfigFromIniFile() {
   config_.repeat   = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
   config_.worker   = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
   config_.ponder   = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
+  config_.useBook     = StringUtil::toInt(getValue(ini, "Search", "UseBook"), DefaultUseBook);
   config_.hashMem  = StringUtil::toInt(getValue(ini, "Search", "HashMem"), DefaultHashMem);
   config_.marginMs = StringUtil::toInt(getValue(ini, "Search", "MarginMs"), DefaultMarginMs);
 
@@ -126,6 +128,7 @@ void CsaClient::readConfigFromIniFile() {
   OUT(info) << "    Repeat  : " << config_.repeat;
   OUT(info) << "    Worker  : " << config_.worker;
   OUT(info) << "    Ponder  : " << config_.ponder;
+  OUT(info) << "    UseBook : " << config_.useBook;
   OUT(info) << "    HashMem : " << config_.hashMem;
   OUT(info) << "    MarginMs: " << config_.marginMs;
   OUT(info) << "  KeepAlive";
@@ -592,11 +595,13 @@ bool CsaClient::onMove() {
 
 void CsaClient::runSearch(ScopedThread& searchThread) {
   // check opening book
-  Move bookMove = BookUtil::select(book_, position_, random_);
-  if (!bookMove.isNone()) {
-    OUT(info) << "opening book hit";
-    send(bookMove.toString(position_));
-    return;
+  if (config_.useBook) {
+    Move bookMove = BookUtil::select(book_, position_, random_);
+    if (!bookMove.isNone()) {
+      OUT(info) << "opening book hit";
+      send(bookMove.toString(position_));
+      return;
+    }
   }
 
   // search

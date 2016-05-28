@@ -37,6 +37,7 @@ public:
     int repeat;
     int worker;
     int ponder;
+    int useBook;
     int hashMem;
     int marginMs;
 
