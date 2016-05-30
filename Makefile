@@ -35,7 +35,7 @@ HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
 .PHONY: all
-.PHONY: expt solve expt-measure measure
+.PHONY: expt solve
 .PHONY: expt-prof prof prof1
 .PHONY: test test-sse test-nosse
 .PHONY: bm
@@ -51,7 +51,6 @@ help:
 	@echo '  make all'
 	@echo '  make expt'
 	@echo '  make solve'
-	@echo '  make measure'
 	@echo '  make prof'
 	@echo '  make prof1'
 	@echo '  make test'
@@ -74,16 +73,6 @@ expt:
 
 solve:
 	$(MAKE) expt
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 1 --depth 18
-
-expt-measure:
-	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D ENABLE_MEASUREMENT=ON $(PROJ_ROOT)/src/expt
-	cd $(BUILD_DIR)/$@ && $(MAKE)
-	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_EXPT) $(SUNFISH_EXPT)
-
-measure:
-	$(MAKE) expt-measure
 	./$(SUNFISH_EXPT) --solve $(KIFU_PROBLEM) --time 1 --depth 18
 
 expt-prof:

@@ -7,7 +7,6 @@
 #include "search/see/SEE.hpp"
 #include "search/mate/Mate.hpp"
 #include "search/eval/Evaluator.hpp"
-#include "search/tree/Measure.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
@@ -52,54 +51,53 @@ inline int nullDepth(int depth) {
 /**
  * values for reducing from the depth.
  */
-uint8_t ReductionDepth[32][2][2];
+uint8_t ReductionDepth[2][2][64][64];
 
 void initializeReductionDepth() {
-  for (int hist = 0; hist < 32; hist++) {
-    float r = std::pow(1.0f - hist/32.0f, 2.2f) * Searcher::Depth1Ply;
-    ReductionDepth[hist][0][0] = r * 0.8f;
-    ReductionDepth[hist][0][1] = r * 1.6f;
-    ReductionDepth[hist][1][0] = r * 1.8f;
-    ReductionDepth[hist][1][1] = r * 2.4f;
+  for (int d = 1; d < 64; d++) {
+    for (int mc = 0; mc < 64; mc++) {
+      double r = 1.0 * log(d) + 0.5 * log(mc);
+      if (r < 0.8) {
+        continue;
+      }
+
+      ReductionDepth[0][0][d][mc] = std::max(r - 1.0, 0.0) * Searcher::Depth1Ply;
+      ReductionDepth[0][1][d][mc] = r * Searcher::Depth1Ply;
+      ReductionDepth[1][0][d][mc] = ReductionDepth[0][0][d][mc];
+      ReductionDepth[1][1][d][mc] = ReductionDepth[0][1][d][mc];
+
+      if (d >= 2) {
+        ReductionDepth[0][1][d][mc] += Searcher::Depth1Ply;
+      }
+    }
   }
 }
 
 /**
  * Returns reducing depth.
  */
+inline
 int reductionDepth(int depth,
-                   History::CountType hist,
                    bool isNullWindow,
-                   bool improving) {
-  static_assert(History::Scale >> 8 == 32, "invalid range");
-  return ReductionDepth[hist >> 8]
-                       [(!improving && depth < 9 * Searcher::Depth1Ply) ? 1 : 0]
-                       [isNullWindow ? 1: 0];
+                   bool improving,
+                   int mc) {
+  return ReductionDepth[improving ? 1 : 0]
+                       [isNullWindow ? 1: 0]
+                       [std::min(depth / Searcher::Depth1Ply, 63)]
+                       [std::min(mc, 63)];
 }
 
 /**
  * the maximum depth of futility pruning.
  */
-CONSTEXPR_CONST int FutilityPruningMaxDepth = 9 * Searcher::Depth1Ply;
-
-Score FutilityPruningMargin[9][32];
-
-void initializeFutilityPruningMargin() {
-  for (int depth = 0; depth < 9; depth++) {
-    for (int count = 0; count < 32; count++) {
-      Score margin = 72 * std::log(2.0f * (depth + 1.0f)) - 8 * count;
-      FutilityPruningMargin[depth][count] = std::max(margin, Score(60));
-    }
-  }
-}
+CONSTEXPR_CONST int FutilityPruningMaxDepth = 7 * Searcher::Depth1Ply;
 
 /**
  * Returns the margin of futility pruning.
  */
-Score futilityPruningMargin(int depth,
-                            int count) {
-  return FutilityPruningMargin[std::max(depth / Searcher::Depth1Ply, 0)]
-                              [std::min(count / 4, 31)];
+inline
+Score futilityPruningMargin(int depth) {
+  return depth * (300 / Searcher::Depth1Ply);
 }
 
 #if 0
@@ -120,7 +118,6 @@ namespace sunfish {
 
 void Searcher::initialize() {
   initializeReductionDepth();
-  initializeFutilityPruningMargin();
 }
 
 Searcher::Searcher() :
@@ -154,8 +151,6 @@ void Searcher::onSearchStarted() {
   initializeWorker(mainThreadWorker_);
 
   history_.reduce();
-
-  gain_.clear();
 
   if (handler_ != nullptr) {
     handler_->onStart(*this);
@@ -198,7 +193,7 @@ void Searcher::search(const Position& pos,
   bool isFirst = true;
 
   // expand the branches
-  for (;;) {
+  for (int moveCount = 0; ; moveCount++) {
     Move move = nextMove(tree);
     if (move.isNone()) {
       break;
@@ -214,9 +209,9 @@ void Searcher::search(const Position& pos,
         !isTacticalMove(tree.position, move)) {
       auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               history_.ratio(turn, move),
                                false,
-                               true);
+                               true,
+                               moveCount);
       newDepth = newDepth - reduced;
     }
 
@@ -241,25 +236,6 @@ void Searcher::search(const Position& pos,
                       -(alpha + 1),
                       -alpha,
                       newNodeStat);
-
-#if ENABLE_MEASUREMENT
-      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
-        auto realScore = -search(tree,
-                                 newDepth + reduced,
-                                 -(alpha + 1),
-                                 -alpha,
-                                 newNodeStat);
-        if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
-        } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
-        }
-      }
-#endif // ENABLE_MEASUREMENT
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -406,7 +382,7 @@ bool Searcher::aspsearch(Tree& tree,
   }
 
   // expand branches
-  for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
+  for (int moveCount = 0; moveCount < (int)node.moves.size();) {
     Score alpha = std::max(alphas[alphaIndex], bestScore);
     Score beta = betas[betaIndex];
 
@@ -425,9 +401,9 @@ bool Searcher::aspsearch(Tree& tree,
         !isTacticalMove(tree.position, move)) {
       auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               history_.ratio(turn, move),
                                false,
-                               true);
+                               true,
+                               moveCount);
       newDepth = newDepth - reduced;
     }
 
@@ -454,25 +430,6 @@ bool Searcher::aspsearch(Tree& tree,
                       -(alpha + 1),
                       -alpha,
                       newNodeStat);
-
-#if ENABLE_MEASUREMENT
-      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
-        auto realScore = -search(tree,
-                                 newDepth + reduced,
-                                 -(alpha + 1),
-                                 -alpha,
-                                 newNodeStat);
-        if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
-        } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
-        }
-      }
-#endif // ENABLE_MEASUREMENT
 
       if (!isInterrupted() && score > alpha && reduced != 0) {
         newDepth = newDepth + reduced;
@@ -627,22 +584,16 @@ Score Searcher::search(Tree& tree,
     return calculateStandPat(tree, *evaluator_);
   }
 
-  const Score oldAlpha = alpha;
-
   // distance pruning
-  {
-    Score lowerScore = -Score::infinity() + tree.ply;
-    Score upperScore = Score::infinity() - tree.ply - 1;
-    if (lowerScore >= beta) {
-      return lowerScore;
-    } else if (lowerScore > alpha) {
-      alpha = lowerScore;
-    } else if (upperScore <= alpha) {
-      return upperScore;
-    }
+  Score lowerScore = -Score::infinity() + tree.ply;
+  Score upperScore = Score::infinity() - tree.ply - 1;
+  if (lowerScore >= beta) {
+    return lowerScore;
+  } else if (upperScore <= alpha) {
+    return upperScore;
   }
 
-  bool isNullWindow = oldAlpha + 1 == beta;
+  bool isNullWindow = alpha + 1 == beta;
 
   node.checkState = tree.position.getCheckState();
 
@@ -663,23 +614,11 @@ Score Searcher::search(Tree& tree,
         isNullWindow &&
         (ttDepth >= depth || isMate)) {
       if (ttScoreType == TTScoreType::Exact ||
-         (ttScoreType == TTScoreType::Upper && ttScore <= oldAlpha) ||
+         (ttScoreType == TTScoreType::Upper && ttScore <= alpha) ||
          (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
         worker.info.hashCut++;
         return ttScore;
       }
-    }
-
-    // if the score is larger than beta by a considerable margin.
-    if (nodeStat.isHashCut() &&
-        isNullWindow &&
-        (ttScoreType == TTScoreType::Exact ||
-         ttScoreType == TTScoreType::Lower) &&
-        !isCheck(node.checkState) &&
-        !isCheck(tree.nodes[tree.ply-1].checkState) &&
-        depth < FutilityPruningMaxDepth &&
-        ttScore >= beta + futilityPruningMargin(depth, 0)) {
-      return beta;
     }
 
     if (!shouldRecursiveIDSearch(depth) ||
@@ -716,6 +655,14 @@ Score Searcher::search(Tree& tree,
 
   Score standPat = calculateStandPat(tree, *evaluator_);
 
+  // futility pruning
+  if (!isCheck(node.checkState) &&
+      depth < FutilityPruningMaxDepth &&
+      standPat - futilityPruningMargin(depth) >= beta) {
+    worker.info.futilityPruning++;
+    return standPat - futilityPruningMargin(depth);
+  }
+
   // null move pruning
   if (isNullWindow &&
       depth >= Depth1Ply * 2 &&
@@ -734,25 +681,6 @@ Score Searcher::search(Tree& tree,
                           -beta+1,
                           newNodeStat);
 
-#if ENABLE_MEASUREMENT
-    if (MEASURE_SHOULD(NullMovePruning, depth)) {
-      auto realScore = -search(tree,
-                               depth - Depth1Ply,
-                               -beta,
-                               -beta+1,
-                               newNodeStat);
-      if (score >= beta && realScore >= beta) {
-        MEASURE_TRUE_POSITIVE(NullMovePruning, depth);
-      } else if (score >= beta && realScore < beta) {
-        MEASURE_FALSE_POSITIVE(NullMovePruning, depth);
-      } else if (score < beta && realScore < beta) {
-        MEASURE_TRUE_NEGATIVE(NullMovePruning, depth);
-      } else {
-        MEASURE_FALSE_NEGATIVE(NullMovePruning, depth);
-      }
-    }
-#endif // ENABLE_MEASUREMENT
-
     undoNullMove(tree);
 
     if (score >= beta) {
@@ -760,7 +688,7 @@ Score Searcher::search(Tree& tree,
       node.isHistorical = childNode.isHistorical;
       worker.info.nullMovePruning++;
       tt_.store(tree.position.getHash(),
-                oldAlpha,
+                alpha,
                 beta,
                 score,
                 depth,
@@ -807,6 +735,7 @@ Score Searcher::search(Tree& tree,
 
   bool isFirst = true;
   bool improving = isImproving(tree, *evaluator_);
+  Score bestScore = lowerScore;
   Move bestMove = Move::none();
 
   generateMoves<false>(tree);
@@ -849,54 +778,38 @@ Score Searcher::search(Tree& tree,
         !isTacticalMove(tree.position, move)) {
       auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
-                               history_.ratio(turn, move),
                                isNullWindow,
-                               improving);
+                               improving,
+                               moveCount);
       newDepth = newDepth - reduced;
     }
 
+    Score newAlpha = std::max(alpha, bestScore);
+
     // futility pruning
-    Score estScore = estimateScore(tree, move, *evaluator_);
     if (!currentMoveIsCheck &&
         !isCheck(node.checkState) &&
         newDepth < FutilityPruningMaxDepth &&
-        alpha > -Score::mate()) {
-      Score futAlpha = alpha - futilityPruningMargin(newDepth, moveCount);
-      if (estScore + gain_.get(move, targetPiece(tree, move)) <= futAlpha) {
+        newAlpha > -Score::mate() &&
+        !isPriorMove(tree, move)) {
+      Score futScore = estimateScore(tree, move, *evaluator_)
+                     + 300 + futilityPruningMargin(newDepth);
+      if (futScore <= newAlpha) {
         isFirst = false;
+        bestScore = std::max(bestScore, futScore);
         worker.info.futilityPruning++;
-#if ENABLE_MEASUREMENT
-        if (MEASURE_SHOULD(FutilityPruning, depth) && doMove(tree, move, *evaluator_)) {
-          if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
-            MEASURE_TRUE_POSITIVE(FutilityPruning, newDepth);
-          } else {
-            MEASURE_FALSE_POSITIVE(FutilityPruning, newDepth);
-          }
-          undoMove(tree);
-        }
-#endif // ENABLE_MEASUREMENT
         continue;
       }
     }
-#if ENABLE_MEASUREMENT
-    if (MEASURE_SHOULD(FutilityPruning, depth) && doMove(tree, move, *evaluator_)) {
-      if (-search(tree, newDepth, -beta, -alpha, newNodeStat) <= alpha) {
-        MEASURE_FALSE_NEGATIVE(FutilityPruning, newDepth);
-      } else {
-        MEASURE_TRUE_NEGATIVE(FutilityPruning, newDepth);
-      }
-      undoMove(tree);
-    }
-#endif // ENABLE_MEASUREMENT
 
     // prune negative SEE moves
-    if (!currentMoveIsCheck &&
+    if (!isFirst &&
+        !currentMoveIsCheck &&
         !isCheck(node.checkState) &&
         newDepth < Depth1Ply * 2 &&
         !isPriorMove(tree, move) &&
         !isTacticalMove(tree.position, move) &&
         SEE::calculate(tree.position, move) < Score::zero()) {
-      isFirst = false;
       continue;
     }
 
@@ -912,54 +825,35 @@ Score Searcher::search(Tree& tree,
       score = -search(tree,
                       newDepth,
                       -beta,
-                      -alpha,
+                      -newAlpha,
                       newNodeStat);
     } else {
       // nega-scout
       score = -search(tree,
                       newDepth,
-                      -(alpha + 1),
-                      -alpha,
+                      -(newAlpha + 1),
+                      -newAlpha,
                       newNodeStat);
 
-#if ENABLE_MEASUREMENT
-      if (reduced != 0 && MEASURE_SHOULD(LMR, newDepth)) {
-        auto realScore = -search(tree,
-                                 newDepth + reduced,
-                                 -(alpha + 1),
-                                 -alpha,
-                                 newNodeStat);
-        if (score <= alpha && realScore <= alpha) {
-          MEASURE_TRUE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score <= alpha && realScore > alpha) {
-          MEASURE_FALSE_POSITIVE(LMR, newDepth + reduced);
-        } else if (score > alpha && realScore > alpha) {
-          MEASURE_TRUE_NEGATIVE(LMR, newDepth + reduced);
-        } else {
-          MEASURE_FALSE_NEGATIVE(LMR, newDepth + reduced);
-        }
-      }
-#endif // ENABLE_MEASUREMENT
-
       if (!isInterrupted() &&
-          score > alpha &&
+          score > newAlpha &&
           reduced != 0) {
         newDepth = newDepth + reduced;
         score = -search(tree,
                         newDepth,
-                        -(alpha + 1),
-                        -alpha,
+                        -(newAlpha + 1),
+                        -newAlpha,
                         newNodeStat);
       }
 
       if (!isInterrupted() &&
-          score > alpha &&
+          score > newAlpha &&
           score < beta &&
           !isNullWindow) {
         score = -search(tree,
                         newDepth,
                         -beta,
-                        -alpha,
+                        -newAlpha,
                         newNodeStat);
       }
     }
@@ -972,18 +866,8 @@ Score Searcher::search(Tree& tree,
 
     auto& childNode = tree.nodes[tree.ply+1];
 
-    if (childNode.score != Score::invalid()) {
-      auto turn = tree.position.getTurn();
-      auto newStandPat = turn == Turn::Black
-                       ? childNode.score
-                       : -childNode.score;
-      gain_.update(move,
-                   targetPiece(tree, move),
-                   newStandPat - estScore);
-    }
-
-    if (score > alpha) {
-      alpha = score;
+    if (score > bestScore) {
+      bestScore = score;
       bestMove = move;
 
       // beta cut
@@ -1021,16 +905,16 @@ Score Searcher::search(Tree& tree,
 
   if (!node.isHistorical) {
     tt_.store(tree.position.getHash(),
-              oldAlpha,
-              beta,
               alpha,
+              beta,
+              bestScore,
               depth,
               tree.ply,
               bestMove,
               nodeStat.isMateThreat());
   }
 
-  return alpha;
+  return bestScore;
 }
 
 /**
@@ -1211,9 +1095,8 @@ void Searcher::generateMovesOnQuies(Tree& tree,
     for (auto ite = node.moveIterator; ite != node.moves.end(); ) {
       auto& move = *ite;
 
-      Score estScore = estimateScore(tree, move, *evaluator_)
-                     + gain_.get(move, targetPiece(tree, move));
-      if (estScore <= alpha) {
+      Score estScore = estimateScore(tree, move, *evaluator_);
+      if (estScore + 200 <= alpha) {
         ite = node.moves.remove(ite);
         worker.info.futilityPruning++;
         continue;

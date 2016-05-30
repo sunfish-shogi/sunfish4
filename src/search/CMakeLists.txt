@@ -7,7 +7,6 @@ add_library(search STATIC
     mate/Mate.cpp
     see/SEE.cpp
     shek/SCRDetector.cpp
-    tree/Measure.cpp
     tree/Node.cpp
     tree/Tree.cpp
     tree/Worker.cpp

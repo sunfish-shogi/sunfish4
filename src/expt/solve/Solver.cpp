@@ -9,7 +9,6 @@
 #include "common/file_system/FileUtil.hpp"
 #include "common/string/StringUtil.hpp"
 #include "core/record/CsaReader.hpp"
-#include "search/tree/Measure.hpp"
 #include "logger/Logger.hpp"
 
 #include <fstream>
@@ -25,10 +24,6 @@ Solver::Solver() {
 
 bool Solver::solve(const char* path) {
   memset(&result_, 0, sizeof(Result));
-
-#if ENABLE_MEASUREMENT
-  resetMeasurement();
-#endif
 
   if (FileUtil::isDirectory(path)) {
     // 'path' points to a directory
@@ -74,10 +69,6 @@ bool Solver::solve(const char* path) {
         << (result_.nodesEachDepth[i].nodes / result_.nodesEachDepth[i].sample);
     }
   }
-
-#if ENABLE_MEASUREMENT
-  printMeasurementResults();
-#endif
 
   return true;
 }
@@ -128,10 +119,6 @@ bool Solver::solve(const Position& position, Move correct) {
   int depth = config_.muximumDepth * Searcher::Depth1Ply;
   correct_ = correct;
   searcher_.idsearch(position, depth);
-
-#if ENABLE_MEASUREMENT
-  continueMeasurement();
-#endif
 
   auto& result = searcher_.getResult();
   auto& info = searcher_.getInfo();

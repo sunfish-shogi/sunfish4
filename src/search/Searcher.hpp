@@ -7,7 +7,6 @@
 #define SUNFISH_SEARCH_SEARCHER_HPP__
 
 #include "search/eval/Score.hpp"
-#include "search/eval/Gain.hpp"
 #include "search/SearchConfig.hpp"
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
@@ -164,8 +163,6 @@ private:
   TT tt_;
 
   History history_;
-
-  Gain gain_;
 
   Tree mainThreadTree_;
   Worker mainThreadWorker_;
