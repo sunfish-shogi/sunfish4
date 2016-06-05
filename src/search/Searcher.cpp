@@ -181,104 +181,20 @@ void Searcher::search(const Position& pos,
                  &worker,
                  record);
 
+  Score score = search(tree,
+                       depth,
+                       alpha,
+                       beta,
+                       NodeStat::normal());
+
   auto& node = tree.nodes[tree.ply];
-  arrive(node);
 
-  node.checkState = tree.position.getCheckState();
-
-  generateMoves<true>(tree);
-
-  Move bestMove = Move::none();
-
-  bool isFirst = true;
-
-  // expand the branches
-  for (int moveCount = 0; ; moveCount++) {
-    Move move = nextMove(tree);
-    if (move.isNone()) {
-      break;
-    }
-
-    int newDepth = depth - Depth1Ply;
-
-    // late move reduction
-    int reduced = 0;
-    if (!isFirst &&
-        !isCheck(node.checkState) &&
-        newDepth >= Depth1Ply &&
-        !isTacticalMove(tree.position, move)) {
-      auto turn = tree.position.getTurn();
-      reduced = reductionDepth(newDepth,
-                               false,
-                               true,
-                               moveCount);
-      newDepth = newDepth - reduced;
-    }
-
-    bool moveOk = doMove(tree, move, *evaluator_);
-    if (!moveOk) {
-      continue;
-    }
-
-    NodeStat newNodeStat = NodeStat::normal();
-
-    Score score;
-    if (isFirst) {
-      score = -search(tree,
-                      newDepth,
-                      -beta,
-                      -alpha,
-                      newNodeStat);
-    } else {
-      // nega-scout
-      score = -search(tree,
-                      newDepth,
-                      -(alpha + 1),
-                      -alpha,
-                      newNodeStat);
-
-      if (!isInterrupted() && score > alpha && reduced != 0) {
-        newDepth = newDepth + reduced;
-        score = -search(tree,
-                        newDepth,
-                        -(alpha + 1),
-                        -alpha,
-                        newNodeStat);
-      }
-
-      if (!isInterrupted() && score > alpha && score < beta) {
-        score = -search(tree,
-                        newDepth,
-                        -beta,
-                        -alpha,
-                        newNodeStat);
-      }
-    }
-
-    undoMove(tree);
-
-    updateInfo();
-
-    if (isInterrupted()) {
-      break;
-    }
-
-    if (score > alpha) {
-      alpha = score;
-      bestMove = move;
-      auto& childNode = tree.nodes[tree.ply+1];
-      node.pv.set(move, depth, childNode.pv);
-
-      if (score >= beta) {
-        break;
-      }
-    }
-
-    isFirst = false;
+  if (node.pv.size() >= 1) {
+    result_.move = node.pv.getMove(0);
+  } else {
+    result_.move = Move::none();
   }
-
-  result_.move = bestMove;
-  result_.score = alpha;
+  result_.score = score;
   result_.pv = node.pv;
   result_.depth = depth;
   result_.elapsed = timer_.elapsed();
@@ -399,7 +315,6 @@ bool Searcher::aspsearch(Tree& tree,
         !isCheck(node.checkState) &&
         newDepth >= Depth1Ply &&
         !isTacticalMove(tree.position, move)) {
-      auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
                                false,
                                true,
@@ -776,7 +691,6 @@ Score Searcher::search(Tree& tree,
         !isCheck(node.checkState) &&
         !isPriorMove(tree, move) &&
         !isTacticalMove(tree.position, move)) {
-      auto turn = tree.position.getTurn();
       reduced = reductionDepth(newDepth,
                                isNullWindow,
                                improving,
