@@ -808,7 +808,7 @@ Score Searcher::search(Tree& tree,
     addKiller(tree, bestMove);
 
     // history heuristics
-    unsigned hval = std::max(depth * 8 / Depth1Ply, 1);
+    unsigned hval = std::max(depth / (Depth1Ply / 4), 1);
     for (auto& move : node.moves) {
       history_.add(tree.position.getTurn(),
                    move,
