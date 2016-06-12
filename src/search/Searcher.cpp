@@ -291,7 +291,7 @@ bool Searcher::aspsearch(Tree& tree,
 
   Score bestScore = -Score::infinity();
 
-  bool isFirst = true;
+  bool doFullSearch = true;
 
   for (Moves::size_type i = 1; i < node.moves.size(); i++) {
     setScoreToMove(node.moves[i], -Score::infinity());
@@ -302,18 +302,14 @@ bool Searcher::aspsearch(Tree& tree,
     Score alpha = std::max(alphas[alphaIndex], bestScore);
     Score beta = betas[betaIndex];
 
-    if (bestScore >= beta) {
-      LOG(warning) << "invalid state.";
-    }
-
     Move move = node.moves[moveCount];
     int newDepth = depth - Depth1Ply;
 
     // late move reduction
     int reduced = 0;
-    if (!isFirst &&
-        !isCheck(node.checkState) &&
+    if (!doFullSearch &&
         newDepth >= Depth1Ply &&
+        !isCheck(node.checkState) &&
         !isTacticalMove(tree.position, move)) {
       reduced = reductionDepth(newDepth,
                                false,
@@ -332,7 +328,7 @@ bool Searcher::aspsearch(Tree& tree,
     NodeStat newNodeStat = NodeStat::normal();
 
     Score score;
-    if (isFirst) {
+    if (doFullSearch) {
       score = -search(tree,
                       newDepth,
                       -beta,
@@ -376,6 +372,8 @@ bool Searcher::aspsearch(Tree& tree,
     if (score <= alphas[alphaIndex] && score >= bestScore && score > -Score::mate()) {
       for (; score <= alphas[alphaIndex]; alphaIndex++) {}
 
+      doFullSearch = true;
+
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
 
@@ -390,6 +388,8 @@ bool Searcher::aspsearch(Tree& tree,
     // fail-high
     if (score >= beta && beta != Score::infinity()) {
       for (; score >= betas[betaIndex]; betaIndex++) {}
+
+      doFullSearch = true;
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
@@ -409,7 +409,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     moveCount++;
 
-    isFirst = false;
+    doFullSearch = false;
   }
 
   std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
@@ -687,10 +687,10 @@ Score Searcher::search(Tree& tree,
     int reduced = 0;
     if (!isFirst &&
         newDepth >= Depth1Ply &&
-        !nodeStat.isMateThreat() &&
         !isCheck(node.checkState) &&
+        !isTacticalMove(tree.position, move) &&
         !isPriorMove(tree, move) &&
-        !isTacticalMove(tree.position, move)) {
+        !nodeStat.isMateThreat()) {
       reduced = reductionDepth(newDepth,
                                isNullWindow,
                                improving,
