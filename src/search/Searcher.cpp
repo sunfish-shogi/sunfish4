@@ -1080,16 +1080,16 @@ void Searcher::sortRootMoves(Tree& tree) {
       continue;
     }
 
-    Score score = quies(tree,
-                        0,
-                        -Score::infinity(),
-                        Score::infinity());
+    Score score = -quies(tree,
+                         0,
+                         -Score::infinity(),
+                         Score::infinity());
 
     if (move.isPromotion()) {
       score += 1;
     }
 
-    setScoreToMove(node.moves[moveCount], -score);
+    setScoreToMove(node.moves[moveCount], score);
 
     undoMove(tree);
 
