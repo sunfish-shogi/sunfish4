@@ -1010,7 +1010,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
       auto& move = *ite;
 
       Score estScore = estimateScore(tree, move, *evaluator_);
-      if (estScore + 200 <= alpha) {
+      if (estScore + 300 <= alpha) {
         ite = node.moves.remove(ite);
         worker.info.futilityPruning++;
         continue;
