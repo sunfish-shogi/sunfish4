@@ -308,20 +308,9 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
 void SEE::sortMoves(const Position& position,
                     Moves& moves,
                     Moves::iterator begin,
-                    bool excludeNegative,
-                    bool excludeSmallCaptures) {
+                    bool excludeNegative) {
   for (auto ite = begin; ite != moves.end(); ) {
     auto& move = *ite;
-
-    if (excludeSmallCaptures) {
-      auto piece = position.getPieceOnBoard(move.from());
-      auto captured = position.getPieceOnBoard(move.to());
-      if ((captured.type() == PieceType::pawn() && !move.isPromotion()) ||
-          (captured.isEmpty() && piece.type() != PieceType::pawn())) {
-        ite = moves.remove(ite);
-        continue;
-      }
-    }
 
     Score score = calculate(position, move);
 

@@ -962,8 +962,7 @@ Move Searcher::nextMove(Tree& tree) {
       SEE::sortMoves(tree.position,
                      node.moves,
                      node.moveIterator,
-                     false, /* excludeNegative */
-                     false  /* excludeSmallCaptures */);
+                     false /* excludeNegative */);
       node.genPhase = GenPhase::NotCapturingMoves;
       break;
 
@@ -998,6 +997,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                                     Score alpha) {
   auto& node = tree.nodes[tree.ply];
   auto& worker = *tree.worker;
+  bool excludeSmallCaptures = qply >= 6;
 
   node.moves.clear();
   node.moveIterator = node.moves.begin();
@@ -1005,10 +1005,20 @@ void Searcher::generateMovesOnQuies(Tree& tree,
   if (!isCheck(node.checkState)) {
     MoveGenerator::generateCapturingMoves(tree.position, node.moves);
 
-    // futility pruning
     for (auto ite = node.moveIterator; ite != node.moves.end(); ) {
       auto& move = *ite;
 
+      if (excludeSmallCaptures) {
+        auto piece = tree.position.getPieceOnBoard(move.from());
+        auto captured = tree.position.getPieceOnBoard(move.to());
+        if ((captured.type() == PieceType::pawn() && !move.isPromotion()) ||
+            (captured.isEmpty() && piece.type() != PieceType::pawn())) {
+          ite = node.moves.remove(ite);
+          continue;
+        }
+      }
+
+      // futility pruning
       Score estScore = estimateScore(tree, move, *evaluator_);
       if (estScore + 300 <= alpha) {
         ite = node.moves.remove(ite);
@@ -1022,8 +1032,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
     SEE::sortMoves(tree.position,
                    node.moves,
                    node.moveIterator,
-                   true, /* excludeNegative */
-                   qply >= 6 /* excludeSmallCaptures */);
+                   true /* excludeNegative */);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
     sortMovesOnHistory(tree);
