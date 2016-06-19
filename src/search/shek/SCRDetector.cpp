@@ -48,10 +48,10 @@ SCRState SCRDetector::detect(const Tree& tree) const {
     auto& node = tree.nodes[ply];
     bool check = isCheck(node.checkState);
     if (isCurrentPlayerTurn) {
-      currentPlayerChecking = currentPlayerChecking && check;
+      enemyPlayerChecking = enemyPlayerChecking && check;
       isCurrentPlayerTurn = false;
     } else {
-      enemyPlayerChecking = enemyPlayerChecking && check;
+      currentPlayerChecking = currentPlayerChecking && check;
       isCurrentPlayerTurn = true;
     }
 
@@ -72,10 +72,10 @@ SCRState SCRDetector::detect(const Tree& tree) const {
   for (size_t i = 0; i < length_; i++) {
     bool check = list_[i].check;
     if (isCurrentPlayerTurn) {
-      currentPlayerChecking = currentPlayerChecking && check;
+      enemyPlayerChecking = enemyPlayerChecking && check;
       isCurrentPlayerTurn = false;
     } else {
-      enemyPlayerChecking = enemyPlayerChecking && check;
+      currentPlayerChecking = currentPlayerChecking && check;
       isCurrentPlayerTurn = true;
     }
 

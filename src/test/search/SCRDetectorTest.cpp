@@ -155,7 +155,7 @@ TEST(SCRDetectorTest, testBlack) {
     tree.nodes[5].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[5].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
+    ASSERT_EQ(SCRState::Win, scr.detect(tree));
   }
 
   {
@@ -178,7 +178,7 @@ TEST(SCRDetectorTest, testBlack) {
     tree.nodes[5].checkState = { Square::s58(), Square::invalid() };
     tree.nodes[5].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Win, scr.detect(tree));
+    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
   }
 
   {
@@ -257,7 +257,7 @@ TEST(SCRDetectorTest, testBlack) {
     tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[1].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
+    ASSERT_EQ(SCRState::Win, scr.detect(tree));
   }
 
   {
@@ -283,7 +283,7 @@ TEST(SCRDetectorTest, testBlack) {
     tree.nodes[1].checkState = { Square::s77(), Square::invalid() };
     tree.nodes[1].hash = tree.position.getHash();
 
-    ASSERT_EQ(SCRState::Win, scr.detect(tree));
+    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
   }
 }
 
@@ -344,7 +344,7 @@ TEST(SCRDetectorTest, testWhite) {
     tree.nodes[5].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[5].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
+    ASSERT_EQ(SCRState::Win, scr.detect(tree));
   }
 
   {
@@ -367,7 +367,7 @@ TEST(SCRDetectorTest, testWhite) {
     tree.nodes[5].checkState = { Square::s58(), Square::invalid() };
     tree.nodes[5].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Win, scr.detect(tree));
+    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
   }
 
   {
@@ -420,7 +420,7 @@ TEST(SCRDetectorTest, testWhite) {
     tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[1].hash = 0LLU;
 
-    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
+    ASSERT_EQ(SCRState::Win, scr.detect(tree));
   }
 
   {
@@ -446,6 +446,6 @@ TEST(SCRDetectorTest, testWhite) {
     tree.nodes[1].checkState = { Square::s33(), Square::invalid() };
     tree.nodes[1].hash = tree.position.getHash();
 
-    ASSERT_EQ(SCRState::Win, scr.detect(tree));
+    ASSERT_EQ(SCRState::Lose, scr.detect(tree));
   }
 }

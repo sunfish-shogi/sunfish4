@@ -467,10 +467,6 @@ Score Searcher::search(Tree& tree,
       break;
     }
 
-  case ShekState::Equal:
-    node.isHistorical = true;
-    return Score::zero();
-
   case ShekState::Superior:
     node.isHistorical = true;
     return Score::infinity() - tree.ply;
