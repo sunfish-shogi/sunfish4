@@ -475,7 +475,7 @@ Score Searcher::search(Tree& tree,
     node.isHistorical = true;
     return -Score::infinity() + tree.ply;
 
-  case ShekState::None:
+  default:
     break;
   }
 
