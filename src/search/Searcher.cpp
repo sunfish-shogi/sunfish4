@@ -633,6 +633,8 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
+    rearrive(node);
+
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
       Move ttMove = tte.move();
@@ -640,8 +642,6 @@ Score Searcher::search(Tree& tree,
         node.hashMove = ttMove;
       }
     }
-
-    arrive(node);
   }
 
   bool isFirst = true;

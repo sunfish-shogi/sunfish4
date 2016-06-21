@@ -18,4 +18,13 @@ void arrive(Node& node) {
   node.pv.clear();
 }
 
+void rearrive(Node& node) {
+  node.isHistorical = false;
+
+  node.killerMove1 = Move::none();
+  node.killerMove2 = Move::none();
+
+  node.pv.clear();
+}
+
 } // namespace sunfish

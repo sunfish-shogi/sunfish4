@@ -46,6 +46,8 @@ struct Node {
 
 void arrive(Node& node);
 
+void rearrive(Node& node);
+
 } // namespace sunfish
 
 #endif // SUNFISH_SEARCH_TREE_NODE_HPP__
