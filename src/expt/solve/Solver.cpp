@@ -66,7 +66,8 @@ bool Solver::solve(const char* path) {
   for (int i = 0; i < MaxDepthOfNodeCount; i++) {
     if (result_.nodesEachDepth[i].sample != 0) {
       OUT(info) << "  nodes " << std::setw(2) << (i+1) << "  : "
-        << (result_.nodesEachDepth[i].nodes / result_.nodesEachDepth[i].sample);
+        << (result_.nodesEachDepth[i].nodes / result_.nodesEachDepth[i].sample)
+        << " (" << result_.nodesEachDepth[i].sample << ")";
     }
   }
 
