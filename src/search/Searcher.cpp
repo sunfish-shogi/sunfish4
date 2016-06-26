@@ -87,6 +87,16 @@ int reductionDepth(int depth,
                        [std::min(mc, 63)];
 }
 
+uint16_t RazorMargin[4] = { 500, 700, 600, 800 };
+
+/**
+ * Returnes the margin of razoring
+ */
+inline
+Score razorMargin(int depth) {
+  return RazorMargin[depth / Searcher::Depth1Ply];
+}
+
 /**
  * the maximum depth of futility pruning.
  */
@@ -573,6 +583,7 @@ Score Searcher::search(Tree& tree,
     }
   }
 
+  // mate 1-ply
   if (nodeStat.isMateDetection() &&
       !isCheck(node.checkState) &&
       Mate::mate1Ply(tree.position)) {
@@ -587,6 +598,33 @@ Score Searcher::search(Tree& tree,
       standPat - futilityPruningMargin(depth) >= beta) {
     worker.info.futilityPruning++;
     return standPat - futilityPruningMargin(depth);
+  }
+
+  // razoring
+  if (isNullWindow &&
+      !isCheck(node.checkState) &&
+      depth < Depth1Ply * 4 &&
+      standPat + razorMargin(depth) <= alpha &&
+      node.hashMove.isNone()) {
+    if (depth < Depth1Ply * 2) {
+      worker.info.razoring++;
+      return quies(tree,
+                   0,
+                   alpha,
+                   beta);
+    }
+
+    Score razorAlpha = alpha - razorMargin(depth);
+    Score score = quies(tree,
+                        0,
+                        razorAlpha,
+                        razorAlpha + 1);
+    if (score <= razorAlpha) {
+      worker.info.razoring++;
+      return score;
+    }
+
+    rearrive(node);
   }
 
   // null move pruning
