@@ -102,17 +102,21 @@ bool BatchLearning::run() {
 void BatchLearning::readConfigFromIniFile() {
   auto ini = Resource::ini(BatchLearnIni);
 
-  config_.kifuDir    = getValue(ini, "Learn", "KifuDir");
-  config_.iteration  = StringUtil::toInt(getValue(ini, "Learn", "Iteration"), DefaultIteration);
-  config_.numThreads = StringUtil::toInt(getValue(ini, "Learn", "NumThreads"), std::thread::hardware_concurrency());
-  config_.depth      = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
-  config_.norm       = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
+  config_.kifuDir           = getValue(ini, "Learn", "KifuDir");
+  config_.iteration         = StringUtil::toInt(getValue(ini, "Learn", "Iteration"), DefaultIteration);
+  config_.restart           = StringUtil::toInt(getValue(ini, "Learn", "Restart"), 0);
+  config_.restartIteration  = StringUtil::toInt(getValue(ini, "Learn", "RestartIteration"), 0);
+  config_.numThreads        = StringUtil::toInt(getValue(ini, "Learn", "NumThreads"), std::thread::hardware_concurrency());
+  config_.depth             = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
+  config_.norm              = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
 
-  OUT(info) << "KifuDir   : " << config_.kifuDir;
-  OUT(info) << "Iteration : " << config_.iteration;
-  OUT(info) << "NumThreads: " << config_.numThreads;
-  OUT(info) << "Depth     : " << config_.depth;
-  OUT(info) << "Norm      : " << config_.norm;
+  OUT(info) << "KifuDir         : " << config_.kifuDir;
+  OUT(info) << "Iteration       : " << config_.iteration;
+  OUT(info) << "Restart         : " << config_.restart;
+  OUT(info) << "RestartIteration: " << config_.restartIteration;
+  OUT(info) << "NumThreads      : " << config_.numThreads;
+  OUT(info) << "Depth           : " << config_.depth;
+  OUT(info) << "Norm            : " << config_.norm;
 }
 
 bool BatchLearning::validateConfig() {
@@ -127,46 +131,54 @@ bool BatchLearning::validateConfig() {
 bool BatchLearning::iterate() {
   int updateCount = MaximumUpdateCount;
 
+  if (config_.restart) {
+    load(*fv_);
+    optimize(*fv_, evaluator_->ofv());
+    evaluator_->onChanged();
+  }
+
   for (int i = 0; i < config_.iteration; i++) {
-    OUT(info) << "";
-    OUT(info) << "ITERATION - " << i;
+    if (!config_.restart || i >= config_.restartIteration) {
+      OUT(info) << "";
+      OUT(info) << "ITERATION - " << i;
 
-    OUT(info) << "generating training data..";
+      OUT(info) << "generating training data..";
 
-    bool ok = generateTrainingData();
-    if (!ok) {
-      return false;
-    }
-
-    OUT(info) << "adjusting parameters..";
-
-    float lossFirst = 0.0f;
-    float lossLast = 0.0f;
-    for (int uc = 0; uc < updateCount; uc++) {
-      ok = generateGradient();
+      bool ok = generateTrainingData();
       if (!ok) {
         return false;
       }
 
-      updateParameters();
+      OUT(info) << "adjusting parameters..";
 
-      if (uc == 0) {
-        lossFirst = loss_ / numberOfData_;
+      float lossFirst = 0.0f;
+      float lossLast = 0.0f;
+      for (int uc = 0; uc < updateCount; uc++) {
+        ok = generateGradient();
+        if (!ok) {
+          return false;
+        }
+
+        updateParameters();
+
+        if (uc == 0) {
+          lossFirst = loss_ / numberOfData_;
+        }
+
+        if (uc == updateCount - 1) {
+          lossLast = loss_ / numberOfData_;
+        }
       }
-      
-      if (uc == updateCount - 1) {
-        lossLast = loss_ / numberOfData_;
-      }
+
+      OUT(info) << "writing to file..";
+
+      save(*fv_);
+
+      OUT(info) << "";
+      OUT(info) << "loss = " << lossFirst << " - " << lossLast;
+
+      printParametersSummary();
     }
-
-    OUT(info) << "writing to file..";
-
-    save(*fv_);
-
-    OUT(info) << "";
-    OUT(info) << "loss = " << lossFirst << " - " << lossLast;
-
-    printParametersSummary();
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
   }

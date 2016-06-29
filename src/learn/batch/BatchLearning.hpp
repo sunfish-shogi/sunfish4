@@ -29,6 +29,8 @@ public:
   struct Config {
     std::string kifuDir;
     int iteration;
+    int restart;
+    int restartIteration;
     int numThreads;
     int depth;
     float norm;
