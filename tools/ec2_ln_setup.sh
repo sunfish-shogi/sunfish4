@@ -21,6 +21,9 @@ REVISION_FILE=revision
 DATE=`date "+%Y-%m-%d"`
 DATE_FILE=date
 
+EVAL_BIN_GZ=eval.bin.gz
+EVAL_BIN=eval.bin
+
 LOCAL_BACKUP_DIR=${BACKUP_DIR}/${DATE}_${EC2_HOST}
 
 if [ -e ${LOCAL_BACKUP_DIR} ]; then
@@ -33,6 +36,9 @@ cp ${CONF_FILE_PATH} ${LOCAL_BACKUP_DIR}/
 
 scp -i ${SSH_KEY} ${KIFU_TARBALL} ec2-user@${EC2_HOST}:~/
 scp -i ${SSH_KEY} ${CONF_FILE_PATH} ec2-user@${EC2_HOST}:~/
+if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then
+	scp -i ${SSH_KEY} ${SRC_EVAL_BIN_GZ} ec2-user@${EC2_HOST}:~/${EVAL_BIN_GZ}
+fi
 
 ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	sudo yum update -y
@@ -41,6 +47,9 @@ ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	cd "${REMOTE_WORK_DIR}"
 	make ln -j
 	tar zxf ~/${KIFU_TARBALL_NAME}
+	if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then
+		gzip -dc ~/${EVAL_BIN_GZ} > ${EVAL_BIN}
+	fi
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
 	./sunfish_ln --silent &
 	git rev-parse HEAD > ${REVISION_FILE}
