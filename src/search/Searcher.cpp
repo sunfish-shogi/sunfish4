@@ -374,11 +374,10 @@ bool Searcher::aspsearch(Tree& tree,
 
       doFullSearch = true;
 
-      auto& childNode = tree.nodes[tree.ply+1];
-      node.pv.set(move, depth, childNode.pv);
-
       if (handler_ != nullptr) {
-        handler_->onFailLow(*this, node.pv, timer_.elapsed(), depth, score);
+        PV pv;
+        pv.set(move, depth, pv);
+        handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
       }
       continue;
     }
@@ -391,11 +390,10 @@ bool Searcher::aspsearch(Tree& tree,
 
       doFullSearch = true;
 
-      auto& childNode = tree.nodes[tree.ply+1];
-      node.pv.set(move, depth, childNode.pv);
-
       if (handler_ != nullptr) {
-        handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
+        PV pv;
+        pv.set(move, depth, pv);
+        handler_->onFailHigh(*this, pv, timer_.elapsed(), depth, score);
       }
       continue;
     }
