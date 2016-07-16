@@ -21,21 +21,21 @@ int getEvalPieceIndex(Piece piece) {
   case PieceNumber::BSilver   : return EvalPieceIndex::BSilver;
   case PieceNumber::WSilver   : return EvalPieceIndex::WSilver;
   case PieceNumber::BGold     : // fall through
-  case PieceNumber::WTokin    : // fall through
+  case PieceNumber::BTokin    : // fall through
   case PieceNumber::BProLance : // fall through
-  case PieceNumber::WProKnight: // fall through
+  case PieceNumber::BProKnight: // fall through
   case PieceNumber::BProSilver: return EvalPieceIndex::BGold;
   case PieceNumber::WGold     : // fall through
-  case PieceNumber::BTokin    : // fall through
+  case PieceNumber::WTokin    : // fall through
   case PieceNumber::WProLance : // fall through
-  case PieceNumber::BProKnight: // fall through
+  case PieceNumber::WProKnight: // fall through
   case PieceNumber::WProSilver: return EvalPieceIndex::WGold;
   case PieceNumber::BBishop   : return EvalPieceIndex::BBishop;
   case PieceNumber::WBishop   : return EvalPieceIndex::WBishop;
-  case PieceNumber::BRook     : return EvalPieceIndex::BRook;
-  case PieceNumber::WRook     : return EvalPieceIndex::WRook;
   case PieceNumber::BHorse    : return EvalPieceIndex::BHorse;
   case PieceNumber::WHorse    : return EvalPieceIndex::WHorse;
+  case PieceNumber::BRook     : return EvalPieceIndex::BRook;
+  case PieceNumber::WRook     : return EvalPieceIndex::WRook;
   case PieceNumber::BDragon   : return EvalPieceIndex::BDragon;
   case PieceNumber::WDragon   : return EvalPieceIndex::WDragon;
   }
