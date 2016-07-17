@@ -711,13 +711,14 @@ Score Searcher::search(Tree& tree,
     }
 
     // prune negative SEE moves
-    if (!isFirst &&
+    if (newDepth < Depth1Ply * 2 &&
         !currentMoveIsCheck &&
         !isCheck(node.checkState) &&
-        newDepth < Depth1Ply * 2 &&
+        isNullWindow &&
         !isPriorMove(tree, move) &&
         !isTacticalMove(tree.position, move) &&
         SEE::calculate(tree.position, move) < Score::zero()) {
+      isFirst = true;
       continue;
     }
 
@@ -856,7 +857,11 @@ Score Searcher::quies(Tree& tree,
     return Score::infinity() - tree.ply - 1;
   }
 
-  alpha = std::max(alpha, standPat);
+  if (!isCheck(node.checkState)) {
+    alpha = std::max(alpha, standPat);
+  } else {
+    alpha = std::max(alpha, -Score::infinity() + tree.ply);
+  }
 
   generateMovesOnQuies(tree,
                        qply,
