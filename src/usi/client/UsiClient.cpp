@@ -291,6 +291,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
     search();
   }, [this]() {
     searcher_->interrupt();
+    stopCommandReceived_ = true;
   });
   waitForSearcherIsStarted();
 
@@ -303,8 +304,11 @@ bool UsiClient::runSearch(const CommandArguments& args) {
     return false;
   }
 
-  if (command.value == "stop") {
-    stopCommandReceived_ = true;
+  auto args2 = StringUtil::split(command.value, [](char c) {
+    return isspace(c);
+  });
+
+  if (args2[0] == "stop") {
     return true;
   }
 
@@ -371,7 +375,6 @@ void UsiClient::search() {
 
 bool UsiClient::runPonder(const CommandArguments&) {
   searcherIsStarted_ = false;
-  stopCommandReceived_ = false;
   inPonder_ = true;
 
   ScopedThread searchThread;
@@ -387,20 +390,22 @@ bool UsiClient::runPonder(const CommandArguments&) {
     return false;
   }
 
-  if (command.value == "stop") {
+  auto args = StringUtil::split(command.value, [](char c) {
+    return isspace(c);
+  });
+
+  if (args[0] == "stop") {
     send("bestmove", "resign");
-    stopCommandReceived_ = true;
     return true;
   }
 
-  if (command.value == "ponderhit") {
+  if (args[0] == "ponderhit") {
     std::string ponderSection(" ponder");
     lastGoCommand_.replace(lastGoCommand_.find(ponderSection),
                            ponderSection.length(),
                            "");
     deferredCommands_.push(lastPositionCommand_);
     deferredCommands_.push(lastGoCommand_);
-    stopCommandReceived_ = true;
     return true;
   }
 
@@ -422,8 +427,6 @@ void UsiClient::ponder() {
   searcher_->setConfig(config);
 
   searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
-
-  waitForStopCommand();
 
   OUT(info) << "ponder thread is stopped. tid=" << std::this_thread::get_id();
 }
