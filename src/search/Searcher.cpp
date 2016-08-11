@@ -839,35 +839,35 @@ Score Searcher::quies(Tree& tree,
   auto& worker = *tree.worker;
   worker.info.quiesNodes++;
 
-  Score standPat = calculateStandPat(tree, *evaluator_);
+  node.checkState = tree.position.getCheckState();
 
-  if (standPat >= beta) {
-    return standPat;
+  if (!isCheck(node.checkState)) {
+    Score standPat = calculateStandPat(tree, *evaluator_);
+    if (standPat > alpha) {
+      alpha = standPat;
+      if (alpha >= beta) {
+        return alpha;
+      }
+    }
+  } else {
+    alpha = std::max(alpha, -Score::infinity() + tree.ply);
   }
 
   if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
-    return standPat;
+    return calculateStandPat(tree, *evaluator_);
   }
-
-  node.checkState = tree.position.getCheckState();
 
   if (!isCheck(node.checkState) &&
       Mate::mate1Ply(tree.position)) {
     return Score::infinity() - tree.ply - 1;
   }
 
-  if (!isCheck(node.checkState)) {
-    alpha = std::max(alpha, standPat);
-  } else {
-    alpha = std::max(alpha, -Score::infinity() + tree.ply);
-  }
-
   generateMovesOnQuies(tree,
                        qply,
                        alpha);
 
-  // expand the branches
+  // expand branches
   for (;;) {
     Move move = nextMoveOnQuies(node);
     if (move.isNone()) {
