@@ -701,7 +701,7 @@ Score Searcher::search(Tree& tree,
         newAlpha > -Score::mate() &&
         !isPriorMove(tree, move)) {
       Score futScore = estimateScore(tree, move, *evaluator_)
-                     + 300 + futilityPruningMargin(newDepth);
+                     + 500 + futilityPruningMargin(newDepth);
       if (futScore <= newAlpha) {
         isFirst = false;
         bestScore = std::max(bestScore, futScore);
@@ -1019,7 +1019,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
 
       // futility pruning
       Score estScore = estimateScore(tree, move, *evaluator_);
-      if (estScore + 300 <= alpha) {
+      if (estScore + 500 <= alpha) {
         ite = node.moves.remove(ite);
         worker.info.futilityPruning++;
         continue;
