@@ -23,8 +23,8 @@ int main(int argc, char** argv, char**) {
   ProgramOptions po;
   po.addOption("solve", "run a solver", true);
   po.addOption("mgtest", "run a cross-check test of move generation");
-  po.addOption("time", "t", "a muximum time of search in seconds (This option is only used when the --solver option is specified.)", true);
-  po.addOption("depth", "d", "a muximum depth of search (This option is only used when the --solver option is specified.)", true);
+  po.addOption("time", "t", "a muximum time of search in seconds (This option will used when the --solve option is specified.)", true);
+  po.addOption("depth", "d", "a muximum depth of search (This option will used when the --solve option is specified.)", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 

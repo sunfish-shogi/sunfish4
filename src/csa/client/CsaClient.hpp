@@ -114,7 +114,7 @@ private:
 
   void ponder();
 
-  void waitForSearcherIsStarted();
+  void waitForSearcherStart();
 
   void onStart(const Searcher&) override;
 

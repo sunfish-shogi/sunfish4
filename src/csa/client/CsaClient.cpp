@@ -611,7 +611,7 @@ void CsaClient::runSearch(ScopedThread& searchThread) {
   }, [this]() {
     searcher_.interrupt();
   });
-  waitForSearcherIsStarted();
+  waitForSearcherStart();
 }
 
 void CsaClient::search() {
@@ -674,7 +674,7 @@ void CsaClient::runPonder(ScopedThread& searchThread) {
   }, [this]() {
     searcher_.interrupt();
   });
-  waitForSearcherIsStarted();
+  waitForSearcherStart();
 }
 
 void CsaClient::ponder() {
@@ -690,7 +690,7 @@ void CsaClient::ponder() {
                      &record_);
 }
 
-void CsaClient::waitForSearcherIsStarted() {
+void CsaClient::waitForSearcherStart() {
   while (true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     if (searcherIsStarted_) { break; }
