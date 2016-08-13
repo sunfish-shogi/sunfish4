@@ -22,6 +22,7 @@ namespace sunfish {
 
 class Position;
 class Searcher;
+class RecordQueue;
 
 class BatchLearning {
 public:
@@ -40,7 +41,7 @@ private:
 
   struct GenTrDataThread {
     std::thread thread;
-    std::vector<std::string> files;
+    RecordQueue* recordQueue;
     std::ofstream os;
     std::unique_ptr<Searcher> searcher;
     int failLoss;

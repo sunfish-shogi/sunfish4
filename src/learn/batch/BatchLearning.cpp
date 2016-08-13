@@ -15,6 +15,8 @@
 #include "logger/Logger.hpp"
 #include <atomic>
 #include <sstream>
+#include <utility>
+#include <mutex>
 #include <cmath>
 
 namespace {
@@ -68,6 +70,38 @@ inline float norm(int16_t x, float n) {
 } // namespace
 
 namespace sunfish {
+
+class RecordQueue {
+public:
+
+  using QueueType = Directory::Files;
+
+  template <class T>
+  RecordQueue(T&& files) : files_(std::forward<T>(files)) {
+    iterator_ = files_.begin();
+  }
+
+  RecordQueue() = delete;
+  RecordQueue(const RecordQueue&) = delete;
+  RecordQueue(RecordQueue&&) = delete;
+
+  bool pop(const std::string** path) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (iterator_ == files_.end()) {
+      return false;
+    }
+    *path = &(*iterator_);
+    iterator_++;
+    return true;
+  }
+
+private:
+
+  QueueType files_;
+  QueueType::iterator iterator_;
+  std::mutex mutex_;
+
+};
 
 BatchLearning::BatchLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
@@ -194,6 +228,7 @@ bool BatchLearning::generateTrainingData() {
     return false;
   }
 
+  RecordQueue recordQueue(std::move(files));
   std::vector<GenTrDataThread> threads(config_.numThreads);
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
@@ -206,15 +241,10 @@ bool BatchLearning::generateTrainingData() {
       return false;
     }
 
+    th.recordQueue = &recordQueue;
     th.searcher.reset(new Searcher(evaluator_));
     th.failLoss = 0;
     th.numberOfData = 0;
-  }
-
-  int tn = 0;
-  for (const auto& path : files) {
-    threads[tn].files.push_back(path);
-    tn = (tn + 1) % config_.numThreads;
   }
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
@@ -241,8 +271,12 @@ bool BatchLearning::generateTrainingData() {
 }
 
 void BatchLearning::generateTrainingData(GenTrDataThread& th) {
-  for (const auto& path : th.files) {
-    generateTrainingData(th, path);
+  for (;;) {
+    const std::string* path;
+    if (!th.recordQueue->pop(&path)) {
+      break;
+    }
+    generateTrainingData(th, *path);
   }
 }
 
