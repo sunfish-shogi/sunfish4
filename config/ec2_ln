@@ -1,19 +1,17 @@
 NAME=
-
-# the target host on ec2
 EC2_HOST=
+TARGET_BRANCH=master
 
 # the key file for SSH login
 EC2_SSH_KEY=
 
-# the tar-ball which contains .csa files 
+# the tar-ball which contains .csa files
 KIFU_TARBALL=
 
 # specify this option if you want to restart
 SRC_EVAL_BIN_GZ=
 
 SUNFISH_REPO="https://github.com/sunfish-shogi/sunfish4.git"
-TARGET_BRANCH=master
 
 WORK_DIR=sunfish4
 

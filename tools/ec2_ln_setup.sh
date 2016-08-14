@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source config/ec2rc
+source config/ec2_ln
 
 echo EC2_HOST=${EC2_HOST}
 echo EC2_SSH_KEY=${EC2_SSH_KEY}
