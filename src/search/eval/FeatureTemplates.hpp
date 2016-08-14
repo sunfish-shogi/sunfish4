@@ -51,6 +51,9 @@ void optimize(FV& fv, OFV& ofv) {
     }
   }
 
+  FV_PART_COPY(ofv, fv, kingKingHand);
+  FV_PART_COPY(ofv, fv, kingKingPiece);
+
   FV_PART_COPY(ofv, fv, kingBRookVer);
   FV_PART_COPY(ofv, fv, kingWRookVer);
   FV_PART_COPY(ofv, fv, kingBRookHor);
@@ -121,6 +124,9 @@ void expand(FV& fv, OFV& ofv) {
       }
     }
   }
+
+  FV_PART_COPY(fv, ofv, kingKingHand);
+  FV_PART_COPY(fv, ofv, kingKingPiece);
 
   FV_PART_COPY(fv, ofv, kingBRookVer);
   FV_PART_COPY(fv, ofv, kingWRookVer);
@@ -285,6 +291,40 @@ void symmetrize(FV& fv, T&& func) {
     }
   }
 
+  // KKH/KKP
+  SQUARE_EACH(king1) {
+    auto rking1 = king1.hsym();
+    if (rking1.raw() < king1.raw()) {
+      continue;
+    }
+
+    SQUARE_EACH(king2) {
+      auto rking2 = king2.hsym();
+      if (rking1 == king1 && rking2.raw() < king2.raw()) {
+        continue;
+      }
+
+      if (rking1 != king1 || rking2 != king2) {
+        for (int h = 0; h < EvalHandTypeIndex::End; h++) {
+          func(fv.kingKingHand[king1.raw()][king2.raw()][h],
+               fv.kingKingHand[rking1.raw()][rking2.raw()][h]);
+        }
+      }
+
+      SQUARE_EACH(square) {
+        auto rsquare = square.hsym();
+        if (rking1 == king1 && rking2 == king2 && rsquare.raw() <= square.raw()) {
+          continue;
+        }
+
+        for (int i = 0; i < EvalPieceTypeIndex::End; i++) {
+          func(fv.kingKingPiece[king1.raw()][king2.raw()][square.raw()][i],
+               fv.kingKingPiece[rking1.raw()][rking2.raw()][rsquare.raw()][i]);
+        }
+      }
+    }
+  }
+
   // open
   SQUARE_EACH(king) {
     auto rking = king.hsym();
@@ -426,6 +466,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
       for (int i = 0; i < wnn; i++) { \
         sum -= ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::W ## T + n - 1]; \
       } \
+      sum += ofv.kingKingHand[bking][wking][EvalHandTypeIndex:: T + n - 1]; \
     } else { \
       ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::B ## T + n - 1] += delta; \
       ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::W ## T + n - 1] -= delta; \
@@ -435,6 +476,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
       for (int i = 0; i < wnn; i++) { \
         ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::W ## T + n - 1] -= delta; \
       } \
+      ofv.kingKingHand[bking][wking][EvalHandTypeIndex:: T + n - 1] += delta; \
     } \
   } \
 } while (false)
@@ -462,6 +504,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
       for (int i = 0; i < wnn; i++) { \
         sum -= ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::B ## T + n - 1]; \
       } \
+      sum -= ofv.kingKingHand[wking][bking][EvalHandTypeIndex:: T + n - 1]; \
     } else { \
       ofv.kingSafetyHand[bking][bsafety][EvalHandIndex::W ## T + n - 1] += delta; \
       ofv.kingSafetyHand[wking][wsafety][EvalHandIndex::B ## T + n - 1] -= delta; \
@@ -471,6 +514,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
       for (int i = 0; i < wnn; i++) { \
         ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::B ## T + n - 1] -= delta; \
       } \
+      ofv.kingKingHand[wking][bking][EvalHandTypeIndex:: T + n - 1] -= delta; \
     } \
   } \
 } while (false)
@@ -504,6 +548,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
         for (int i = 0; i < wnn; i++) {
           sum -= ofv.kingNeighborPiece[wking][wns[i].n][wns[i].idx][ws][wIndex];
         }
+        if (piece.isBlack()) {
+          sum += ofv.kingKingPiece[bking][wking][bs][getEvalPieceTypeIndex(piece.type())];
+        } else {
+          sum -= ofv.kingKingPiece[wking][bking][ws][getEvalPieceTypeIndex(piece.type())];
+        }
       } else {
         ofv.kingSafetyPiece[bking][bsafety][bs][bIndex] += delta;
         ofv.kingSafetyPiece[wking][wsafety][ws][wIndex] -= delta;
@@ -512,6 +561,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
         }
         for (int i = 0; i < wnn; i++) {
           ofv.kingNeighborPiece[wking][wns[i].n][wns[i].idx][ws][wIndex] -= delta;
+        }
+        if (piece.isBlack()) {
+          ofv.kingKingPiece[bking][wking][bs][getEvalPieceTypeIndex(piece.type())] += delta;
+        } else {
+          ofv.kingKingPiece[wking][bking][ws][getEvalPieceTypeIndex(piece.type())] -= delta;
         }
       }
     }
@@ -741,6 +795,8 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingNeighborPieceXR),
     FV_SUMMARIZE(kingNeighborPieceYR),
     FV_SUMMARIZE(kingNeighborPiece),
+    FV_SUMMARIZE(kingKingHand),
+    FV_SUMMARIZE(kingKingPiece),
     FV_SUMMARIZE(kingBRookVer),
     FV_SUMMARIZE(kingWRookVer),
     FV_SUMMARIZE(kingBRookHor),

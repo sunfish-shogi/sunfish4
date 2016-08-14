@@ -140,6 +140,8 @@ struct FeatureVector {
   using KingNeighborPieceXR = Type[SQUARE_FILES][Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
   using KingNeighborPieceYR = Type[SQUARE_RANKS][Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
   using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
+  using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
+  using KingKingPiece = Type[Square::N][Square::N][Square::N][EvalPieceTypeIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
   using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
   using KingSafetyPieceR = Type[KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
@@ -160,6 +162,9 @@ struct FeatureVector {
   KingNeighborPieceXR kingNeighborPieceXR;
   KingNeighborPieceYR kingNeighborPieceYR;
   KingNeighborPiece kingNeighborPiece;
+
+  KingKingHand kingKingHand;
+  KingKingPiece kingKingPiece;
 
   KingOpen kingBRookVer;
   KingOpen kingWRookVer;
@@ -184,6 +189,8 @@ struct OptimizedFeatureVector {
   using Type = T;
   using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
   using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
+  using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
+  using KingKingPiece = Type[Square::N][Square::N][Square::N][EvalPieceTypeIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
   using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
   using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
@@ -191,6 +198,9 @@ struct OptimizedFeatureVector {
   KingNeighborHand kingNeighborHand;
 
   KingNeighborPiece kingNeighborPiece;
+
+  KingKingHand kingKingHand;
+  KingKingPiece kingKingPiece;
 
   KingOpen kingBRookVer;
   KingOpen kingWRookVer;
