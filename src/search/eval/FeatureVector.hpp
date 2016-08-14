@@ -35,6 +35,20 @@ enum Type {
 }; // namespace EvalHandIndex_
 using EvalHandIndex = EvalHandIndex_::Type;
 
+namespace EvalHandTypeIndex_ {
+enum Type {
+  Pawn   = 0,
+  Lance  = Pawn   + 18,
+  Knight = Lance  + 4,
+  Silver = Knight + 4,
+  Gold   = Silver + 4,
+  Bishop = Gold   + 4,
+  Rook   = Bishop + 2,
+  End    = Rook + 2,
+};
+}; // namespace EvalHandTypeIndex_
+using EvalHandTypeIndex = EvalHandTypeIndex_::Type;
+
 namespace EvalPieceIndex_ {
 enum Type {
   BPawn = 0,
@@ -57,10 +71,52 @@ enum Type {
   WDragon,
   End,
 };
-} // namespace KingPiece_
+} // namespace EvalPieceIndex_
 using EvalPieceIndex = EvalPieceIndex_::Type;
 
 int getEvalPieceIndex(Piece piece);
+
+namespace EvalPieceTypeIndex_ {
+enum Type {
+  BPawn = 0,
+  WPawn,
+  BLance,
+  WLance,
+  BKnight,
+  WKnight,
+  BSilver,
+  WSilver,
+  BGold,
+  WGold,
+  BBishop,
+  WBishop,
+  BHorse,
+  WHorse,
+  BRook,
+  WRook,
+  BDragon,
+  WDragon,
+  End,
+};
+} // namespace EvalPieceTypeIndex_
+using EvalPieceTypeIndex = EvalPieceTypeIndex_::Type;
+
+int getEvalPieceTypeIndex(PieceType pieceType);
+
+namespace Neighbor3x3_ {
+enum Type {
+  N00 = 0,
+       N01, N02,
+  N10,      N12,
+  N20, N21, N22,
+  NN,
+};
+} // namespace Neighbor3x3
+using Neighbor3x3 = Neighbor3x3_::Type;
+
+int getHSymNeighbor3x3(int src);
+int getNeighbor3x3(Square king, Square square);
+int getNeighbor3x3R(Square king, Square square);
 
 enum {
   MaxKingSafety = 8,
@@ -79,11 +135,11 @@ struct FeatureVector {
   using KingPieceXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
   using KingPieceYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
   using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
-  using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
-  using KingNeighborPieceR = Type[8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPieceXR = Type[SQUARE_FILES][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPieceYR = Type[SQUARE_RANKS][8][EvalPieceIndex::End][RelativeSquare::N][EvalPieceIndex::End];
-  using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
+  using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
+  using KingNeighborPieceR = Type[Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceXR = Type[SQUARE_FILES][Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPieceYR = Type[SQUARE_RANKS][Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
+  using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
   using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
   using KingSafetyPieceR = Type[KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
@@ -126,8 +182,8 @@ struct FeatureVector {
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingNeighborHand = Type[Square::N][8][EvalPieceIndex::End][EvalHandIndex::End];
-  using KingNeighborPiece = Type[Square::N][8][EvalPieceIndex::End][Square::N][EvalPieceIndex::End];
+  using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
+  using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
   using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
   using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];

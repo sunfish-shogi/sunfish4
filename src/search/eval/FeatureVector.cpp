@@ -43,6 +43,54 @@ int getEvalPieceIndex(Piece piece) {
   return 0; // unreachable
 }
 
+int getEvalPieceTypeIndex(PieceType pieceType) {
+  switch (pieceType.raw()) {
+  case PieceNumber::Pawn     : return EvalPieceTypeIndex::BPawn;
+  case PieceNumber::Lance    : return EvalPieceTypeIndex::BLance;
+  case PieceNumber::Knight   : return EvalPieceTypeIndex::BKnight;
+  case PieceNumber::Silver   : return EvalPieceTypeIndex::BSilver;
+  case PieceNumber::Gold     : // fall through
+  case PieceNumber::Tokin    : // fall through
+  case PieceNumber::ProLance : // fall through
+  case PieceNumber::ProKnight: // fall through
+  case PieceNumber::ProSilver: return EvalPieceTypeIndex::BGold;
+  case PieceNumber::Bishop   : return EvalPieceTypeIndex::BBishop;
+  case PieceNumber::Horse    : return EvalPieceTypeIndex::BHorse;
+  case PieceNumber::Rook     : return EvalPieceTypeIndex::BRook;
+  case PieceNumber::Dragon   : return EvalPieceTypeIndex::BDragon;
+  }
+  ASSERT(false);
+  return 0; // unreachable
+}
+
+#define N3x3 Neighbor3x3
+
+namespace {
+int HSymNeighbor3x3[Neighbor3x3::NN] = {
+  N3x3::N20, N3x3::N21, N3x3::N22,
+  N3x3::N10,            N3x3::N12,
+  N3x3::N00, N3x3::N01, N3x3::N02,
+};
+} // namespace
+
+int getHSymNeighbor3x3(int src) {
+  return HSymNeighbor3x3[src]; 
+}
+
+int SquareDiffToNeighbor3x3[41] = {
+  N3x3::N00, N3x3::N01, N3x3::N02, 0, 0, 0, 0, 0, 0,
+  N3x3::N10,         0, N3x3::N12, 0, 0, 0, 0, 0, 0,
+  N3x3::N20, N3x3::N21, N3x3::N22,
+};
+
+int getNeighbor3x3(Square king, Square square) {
+  return SquareDiffToNeighbor3x3[square.raw()-king.raw()+10];
+}
+
+int getNeighbor3x3R(Square king, Square square) {
+  return SquareDiffToNeighbor3x3[king.raw()-square.raw()+10];
+}
+
 namespace {
 
 CONSTEXPR_CONST int8_t square5x5Index[41] = {
