@@ -1,0 +1,12 @@
+EC2_HOST=
+
+# the key file for SSH login
+EC2_SSH_KEY=
+
+SHOGI_SERVER_REPO="git://git.sourceforge.jp/gitroot/shogi-server/shogi-server.git"
+SHOGI_SERVER_BRANCH="master"
+
+SUNFISH_REPO="https://github.com/sunfish-shogi/sunfish4.git"
+
+REMOTE_BACKUP_HOST=
+REMOTE_BACKUP_KEY=~/.ssh/id_rsa

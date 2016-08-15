@@ -53,8 +53,8 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 		gzip -dc ~/${EVAL_BIN_GZ} > ${EVAL_BIN}
 	fi
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
-	./sunfish_ln --silent &
-	./tools/ln_backup.sh ${REMOTE_BACKUP_HOST} ${NAME} &
+	nohup ./sunfish_ln --silent > out/stdout.log 2> out/stderr.log < /dev/null &
+	nohup ./tools/ln_backup.sh ${REMOTE_BACKUP_HOST} ${NAME} < /dev/null &
 	git rev-parse HEAD > ${REVISION_FILE}
 	echo ${DATE} > ${DATE_FILE}
 	exit
