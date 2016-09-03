@@ -42,10 +42,10 @@ inline int recursiveIDSearchDepth(int depth) {
 /**
  * Calculate a depth of null move search.
  */
-inline int nullDepth(int depth) {
-  return depth <= Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
-        (depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 :
-                                                 depth - Searcher::Depth1Ply * 16 / 4); 
+inline int nullDepth(int depth, Score standPat, Score beta) {
+  return depth * 11 / 16
+       - Searcher::Depth1Ply * 7 / 2
+       - Searcher::Depth1Ply * std::max((standPat.raw() - beta.raw()) / 200, 3);
 }
 
 /**
@@ -532,16 +532,11 @@ Score Searcher::search(Tree& tree,
 
     if (!shouldRecursiveIDSearch(depth) ||
         ttDepth >= recursiveIDSearchDepth(depth)) {
-      if (ttScoreType == TTScoreType::Exact ||
-          ttScoreType == TTScoreType::Upper) {
-        // if the score is smaller than alpha, exclude recursive iterative deepening search.
-        if (ttScore < alpha && ttDepth >= recursiveIDSearchDepth(depth)) {
-          nodeStat.unsetRecursiveIDSearch();
-        }
-        // if the score is smaller than beta, exclude null window search.
-        if (ttScore < beta && ttDepth >= nullDepth(depth)) {
-          nodeStat.unsetNullMoveSearch();
-        }
+      // if the score is smaller than beta, exclude null window search.
+      if (ttScore < beta &&
+          (ttScoreType == TTScoreType::Exact ||
+           ttScoreType == TTScoreType::Upper)) {
+        nodeStat.unsetNullMoveSearch();
       }
 
       // previous best move
@@ -574,21 +569,25 @@ Score Searcher::search(Tree& tree,
 
   // null move pruning
   if (isNullWindow &&
-      depth >= Depth1Ply * 2 &&
       standPat >= beta &&
       nodeStat.isNullMoveSearch() &&
       !isCheck(node.checkState) &&
       !nodeStat.isMateThreat()) {
-    int newDepth = nullDepth(depth);
+    int newDepth = nullDepth(depth, standPat, beta);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch();
 
     doNullMove(tree);
 
-    Score score = -search(tree,
-                          newDepth,
-                          -beta,
-                          -beta+1,
-                          newNodeStat);
+    Score score = newDepth < Depth1Ply
+        ? -quies(tree,
+                 0,
+                 -beta,
+                 -beta+1)
+        : -search(tree,
+                  newDepth,
+                  -beta,
+                  -beta+1,
+                  newNodeStat);
 
     undoNullMove(tree);
 

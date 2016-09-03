@@ -168,6 +168,7 @@ Score estimateScore(Tree& tree,
                     const Move& move,
                     Evaluator& eval) {
   auto& node = tree.nodes[tree.ply];
+  ASSERT(node.score != Score::invalid());
   Score score = eval.estimateScore(node.score,
                                    tree.position,
                                    move);
