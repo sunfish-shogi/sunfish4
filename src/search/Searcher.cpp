@@ -28,7 +28,7 @@ CONSTEXPR_CONST int ExtensionDepthForRecapture = Searcher::Depth1Ply * 1 / 4;
  * Check whether the recursive-iterative deepening should be run.
  */
 inline bool shouldRecursiveIDSearch(int depth) {
-  return depth >= 3 * Searcher::Depth1Ply;
+  return depth >= 6 * Searcher::Depth1Ply;
 }
 
 /**
@@ -612,9 +612,10 @@ Score Searcher::search(Tree& tree,
   }
 
   // recursive iterative deepening
-  if (node.hashMove.isNone() &&
+  if (shouldRecursiveIDSearch(depth) &&
+      node.hashMove.isNone() &&
       nodeStat.isRecursiveIDSearch() &&
-      shouldRecursiveIDSearch(depth)) {
+      !isCheck(node.checkState)) {
     int newDepth = recursiveIDSearchDepth(depth);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch()
                                              .unsetHashCut()
