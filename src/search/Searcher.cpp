@@ -710,6 +710,7 @@ Score Searcher::search(Tree& tree,
       }
     }
 
+#if 0
     // prune negative SEE moves
     if (newDepth < Depth1Ply * 2 &&
         !currentMoveIsCheck &&
@@ -721,6 +722,7 @@ Score Searcher::search(Tree& tree,
       isFirst = true;
       continue;
     }
+#endif
 
     bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
