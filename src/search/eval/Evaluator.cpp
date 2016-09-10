@@ -121,9 +121,10 @@ Score Evaluator::calculateMaterialScoreDiff(Score score,
   return score;
 }
 
-int32_t Evaluator::calculatePositionalScore(const Position& position) {
-  return operate<FeatureOperationType::Evaluate>
-                (ofv_, position, 0);
+Score Evaluator::calculatePositionalScore(const Position& position) {
+  int32_t score = operate<FeatureOperationType::Evaluate>
+                         (ofv_, position, 0);
+  return static_cast<Score::RawType>(score / positionalScoreScale());
 }
 
 Score Evaluator::calculateTotalScore(Score materialScore,
@@ -134,7 +135,7 @@ Score Evaluator::calculateTotalScore(Score materialScore,
   }
 
   auto positionalScore = calculatePositionalScore(position);
-  score = materialScore + static_cast<Score::RawType>(positionalScore / positionalScoreScale());
+  score = materialScore + positionalScore;
 
   cache_.entry(position.getHash(), score);
 

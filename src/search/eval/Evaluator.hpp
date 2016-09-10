@@ -54,6 +54,8 @@ public:
                                    Move move,
                                    Piece captured) const;
 
+  Score calculatePositionalScore(const Position& position);
+
   Score calculateTotalScore(Score materialScore,
                             const Position& position);
 
@@ -68,10 +70,6 @@ public:
   DataSourceType dataSourceType() const {
     return dataSourceType_;
   }
-
-private:
-
-  int32_t calculatePositionalScore(const Position& position);
 
 private:
 
