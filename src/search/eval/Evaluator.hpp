@@ -33,13 +33,19 @@ public:
     Zero,
   };
 
+  enum class DataSourceType {
+    EvalBin,
+    Zero,
+    Custom,
+  };
+
   static std::shared_ptr<Evaluator> sharedEvaluator();
 
   Evaluator(InitType type);
 
   void initializeZero();
 
-  void onChanged();
+  void onChanged(DataSourceType dataSourceType);
 
   Score calculateMaterialScore(const Position& position) const;
 
@@ -59,6 +65,10 @@ public:
     return ofv_;
   }
 
+  DataSourceType dataSourceType() const {
+    return dataSourceType_;
+  }
+
 private:
 
   int32_t calculatePositionalScore(const Position& position);
@@ -68,6 +78,8 @@ private:
   EvalCache cache_;
 
   OFVType ofv_;
+
+  DataSourceType dataSourceType_;
 
 };
 

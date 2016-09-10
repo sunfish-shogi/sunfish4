@@ -30,7 +30,7 @@ TEST_BEFORE(EvaluatorTest) {
     e1 = e2;
   });
   optimize(*fv, g_eval.ofv());
-  g_eval.onChanged();
+  g_eval.onChanged(Evaluator::DataSourceType::Custom);
 }
 
 TEST(EvaluatorTest, testSymmetry) {

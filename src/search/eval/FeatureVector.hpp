@@ -10,6 +10,8 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
+#define SUNFISH_FV_VERSION "2016.09.10.1"
+
 namespace sunfish {
 
 class Position;

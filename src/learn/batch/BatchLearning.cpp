@@ -168,7 +168,7 @@ bool BatchLearning::iterate() {
   if (config_.restart) {
     load(*fv_);
     optimize(*fv_, evaluator_->ofv());
-    evaluator_->onChanged();
+    evaluator_->onChanged(Evaluator::DataSourceType::Custom);
   }
 
   for (int i = 0; i < config_.iteration; i++) {
@@ -559,7 +559,7 @@ void BatchLearning::updateParameters() {
   });
 
   optimize(*fv_, evaluator_->ofv());
-  evaluator_->onChanged();
+  evaluator_->onChanged(Evaluator::DataSourceType::Custom);
 }
 
 void BatchLearning::printParametersSummary() {

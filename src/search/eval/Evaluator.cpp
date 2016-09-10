@@ -50,11 +50,12 @@ Evaluator::Evaluator(InitType type) {
 
 void Evaluator::initializeZero() {
   memset(reinterpret_cast<void*>(&ofv_), 0, sizeof(ofv_));
-  onChanged();
+  onChanged(DataSourceType::Zero);
 }
 
-void Evaluator::onChanged() {
+void Evaluator::onChanged(DataSourceType dataSourceType) {
   cache_.clear();
+  dataSourceType_ = dataSourceType;
 }
 
 Score Evaluator::calculateMaterialScore(const Position& position) const {
@@ -167,6 +168,20 @@ Score Evaluator::estimateScore(Score score,
 bool load(const char* path, Evaluator::FVType& fv) {
   std::ifstream file(path, std::ios::in | std::ios::binary);
   if (!file) {
+    LOG(warning) << "failed to open: " << path;
+    return false;
+  }
+
+  char ver[32] = { 0 };
+  uint8_t len;
+  file.read(reinterpret_cast<char*>(&len), sizeof(len));
+  if (len >= sizeof(ver)) {
+    LOG(warning) << "invalid feature vector version";
+    return false;
+  }
+  file.read(reinterpret_cast<char*>(ver), len);
+  if (strcmp(SUNFISH_FV_VERSION, ver) != 0) {
+    LOG(warning) << "invalid feature vector version: " << ver;
     return false;
   }
 
@@ -185,7 +200,7 @@ bool load(const char* path, Evaluator& eval) {
   auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
   load(path, *fv.get());
   optimize(*fv, eval.ofv());
-  eval.onChanged();
+  eval.onChanged(Evaluator::DataSourceType::EvalBin);
   return true;
 }
 
@@ -196,8 +211,14 @@ bool load(Evaluator& eval) {
 bool save(const char* path, const Evaluator::FVType& fv) {
   std::ofstream file(path, std::ios::out | std::ios::binary);
   if (!file) {
+    LOG(warning) << "failed to open: " << path;
     return false;
   }
+
+  const char* ver = SUNFISH_FV_VERSION;
+  uint8_t len = strlen(ver);
+  file.write(reinterpret_cast<const char*>(&len), sizeof(len));
+  file.write(reinterpret_cast<const char*>(ver), len);
 
   file.write(reinterpret_cast<const char*>(&fv), sizeof(Evaluator::FVType));
 
