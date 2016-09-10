@@ -324,7 +324,12 @@ TEST(SquareTest, testRotate) {
 }
 
 TEST(SquareTest, testRelativeSquare) {
+  // constructor
   ASSERT_EQ(RelativeSquare(144), RelativeSquare(Square::s62(), Square::s62()));
   ASSERT_EQ(RelativeSquare(73), RelativeSquare(Square::s48(), Square::s85()));
   ASSERT_EQ(RelativeSquare(285), RelativeSquare(Square::s93(), Square::s18()));
+  ASSERT_EQ(RelativeSquare(Square::s88(), Square::s35()), RelativeSquare(Square::s76(), Square::s23()));
+
+  // hsym
+  ASSERT_EQ(RelativeSquare(Square::s88(), Square::s35()), RelativeSquare(Square::s37(), Square::s84()).hsym());
 }

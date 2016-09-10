@@ -12,6 +12,7 @@
 #include "search/eval/FeatureVector.hpp"
 #include <vector>
 #include <algorithm>
+#include <utility>
 #include <cstring>
 
 #define FV_PART_COPY(out, in, part) memcpy( \
@@ -28,18 +29,48 @@ namespace {
 
 using namespace sunfish;
 
+template <class Open,
+          class KingOpenR,
+          class KingOpenXR,
+          class KingOpenYR,
+          class KingOpen,
+          class OKingOpen>
+inline
+void optimizeOpen(Open open,
+                  KingOpenR kingOpenR,
+                  KingOpenXR kingOpenXR,
+                  KingOpenYR kingOpenYR,
+                  KingOpen kingOpen,
+                  OKingOpen oKingOpen) {
+  // open, kingOpenR, kingOpenXR, kingOpenYR, kingOpen
+  //   => kingOpen
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int i = 0; i < 8; i++) {
+        oKingOpen[king.raw()][square.raw()][i]
+          = open[square.raw()][i]
+          + kingOpenR[RelativeSquare(king, square).raw()][i]
+          + kingOpenXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
+          + kingOpenYR[king.getRank()-1][RelativeSquare(king, square).raw()][i]
+          + kingOpen[king.raw()][square.raw()][i];
+      }
+    }
+  }
+}
+
 template <class FV, class OFV>
 inline
 void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingHand);
 
-  // kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
+  // piece, kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
   //   => kingPiece
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
         ofv.kingPiece[king.raw()][square.raw()][i]
           = fv.kingPiece[king.raw()][square.raw()][i]
+          + fv.piece[square.raw()][i]
           + fv.kingPieceR[RelativeSquare(king, square).raw()][i]
           + fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
           + fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i];
@@ -70,16 +101,69 @@ void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingKingHand);
   FV_PART_COPY(ofv, fv, kingKingPiece);
 
-  FV_PART_COPY(ofv, fv, kingBRookVer);
-  FV_PART_COPY(ofv, fv, kingWRookVer);
-  FV_PART_COPY(ofv, fv, kingBRookHor);
-  FV_PART_COPY(ofv, fv, kingWRookHor);
-  FV_PART_COPY(ofv, fv, kingBBishopDiagL45);
-  FV_PART_COPY(ofv, fv, kingWBishopDiagL45);
-  FV_PART_COPY(ofv, fv, kingBBishopDiagR45);
-  FV_PART_COPY(ofv, fv, kingWBishopDiagR45);
-  FV_PART_COPY(ofv, fv, kingBLance);
-  FV_PART_COPY(ofv, fv, kingWLance);
+  optimizeOpen(fv.rookVer,
+               fv.kingRookVerR,
+               fv.kingRookVerXR,
+               fv.kingRookVerYR,
+               fv.kingRookVer,
+               ofv.kingRookVer);
+  optimizeOpen(fv.rookHor,
+               fv.kingRookHorR,
+               fv.kingRookHorXR,
+               fv.kingRookHorYR,
+               fv.kingRookHor,
+               ofv.kingRookHor);
+  optimizeOpen(fv.bishopDiagL45,
+               fv.kingBishopDiagL45R,
+               fv.kingBishopDiagL45XR,
+               fv.kingBishopDiagL45YR,
+               fv.kingBishopDiagL45,
+               ofv.kingBishopDiagL45);
+  optimizeOpen(fv.bishopDiagR45,
+               fv.kingBishopDiagR45R,
+               fv.kingBishopDiagR45XR,
+               fv.kingBishopDiagR45YR,
+               fv.kingBishopDiagR45,
+               ofv.kingBishopDiagR45);
+  optimizeOpen(fv.lance,
+               fv.kingLanceR,
+               fv.kingLanceXR,
+               fv.kingLanceYR,
+               fv.kingLance,
+               ofv.kingLance);
+}
+
+template <class Open,
+          class KingOpenR,
+          class KingOpenXR,
+          class KingOpenYR,
+          class KingOpen,
+          class OKingOpen>
+inline
+void expandOpen(Open open,
+                KingOpenR kingOpenR,
+                KingOpenXR kingOpenXR,
+                KingOpenYR kingOpenYR,
+                KingOpen kingOpen,
+                OKingOpen oKingOpen) {
+  // kingOpen
+  //   => open, kingOpenR, kingOpenXR, kingOpenYR, kingOpen
+  memset(reinterpret_cast<char*>(open), 0, sizeof(Open));
+  memset(reinterpret_cast<char*>(kingOpenXR), 0, sizeof(KingOpenXR));
+  memset(reinterpret_cast<char*>(kingOpenYR), 0, sizeof(KingOpenYR));
+  memset(reinterpret_cast<char*>(kingOpenR), 0, sizeof(KingOpenR));
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int i = 0; i < 8; i++) {
+        auto val = oKingOpen[king.raw()][square.raw()][i];
+        open[square.raw()][i] += val;
+        kingOpenR[RelativeSquare(king, square).raw()][i] += val;
+        kingOpenXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
+        kingOpenYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
+        kingOpen[king.raw()][square.raw()][i] = val;
+      }
+    }
+  }
 }
 
 template <class FV, class OFV>
@@ -88,19 +172,20 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingHand);
 
   // kingPiece
-  //   => kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
+  //   => piece, kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
+  FV_PART_ZERO(fv, piece);
   FV_PART_ZERO(fv, kingPieceR);
   FV_PART_ZERO(fv, kingPieceXR);
   FV_PART_ZERO(fv, kingPieceYR);
-  FV_PART_ZERO(fv, kingPiece);
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
         auto val = ofv.kingPiece[king.raw()][square.raw()][i];
+        fv.piece[square.raw()][i] += val;
         fv.kingPieceR[RelativeSquare(king, square).raw()][i] += val;
         fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
         fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
-        fv.kingPiece[king.raw()][square.raw()][i] += val;
+        fv.kingPiece[king.raw()][square.raw()][i] = val;
       }
     }
   }
@@ -131,16 +216,36 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingKingHand);
   FV_PART_COPY(fv, ofv, kingKingPiece);
 
-  FV_PART_COPY(fv, ofv, kingBRookVer);
-  FV_PART_COPY(fv, ofv, kingWRookVer);
-  FV_PART_COPY(fv, ofv, kingBRookHor);
-  FV_PART_COPY(fv, ofv, kingWRookHor);
-  FV_PART_COPY(fv, ofv, kingBBishopDiagL45);
-  FV_PART_COPY(fv, ofv, kingWBishopDiagL45);
-  FV_PART_COPY(fv, ofv, kingBBishopDiagR45);
-  FV_PART_COPY(fv, ofv, kingWBishopDiagR45);
-  FV_PART_COPY(fv, ofv, kingBLance);
-  FV_PART_COPY(fv, ofv, kingWLance);
+  expandOpen(fv.rookVer,
+               fv.kingRookVerR,
+               fv.kingRookVerXR,
+               fv.kingRookVerYR,
+               fv.kingRookVer,
+               ofv.kingRookVer);
+  expandOpen(fv.rookHor,
+               fv.kingRookHorR,
+               fv.kingRookHorXR,
+               fv.kingRookHorYR,
+               fv.kingRookHor,
+               ofv.kingRookHor);
+  expandOpen(fv.bishopDiagL45,
+               fv.kingBishopDiagL45R,
+               fv.kingBishopDiagL45XR,
+               fv.kingBishopDiagL45YR,
+               fv.kingBishopDiagL45,
+               ofv.kingBishopDiagL45);
+  expandOpen(fv.bishopDiagR45,
+               fv.kingBishopDiagR45R,
+               fv.kingBishopDiagR45XR,
+               fv.kingBishopDiagR45YR,
+               fv.kingBishopDiagR45,
+               ofv.kingBishopDiagR45);
+  expandOpen(fv.lance,
+               fv.kingLanceR,
+               fv.kingLanceXR,
+               fv.kingLanceYR,
+               fv.kingLance,
+               ofv.kingLance);
 }
 
 template <class FV>
@@ -169,37 +274,151 @@ void each(FV1& fv1, FV2& fv2, T&& func) {
   }
 }
 
-template <class FV, class T>
+template <class Open,
+          class KingOpenR,
+          class KingOpenXR,
+          class KingOpenYR,
+          class KingOpen,
+          class T>
 inline
-void symmetrize(FV& fv, T&& func) {
+void symmetrizeOpen(Open open,
+                    KingOpenR kingOpenR,
+                    KingOpenXR kingOpenXR,
+                    KingOpenYR kingOpenYR,
+                    KingOpen kingOpen,
+                    T&& func) {
+  SQUARE_EACH(square) {
+    auto rsquare = square.hsym();
+    if (rsquare.raw() > square.raw()) {
+      for (int i = 0; i < 8; i++) {
+        func(open[square.raw()][i],
+             open[rsquare.raw()][i]);
+      }
+    }
+  }
+
   SQUARE_EACH(king) {
     auto rking = king.hsym();
     if (rking.raw() < king.raw()) {
       continue;
     }
 
-    if (rking != king) {
+    SQUARE_EACH(square) {
+      auto rsquare = square.hsym();
+      if (rking != king || rsquare.raw() > square.raw()) {
+        for (int i = 0; i < 8; i++) {
+          func(kingOpen[king.raw()][square.raw()][i],
+               kingOpen[rking.raw()][rsquare.raw()][i]);
+        }
+      }
+    }
+  }
+
+  for (int rs = 0; rs < RelativeSquare::N; rs++) {
+    int rrs = RelativeSquare(rs).hsym().raw();
+    if (rrs < rs) {
+      continue;
+    }
+
+    if (rrs > rs) {
+      for (int i = 0; i < 8; i++) {
+        func(kingOpenR[rs][i],
+             kingOpenR[rrs][i]);
+      }
+    }
+
+    for (int f = 0; f < 9; f++) {
+      int rf = 8 - f;
+      if (rrs != rs || rf > f) {
+        for (int i = 0; i < 8; i++) {
+          func(kingOpenXR[f][rs][i],
+               kingOpenXR[rf][rrs][i]);
+        }
+      }
+    }
+
+    if (rrs > rs) {
+      for (int r = 0; r < 9; r++) {
+        for (int i = 0; i < 8; i++) {
+          func(kingOpenYR[r][rs][i],
+               kingOpenYR[r][rrs][i]);
+        }
+      }
+    }
+  }
+}
+
+template <class FV, class T>
+inline
+void symmetrize(FV& fv, T&& func) {
+  // hand
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() > king.raw()) {
       for (int h = 0; h < EvalHandIndex::End; h++) {
         func(fv.kingHand[king.raw()][h],
              fv.kingHand[rking.raw()][h]);
       }
     }
+  }
+
+  // piece
+  SQUARE_EACH(square) {
+    auto rsquare = square.hsym();
+    if (rsquare.raw() > square.raw()) {
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        func(fv.piece[square.raw()][i],
+             fv.piece[rsquare.raw()][i]);
+      }
+    }
+  }
+
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() < king.raw()) {
+      continue;
+    }
 
     SQUARE_EACH(square) {
       auto rsquare = square.hsym();
-      if (rking == king && rsquare.raw() <= square.raw()) {
-        continue;
+      if (rking != king || rsquare.raw() > square.raw()) {
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          func(fv.kingPiece[king.raw()][square.raw()][i],
+               fv.kingPiece[rking.raw()][rsquare.raw()][i]);
+        }
       }
+    }
+  }
 
+  for (int rs = 0; rs < RelativeSquare::N; rs++) {
+    int rrs = RelativeSquare(rs).hsym().raw();
+    if (rrs < rs) {
+      continue;
+    }
+
+    if (rrs > rs) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
-        func(fv.kingPieceR[RelativeSquare(king, square).raw()][i],
-             fv.kingPieceR[RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i],
-             fv.kingPieceXR[rking.getFile()-1][RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i],
-             fv.kingPieceYR[rking.getRank()-1][RelativeSquare(rking, rsquare).raw()][i]);
-        func(fv.kingPiece[king.raw()][square.raw()][i],
-             fv.kingPiece[rking.raw()][rsquare.raw()][i]);
+        func(fv.kingPieceR[rs][i],
+             fv.kingPieceR[rrs][i]);
+      }
+    }
+
+    for (int f = 0; f < 9; f++) {
+      int rf = 8 - f;
+      if (rrs != rs || rf > f) {
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          func(fv.kingPieceXR[f][rs][i],
+               fv.kingPieceXR[rf][rrs][i]);
+        }
+      }
+    }
+
+    if (rrs > rs) {
+      for (int r = 0; r < 9; r++) {
+        for (int i = 0; i < EvalPieceIndex::End; i++) {
+          func(fv.kingPieceYR[r][rs][i],
+               fv.kingPieceYR[r][rrs][i]);
+        }
       }
     }
   }
@@ -213,40 +432,84 @@ void symmetrize(FV& fv, T&& func) {
 
     for (int n = 0; n < Neighbor3x3::NN; n++) {
       auto rn = getHSymNeighbor3x3(n);
-      if (rking == king && rn <= n) {
-        continue;
-      }
-
-      for (int i = 0; i < EvalPieceTypeIndex::End; i++) {
-        for (int h = 0; h < EvalHandIndex::End; h++) {
-          func(fv.kingNeighborHand[king.raw()][n][i][h],
-               fv.kingNeighborHand[rking.raw()][rn][i][h]);
+      if (rking != king || rn > n) {
+        for (int i = 0; i < EvalPieceTypeIndex::End; i++) {
+          for (int h = 0; h < EvalHandIndex::End; h++) {
+            func(fv.kingNeighborHand[king.raw()][n][i][h],
+                 fv.kingNeighborHand[rking.raw()][rn][i][h]);
+          }
         }
       }
     }
+  }
 
-    SQUARE_EACH(square) {
-      auto rsquare = square.hsym();
-      if (rking == king && rsquare.raw() < square.raw()) {
+  SQUARE_EACH(square) {
+    auto rsquare = square.hsym();
+    if (rsquare.raw() < square.raw()) {
+      continue;
+    }
+
+    for (int n = 0; n < Neighbor3x3::NN; n++) {
+      auto rn = getHSymNeighbor3x3(n);
+      if (rsquare == square && rn < n) {
         continue;
       }
 
-      for (int n = 0; n < Neighbor3x3::NN; n++) {
-        auto rn = getHSymNeighbor3x3(n);
-        if (rking == king && rsquare == square && rn <= n) {
-          continue;
+      SQUARE_EACH(king) {
+        auto rking = king.hsym();
+        if (rsquare != square || rn != n || rking.raw() > king.raw()) {
+          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+              func(fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2],
+                   fv.kingNeighborPiece[rking.raw()][rn][i1][rsquare.raw()][i2]);
+            }
+          }
         }
+      }
+    }
+  }
 
+  for (int n = 0; n < Neighbor3x3::NN; n++) {
+    auto rn = getHSymNeighbor3x3(n);
+    if (rn < n) {
+      continue;
+    }
+
+    for (int rs = 0; rs < RelativeSquare::N; rs++) {
+      int rrs = RelativeSquare(rs).hsym().raw();
+      if (rn == n && rrs < rs) {
+        continue;
+      }
+
+      if (rn != n || rrs > rs) {
         for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
           for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-            func(fv.kingNeighborPieceR[n][i1][RelativeSquare(king, square).raw()][i2],
-                 fv.kingNeighborPieceR[rn][i1][RelativeSquare(rking, rsquare).raw()][i2]);
-            func(fv.kingNeighborPieceXR[king.getFile()-1][n][i1][RelativeSquare(king, square).raw()][i2],
-                 fv.kingNeighborPieceXR[rking.getFile()-1][rn][i1][RelativeSquare(rking, rsquare).raw()][i2]);
-            func(fv.kingNeighborPieceYR[king.getRank()-1][n][i1][RelativeSquare(king, square).raw()][i2],
-                 fv.kingNeighborPieceYR[rking.getRank()-1][rn][i1][RelativeSquare(rking, rsquare).raw()][i2]);
-            func(fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2],
-                 fv.kingNeighborPiece[rking.raw()][rn][i1][rsquare.raw()][i2]);
+            func(fv.kingNeighborPieceR[n][i1][rs][i2],
+                 fv.kingNeighborPieceR[rn][i1][rrs][i2]);
+          }
+        }
+      }
+
+
+      for (int f = 0; f < 9; f++) {
+        int rf = 8 - f;
+        if (rn != n || rrs != rs || rf > f) {
+          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+              func(fv.kingNeighborPieceXR[f][n][i1][rs][i2],
+                   fv.kingNeighborPieceXR[rf][rn][i1][rrs][i2]);
+            }
+          }
+        }
+      }
+
+      if (rn != n || rrs > rs) {
+        for (int r = 0; r < 9; r++) {
+          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+              func(fv.kingNeighborPieceYR[r][n][i1][rs][i2],
+                   fv.kingNeighborPieceYR[r][rn][i1][rrs][i2]);
+            }
           }
         }
       }
@@ -288,42 +551,36 @@ void symmetrize(FV& fv, T&& func) {
   }
 
   // open
-  SQUARE_EACH(king) {
-    auto rking = king.hsym();
-    if (rking.raw() < king.raw()) {
-      continue;
-    }
-
-    SQUARE_EACH(s) {
-      auto rs = s.hsym();
-      if (rking == king && rs.raw() <= s.raw()) {
-        continue;
-      }
-
-      for (int i = 0; i < 8; i++) {
-        func(fv.kingBRookVer[king.raw()][s.raw()][i],
-             fv.kingBRookVer[rking.raw()][rs.raw()][i]);
-        func(fv.kingWRookVer[king.raw()][s.raw()][i],
-             fv.kingWRookVer[rking.raw()][rs.raw()][i]);
-        func(fv.kingBRookHor[king.raw()][s.raw()][i],
-             fv.kingBRookHor[rking.raw()][rs.raw()][i]);
-        func(fv.kingWRookHor[king.raw()][s.raw()][i],
-             fv.kingWRookHor[rking.raw()][rs.raw()][i]);
-        func(fv.kingBBishopDiagL45[king.raw()][s.raw()][i],
-             fv.kingBBishopDiagR45[rking.raw()][rs.raw()][i]);
-        func(fv.kingWBishopDiagL45[king.raw()][s.raw()][i],
-             fv.kingWBishopDiagR45[rking.raw()][rs.raw()][i]);
-        func(fv.kingBBishopDiagR45[king.raw()][s.raw()][i],
-             fv.kingBBishopDiagL45[rking.raw()][rs.raw()][i]);
-        func(fv.kingWBishopDiagR45[king.raw()][s.raw()][i],
-             fv.kingWBishopDiagL45[rking.raw()][rs.raw()][i]);
-        func(fv.kingBLance[king.raw()][s.raw()][i],
-             fv.kingBLance[rking.raw()][rs.raw()][i]);
-        func(fv.kingWLance[king.raw()][s.raw()][i],
-             fv.kingWLance[rking.raw()][rs.raw()][i]);
-      }
-    }
-  }
+  symmetrizeOpen(fv.rookVer,
+                 fv.kingRookVerR,
+                 fv.kingRookVerXR,
+                 fv.kingRookVerYR,
+                 fv.kingRookVer,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.rookHor,
+                 fv.kingRookHorR,
+                 fv.kingRookHorXR,
+                 fv.kingRookHorYR,
+                 fv.kingRookHor,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.bishopDiagL45,
+                 fv.kingBishopDiagL45R,
+                 fv.kingBishopDiagL45XR,
+                 fv.kingBishopDiagL45YR,
+                 fv.kingBishopDiagL45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.bishopDiagR45,
+                 fv.kingBishopDiagR45R,
+                 fv.kingBishopDiagR45XR,
+                 fv.kingBishopDiagR45YR,
+                 fv.kingBishopDiagR45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.lance,
+                 fv.kingLanceR,
+                 fv.kingLanceXR,
+                 fv.kingLanceYR,
+                 fv.kingLance,
+                 std::forward<T>(func));
 }
 
 enum FeatureOperationType {
@@ -504,26 +761,21 @@ T operate(OFV& ofv, const Position& position, T delta) {
                             Bitboard::nocorner());
     BB_EACH(square, bbishop) {
       int bIndex = square.raw();
-      int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagR45[bking][bIndex][count];
-        sum -= ofv.kingWBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingBishopDiagR45[bking][bIndex][count];
       } else {
-        ofv.kingBBishopDiagR45[bking][bIndex][count] += delta;
-        ofv.kingWBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingBishopDiagR45[bking][bIndex][count] += delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagL45[bking][bIndex][count];
-        sum -= ofv.kingWBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingBishopDiagL45[bking][bIndex][count];
       } else {
-        ofv.kingBBishopDiagL45[bking][bIndex][count] += delta;
-        ofv.kingWBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingBishopDiagL45[bking][bIndex][count] += delta;
       }
     }
   }
@@ -533,27 +785,22 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                     position.getWHorseBitboard()),
                             Bitboard::nocorner());
     BB_EACH(square, wbishop) {
-      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagR45[bking][bIndex][count];
-        sum -= ofv.kingBBishopDiagR45[wking][wIndex][count];
+        sum -= ofv.kingBishopDiagR45[wking][wIndex][count];
       } else {
-        ofv.kingWBishopDiagR45[bking][bIndex][count] += delta;
-        ofv.kingBBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingBishopDiagR45[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagL45[bking][bIndex][count];
-        sum -= ofv.kingBBishopDiagL45[wking][wIndex][count];
+        sum -= ofv.kingBishopDiagL45[wking][wIndex][count];
       } else {
-        ofv.kingWBishopDiagL45[bking][bIndex][count] += delta;
-        ofv.kingBBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingBishopDiagL45[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -567,26 +814,21 @@ T operate(OFV& ofv, const Position& position, T delta) {
                          position.getBDragonBitboard());
     BB_EACH(square, brook) {
       int bIndex = square.raw();
-      int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookVer[bking][bIndex][count];
-        sum -= ofv.kingWRookVer[wking][wIndex][count];
+        sum += ofv.kingRookVer[bking][bIndex][count];
       } else {
-        ofv.kingBRookVer[bking][bIndex][count] += delta;
-        ofv.kingWRookVer[wking][wIndex][count] -= delta;
+        ofv.kingRookVer[bking][bIndex][count] += delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookHor[bking][bIndex][count];
-        sum -= ofv.kingWRookHor[wking][wIndex][count];
+        sum += ofv.kingRookHor[bking][bIndex][count];
       } else {
-        ofv.kingBRookHor[bking][bIndex][count] += delta;
-        ofv.kingWRookHor[wking][wIndex][count] -= delta;
+        ofv.kingRookHor[bking][bIndex][count] += delta;
       }
     }
   }
@@ -595,27 +837,22 @@ T operate(OFV& ofv, const Position& position, T delta) {
     auto wrook = nosseOr(position.getWRookBitboard(),
                          position.getWDragonBitboard());
     BB_EACH(square, wrook) {
-      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookVer[bking][bIndex][count];
-        sum -= ofv.kingBRookVer[wking][wIndex][count];
+        sum -= ofv.kingRookVer[wking][wIndex][count];
       } else {
-        ofv.kingWRookVer[bking][bIndex][count] += delta;
-        ofv.kingBRookVer[wking][wIndex][count] -= delta;
+        ofv.kingRookVer[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookHor[bking][bIndex][count];
-        sum -= ofv.kingBRookHor[wking][wIndex][count];
+        sum -= ofv.kingRookHor[wking][wIndex][count];
       } else {
-        ofv.kingWRookHor[bking][bIndex][count] += delta;
-        ofv.kingBRookHor[wking][wIndex][count] -= delta;
+        ofv.kingRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -624,16 +861,13 @@ T operate(OFV& ofv, const Position& position, T delta) {
     auto blance = position.getBLanceBitboard();
     BB_EACH(square, blance) {
       int bIndex = square.raw();
-      int wIndex = square.psym().raw();
 
       int count = MoveTables::blackLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBLance[bking][bIndex][count];
-        sum -= ofv.kingWLance[wking][wIndex][count];
+        sum += ofv.kingLance[bking][bIndex][count];
       } else {
-        ofv.kingBLance[bking][bIndex][count] += delta;
-        ofv.kingWLance[wking][wIndex][count] -= delta;
+        ofv.kingLance[bking][bIndex][count] += delta;
       }
     }
   }
@@ -641,17 +875,14 @@ T operate(OFV& ofv, const Position& position, T delta) {
   {
     auto wlance = position.getWLanceBitboard();
     BB_EACH(square, wlance) {
-      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::whiteLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWLance[bking][bIndex][count];
-        sum -= ofv.kingBLance[wking][wIndex][count];
+        sum -= ofv.kingLance[wking][wIndex][count];
       } else {
-        ofv.kingWLance[bking][bIndex][count] += delta;
-        ofv.kingBLance[wking][wIndex][count] -= delta;
+        ofv.kingLance[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -710,6 +941,7 @@ SummaryListType summarize(const FV& fv) {
 #define FV_SUMMARIZE(part) (summarizePart<SummaryType>(#part, FV_PART_PTR(part), FV_PART_SIZE(part)))
   return SummaryListType {
     FV_SUMMARIZE(kingHand),
+    FV_SUMMARIZE(piece),
     FV_SUMMARIZE(kingPieceR),
     FV_SUMMARIZE(kingPieceXR),
     FV_SUMMARIZE(kingPieceYR),
@@ -721,16 +953,31 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingNeighborPiece),
     FV_SUMMARIZE(kingKingHand),
     FV_SUMMARIZE(kingKingPiece),
-    FV_SUMMARIZE(kingBRookVer),
-    FV_SUMMARIZE(kingWRookVer),
-    FV_SUMMARIZE(kingBRookHor),
-    FV_SUMMARIZE(kingWRookHor),
-    FV_SUMMARIZE(kingBBishopDiagL45),
-    FV_SUMMARIZE(kingWBishopDiagL45),
-    FV_SUMMARIZE(kingBBishopDiagR45),
-    FV_SUMMARIZE(kingWBishopDiagR45),
-    FV_SUMMARIZE(kingBLance),
-    FV_SUMMARIZE(kingWLance),
+    FV_SUMMARIZE(rookVer),
+    FV_SUMMARIZE(kingRookVerR),
+    FV_SUMMARIZE(kingRookVerXR),
+    FV_SUMMARIZE(kingRookVerYR),
+    FV_SUMMARIZE(kingRookVer),
+    FV_SUMMARIZE(rookHor),
+    FV_SUMMARIZE(kingRookHorR),
+    FV_SUMMARIZE(kingRookHorXR),
+    FV_SUMMARIZE(kingRookHorYR),
+    FV_SUMMARIZE(kingRookHor),
+    FV_SUMMARIZE(bishopDiagL45),
+    FV_SUMMARIZE(kingBishopDiagL45R),
+    FV_SUMMARIZE(kingBishopDiagL45XR),
+    FV_SUMMARIZE(kingBishopDiagL45YR),
+    FV_SUMMARIZE(kingBishopDiagL45),
+    FV_SUMMARIZE(bishopDiagR45),
+    FV_SUMMARIZE(kingBishopDiagR45R),
+    FV_SUMMARIZE(kingBishopDiagR45XR),
+    FV_SUMMARIZE(kingBishopDiagR45YR),
+    FV_SUMMARIZE(kingBishopDiagR45),
+    FV_SUMMARIZE(lance),
+    FV_SUMMARIZE(kingLanceR),
+    FV_SUMMARIZE(kingLanceXR),
+    FV_SUMMARIZE(kingLanceYR),
+    FV_SUMMARIZE(kingLance),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

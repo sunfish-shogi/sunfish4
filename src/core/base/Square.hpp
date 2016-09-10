@@ -773,11 +773,15 @@ public:
   }
 
   CONSTEXPR SquareRawType getFile() const {
-    return number_ / H;
+    return number_ / W;
   }
 
   CONSTEXPR SquareRawType getRank() const {
     return number_ % H;
+  }
+
+  CONSTEXPR RelativeSquare hsym() const {
+    return RelativeSquare(((SquareRawType)16 - number_ / W) * W + number_ % H);
   }
 
   CONSTEXPR bool operator==(const RelativeSquare& rhs) const {

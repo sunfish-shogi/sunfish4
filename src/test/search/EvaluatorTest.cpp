@@ -580,3 +580,16 @@ TEST(EvaluatorTest, testDiff) {
     ASSERT_EQ(expect, scoreAfter);
   }
 }
+
+TEST(EvaluatorTest, testSymmetrize) {
+  auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
+  each(*fv, [](int16_t& v) {
+    v = 1;
+  });
+  symmetrize(*fv, [](int16_t& e1, int16_t& e2) {
+    e1 = e2 = e1 + e2;
+  });
+  each(*fv, [](int16_t& v) {
+    ASSERT_TRUE(v == 1 || v == 2);
+  });
+}
