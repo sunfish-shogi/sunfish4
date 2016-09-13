@@ -286,8 +286,10 @@ bool Searcher::aspsearch(Tree& tree,
     prevScore + 512,
     Score::infinity()
   };
-  int alphaIndex = doAsp ? 0 : 2;
-  int betaIndex = doAsp ? 0 : 2;
+  int maxAlphaIndex = sizeof(alphas) / sizeof(alphas[0]) - 1;
+  int maxBetaIndex = sizeof(betas) / sizeof(betas[0]) - 1;
+  int alphaIndex = doAsp ? 0 : maxAlphaIndex;
+  int betaIndex = doAsp ? 0 : maxBetaIndex;
 
   Score bestScore = -Score::infinity();
 
@@ -369,33 +371,37 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     // fail-low
-    if (score <= alphas[alphaIndex] && score >= bestScore && score > -Score::mate()) {
-      for (; score <= alphas[alphaIndex]; alphaIndex++) {}
+    if (score <= alphas[alphaIndex] && score > bestScore) {
+      for (; score <= alphas[alphaIndex] && alpha < maxAlphaIndex; alphaIndex++) {}
 
-      doFullSearch = true;
+      if (alphas[alphaIndex] < score) {
+        doFullSearch = true;
 
-      if (handler_ != nullptr) {
-        PV pv;
-        pv.set(move, depth, pv);
-        handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
+        if (handler_ != nullptr) {
+          PV pv;
+          pv.set(move, depth, pv);
+          handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
+        }
+        continue;
       }
-      continue;
     }
 
     setScoreToMove(node.moves[moveCount], score);
 
     // fail-high
-    if (score >= beta && beta != Score::infinity()) {
-      for (; score >= betas[betaIndex]; betaIndex++) {}
+    if (score >= beta) {
+      for (; score >= betas[betaIndex] && betaIndex < maxBetaIndex; betaIndex++) {}
 
-      doFullSearch = true;
+      if (betas[betaIndex] > score) {
+        doFullSearch = true;
 
-      if (handler_ != nullptr) {
-        PV pv;
-        pv.set(move, depth, pv);
-        handler_->onFailHigh(*this, pv, timer_.elapsed(), depth, score);
+        if (handler_ != nullptr) {
+          PV pv;
+          pv.set(move, depth, pv);
+          handler_->onFailHigh(*this, pv, timer_.elapsed(), depth, score);
+        }
+        continue;
       }
-      continue;
     }
 
     if (score > bestScore) {
