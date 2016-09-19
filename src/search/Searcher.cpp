@@ -372,7 +372,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     // fail-low
     if (score <= alphas[alphaIndex] && score > bestScore) {
-      for (; score <= alphas[alphaIndex] && alpha < maxAlphaIndex; alphaIndex++) {}
+      for (; score <= alphas[alphaIndex] && alphaIndex < maxAlphaIndex; alphaIndex++) {}
 
       if (alphas[alphaIndex] < score) {
         doFullSearch = true;
