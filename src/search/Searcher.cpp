@@ -409,6 +409,10 @@ bool Searcher::aspsearch(Tree& tree,
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
+
+      if (handler_ != nullptr) {
+        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
+      }
     }
 
     moveCount++;
@@ -425,10 +429,6 @@ bool Searcher::aspsearch(Tree& tree,
             node.pv,
             0,
             bestScore);
-
-    if (handler_ != nullptr) {
-      handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
-    }
   }
 
   return bestScore > -Score::mate() && bestScore < Score::mate();
