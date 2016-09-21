@@ -63,14 +63,13 @@ inline
 void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingHand);
 
-  // piece, kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
+  // kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
   //   => kingPiece
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
         ofv.kingPiece[king.raw()][square.raw()][i]
           = fv.kingPiece[king.raw()][square.raw()][i]
-          + fv.piece[square.raw()][i]
           + fv.kingPieceR[RelativeSquare(king, square).raw()][i]
           + fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
           + fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i];
@@ -101,36 +100,66 @@ void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingKingHand);
   FV_PART_COPY(ofv, fv, kingKingPiece);
 
-  optimizeOpen(fv.rookVer,
-               fv.kingRookVerR,
-               fv.kingRookVerXR,
-               fv.kingRookVerYR,
-               fv.kingRookVer,
-               ofv.kingRookVer);
-  optimizeOpen(fv.rookHor,
-               fv.kingRookHorR,
-               fv.kingRookHorXR,
-               fv.kingRookHorYR,
-               fv.kingRookHor,
-               ofv.kingRookHor);
-  optimizeOpen(fv.bishopDiagL45,
-               fv.kingBishopDiagL45R,
-               fv.kingBishopDiagL45XR,
-               fv.kingBishopDiagL45YR,
-               fv.kingBishopDiagL45,
-               ofv.kingBishopDiagL45);
-  optimizeOpen(fv.bishopDiagR45,
-               fv.kingBishopDiagR45R,
-               fv.kingBishopDiagR45XR,
-               fv.kingBishopDiagR45YR,
-               fv.kingBishopDiagR45,
-               ofv.kingBishopDiagR45);
-  optimizeOpen(fv.lance,
-               fv.kingLanceR,
-               fv.kingLanceXR,
-               fv.kingLanceYR,
-               fv.kingLance,
-               ofv.kingLance);
+  optimizeOpen(fv.bRookVer,
+               fv.kingBRookVerR,
+               fv.kingBRookVerXR,
+               fv.kingBRookVerYR,
+               fv.kingBRookVer,
+               ofv.kingBRookVer);
+  optimizeOpen(fv.wRookVer,
+               fv.kingWRookVerR,
+               fv.kingWRookVerXR,
+               fv.kingWRookVerYR,
+               fv.kingWRookVer,
+               ofv.kingWRookVer);
+  optimizeOpen(fv.bRookHor,
+               fv.kingBRookHorR,
+               fv.kingBRookHorXR,
+               fv.kingBRookHorYR,
+               fv.kingBRookHor,
+               ofv.kingBRookHor);
+  optimizeOpen(fv.wRookHor,
+               fv.kingWRookHorR,
+               fv.kingWRookHorXR,
+               fv.kingWRookHorYR,
+               fv.kingWRookHor,
+               ofv.kingWRookHor);
+  optimizeOpen(fv.bBishopDiagL45,
+               fv.kingBBishopDiagL45R,
+               fv.kingBBishopDiagL45XR,
+               fv.kingBBishopDiagL45YR,
+               fv.kingBBishopDiagL45,
+               ofv.kingBBishopDiagL45);
+  optimizeOpen(fv.wBishopDiagL45,
+               fv.kingWBishopDiagL45R,
+               fv.kingWBishopDiagL45XR,
+               fv.kingWBishopDiagL45YR,
+               fv.kingWBishopDiagL45,
+               ofv.kingWBishopDiagL45);
+  optimizeOpen(fv.bBishopDiagR45,
+               fv.kingBBishopDiagR45R,
+               fv.kingBBishopDiagR45XR,
+               fv.kingBBishopDiagR45YR,
+               fv.kingBBishopDiagR45,
+               ofv.kingBBishopDiagR45);
+  optimizeOpen(fv.wBishopDiagR45,
+               fv.kingWBishopDiagR45R,
+               fv.kingWBishopDiagR45XR,
+               fv.kingWBishopDiagR45YR,
+               fv.kingWBishopDiagR45,
+               ofv.kingWBishopDiagR45);
+  optimizeOpen(fv.bLance,
+               fv.kingBLanceR,
+               fv.kingBLanceXR,
+               fv.kingBLanceYR,
+               fv.kingBLance,
+               ofv.kingBLance);
+  optimizeOpen(fv.wLance,
+               fv.kingWLanceR,
+               fv.kingWLanceXR,
+               fv.kingWLanceYR,
+               fv.kingWLance,
+               ofv.kingWLance);
 }
 
 template <class Open,
@@ -172,8 +201,7 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingHand);
 
   // kingPiece
-  //   => piece, kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
-  FV_PART_ZERO(fv, piece);
+  //   => kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
   FV_PART_ZERO(fv, kingPieceR);
   FV_PART_ZERO(fv, kingPieceXR);
   FV_PART_ZERO(fv, kingPieceYR);
@@ -181,7 +209,6 @@ void expand(FV& fv, OFV& ofv) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
         auto val = ofv.kingPiece[king.raw()][square.raw()][i];
-        fv.piece[square.raw()][i] += val;
         fv.kingPieceR[RelativeSquare(king, square).raw()][i] += val;
         fv.kingPieceXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
         fv.kingPieceYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
@@ -216,36 +243,66 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingKingHand);
   FV_PART_COPY(fv, ofv, kingKingPiece);
 
-  expandOpen(fv.rookVer,
-               fv.kingRookVerR,
-               fv.kingRookVerXR,
-               fv.kingRookVerYR,
-               fv.kingRookVer,
-               ofv.kingRookVer);
-  expandOpen(fv.rookHor,
-               fv.kingRookHorR,
-               fv.kingRookHorXR,
-               fv.kingRookHorYR,
-               fv.kingRookHor,
-               ofv.kingRookHor);
-  expandOpen(fv.bishopDiagL45,
-               fv.kingBishopDiagL45R,
-               fv.kingBishopDiagL45XR,
-               fv.kingBishopDiagL45YR,
-               fv.kingBishopDiagL45,
-               ofv.kingBishopDiagL45);
-  expandOpen(fv.bishopDiagR45,
-               fv.kingBishopDiagR45R,
-               fv.kingBishopDiagR45XR,
-               fv.kingBishopDiagR45YR,
-               fv.kingBishopDiagR45,
-               ofv.kingBishopDiagR45);
-  expandOpen(fv.lance,
-               fv.kingLanceR,
-               fv.kingLanceXR,
-               fv.kingLanceYR,
-               fv.kingLance,
-               ofv.kingLance);
+  expandOpen(fv.bRookVer,
+               fv.kingBRookVerR,
+               fv.kingBRookVerXR,
+               fv.kingBRookVerYR,
+               fv.kingBRookVer,
+               ofv.kingBRookVer);
+  expandOpen(fv.wRookVer,
+               fv.kingWRookVerR,
+               fv.kingWRookVerXR,
+               fv.kingWRookVerYR,
+               fv.kingWRookVer,
+               ofv.kingWRookVer);
+  expandOpen(fv.bRookHor,
+               fv.kingBRookHorR,
+               fv.kingBRookHorXR,
+               fv.kingBRookHorYR,
+               fv.kingBRookHor,
+               ofv.kingBRookHor);
+  expandOpen(fv.wRookHor,
+               fv.kingWRookHorR,
+               fv.kingWRookHorXR,
+               fv.kingWRookHorYR,
+               fv.kingWRookHor,
+               ofv.kingWRookHor);
+  expandOpen(fv.bBishopDiagL45,
+               fv.kingBBishopDiagL45R,
+               fv.kingBBishopDiagL45XR,
+               fv.kingBBishopDiagL45YR,
+               fv.kingBBishopDiagL45,
+               ofv.kingBBishopDiagL45);
+  expandOpen(fv.wBishopDiagL45,
+               fv.kingWBishopDiagL45R,
+               fv.kingWBishopDiagL45XR,
+               fv.kingWBishopDiagL45YR,
+               fv.kingWBishopDiagL45,
+               ofv.kingWBishopDiagL45);
+  expandOpen(fv.bBishopDiagR45,
+               fv.kingBBishopDiagR45R,
+               fv.kingBBishopDiagR45XR,
+               fv.kingBBishopDiagR45YR,
+               fv.kingBBishopDiagR45,
+               ofv.kingBBishopDiagR45);
+  expandOpen(fv.wBishopDiagR45,
+               fv.kingWBishopDiagR45R,
+               fv.kingWBishopDiagR45XR,
+               fv.kingWBishopDiagR45YR,
+               fv.kingWBishopDiagR45,
+               ofv.kingWBishopDiagR45);
+  expandOpen(fv.bLance,
+               fv.kingBLanceR,
+               fv.kingBLanceXR,
+               fv.kingBLanceYR,
+               fv.kingBLance,
+               ofv.kingBLance);
+  expandOpen(fv.wLance,
+               fv.kingWLanceR,
+               fv.kingWLanceXR,
+               fv.kingWLanceYR,
+               fv.kingWLance,
+               ofv.kingWLance);
 }
 
 template <class FV>
@@ -363,16 +420,6 @@ void symmetrize(FV& fv, T&& func) {
   }
 
   // piece
-  SQUARE_EACH(square) {
-    auto rsquare = square.hsym();
-    if (rsquare.raw() > square.raw()) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        func(fv.piece[square.raw()][i],
-             fv.piece[rsquare.raw()][i]);
-      }
-    }
-  }
-
   SQUARE_EACH(king) {
     auto rking = king.hsym();
     if (rking.raw() < king.raw()) {
@@ -551,35 +598,65 @@ void symmetrize(FV& fv, T&& func) {
   }
 
   // open
-  symmetrizeOpen(fv.rookVer,
-                 fv.kingRookVerR,
-                 fv.kingRookVerXR,
-                 fv.kingRookVerYR,
-                 fv.kingRookVer,
+  symmetrizeOpen(fv.bRookVer,
+                 fv.kingBRookVerR,
+                 fv.kingBRookVerXR,
+                 fv.kingBRookVerYR,
+                 fv.kingBRookVer,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.rookHor,
-                 fv.kingRookHorR,
-                 fv.kingRookHorXR,
-                 fv.kingRookHorYR,
-                 fv.kingRookHor,
+  symmetrizeOpen(fv.wRookVer,
+                 fv.kingWRookVerR,
+                 fv.kingWRookVerXR,
+                 fv.kingWRookVerYR,
+                 fv.kingWRookVer,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.bishopDiagL45,
-                 fv.kingBishopDiagL45R,
-                 fv.kingBishopDiagL45XR,
-                 fv.kingBishopDiagL45YR,
-                 fv.kingBishopDiagL45,
+  symmetrizeOpen(fv.bRookHor,
+                 fv.kingBRookHorR,
+                 fv.kingBRookHorXR,
+                 fv.kingBRookHorYR,
+                 fv.kingBRookHor,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.bishopDiagR45,
-                 fv.kingBishopDiagR45R,
-                 fv.kingBishopDiagR45XR,
-                 fv.kingBishopDiagR45YR,
-                 fv.kingBishopDiagR45,
+  symmetrizeOpen(fv.wRookHor,
+                 fv.kingWRookHorR,
+                 fv.kingWRookHorXR,
+                 fv.kingWRookHorYR,
+                 fv.kingWRookHor,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.lance,
-                 fv.kingLanceR,
-                 fv.kingLanceXR,
-                 fv.kingLanceYR,
-                 fv.kingLance,
+  symmetrizeOpen(fv.bBishopDiagL45,
+                 fv.kingBBishopDiagL45R,
+                 fv.kingBBishopDiagL45XR,
+                 fv.kingBBishopDiagL45YR,
+                 fv.kingBBishopDiagL45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.wBishopDiagL45,
+                 fv.kingWBishopDiagL45R,
+                 fv.kingWBishopDiagL45XR,
+                 fv.kingWBishopDiagL45YR,
+                 fv.kingWBishopDiagL45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.bBishopDiagR45,
+                 fv.kingBBishopDiagR45R,
+                 fv.kingBBishopDiagR45XR,
+                 fv.kingBBishopDiagR45YR,
+                 fv.kingBBishopDiagR45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.wBishopDiagR45,
+                 fv.kingWBishopDiagR45R,
+                 fv.kingWBishopDiagR45XR,
+                 fv.kingWBishopDiagR45YR,
+                 fv.kingWBishopDiagR45,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.bLance,
+                 fv.kingBLanceR,
+                 fv.kingBLanceXR,
+                 fv.kingBLanceYR,
+                 fv.kingBLance,
+                 std::forward<T>(func));
+  symmetrizeOpen(fv.wLance,
+                 fv.kingWLanceR,
+                 fv.kingWLanceXR,
+                 fv.kingWLanceYR,
+                 fv.kingWLance,
                  std::forward<T>(func));
 }
 
@@ -761,21 +838,26 @@ T operate(OFV& ofv, const Position& position, T delta) {
                             Bitboard::nocorner());
     BB_EACH(square, bbishop) {
       int bIndex = square.raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBishopDiagR45[bking][bIndex][count];
+        sum += ofv.kingBBishopDiagR45[bking][bIndex][count];
+        sum -= ofv.kingWBishopDiagR45[wking][wIndex][count];
       } else {
-        ofv.kingBishopDiagR45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagR45[bking][bIndex][count] += delta;
+        ofv.kingWBishopDiagR45[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBishopDiagL45[bking][bIndex][count];
+        sum += ofv.kingBBishopDiagL45[bking][bIndex][count];
+        sum -= ofv.kingWBishopDiagL45[wking][wIndex][count];
       } else {
-        ofv.kingBishopDiagL45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagL45[bking][bIndex][count] += delta;
+        ofv.kingWBishopDiagL45[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -785,22 +867,27 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                     position.getWHorseBitboard()),
                             Bitboard::nocorner());
     BB_EACH(square, wbishop) {
+      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::diagR45(occR45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum -= ofv.kingBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagR45[bking][bIndex][count];
+        sum -= ofv.kingBBishopDiagR45[wking][wIndex][count];
       } else {
-        ofv.kingBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagR45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagR45[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::diagL45(occL45, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum -= ofv.kingBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagL45[bking][bIndex][count];
+        sum -= ofv.kingBBishopDiagL45[wking][wIndex][count];
       } else {
-        ofv.kingBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagL45[bking][bIndex][count] += delta;
+        ofv.kingBBishopDiagL45[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -814,21 +901,26 @@ T operate(OFV& ofv, const Position& position, T delta) {
                          position.getBDragonBitboard());
     BB_EACH(square, brook) {
       int bIndex = square.raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingRookVer[bking][bIndex][count];
+        sum += ofv.kingBRookVer[bking][bIndex][count];
+        sum -= ofv.kingWRookVer[wking][wIndex][count];
       } else {
-        ofv.kingRookVer[bking][bIndex][count] += delta;
+        ofv.kingBRookVer[bking][bIndex][count] += delta;
+        ofv.kingWRookVer[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingRookHor[bking][bIndex][count];
+        sum += ofv.kingBRookHor[bking][bIndex][count];
+        sum -= ofv.kingWRookHor[wking][wIndex][count];
       } else {
-        ofv.kingRookHor[bking][bIndex][count] += delta;
+        ofv.kingBRookHor[bking][bIndex][count] += delta;
+        ofv.kingWRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -837,22 +929,27 @@ T operate(OFV& ofv, const Position& position, T delta) {
     auto wrook = nosseOr(position.getWRookBitboard(),
                          position.getWDragonBitboard());
     BB_EACH(square, wrook) {
+      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::ver(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum -= ofv.kingRookVer[wking][wIndex][count];
+        sum += ofv.kingWRookVer[bking][bIndex][count];
+        sum -= ofv.kingBRookVer[wking][wIndex][count];
       } else {
-        ofv.kingRookVer[wking][wIndex][count] -= delta;
+        ofv.kingWRookVer[bking][bIndex][count] += delta;
+        ofv.kingBRookVer[wking][wIndex][count] -= delta;
       }
 
       count = MoveTables::hor(occ90, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum -= ofv.kingRookHor[wking][wIndex][count];
+        sum += ofv.kingWRookHor[bking][bIndex][count];
+        sum -= ofv.kingBRookHor[wking][wIndex][count];
       } else {
-        ofv.kingRookHor[wking][wIndex][count] -= delta;
+        ofv.kingWRookHor[bking][bIndex][count] += delta;
+        ofv.kingBRookHor[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -861,13 +958,16 @@ T operate(OFV& ofv, const Position& position, T delta) {
     auto blance = position.getBLanceBitboard();
     BB_EACH(square, blance) {
       int bIndex = square.raw();
+      int wIndex = square.psym().raw();
 
       int count = MoveTables::blackLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingLance[bking][bIndex][count];
+        sum += ofv.kingBLance[bking][bIndex][count];
+        sum -= ofv.kingWLance[wking][wIndex][count];
       } else {
-        ofv.kingLance[bking][bIndex][count] += delta;
+        ofv.kingBLance[bking][bIndex][count] += delta;
+        ofv.kingWLance[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -875,14 +975,17 @@ T operate(OFV& ofv, const Position& position, T delta) {
   {
     auto wlance = position.getWLanceBitboard();
     BB_EACH(square, wlance) {
+      int bIndex = square.raw();
       int wIndex = square.psym().raw();
 
       int count = MoveTables::whiteLance(occ, square).count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum -= ofv.kingLance[wking][wIndex][count];
+        sum += ofv.kingWLance[bking][bIndex][count];
+        sum -= ofv.kingBLance[wking][wIndex][count];
       } else {
-        ofv.kingLance[wking][wIndex][count] -= delta;
+        ofv.kingWLance[bking][bIndex][count] += delta;
+        ofv.kingBLance[wking][wIndex][count] -= delta;
       }
     }
   }
@@ -941,7 +1044,6 @@ SummaryListType summarize(const FV& fv) {
 #define FV_SUMMARIZE(part) (summarizePart<SummaryType>(#part, FV_PART_PTR(part), FV_PART_SIZE(part)))
   return SummaryListType {
     FV_SUMMARIZE(kingHand),
-    FV_SUMMARIZE(piece),
     FV_SUMMARIZE(kingPieceR),
     FV_SUMMARIZE(kingPieceXR),
     FV_SUMMARIZE(kingPieceYR),
@@ -953,31 +1055,56 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingNeighborPiece),
     FV_SUMMARIZE(kingKingHand),
     FV_SUMMARIZE(kingKingPiece),
-    FV_SUMMARIZE(rookVer),
-    FV_SUMMARIZE(kingRookVerR),
-    FV_SUMMARIZE(kingRookVerXR),
-    FV_SUMMARIZE(kingRookVerYR),
-    FV_SUMMARIZE(kingRookVer),
-    FV_SUMMARIZE(rookHor),
-    FV_SUMMARIZE(kingRookHorR),
-    FV_SUMMARIZE(kingRookHorXR),
-    FV_SUMMARIZE(kingRookHorYR),
-    FV_SUMMARIZE(kingRookHor),
-    FV_SUMMARIZE(bishopDiagL45),
-    FV_SUMMARIZE(kingBishopDiagL45R),
-    FV_SUMMARIZE(kingBishopDiagL45XR),
-    FV_SUMMARIZE(kingBishopDiagL45YR),
-    FV_SUMMARIZE(kingBishopDiagL45),
-    FV_SUMMARIZE(bishopDiagR45),
-    FV_SUMMARIZE(kingBishopDiagR45R),
-    FV_SUMMARIZE(kingBishopDiagR45XR),
-    FV_SUMMARIZE(kingBishopDiagR45YR),
-    FV_SUMMARIZE(kingBishopDiagR45),
-    FV_SUMMARIZE(lance),
-    FV_SUMMARIZE(kingLanceR),
-    FV_SUMMARIZE(kingLanceXR),
-    FV_SUMMARIZE(kingLanceYR),
-    FV_SUMMARIZE(kingLance),
+    FV_SUMMARIZE(bRookVer),
+    FV_SUMMARIZE(kingBRookVerR),
+    FV_SUMMARIZE(kingBRookVerXR),
+    FV_SUMMARIZE(kingBRookVerYR),
+    FV_SUMMARIZE(kingBRookVer),
+    FV_SUMMARIZE(wRookVer),
+    FV_SUMMARIZE(kingWRookVerR),
+    FV_SUMMARIZE(kingWRookVerXR),
+    FV_SUMMARIZE(kingWRookVerYR),
+    FV_SUMMARIZE(kingWRookVer),
+    FV_SUMMARIZE(bRookHor),
+    FV_SUMMARIZE(kingBRookHorR),
+    FV_SUMMARIZE(kingBRookHorXR),
+    FV_SUMMARIZE(kingBRookHorYR),
+    FV_SUMMARIZE(kingBRookHor),
+    FV_SUMMARIZE(wRookHor),
+    FV_SUMMARIZE(kingWRookHorR),
+    FV_SUMMARIZE(kingWRookHorXR),
+    FV_SUMMARIZE(kingWRookHorYR),
+    FV_SUMMARIZE(kingWRookHor),
+    FV_SUMMARIZE(bBishopDiagL45),
+    FV_SUMMARIZE(kingBBishopDiagL45R),
+    FV_SUMMARIZE(kingBBishopDiagL45XR),
+    FV_SUMMARIZE(kingBBishopDiagL45YR),
+    FV_SUMMARIZE(kingBBishopDiagL45),
+    FV_SUMMARIZE(wBishopDiagL45),
+    FV_SUMMARIZE(kingWBishopDiagL45R),
+    FV_SUMMARIZE(kingWBishopDiagL45XR),
+    FV_SUMMARIZE(kingWBishopDiagL45YR),
+    FV_SUMMARIZE(kingWBishopDiagL45),
+    FV_SUMMARIZE(bBishopDiagR45),
+    FV_SUMMARIZE(kingBBishopDiagR45R),
+    FV_SUMMARIZE(kingBBishopDiagR45XR),
+    FV_SUMMARIZE(kingBBishopDiagR45YR),
+    FV_SUMMARIZE(kingBBishopDiagR45),
+    FV_SUMMARIZE(wBishopDiagR45),
+    FV_SUMMARIZE(kingWBishopDiagR45R),
+    FV_SUMMARIZE(kingWBishopDiagR45XR),
+    FV_SUMMARIZE(kingWBishopDiagR45YR),
+    FV_SUMMARIZE(kingWBishopDiagR45),
+    FV_SUMMARIZE(bLance),
+    FV_SUMMARIZE(kingBLanceR),
+    FV_SUMMARIZE(kingBLanceXR),
+    FV_SUMMARIZE(kingBLanceYR),
+    FV_SUMMARIZE(kingBLance),
+    FV_SUMMARIZE(wLance),
+    FV_SUMMARIZE(kingWLanceR),
+    FV_SUMMARIZE(kingWLanceXR),
+    FV_SUMMARIZE(kingWLanceYR),
+    FV_SUMMARIZE(kingWLance),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

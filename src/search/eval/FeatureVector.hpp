@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2016.09.10.3"
+#define SUNFISH_FV_VERSION "2016.09.21.1"
 
 namespace sunfish {
 
@@ -124,7 +124,6 @@ template <class T>
 struct FeatureVector {
   using Type = T;
   using KingHand = Type[Square::N][EvalHandIndex::End];
-  using Piece = Type[Square::N][EvalPieceIndex::End];
   using KingPieceR = Type[RelativeSquare::N][EvalPieceIndex::End];
   using KingPieceXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
   using KingPieceYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
@@ -144,7 +143,6 @@ struct FeatureVector {
 
   KingHand kingHand;
 
-  Piece piece;
   KingPieceR kingPieceR;
   KingPieceXR kingPieceXR;
   KingPieceYR kingPieceYR;
@@ -160,35 +158,65 @@ struct FeatureVector {
   KingKingHand kingKingHand;
   KingKingPiece kingKingPiece;
 
-  Open rookVer;
-  KingOpenR kingRookVerR;
-  KingOpenXR kingRookVerXR;
-  KingOpenYR kingRookVerYR;
-  KingOpen kingRookVer;
+  Open bRookVer;
+  KingOpenR kingBRookVerR;
+  KingOpenXR kingBRookVerXR;
+  KingOpenYR kingBRookVerYR;
+  KingOpen kingBRookVer;
 
-  Open rookHor;
-  KingOpenR kingRookHorR ;
-  KingOpenXR kingRookHorXR;
-  KingOpenYR kingRookHorYR;
-  KingOpen kingRookHor;
+  Open wRookVer;
+  KingOpenR kingWRookVerR;
+  KingOpenXR kingWRookVerXR;
+  KingOpenYR kingWRookVerYR;
+  KingOpen kingWRookVer;
 
-  Open bishopDiagL45;
-  KingOpenR kingBishopDiagL45R ;
-  KingOpenXR kingBishopDiagL45XR;
-  KingOpenYR kingBishopDiagL45YR;
-  KingOpen kingBishopDiagL45;
+  Open bRookHor;
+  KingOpenR kingBRookHorR ;
+  KingOpenXR kingBRookHorXR;
+  KingOpenYR kingBRookHorYR;
+  KingOpen kingBRookHor;
 
-  Open bishopDiagR45;
-  KingOpenR kingBishopDiagR45R ;
-  KingOpenXR kingBishopDiagR45XR;
-  KingOpenYR kingBishopDiagR45YR;
-  KingOpen kingBishopDiagR45;
+  Open wRookHor;
+  KingOpenR kingWRookHorR ;
+  KingOpenXR kingWRookHorXR;
+  KingOpenYR kingWRookHorYR;
+  KingOpen kingWRookHor;
 
-  Open lance;
-  KingOpenR kingLanceR ;
-  KingOpenXR kingLanceXR;
-  KingOpenYR kingLanceYR;
-  KingOpen kingLance;
+  Open bBishopDiagL45;
+  KingOpenR kingBBishopDiagL45R ;
+  KingOpenXR kingBBishopDiagL45XR;
+  KingOpenYR kingBBishopDiagL45YR;
+  KingOpen kingBBishopDiagL45;
+
+  Open wBishopDiagL45;
+  KingOpenR kingWBishopDiagL45R ;
+  KingOpenXR kingWBishopDiagL45XR;
+  KingOpenYR kingWBishopDiagL45YR;
+  KingOpen kingWBishopDiagL45;
+
+  Open bBishopDiagR45;
+  KingOpenR kingBBishopDiagR45R ;
+  KingOpenXR kingBBishopDiagR45XR;
+  KingOpenYR kingBBishopDiagR45YR;
+  KingOpen kingBBishopDiagR45;
+
+  Open wBishopDiagR45;
+  KingOpenR kingWBishopDiagR45R ;
+  KingOpenXR kingWBishopDiagR45XR;
+  KingOpenYR kingWBishopDiagR45YR;
+  KingOpen kingWBishopDiagR45;
+
+  Open bLance;
+  KingOpenR kingBLanceR ;
+  KingOpenXR kingBLanceXR;
+  KingOpenYR kingBLanceYR;
+  KingOpen kingBLance;
+
+  Open wLance;
+  KingOpenR kingWLanceR ;
+  KingOpenXR kingWLanceXR;
+  KingOpenYR kingWLanceYR;
+  KingOpen kingWLance;
 };
 
 template <class T>
@@ -213,11 +241,16 @@ struct OptimizedFeatureVector {
   KingKingHand kingKingHand;
   KingKingPiece kingKingPiece;
 
-  KingOpen kingRookVer;
-  KingOpen kingRookHor;
-  KingOpen kingBishopDiagL45;
-  KingOpen kingBishopDiagR45;
-  KingOpen kingLance;
+  KingOpen kingBRookVer;
+  KingOpen kingWRookVer;
+  KingOpen kingBRookHor;
+  KingOpen kingWRookHor;
+  KingOpen kingBBishopDiagL45;
+  KingOpen kingWBishopDiagL45;
+  KingOpen kingBBishopDiagR45;
+  KingOpen kingWBishopDiagR45;
+  KingOpen kingBLance;
+  KingOpen kingWLance;
 };
 
 } // namespace sunfish
