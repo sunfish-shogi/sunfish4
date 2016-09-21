@@ -24,7 +24,7 @@ TEST_BEFORE(EvaluatorTest) {
   Random r;
   auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
   each(*fv, [&r](int16_t& v) {
-    v = r.int16() % 21 - 10;
+    v = r.int16() % 2001 - 1000;
   });
   symmetrize(*fv, [](int16_t& e1, int16_t& e2) {
     e1 = e2;
