@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2016.09.21.1"
+#define SUNFISH_FV_VERSION "2016.09.21.2"
 
 namespace sunfish {
 
@@ -120,6 +120,15 @@ int getHSymNeighbor3x3(int src);
 int getNeighbor3x3(Square king, Square square);
 int getNeighbor3x3R(Square king, Square square);
 
+enum {
+  MaxKingSafety = 8,
+  MinKingSafety = -7,
+  KingSafetyLen = MaxKingSafety - MinKingSafety + 1,
+};
+
+template <Turn turn>
+int safetyOfKing(const Position& pos);
+
 template <class T>
 struct FeatureVector {
   using Type = T;
@@ -140,6 +149,11 @@ struct FeatureVector {
   using KingOpenXR = Type[SQUARE_FILES][RelativeSquare::N][8];
   using KingOpenYR = Type[SQUARE_RANKS][RelativeSquare::N][8];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
+  using KingSafetyPieceR = Type[KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPieceXR = Type[SQUARE_FILES][KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPieceYR = Type[SQUARE_RANKS][KingSafetyLen][RelativeSquare::N][EvalPieceIndex::End];
+  using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
 
   KingHand kingHand;
 
@@ -217,22 +231,24 @@ struct FeatureVector {
   KingOpenXR kingWLanceXR;
   KingOpenYR kingWLanceYR;
   KingOpen kingWLance;
+
+  KingSafetyHand kingSafetyHand;
+  KingSafetyPieceR kingSafetyPieceR;
+  KingSafetyPieceXR kingSafetyPieceXR;
+  KingSafetyPieceYR kingSafetyPieceYR;
+  KingSafetyPiece kingSafetyPiece;
 };
 
 template <class T>
 struct OptimizedFeatureVector {
   using Type = T;
-  using KingHand = Type[Square::N][EvalHandIndex::End];
-  using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
   using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
   using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
   using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
   using KingKingPiece = Type[Square::N][Square::N][Square::N][EvalPieceTypeIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
-
-  KingHand kingHand;
-
-  KingPiece kingPiece;
+  using KingSafetyHand = Type[Square::N][KingSafetyLen][EvalHandIndex::End];
+  using KingSafetyPiece = Type[Square::N][KingSafetyLen][Square::N][EvalPieceIndex::End];
 
   KingNeighborHand kingNeighborHand;
 
@@ -251,6 +267,9 @@ struct OptimizedFeatureVector {
   KingOpen kingWBishopDiagR45;
   KingOpen kingBLance;
   KingOpen kingWLance;
+
+  KingSafetyHand kingSafetyHand;
+  KingSafetyPiece kingSafetyPiece;
 };
 
 } // namespace sunfish
