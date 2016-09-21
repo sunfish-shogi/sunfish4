@@ -529,6 +529,83 @@ TEST(BitboardTest, testOperators) {
   }
 }
 
+TEST(BitboardTest, testPerfectShift) {
+  {
+    Bitboard bb = Bitboard::zero();
+    bb.set(Square::s19());
+    bb.set(Square::s29());
+    bb.set(Square::s39());
+    bb.set(Square::s49());
+    bb.set(Square::s59());
+    bb.set(Square::s69());
+    bb.set(Square::s79());
+    bb.set(Square::s89());
+    bb.set(Square::s99());
+    bb.leftShift(1);
+    ASSERT_EQ(
+        "011111111\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n"
+        "000000000\n",
+        bb.toString());
+  }
+
+  {
+    Bitboard bb = Bitboard::zero();
+    bb.set(Square::s17());
+    bb.set(Square::s26());
+    bb.set(Square::s34());
+    bb.set(Square::s49());
+    bb.set(Square::s55());
+    bb.set(Square::s61());
+    bb.set(Square::s72());
+    bb.set(Square::s89());
+    bb.set(Square::s96());
+    bb.leftShift(9);
+    ASSERT_EQ(
+        "000010000\n"
+        "000100000\n"
+        "000000000\n"
+        "000000010\n"
+        "000001000\n"
+        "010000001\n"
+        "000000000\n"
+        "000000000\n"
+        "001000100\n",
+        bb.toString());
+  }
+
+  {
+    Bitboard bb = Bitboard::zero();
+    bb.set(Square::s17());
+    bb.set(Square::s26());
+    bb.set(Square::s34());
+    bb.set(Square::s49());
+    bb.set(Square::s55());
+    bb.set(Square::s61());
+    bb.set(Square::s72());
+    bb.set(Square::s89());
+    bb.set(Square::s96());
+    bb.rightShift(9);
+    ASSERT_EQ(
+        "001000000\n"
+        "010000000\n"
+        "000000000\n"
+        "000001000\n"
+        "000100000\n"
+        "000000100\n"
+        "000000010\n"
+        "000000000\n"
+        "100010000\n",
+        bb.toString());
+  }
+}
+
 TEST(BitboardTest, testSet) {
   {
     Bitboard bb(0x3LL, 0xcLL);

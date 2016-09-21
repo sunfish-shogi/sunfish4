@@ -242,6 +242,20 @@ public:
 #endif
   }
 
+  void leftShift(U n) {
+    uint64_t f = first();
+    uint64_t s = second();
+    firstRef() = (f << n) & Mask1;
+    secondRef() = ((s << n) | f >> (W1 - n)) & Mask2;
+  }
+
+  void rightShift(U n) {
+    uint64_t f = first();
+    uint64_t s = second();
+    firstRef() = ((f >> n) | (s << (W1 - n))) & Mask1;
+    secondRef() = (s >> n) & Mask2;
+  }
+
   /**
    * Left shift assignment operator.
    * This function uses <leftShift64> from the inside.
