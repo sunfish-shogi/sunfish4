@@ -54,7 +54,9 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	fi
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
 	nohup ./sunfish_ln --silent > out/stdout.log 2> out/stderr.log < /dev/null &
+	sleep 5
 	nohup ./tools/ln_backup.sh ${REMOTE_BACKUP_HOST} ${NAME} < /dev/null &
+	sleep 5
 	git rev-parse HEAD > ${REVISION_FILE}
 	echo ${DATE} > ${DATE_FILE}
 	exit
