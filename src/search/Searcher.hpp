@@ -11,6 +11,7 @@
 #include "search/SearchInfo.hpp"
 #include "search/SearchResult.hpp"
 #include "search/SearchHandler.hpp"
+#include "search/time/TimeManager.hpp"
 #include "search/tree/Tree.hpp"
 #include "search/tree/NodeStat.hpp"
 #include "search/tree/Worker.hpp"
@@ -168,6 +169,8 @@ private:
   Worker mainThreadWorker_;
 
   Random random_;
+
+  TimeManager timeManager_;
 
   SearchHandler* handler_;
 

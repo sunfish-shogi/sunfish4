@@ -33,6 +33,8 @@ private:
     bool ponder;
     unsigned hash;
     bool useBook;
+    bool snappy;
+    int marginMs;
   };
 
   enum class CommandState : uint8_t {

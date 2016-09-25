@@ -28,7 +28,6 @@ CONSTEXPR_CONST int DefaultPort      = 4081;
 CONSTEXPR_CONST int DefaultFloodgate = 0;
 
 CONSTEXPR_CONST int DefaultDepth     = 48;
-CONSTEXPR_CONST int DefaultLimit     = 28;
 CONSTEXPR_CONST int DefaultRepeat    = 1000;
 CONSTEXPR_CONST int DefaultPonder    = 1;
 CONSTEXPR_CONST int DefaultUseBook   = 1;
@@ -100,7 +99,6 @@ void CsaClient::readConfigFromIniFile() {
   config_.floodgate = StringUtil::toInt(getValue(ini, "Server", "Floodgate"), DefaultFloodgate);
 
   config_.depth    = StringUtil::toInt(getValue(ini, "Search", "Depth"), DefaultDepth);
-  config_.limit    = StringUtil::toInt(getValue(ini, "Search", "Limit"), DefaultLimit);
   config_.repeat   = StringUtil::toInt(getValue(ini, "Search", "Repeat"), DefaultRepeat);
   config_.worker   = StringUtil::toInt(getValue(ini, "Search", "Worker"), std::thread::hardware_concurrency());
   config_.ponder   = StringUtil::toInt(getValue(ini, "Search", "Ponder"), DefaultPonder);
@@ -124,7 +122,6 @@ void CsaClient::readConfigFromIniFile() {
   OUT(info) << "    Floodgate: " << config_.floodgate;
   OUT(info) << "  Search";
   OUT(info) << "    Depth   : " << config_.depth;
-  OUT(info) << "    Limit   : " << config_.limit;
   OUT(info) << "    Repeat  : " << config_.repeat;
   OUT(info) << "    Worker  : " << config_.worker;
   OUT(info) << "    Ponder  : " << config_.ponder;
@@ -618,13 +615,15 @@ void CsaClient::search() {
   Turn turn = position_.getTurn();
   auto config = searcher_.getConfig();
 
-  TimeType maximumTimeMs = turn == Turn::Black ?
-                                 blackTime_ * 1000 :
-                                 whiteTime_ * 1000;
-  maximumTimeMs += gameSummary_.byoyomi;
-  maximumTimeMs -= config_.marginMs;
-  config.maximumTimeMs = std::min(config_.limit * 1000u, maximumTimeMs);
-  config.optimumTimeMs = std::min(config_.limit * 1000u, maximumTimeMs / 5); // TODO;
+  TimeType remainingTimeMs = turn == Turn::Black
+                           ? blackTime_ * 1000
+                           : whiteTime_ * 1000;
+  TimeType byoyomiMs = gameSummary_.byoyomi * 1000;
+  TimeType incrementMs = gameSummary_.increment * 1000;
+  config.maximumTimeMs = remainingTimeMs + byoyomiMs - config_.marginMs;
+  config.optimumTimeMs = std::max(remainingTimeMs / 50,
+                         std::min(remainingTimeMs, byoyomiMs + incrementMs))
+                       + byoyomiMs;
 
   searcher_.setConfig(config);
 

@@ -135,6 +135,7 @@ Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
 void Searcher::clean() {
   tt_.clear();
   history_.clear();
+  timeManager_.clearGame();
 }
 
 void Searcher::onSearchStarted() {
@@ -151,6 +152,9 @@ void Searcher::onSearchStarted() {
   initializeWorker(mainThreadWorker_);
 
   history_.reduce();
+
+  timeManager_.clearPosition(config_.optimumTimeMs,
+                             config_.maximumTimeMs);
 
   if (handler_ != nullptr) {
     handler_->onStart(*this);
@@ -300,7 +304,8 @@ bool Searcher::aspsearch(Tree& tree,
   }
 
   // expand branches
-  for (int moveCount = 0; moveCount < (int)node.moves.size();) {
+  int maxMoveCount = (int)node.moves.size() - 1;
+  for (int moveCount = 0; moveCount <= maxMoveCount;) {
     Score alpha = std::max(alphas[alphaIndex], bestScore);
     Score beta = betas[betaIndex];
 
@@ -413,6 +418,17 @@ bool Searcher::aspsearch(Tree& tree,
       if (handler_ != nullptr) {
         handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
       }
+    }
+
+    timeManager_.update(timer_.elapsedMs(),
+                        depth,
+                        bestScore,
+                        node.pv,
+                        moveCount,
+                        maxMoveCount);
+    if (timeManager_.shouldInterrupt()) {
+      interrupt();
+      break;
     }
 
     moveCount++;

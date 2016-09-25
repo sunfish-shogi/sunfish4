@@ -44,6 +44,8 @@ UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   options_.ponder = true;
   options_.hash = 0;
   options_.useBook = true;
+  options_.snappy = true;
+  options_.marginMs = 500;
 }
 
 bool UsiClient::start() {
@@ -87,6 +89,8 @@ bool UsiClient::acceptUsi() {
   send("id", "author", author);
 
   send("option", "name", "UseBook", "type", "check", "default", "true");
+  send("option", "name", "Snappy", "type", "check", "default", "true");
+  send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
 
   send("usiok");
 
@@ -153,6 +157,16 @@ bool UsiClient::setOption(const CommandArguments& args) {
 
   if (name == "UseBook") {
     options_.useBook = value == "true";
+    return true;
+  }
+
+  if (name == "Snappy") {
+    options_.snappy = value == "true";
+    return true;
+  }
+
+  if (name == "MarginMs") {
+    options_.marginMs = StringUtil::toInt(value, options_.marginMs);
     return true;
   }
 
@@ -328,17 +342,14 @@ void UsiClient::search() {
     config.optimumTimeMs = SearchConfig::InfinityTime;
   } else {
     bool isBlack = pos.getTurn() == Turn::Black;
-    TimeType maximumTimeMs = isBlack ?  blackTimeMs_ : whiteTimeMs_;
-    maximumTimeMs += byoyomiMs_;
-    maximumTimeMs -= 500; // TODO: use setoption
-    // TODO
-#if 0
-    config.maximumTimeMs = maximumTimeMs;
-    config.optimumTimeMs = maximumTimeMs / 5; // TODO
-#else
-    config.maximumTimeMs = std::min(8000u, maximumTimeMs);
-    config.optimumTimeMs = std::min(8000u, maximumTimeMs / 5); // TODO
-#endif
+    TimeType remainingTimeMs = isBlack ?  blackTimeMs_ : whiteTimeMs_;
+    config.maximumTimeMs = remainingTimeMs + byoyomiMs_ - options_.marginMs;
+    config.optimumTimeMs = std::max(remainingTimeMs / 50,
+                           std::min(remainingTimeMs, byoyomiMs_))
+                         + byoyomiMs_;
+    if (options_.snappy) {
+      config.optimumTimeMs /= 3;
+    }
   }
 
   searcher_->setConfig(config);
