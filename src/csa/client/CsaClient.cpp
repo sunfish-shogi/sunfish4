@@ -633,6 +633,10 @@ void CsaClient::search() {
     config.optimumTimeMs = std::min(config_.limit * 1000u, config.optimumTimeMs);
   }
 
+  if (remainingTimeMs == 0 && incrementMs == 0) {
+    config.optimumTimeMs = SearchConfig::InfinityTime;
+  }
+
   searcher_.setConfig(config);
 
   searcher_.idsearch(position_,

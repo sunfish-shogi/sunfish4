@@ -340,15 +340,21 @@ void UsiClient::search() {
   if (isInfinite_) {
     config.maximumTimeMs = SearchConfig::InfinityTime;
     config.optimumTimeMs = SearchConfig::InfinityTime;
+
   } else {
     bool isBlack = pos.getTurn() == Turn::Black;
     TimeType remainingTimeMs = isBlack ?  blackTimeMs_ : whiteTimeMs_;
     config.maximumTimeMs = remainingTimeMs + byoyomiMs_ - options_.marginMs;
     config.optimumTimeMs = std::max(remainingTimeMs / 50,
-                           std::min(remainingTimeMs, byoyomiMs_))
+                           std::min(remainingTimeMs, byoyomiMs_/* + incrementMs*/))
                          + byoyomiMs_;
+
     if (options_.snappy) {
       config.optimumTimeMs /= 3;
+    }
+
+    if (!options_.snappy && remainingTimeMs == 0/* && incrementMs == 0*/) {
+      config.optimumTimeMs = SearchConfig::InfinityTime;
     }
   }
 

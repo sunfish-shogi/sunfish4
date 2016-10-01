@@ -62,11 +62,6 @@ void TimeManager::update(uint32_t elapsedMs,
   current_->score = score;
   current_->pv = pv;
 
-  if (optimumTimeMs_ == SearchConfig::InfinityTime) {
-    // do nothing
-    return;
-  }
-
   // if 90% of maximumTimeMs is already used
   if (maximumTimeMs_ != SearchConfig::InfinityTime &&
       elapsedMs * 100 >= maximumTimeMs_ * 90) {
@@ -76,6 +71,11 @@ void TimeManager::update(uint32_t elapsedMs,
   }
 
   if (previous2_->depth == 0 || previous_->depth == 0) {
+    // do nothing
+    return;
+  }
+
+  if (optimumTimeMs_ == SearchConfig::InfinityTime) {
     // do nothing
     return;
   }
