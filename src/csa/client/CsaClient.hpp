@@ -33,6 +33,7 @@ public:
     int floodgate;
 
     int depth;
+    int limit;
     int repeat;
     int worker;
     int ponder;
