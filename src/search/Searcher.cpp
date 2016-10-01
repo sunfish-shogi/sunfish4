@@ -732,20 +732,6 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-#if 0
-    // prune negative SEE moves
-    if (newDepth < Depth1Ply * 2 &&
-        !currentMoveIsCheck &&
-        !isCheck(node.checkState) &&
-        isNullWindow &&
-        !isPriorMove(tree, move) &&
-        !isTacticalMove(tree.position, move) &&
-        SEE::calculate(tree.position, move) < Score::zero()) {
-      isFirst = true;
-      continue;
-    }
-#endif
-
     bool moveOk = doMove(tree, move, *evaluator_);
     if (!moveOk) {
       node.moveIterator = node.moves.remove(node.moveIterator-1);
