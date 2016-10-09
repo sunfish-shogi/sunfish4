@@ -106,7 +106,13 @@ bool UsiClient::ready() {
 
     if (command.value == "isready") {
       if (!searcher_) {
-        searcher_.reset(new Searcher());
+        auto dataSourceType = Evaluator::sharedEvaluator()->dataSourceType();
+        if (dataSourceType != Evaluator::DataSourceType::EvalBin) {
+          LOG(error) << "Invalid data source type: " << dataSourceType;
+          LOG(error) << "Failed to read eval.bin.";
+          exit(0);
+        }
+        searcher_.reset(new Searcher(Evaluator::sharedEvaluator()));
         searcher_->setHandler(this);
       } else {
         searcher_->clean();

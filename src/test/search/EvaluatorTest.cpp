@@ -593,3 +593,21 @@ TEST(EvaluatorTest, testSymmetrize) {
     ASSERT_TRUE(v == 1 || v == 2);
   });
 }
+
+TEST(EvaluatorTest, testDataSourceType) {
+  std::ostringstream oss;
+  oss << Evaluator::DataSourceType::EvalBin;
+  ASSERT_EQ("EvalBin", oss.str());
+
+  oss.str("");
+  oss << Evaluator::DataSourceType::Zero;
+  ASSERT_EQ("Zero", oss.str());
+
+  oss.str("");
+  oss << Evaluator::DataSourceType::Custom;
+  ASSERT_EQ("Custom", oss.str());
+
+  oss.str("");
+  oss << static_cast<Evaluator::DataSourceType>(123);
+  ASSERT_EQ("123", oss.str());
+}

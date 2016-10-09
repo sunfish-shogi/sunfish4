@@ -70,7 +70,7 @@ public:
     int increment;
   };
 
-  CsaClient();
+  CsaClient() = default;
 
   CsaClient(const CsaClient&) = delete;
 
@@ -138,7 +138,7 @@ private:
   int blackTime_;
   int whiteTime_;
 
-  Searcher searcher_;
+  std::unique_ptr<Searcher> searcher_;
   std::atomic<bool> searcherIsStarted_;
   std::mutex sendMutex_;
 

@@ -67,23 +67,30 @@ const Wildcard Censored("#CENSORED");
 
 namespace sunfish {
 
-CsaClient::CsaClient() {
-  searcher_.setHandler(this);
-}
-
 bool CsaClient::start() {
   OUT(info) << "####################################################################";
   OUT(info) << "##                           CSA Client                           ##";
   OUT(info) << "####################################################################";
-
-  book_.load();
 
   readConfigFromIniFile();
   if (!validateConfig()) {
     return false;
   }
 
-  searcher_.ttResizeMB(config_.hashMem);
+  book_.load();
+
+  if (!searcher_) {
+    auto dataSourceType = Evaluator::sharedEvaluator()->dataSourceType();
+    if (dataSourceType != Evaluator::DataSourceType::EvalBin) {
+      LOG(error) << "Invalid data source type: " << dataSourceType;
+      LOG(error) << "Failed to read eval.bin.";
+      return false;
+    }
+    searcher_.reset(new Searcher(Evaluator::sharedEvaluator()));
+    searcher_->setHandler(this);
+  }
+  searcher_->setHandler(this);
+  searcher_->ttResizeMB(config_.hashMem);
 
   playOnRepeat();
 
@@ -158,7 +165,7 @@ void CsaClient::playOnRepeat() {
 
 void CsaClient::play() {
 
-  searcher_.clean();
+  searcher_->clean();
 
   // connect to the CSA server
   Socket::AutoDisconnector ad(socket_);
@@ -609,14 +616,14 @@ void CsaClient::runSearch(ScopedThread& searchThread) {
   searchThread.start([this]() {
     search();
   }, [this]() {
-    searcher_.interrupt();
+    searcher_->interrupt();
   });
   waitForSearcherStart();
 }
 
 void CsaClient::search() {
   Turn turn = position_.getTurn();
-  auto config = searcher_.getConfig();
+  auto config = searcher_->getConfig();
 
   TimeType remainingTimeMs = turn == Turn::Black
                            ? blackTime_ * 1000
@@ -637,12 +644,12 @@ void CsaClient::search() {
     config.optimumTimeMs = SearchConfig::InfinityTime;
   }
 
-  searcher_.setConfig(config);
+  searcher_->setConfig(config);
 
-  searcher_.idsearch(position_,
+  searcher_->idsearch(position_,
                      Searcher::DepthInfinity,
                      &record_);
-  auto& result = searcher_.getResult();
+  auto& result = searcher_->getResult();
 
   if (result.move.isNone()) {
     send("%TORYO");
@@ -683,20 +690,20 @@ void CsaClient::runPonder(ScopedThread& searchThread) {
   searchThread.start([this]() {
     ponder();
   }, [this]() {
-    searcher_.interrupt();
+    searcher_->interrupt();
   });
   waitForSearcherStart();
 }
 
 void CsaClient::ponder() {
-  auto config = searcher_.getConfig();
+  auto config = searcher_->getConfig();
 
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
 
-  searcher_.setConfig(config);
+  searcher_->setConfig(config);
 
-  searcher_.idsearch(position_,
+  searcher_->idsearch(position_,
                      Searcher::DepthInfinity,
                      &record_);
 }

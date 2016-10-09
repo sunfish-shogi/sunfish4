@@ -93,6 +93,24 @@ bool save(const char* path, const Evaluator::FVType& fv);
 
 bool save(const Evaluator::FVType& fv);
 
+inline std::ostream& operator<<(std::ostream& os, const Evaluator::DataSourceType dataSourceType) {
+  switch (dataSourceType) {
+  case Evaluator::DataSourceType::EvalBin:
+    os << "EvalBin";
+    break;
+  case Evaluator::DataSourceType::Zero:
+    os << "Zero";
+    break;
+  case Evaluator::DataSourceType::Custom:
+    os << "Custom";
+    break;
+  default:
+    os << static_cast<int>(dataSourceType);
+    break;
+  }
+  return os;
+}
+
 } // namespace sunfish
 
 #endif // SUNFISH_SEARCH_EVAL_EVALUATOR_HPP__
