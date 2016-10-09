@@ -8,7 +8,6 @@ add_library(search STATIC
     see/SEE.cpp
     shek/SCRDetector.cpp
     time/TimeManager.cpp
-    tree/Node.cpp
     tree/Tree.cpp
     tree/Worker.cpp
     tt/TTElement.cpp

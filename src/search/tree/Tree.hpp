@@ -7,17 +7,50 @@
 #define SUNFISH_SEARCH_TREE_TREE_HPP__
 
 #include "common/Def.hpp"
-#include "search/tree/Node.hpp"
+#include "search/tree/PV.hpp"
+#include "search/eval/Evaluator.hpp"
 #include "search/shek/ShekTable.hpp"
 #include "search/shek/SCRDetector.hpp"
+#include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 #include <string>
+#include <cstdint>
 
 namespace sunfish {
 
 struct Record;
 class Evaluator;
 struct Worker;
+
+enum GenPhase : uint8_t {
+  CapturingMoves,
+  NotCapturingMoves,
+  Evasions,
+  End,
+};
+
+struct Node {
+  Zobrist::Type hash;
+  Score materialScore;
+  Score score;
+  CheckState checkState;
+  bool isHistorical;
+
+  Piece captured;
+  Move move;
+  Move hashMove;
+
+  Move killerMove1;
+  Move killerMove2;
+  int16_t killerCount1;
+  int16_t killerCount2;
+
+  GenPhase genPhase;
+  Moves::iterator moveIterator;
+  Moves moves;
+
+  PV pv;
+};
 
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
@@ -36,43 +69,45 @@ void initializeTree(Tree& tree,
                     Worker* worker,
                     const Record* record);
 
+void arrive(Tree& tree);
+
+void rearrive(Tree& tree);
+
 inline
 bool hasKiller1(const Tree& tree) {
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return !parentNode.killerMove1.isNone();
+  auto& node = tree.nodes[tree.ply];
+  return !node.killerMove1.isNone();
 }
 
 inline
 bool hasKiller2(const Tree& tree) {
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return !parentNode.killerMove2.isNone();
+  auto& node = tree.nodes[tree.ply];
+  return !node.killerMove2.isNone();
 }
 
 inline
 bool isKiller1Good(const Tree& tree) {
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return parentNode.killerCount1 >= 0;
+  auto& node = tree.nodes[tree.ply];
+  return node.killerCount1 >= 0;
 }
 
 inline
 bool isKiller2Good(const Tree& tree) {
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return parentNode.killerCount2 >= 0;
+  auto& node = tree.nodes[tree.ply];
+  return node.killerCount2 >= 0;
 }
 
 inline
 bool isKiller1Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return tree.position.isLegalMoveMaybe(parentNode.killerMove1,
+  return tree.position.isLegalMoveMaybe(node.killerMove1,
                                         node.checkState);
 }
 
 inline
 bool isKiller2Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-  auto& parentNode = tree.nodes[tree.ply-1];
-  return tree.position.isLegalMoveMaybe(parentNode.killerMove2,
+  return tree.position.isLegalMoveMaybe(node.killerMove2,
                                         node.checkState);
 }
 
@@ -80,12 +115,11 @@ inline
 bool isPriorMove(const Tree& tree,
                  const Move& move) {
   auto& node = tree.nodes[tree.ply];
-  auto& parentNode = tree.nodes[tree.ply-1];
   return move == node.hashMove ||
          (isKiller1Good(tree) &&
-          move == parentNode.killerMove1) ||
+          move == node.killerMove1) ||
          (isKiller2Good(tree) &&
-          move == parentNode.killerMove2);
+          move == node.killerMove2);
 }
 
 void addKiller(Tree& tree, Move move);
@@ -111,7 +145,10 @@ bool isImproving(Tree& tree,
 inline
 bool isRecapture(const Tree& tree,
                  const Move& move) {
-  ASSERT(tree.ply >= 1);
+  if (tree.ply == 0) {
+    return false;
+  }
+
   auto& frontNode = tree.nodes[tree.ply-1];
   if (frontNode.move.to() != move.to()) {
     return false;

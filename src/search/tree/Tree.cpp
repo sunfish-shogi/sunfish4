@@ -48,6 +48,8 @@ void initializeTree(Tree& tree,
 
   tree.nodes[0].materialScore = eval.calculateMaterialScore(tree.position);
   tree.nodes[0].score = Score::invalid();
+  tree.nodes[0].killerMove1 = Move::none();
+  tree.nodes[0].killerMove2 = Move::none();
 
   // SHEK
   initializeShekTable(tree.shekTable, record);
@@ -60,6 +62,31 @@ void initializeTree(Tree& tree,
   }
 }
 
+void arrive(Tree& tree) {
+  ASSERT(tree.ply <= Tree::StackSize - 2);
+
+  Node& node = tree.nodes[tree.ply];
+  node.isHistorical = false;
+  node.hashMove = Move::none();
+  node.pv.clear();
+
+  Node& childNode = tree.nodes[tree.ply+1];
+  childNode.killerMove1 = Move::none();
+  childNode.killerMove2 = Move::none();
+}
+
+void rearrive(Tree& tree) {
+  ASSERT(tree.ply <= Tree::StackSize - 2);
+
+  Node& node = tree.nodes[tree.ply];
+  node.isHistorical = false;
+  node.pv.clear();
+
+  Node& childNode = tree.nodes[tree.ply+1];
+  childNode.killerMove1 = Move::none();
+  childNode.killerMove2 = Move::none();
+}
+
 void sortKiller(Node& node) {
   if (node.killerCount2 > node.killerCount1) {
     std::swap(node.killerMove1, node.killerMove2);
@@ -68,7 +95,7 @@ void sortKiller(Node& node) {
 }
 
 void addKiller(Tree& tree, Move move) {
-  auto& node = tree.nodes[tree.ply-1];
+  auto& node = tree.nodes[tree.ply];
 
   if (node.killerMove1.isNone()) {
     node.killerMove1 = move;
@@ -123,6 +150,7 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval) {
 }
 
 void undoMove(Tree& tree) {
+  ASSERT(tree.ply > 0);
   tree.ply--;
   auto& node = tree.nodes[tree.ply];
   tree.position.undoMove(node.move, node.captured);
@@ -144,6 +172,7 @@ void doNullMove(Tree& tree) {
 }
 
 void undoNullMove(Tree& tree) {
+  ASSERT(tree.ply > 0);
   tree.ply--;
   tree.position.undoNullMove();
 }

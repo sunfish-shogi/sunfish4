@@ -230,9 +230,9 @@ void Searcher::idsearch(const Position& pos,
                  &worker,
                  record);
 
-  auto& node = tree.nodes[tree.ply];
-  arrive(node);
+  arrive(tree);
 
+  auto& node = tree.nodes[tree.ply];
   node.checkState = tree.position.getCheckState();
 
   // generate moves
@@ -479,8 +479,9 @@ Score Searcher::search(Tree& tree,
   }
 #endif
 
+  arrive(tree);
+
   auto& node = tree.nodes[tree.ply];
-  arrive(node);
 
   // SHEK(strong horizontal effect killer)
   switch (tree.shekTable.check(tree.position)) {
@@ -624,7 +625,7 @@ Score Searcher::search(Tree& tree,
       return score;
     }
 
-    rearrive(node);
+    rearrive(tree);
   }
 
   // null move pruning
@@ -691,7 +692,7 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
-    rearrive(node);
+    rearrive(tree);
 
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
@@ -881,8 +882,9 @@ Score Searcher::quies(Tree& tree,
                       int qply,
                       Score alpha,
                       Score beta) {
+  arrive(tree);
+
   auto& node = tree.nodes[tree.ply];
-  arrive(node);
 
   auto& worker = *tree.worker;
   worker.info.quiesNodes++;
@@ -969,8 +971,7 @@ void Searcher::generateMoves(Tree& tree) {
       hasKiller1(tree) &&
       isKiller1Good(tree) &&
       isKiller1Legal(tree)) {
-    auto& parentNode = tree.nodes[tree.ply-1];
-    node.moves.add(parentNode.killerMove1);
+    node.moves.add(node.killerMove1);
   }
 
   if (!isRootNode &&
@@ -978,8 +979,7 @@ void Searcher::generateMoves(Tree& tree) {
       hasKiller2(tree) &&
       isKiller2Good(tree) &&
       isKiller2Legal(tree)) {
-    auto& parentNode = tree.nodes[tree.ply-1];
-    node.moves.add(parentNode.killerMove2);
+    node.moves.add(node.killerMove2);
   }
 
   if (!isCheck(node.checkState)) {
