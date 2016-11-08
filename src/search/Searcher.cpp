@@ -28,15 +28,15 @@ CONSTEXPR_CONST int ExtensionDepthForRecapture = Searcher::Depth1Ply * 1 / 4;
  * Check whether the recursive-iterative deepening should be run.
  */
 inline bool shouldRecursiveIDSearch(int depth) {
-  return depth >= 6 * Searcher::Depth1Ply;
+  return depth >= 3 * Searcher::Depth1Ply;
 }
 
 /**
  * Calculate a depth of recursive iterative deepening.
  */
 inline int recursiveIDSearchDepth(int depth) {
-  return depth < Searcher::Depth1Ply * 9 / 2 ?  Searcher::Depth1Ply * 3 / 2 :
-                                                depth - Searcher::Depth1Ply * 3;
+  return depth < Searcher::Depth1Ply * 5 ? Searcher::Depth1Ply * 2
+                                         : depth - Searcher::Depth1Ply * 3;
 }
 
 /**
