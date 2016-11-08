@@ -23,7 +23,7 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	git clone --branch "${SHOGI_SERVER_BRANCH}" --depth 1 "${SHOGI_SERVER_REPO}" "${SHOGI_SERVER_DIR}"
 	cd ${SHOGI_SERVER_DIR}
 	nohup ruby shogi-server test 4081 > stdout.log 2> stderr.log < /dev/null &
-	nohup ../${BACKUP_SCRIPT} < /dev/null &
+	nohup ../${BACKUP_SCRIPT} ${REMOTE_BACKUP_HOST} ${REMOTE_BACKUP_NAME} < /dev/null &
 	cd ..
 
 	exit
