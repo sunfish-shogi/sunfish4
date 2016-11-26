@@ -582,8 +582,6 @@ bool CsaClient::onMove() {
   }
   record_.moveList.push_back(move);
 
-  OUT(info) << "Move: " << record_.moveList.size() << ": " << move.toString(position_);
-  OUT(info) << "";
   OUT(info) << position_;
 
   if (!tstr.empty() && tstr[0] == 'T') {
