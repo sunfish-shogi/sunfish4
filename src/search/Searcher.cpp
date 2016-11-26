@@ -87,7 +87,7 @@ int reductionDepth(int depth,
                        [std::min(mc, 63)];
 }
 
-uint16_t RazorMargin[4] = { 500, 700, 600, 800 };
+uint16_t RazorMargin[4] = { 300, 400, 400, 450 };
 
 /**
  * Returnes the margin of razoring
@@ -607,14 +607,6 @@ Score Searcher::search(Tree& tree,
       depth < Depth1Ply * 4 &&
       standPat + razorMargin(depth) <= alpha &&
       node.hashMove.isNone()) {
-    if (depth < Depth1Ply * 2) {
-      worker.info.razoring++;
-      return quies(tree,
-                   0,
-                   alpha,
-                   beta);
-    }
-
     Score razorAlpha = alpha - razorMargin(depth);
     Score score = quies(tree,
                         0,
