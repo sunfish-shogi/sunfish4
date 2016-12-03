@@ -51,24 +51,18 @@ inline int nullDepth(int depth, Score standPat, Score beta) {
 /**
  * values for reducing from the depth.
  */
-uint8_t ReductionDepth[2][2][64][64];
+uint8_t ReductionDepth[2][64][64];
 
 void initializeReductionDepth() {
   for (int d = 1; d < 64; d++) {
     for (int mc = 0; mc < 64; mc++) {
-      double r = 1.0 * log(d) + 0.5 * log(mc);
+      double r = 0.7 * log(d) + 0.4 * log(mc + 1);
       if (r < 0.8) {
         continue;
       }
 
-      ReductionDepth[0][0][d][mc] = std::max(r - 1.0, 0.0) * Searcher::Depth1Ply;
-      ReductionDepth[0][1][d][mc] = r * Searcher::Depth1Ply;
-      ReductionDepth[1][0][d][mc] = ReductionDepth[0][0][d][mc];
-      ReductionDepth[1][1][d][mc] = ReductionDepth[0][1][d][mc];
-
-      if (d >= 2) {
-        ReductionDepth[0][1][d][mc] += Searcher::Depth1Ply;
-      }
+      ReductionDepth[0][d][mc] = std::max(r - 1.0, 0.0) * Searcher::Depth1Ply;
+      ReductionDepth[1][d][mc] = r * Searcher::Depth1Ply;
     }
   }
 }
@@ -79,10 +73,8 @@ void initializeReductionDepth() {
 inline
 int reductionDepth(int depth,
                    bool isNullWindow,
-                   bool improving,
                    int mc) {
-  return ReductionDepth[improving ? 1 : 0]
-                       [isNullWindow ? 1: 0]
+  return ReductionDepth[isNullWindow ? 1: 0]
                        [std::min(depth / Searcher::Depth1Ply, 63)]
                        [std::min(mc, 63)];
 }
@@ -330,7 +322,6 @@ bool Searcher::aspsearch(Tree& tree,
         !isTacticalMove(tree.position, move)) {
       reduced = reductionDepth(newDepth,
                                false,
-                               true,
                                moveCount);
       newDepth = newDepth - reduced;
     }
@@ -696,7 +687,6 @@ Score Searcher::search(Tree& tree,
   }
 
   bool isFirst = true;
-  bool improving = isImproving(tree, *evaluator_);
   Score bestScore = lowerScore;
   Move bestMove = Move::none();
 
@@ -740,7 +730,6 @@ Score Searcher::search(Tree& tree,
         !nodeStat.isMateThreat()) {
       reduced = reductionDepth(newDepth,
                                isNullWindow,
-                               improving,
                                moveCount);
       newDepth = newDepth - reduced;
     }

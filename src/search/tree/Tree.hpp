@@ -139,9 +139,6 @@ Score estimateScore(Tree& tree,
                     const Move& move,
                     Evaluator& eval);
 
-bool isImproving(Tree& tree,
-                 Evaluator& eval);
-
 inline
 bool isRecapture(const Tree& tree,
                  const Move& move) {

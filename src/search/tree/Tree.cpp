@@ -208,24 +208,6 @@ Score estimateScore(Tree& tree,
   }
 }
 
-bool isImproving(Tree& tree,
-                 Evaluator& eval) {
-  if (tree.ply < 2) {
-    return false;
-  }
-
-  auto& curr = tree.nodes[tree.ply];
-  auto& front = tree.nodes[tree.ply-2];
-
-  calculateStandPat(tree, eval);
-
-  if (tree.position.getTurn() == Turn::Black) {
-    return  curr.score >= front.score;
-  } else {
-    return  curr.score <= front.score;
-  }
-}
-
 std::string getPath(const Tree& tree, int ply) {
   std::ostringstream oss;
 
