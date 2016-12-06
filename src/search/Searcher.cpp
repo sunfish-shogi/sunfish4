@@ -45,7 +45,7 @@ inline int recursiveIDSearchDepth(int depth) {
 inline int nullDepth(int depth, Score standPat, Score beta) {
   return depth * 11 / 16
        - Searcher::Depth1Ply * 7 / 2
-       - Searcher::Depth1Ply * std::max((standPat.raw() - beta.raw()) / 200, 3);
+       - std::max(Searcher::Depth1Ply * ((int)standPat.raw() - (int)beta.raw()) / 150, 0);
 }
 
 /**
