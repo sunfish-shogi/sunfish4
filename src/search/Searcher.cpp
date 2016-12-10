@@ -35,7 +35,7 @@ inline bool shouldRecursiveIDSearch(int depth) {
  * Calculate a depth of recursive iterative deepening.
  */
 inline int recursiveIDSearchDepth(int depth) {
-  return depth < Searcher::Depth1Ply * 5 ? Searcher::Depth1Ply * 2
+  return depth < Searcher::Depth1Ply * 4 ? Searcher::Depth1Ply * 1
                                          : depth - Searcher::Depth1Ply * 3;
 }
 
