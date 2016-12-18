@@ -776,19 +776,8 @@ Score Searcher::search(Tree& tree,
 
       if (!isInterrupted() &&
           score > newAlpha &&
-          reduced != 0) {
+          (reduced != 0 || (score < beta && !isNullWindow))) {
         newDepth = newDepth + reduced;
-        score = -search(tree,
-                        newDepth,
-                        -(newAlpha + 1),
-                        -newAlpha,
-                        newNodeStat);
-      }
-
-      if (!isInterrupted() &&
-          score > newAlpha &&
-          score < beta &&
-          !isNullWindow) {
         score = -search(tree,
                         newDepth,
                         -beta,
