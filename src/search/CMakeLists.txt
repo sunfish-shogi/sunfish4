@@ -9,7 +9,6 @@ add_library(search STATIC
     shek/SCRDetector.cpp
     time/TimeManager.cpp
     tree/Tree.cpp
-    tree/Worker.cpp
     tt/TTElement.cpp
     tt/TTSlots.cpp
     RandomSearcher.cpp

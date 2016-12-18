@@ -102,6 +102,31 @@ Score futilityPruningMargin(int depth) {
   return depth * (300 / Searcher::Depth1Ply);
 }
 
+const int HalfDensity[][9] = {
+  { 2, 0, 1 },
+  { 2, 1, 0 },
+  { 4, 0, 0, 1, 1 },
+  { 4, 0, 1, 1, 0 },
+  { 4, 1, 1, 0, 0 },
+  { 4, 1, 0, 0, 1 },
+  { 6, 0, 0, 0, 1, 1, 1 },
+  { 6, 0, 0, 1, 1, 1, 0 },
+  { 6, 0, 1, 1, 1, 0, 0 },
+  { 6, 1, 1, 1, 0, 0, 0 },
+  { 6, 1, 1, 0, 0, 0, 1 },
+  { 6, 1, 0, 0, 0, 1, 1 },
+  { 8, 0, 0, 0, 0, 1, 1, 1, 1 },
+  { 8, 0, 0, 0, 1, 1, 1, 1, 0 },
+  { 8, 0, 0, 1, 1, 1, 1, 0, 0 },
+  { 8, 0, 1, 1, 1, 1, 0, 0, 0 },
+  { 8, 1, 1, 1, 1, 0, 0, 0, 0 },
+  { 8, 1, 1, 1, 0, 0, 0, 0, 1 },
+  { 8, 1, 1, 0, 0, 0, 0, 1, 1 },
+  { 8, 1, 0, 0, 0, 0, 1, 1, 1 },
+};
+
+CONSTEXPR_CONST int HalfDensitySize = std::extent<decltype(HalfDensity)>::value;
+
 #if 0
 void printMoves(const Position& pos,
                 const Moves& moves) {
@@ -125,12 +150,14 @@ void Searcher::initialize() {
 Searcher::Searcher() :
   config_ (getDefaultSearchConfig()),
   evaluator_(Evaluator::sharedEvaluator()),
+  treeSize_(0),
   handler_(nullptr) {
 }
 
 Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
   config_ (getDefaultSearchConfig()),
   evaluator_(evaluator),
+  treeSize_(0),
   handler_(nullptr) {
 }
 
@@ -151,22 +178,42 @@ void Searcher::onSearchStarted() {
   result_.depth = 0;
   result_.elapsed = 0.0f;
 
-  initializeWorker(mainThreadWorker_);
-
   history_.reduce();
 
   timeManager_.clearPosition(config_.optimumTimeMs,
                              config_.maximumTimeMs);
+
+  if (treeSize_ != config_.numberOfThreads) {
+    if (treeSize_ != 0) {
+      delete[] trees_;
+    }
+    treeSize_ = config_.numberOfThreads;
+    trees_ = new Tree[treeSize_];
+  }
+
+  for (int ti = 0; ti < treeSize_; ti++) {
+    trees_[ti].index = ti;
+    trees_[ti].completedDepth = 0;
+  }
 
   if (handler_ != nullptr) {
     handler_->onStart(*this);
   }
 }
 
+void Searcher::onSearchStopped() {
+  interrupt();
+
+  for (int ti = 0; ti < treeSize_; ti++) {
+    if (trees_[ti].thread.joinable()) {
+      trees_[ti].thread.join();
+    }
+  }
+}
+
 void Searcher::updateInfo() {
   initializeSearchInfo(info_);
-  mergeSearchInfo(info_, mainThreadWorker_.info);
-  // TODO: other threads
+  mergeSearchInfo(info_, trees_[0].info);
 }
 
 /**
@@ -179,12 +226,10 @@ void Searcher::search(const Position& pos,
                       Record* record /*= nullptr*/) {
   onSearchStarted();
 
-  auto& tree = mainThreadTree_;
-  auto& worker = mainThreadWorker_;
+  auto& tree = trees_[0];
   initializeTree(tree,
                  pos,
                  *evaluator_,
-                 &worker,
                  record);
 
   Score score = search(tree,
@@ -204,22 +249,51 @@ void Searcher::search(const Position& pos,
   result_.pv = node.pv;
   result_.depth = depth;
   result_.elapsed = timer_.elapsed();
+
+  onSearchStopped();
 }
 
 /**
  * iterative deepening search
  */
 void Searcher::idsearch(const Position& pos,
-                        int depth,
+                        int maxDepth,
                         Record* record /*= nullptr*/) {
   onSearchStarted();
 
-  auto& tree = mainThreadTree_;
-  auto& worker = mainThreadWorker_;
+  for (int ti = 1; ti < treeSize_; ti++) {
+    trees_[ti].thread = std::thread([this, ti, &pos, maxDepth, record]() {
+      idsearch(trees_[ti], pos, maxDepth, record);
+    });
+  }
+
+  idsearch(trees_[0],
+           pos,
+           maxDepth,
+           record);
+
+  onSearchStopped();
+
+  for (int ti = 0; ti < treeSize_; ti++) {
+    auto& tree = trees_[ti];
+    auto& node = tree.nodes[tree.ply];
+    result_.move = node.moves[0].excludeExtData();
+    result_.score = moveToScore(node.moves[0]);
+    result_.pv = node.pv;
+    result_.depth = tree.completedDepth;
+    result_.elapsed = timer_.elapsed();
+  }
+}
+
+void Searcher::idsearch(Tree& tree,
+                        const Position& pos,
+                        int maxDepth,
+                        Record* record) {
+  bool isMainThread = tree.index == 0;
+
   initializeTree(tree,
                  pos,
                  *evaluator_,
-                 &worker,
                  record);
 
   arrive(tree);
@@ -246,26 +320,28 @@ void Searcher::idsearch(const Position& pos,
     return;
   }
 
-  int completedDepth = 0;
-  for (int currDepth = Depth1Ply * 3 / 2; ; currDepth += Depth1Ply) {
-    bool cont = aspsearch(tree, currDepth);
+  for (int depth = Depth1Ply * 3 / 2; ; depth += Depth1Ply) {
+    if (!isMainThread) {
+      const int* row = HalfDensity[(tree.index - 1) % HalfDensitySize];
+      if (row[(depth / Depth1Ply) % row[0] + 1]) {
+        continue;
+      }
+    }
+
+    bool cont = aspsearch(tree, depth);
 
     if (isInterrupted()) {
       break;
     }
 
-    completedDepth = currDepth;
+    tree.completedDepth = depth;
 
-    if (!cont || currDepth >= depth) {
+    if (!cont || depth >= maxDepth) {
       break;
     }
   }
 
-  result_.move = node.moves[0].excludeExtData();
-  result_.score = moveToScore(node.moves[0]);
-  result_.pv = node.pv;
-  result_.depth = completedDepth;
-  result_.elapsed = timer_.elapsed();
+  return;
 }
 
 /**
@@ -274,6 +350,7 @@ void Searcher::idsearch(const Position& pos,
 bool Searcher::aspsearch(Tree& tree,
                          int depth) {
   auto& node = tree.nodes[tree.ply];
+  bool isMainThread = tree.index == 0;
 
   if (node.moves.size() == 0) {
     return false;
@@ -376,8 +453,7 @@ bool Searcher::aspsearch(Tree& tree,
 
       if (alphas[alphaIndex] < score) {
         doFullSearch = true;
-
-        if (handler_ != nullptr) {
+        if (isMainThread && handler_ != nullptr) {
           PV pv;
           pv.set(move, depth, pv);
           handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
@@ -394,8 +470,7 @@ bool Searcher::aspsearch(Tree& tree,
 
       if (betas[betaIndex] > score) {
         doFullSearch = true;
-
-        if (handler_ != nullptr) {
+        if (isMainThread && handler_ != nullptr) {
           PV pv;
           pv.set(move, depth, pv);
           handler_->onFailHigh(*this, pv, timer_.elapsed(), depth, score);
@@ -409,21 +484,22 @@ bool Searcher::aspsearch(Tree& tree,
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, depth, childNode.pv);
-
-      if (handler_ != nullptr) {
+      if (isMainThread && handler_ != nullptr) {
         handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
       }
     }
 
-    timeManager_.update(timer_.elapsedMs(),
-                        depth,
-                        bestScore,
-                        node.pv,
-                        moveCount,
-                        maxMoveCount);
-    if (timeManager_.shouldInterrupt()) {
-      interrupt();
-      break;
+    if (isMainThread) {
+      timeManager_.update(timer_.elapsedMs(),
+                          depth,
+                          bestScore,
+                          node.pv,
+                          moveCount,
+                          maxMoveCount);
+      if (timeManager_.shouldInterrupt()) {
+        interrupt();
+        break;
+      }
     }
 
     moveCount++;
@@ -503,8 +579,7 @@ Score Searcher::search(Tree& tree,
                  beta);
   }
 
-  auto& worker = *tree.worker;
-  worker.info.nodes++;
+  tree.info.nodes++;
 
   if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
@@ -543,7 +618,7 @@ Score Searcher::search(Tree& tree,
       if (ttScoreType == TTScoreType::Exact ||
          (ttScoreType == TTScoreType::Upper && ttScore <= alpha) ||
          (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
-        worker.info.hashCut++;
+        tree.info.hashCut++;
         return ttScore;
       }
     }
@@ -582,7 +657,7 @@ Score Searcher::search(Tree& tree,
   if (!isCheck(node.checkState) &&
       depth < FutilityPruningMaxDepth &&
       standPat - futilityPruningMargin(depth) >= beta) {
-    worker.info.futilityPruning++;
+    tree.info.futilityPruning++;
     return standPat - futilityPruningMargin(depth);
   }
 
@@ -598,7 +673,7 @@ Score Searcher::search(Tree& tree,
                         razorAlpha,
                         razorAlpha + 1);
     if (score <= razorAlpha) {
-      worker.info.razoring++;
+      tree.info.razoring++;
       return score;
     }
 
@@ -632,7 +707,7 @@ Score Searcher::search(Tree& tree,
     if (score >= beta) {
       auto& childNode = tree.nodes[tree.ply+1];
       node.isHistorical = childNode.isHistorical;
-      worker.info.nullMovePruning++;
+      tree.info.nullMovePruning++;
       tt_.store(tree.position.getHash(),
                 alpha,
                 beta,
@@ -741,7 +816,7 @@ Score Searcher::search(Tree& tree,
       if (futScore <= newAlpha) {
         isFirst = false;
         bestScore = std::max(bestScore, futScore);
-        worker.info.futilityPruning++;
+        tree.info.futilityPruning++;
         continue;
       }
     }
@@ -795,9 +870,9 @@ Score Searcher::search(Tree& tree,
       // beta cut
       if (score >= beta) {
         node.isHistorical = childNode.isHistorical;
-        worker.info.failHigh++;
+        tree.info.failHigh++;
         if (isFirst) {
-          worker.info.failHighFirst++;
+          tree.info.failHighFirst++;
         }
         break;
       }
@@ -850,8 +925,7 @@ Score Searcher::quies(Tree& tree,
 
   auto& node = tree.nodes[tree.ply];
 
-  auto& worker = *tree.worker;
-  worker.info.quiesNodes++;
+  tree.info.quiesNodes++;
 
   node.checkState = tree.position.getCheckState();
 
@@ -1011,7 +1085,6 @@ void Searcher::generateMovesOnQuies(Tree& tree,
                                     int qply,
                                     Score alpha) {
   auto& node = tree.nodes[tree.ply];
-  auto& worker = *tree.worker;
   bool excludeSmallCaptures = qply >= 6;
 
   node.moves.clear();
@@ -1037,7 +1110,7 @@ void Searcher::generateMovesOnQuies(Tree& tree,
       Score estScore = estimateScore(tree, move, *evaluator_);
       if (estScore + 500 <= alpha) {
         ite = node.moves.remove(ite);
-        worker.info.futilityPruning++;
+        tree.info.futilityPruning++;
         continue;
       }
 

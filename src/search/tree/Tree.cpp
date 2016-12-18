@@ -40,11 +40,11 @@ namespace sunfish {
 void initializeTree(Tree& tree,
                     const Position& position,
                     Evaluator& eval,
-                    Worker* worker,
                     const Record* record) {
   tree.position = position;
-  tree.worker = worker;
   tree.ply = 0;
+
+  initializeSearchInfo(tree.info);
 
   tree.nodes[0].materialScore = eval.calculateMaterialScore(tree.position);
   tree.nodes[0].score = Score::invalid();

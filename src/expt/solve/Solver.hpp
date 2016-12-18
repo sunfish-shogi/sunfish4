@@ -20,6 +20,7 @@ public:
   struct Config {
     int muximumDepth;
     SearchConfig::TimeType muximumTimeSeconds;
+    int numberOfThreads;
   };
 
   struct Nodes {

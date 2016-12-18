@@ -11,16 +11,17 @@
 #include "search/eval/Evaluator.hpp"
 #include "search/shek/ShekTable.hpp"
 #include "search/shek/SCRDetector.hpp"
+#include "search/SearchInfo.hpp"
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 #include <string>
+#include <thread>
 #include <cstdint>
 
 namespace sunfish {
 
 struct Record;
 class Evaluator;
-struct Worker;
 
 enum GenPhase : uint8_t {
   CapturingMoves,
@@ -55,9 +56,12 @@ struct Node {
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
+  std::thread thread;
+  int index;
+  int completedDepth;
   Position position;
   ShekTable shekTable;
-  Worker* worker;
+  SearchInfo info;
   int ply;
   Node nodes[StackSize];
   SCRDetector scr;
@@ -66,7 +70,6 @@ struct Tree {
 void initializeTree(Tree& tree,
                     const Position& position,
                     Evaluator& eval,
-                    Worker* worker,
                     const Record* record);
 
 void arrive(Tree& tree);

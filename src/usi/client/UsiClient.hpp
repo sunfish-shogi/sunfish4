@@ -35,6 +35,7 @@ private:
     bool useBook;
     bool snappy;
     int marginMs;
+    int numberOfThreads;
   };
 
   enum class CommandState : uint8_t {

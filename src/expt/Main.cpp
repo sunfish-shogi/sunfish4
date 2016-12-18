@@ -25,6 +25,7 @@ int main(int argc, char** argv, char**) {
   po.addOption("mgtest", "run a cross-check test of move generation");
   po.addOption("time", "t", "a muximum time of search in seconds (This option will used when the --solve option is specified.)", true);
   po.addOption("depth", "d", "a muximum depth of search (This option will used when the --solve option is specified.)", true);
+  po.addOption("threads", "r", "a number of search threads (This option will used when the --solve option is specified.)", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -61,6 +62,9 @@ int main(int argc, char** argv, char**) {
     }
     if (po.has("depth")) {
       config.muximumDepth = std::stoi(po.getValue("depth"));
+    }
+    if (po.has("threads")) {
+      config.numberOfThreads = std::stoi(po.getValue("threads"));
     }
     solver.setConfig(config);
 

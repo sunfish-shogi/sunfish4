@@ -14,7 +14,6 @@
 #include "search/time/TimeManager.hpp"
 #include "search/tree/Tree.hpp"
 #include "search/tree/NodeStat.hpp"
-#include "search/tree/Worker.hpp"
 #include "search/tt/TT.hpp"
 #include "search/history/History.hpp"
 #include "common/math/Random.hpp"
@@ -65,7 +64,7 @@ public:
    * iterative deepening search.
    */
   void idsearch(const Position& pos,
-                int depth,
+                int maxDepth,
                 Record* record = nullptr);
 
   const SearchConfig& getConfig() const {
@@ -103,8 +102,14 @@ public:
 private:
 
   void onSearchStarted();
+  void onSearchStopped();
 
   void updateInfo();
+
+  void idsearch(Tree& tree,
+                const Position& pos,
+                int maxDepth,
+                Record* record);
 
   bool aspsearch(Tree& tree,
                  int depth);
@@ -165,8 +170,8 @@ private:
 
   History history_;
 
-  Tree mainThreadTree_;
-  Worker mainThreadWorker_;
+  Tree* trees_;
+  int treeSize_;
 
   Random random_;
 

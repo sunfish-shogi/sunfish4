@@ -17,15 +17,18 @@ struct SearchConfig {
   static CONSTEXPR_CONST TimeType InfinityTime = ~static_cast<TimeType>(0);
   static CONSTEXPR_CONST TimeType DefaultOptimumTimeMs = 3 * 1000;
   static CONSTEXPR_CONST TimeType DefaultMaximumTimeMs = 3 * 1000;
+  static CONSTEXPR_CONST int NumberOfThreads = 1;
 
   TimeType optimumTimeMs;
   TimeType maximumTimeMs;
+  int numberOfThreads;
 };
 
 inline CONSTEXPR SearchConfig getDefaultSearchConfig() {
   return {
     SearchConfig::DefaultOptimumTimeMs,
-    SearchConfig::DefaultMaximumTimeMs
+    SearchConfig::DefaultMaximumTimeMs,
+    SearchConfig::NumberOfThreads
   };
 }
 

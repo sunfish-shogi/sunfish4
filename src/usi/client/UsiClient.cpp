@@ -46,6 +46,7 @@ UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   options_.useBook = true;
   options_.snappy = true;
   options_.marginMs = 500;
+  options_.numberOfThreads = 1;
 }
 
 bool UsiClient::start() {
@@ -91,6 +92,7 @@ bool UsiClient::acceptUsi() {
   send("option", "name", "UseBook", "type", "check", "default", "true");
   send("option", "name", "Snappy", "type", "check", "default", "true");
   send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
+  send("option", "name", "Threads", "type", "spin", "default", "1", "min", "1", "max", "32");
 
   send("usiok");
 
@@ -173,6 +175,11 @@ bool UsiClient::setOption(const CommandArguments& args) {
 
   if (name == "MarginMs") {
     options_.marginMs = StringUtil::toInt(value, options_.marginMs);
+    return true;
+  }
+
+  if (name == "Threads") {
+    options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
     return true;
   }
 
@@ -364,6 +371,8 @@ void UsiClient::search() {
     }
   }
 
+  config.numberOfThreads = options_.numberOfThreads;
+
   searcher_->setConfig(config);
 
   searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
@@ -446,6 +455,7 @@ void UsiClient::ponder() {
 
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
+  config.numberOfThreads = options_.numberOfThreads;
 
   searcher_->setConfig(config);
 

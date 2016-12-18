@@ -642,6 +642,8 @@ void CsaClient::search() {
     config.optimumTimeMs = SearchConfig::InfinityTime;
   }
 
+  config.numberOfThreads = config_.worker;
+
   searcher_->setConfig(config);
 
   searcher_->idsearch(position_,
@@ -698,6 +700,7 @@ void CsaClient::ponder() {
 
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
+  config.numberOfThreads = config_.worker;
 
   searcher_->setConfig(config);
 
