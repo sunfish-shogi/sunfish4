@@ -906,6 +906,10 @@ Score Searcher::quies(Tree& tree,
 
     undoMove(tree);
 
+    if (isInterrupted()) {
+      return Score::zero();
+    }
+
     if (score > alpha) {
       alpha = score;
 
