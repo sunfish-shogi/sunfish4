@@ -112,7 +112,7 @@ bool Solver::solve(const Position& position, Move correct) {
 
   auto config = searcher_.getConfig();
   config.maximumTimeMs = config_.muximumTimeSeconds * 1000;
-  config.optimumTimeMs = config_.muximumTimeSeconds * 1000;
+  config.optimumTimeMs = SearchConfig::InfinityTime;
   searcher_.setConfig(config);
 
   searcher_.clean();
