@@ -62,11 +62,11 @@ void TimeManager::update(uint32_t elapsedMs,
   current_->score = score;
   current_->pv = pv;
 
-  // if 90% of maximumTimeMs is already used
+  // if 97% of maximumTimeMs is already used
   if (maximumTimeMs_ != SearchConfig::InfinityTime &&
-      elapsedMs * 100 >= maximumTimeMs_ * 90) {
+      elapsedMs * 100 >= maximumTimeMs_ * 97) {
     shouldInterrupt_ = true;
-    LOG(info) << "TimeManager: interrupt(90% of MAX)";
+    LOG(info) << "TimeManager: interrupt(97% of MAX)";
     return;
   }
 
