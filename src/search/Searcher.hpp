@@ -141,7 +141,7 @@ private:
                Score score);
 
   bool isInterrupted() const {
-    if (interrupted_) {
+    if (interrupted_.load(std::memory_order_relaxed)) {
       return true;
     }
 
@@ -156,7 +156,7 @@ private:
   SearchResult result_;
   SearchInfo info_;
 
-  std::atomic<bool> interrupted_;
+  std::atomic_bool interrupted_;
   Timer timer_;
 
   std::shared_ptr<Evaluator> evaluator_;
