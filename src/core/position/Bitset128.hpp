@@ -8,7 +8,6 @@
 
 #include "common/Def.hpp"
 #include "common/bitope/BitOpe.hpp"
-#include "core/Sse.hpp"
 #include <cstdint>
 #include <cassert>
 
@@ -27,25 +26,6 @@ public:
   static CONSTEXPR_CONST uint64_t Mask1 = (1ULL<<W1)-1;
   static CONSTEXPR_CONST uint64_t Mask2 = (1ULL<<W2)-1;
 
-protected:
-
-  /**
-   * 128-bit wide union type
-   */
-  union u128 {
-    uint64_t u64[2];
-
-    CONSTEXPR u128(uint64_t first, uint64_t second) : u64{first, second} {}
-
-#if USE_SSE2
-    __m128i m;
-    CONSTEXPR u128(const __m128i& m) : m(m) {}
-#endif
-
-    u128() {}
-  };
-  static_assert(sizeof(u128) == 16, "invalid size");
-
 public:
 
   /**
@@ -58,25 +38,14 @@ public:
    * Copy constructor
    */
   Bitset128(const T& src) :
-#if USE_SSE2
-    bb_(src.bb_.m)
-#else
     bb_(src.firstRef(), src.secondRef())
-#endif
   {
   }
 
-#if USE_SSE2
   /**
    * Constructor
    */
-  Bitset128(const __m128i& m) : bb_(m) {}
-#endif
-
-  /**
-   * Constructor
-   */
-  explicit CONSTEXPR Bitset128(uint64_t first, uint64_t second) : bb_(first, second) {
+  explicit CONSTEXPR Bitset128(uint64_t first, uint64_t second) : bb_{first, second} {
   }
 
   /**
@@ -90,24 +59,16 @@ public:
    * Assignment operator
    */
   T& operator=(const T& src) {
-#if USE_SSE2
-    bb_.m = src.bb_.m;
-#else
     firstRef() = src.firstRef();
     secondRef() = src.secondRef();
-#endif
   }
 
   /**
    * Bitwise OR assignment operator
    */
   T& operator|=(const T& rhs) {
-#if USE_SSE2
-    bb_.m = _mm_or_si128(bb_.m, rhs.bb_.m);
-#else
     firstRef() |= rhs.first();
     secondRef() |= rhs.second();
-#endif
     return *(static_cast<T*>(this));
   }
 
@@ -115,12 +76,8 @@ public:
    * Bitwise AND assignment operator
    */
   T& operator&=(const T& rhs) {
-#if USE_SSE2
-    bb_.m = _mm_and_si128(bb_.m, rhs.bb_.m);
-#else
     firstRef() &= rhs.first();
     secondRef() &= rhs.second();
-#endif
     return *(static_cast<T*>(this));
   }
 
@@ -128,12 +85,8 @@ public:
    * Bitwise XOR assignment operator
    */
   T& operator^=(const T& rhs) {
-#if USE_SSE2
-    bb_.m = _mm_xor_si128(bb_.m, rhs.bb_.m);
-#else
     firstRef() ^= rhs.first();
     secondRef() ^= rhs.second();
-#endif
     return *(static_cast<T*>(this));
   }
 
@@ -141,80 +94,34 @@ public:
    * Bitwise OR operator
    */
   T operator|(const T& rhs) const {
-#if USE_SSE2
-    return T(_mm_or_si128(bb_.m, rhs.bb_.m));
-#else
-    return nosseOr(*(static_cast<const T*>(this)), rhs);
-#endif
+    return T(first() | rhs.first(), second() | rhs.second());
   }
 
   /**
    * Bitwise AND operator
    */
   T operator&(const T& rhs) const {
-#if USE_SSE2
-    return T(_mm_and_si128(bb_.m, rhs.bb_.m));
-#else
-    return nosseAnd(*(static_cast<const T*>(this)), rhs);
-#endif
+    return T(first() & rhs.first(), second() & rhs.second());
   }
 
   /**
    * Bitwise XOR operator
    */
   T operator^(const T& rhs) const {
-#if USE_SSE2
-    return T(_mm_xor_si128(bb_.m, rhs.bb_.m));
-#else
-    return nosseXor(*(static_cast<const T*>(this)), rhs);
-#endif
+    return T(first() ^ rhs.first(), second() ^ rhs.second());
   }
 
   /**
    * Bitwise NOT operator
    */
   T operator~() const{
-#if USE_SSE2
-    return T(_mm_andnot_si128(bb_.m,
-#if BYTE_ORDER == BIG_ENDIAN
-          _mm_set_epi64((__m64)Mask1, (__m64)Mask2)
-#else
-          _mm_set_epi64((__m64)Mask2, (__m64)Mask1)
-#endif
-          ));
-#else
-    return nosseNot();
-#endif
+    return T((~first()) & Mask1, (~second()) & Mask2);
   }
 
   /**
    * Bitwise AND-NOT operation
    */
   T andNot(const T& rhs) const{
-#if USE_SSE2
-    return T(_mm_andnot_si128(bb_.m, rhs.bb_.m));
-#else
-    return nosseAndNot(rhs);
-#endif
-  }
-
-  friend T nosseOr(const T& lhs, const T& rhs) {
-    return T(lhs.first() | rhs.first(), lhs.second() | rhs.second());
-  }
-
-  friend T nosseAnd(const T& lhs, const T& rhs) {
-    return T(lhs.first() & rhs.first(), lhs.second() & rhs.second());
-  }
-
-  friend T nosseXor(const T& lhs, const T& rhs) {
-    return T(lhs.first() ^ rhs.first(), lhs.second() ^ rhs.second());
-  }
-
-  T nosseNot() const {
-    return T((~first()) & Mask1, (~second()) & Mask2);
-  }
-
-  T nosseAndNot(const T& rhs) const {
     return T((~first()) & rhs.first(), (~second()) & rhs.second());
   }
 
@@ -222,24 +129,16 @@ public:
    * Shifts as the two unsgined 64-bit integers.
    */
   void leftShift64(U n) {
-#if USE_SSE2
-    bb_.m = _mm_slli_epi64(bb_.m, n);
-#else
     firstRef() <<= n;
     secondRef() <<= n;
-#endif
   }
 
   /**
    * Shifts as the two unsgined 64-bit integers.
    */
   void rightShift64(U n) {
-#if USE_SSE2
-    bb_.m = _mm_srli_epi64(bb_.m, n);
-#else
     firstRef() >>= n;
     secondRef() >>= n;
-#endif
   }
 
   void leftShift(U n) {
@@ -310,14 +209,14 @@ public:
    * Get 1st quad word
    */
   uint64_t first() const {
-    return bb_.u64[0];
+    return bb_[0];
   }
 
   /**
    * Get 2nd quad word
    */
   uint64_t second() const {
-    return bb_.u64[1];
+    return bb_[1];
   }
 
   /**
@@ -454,14 +353,14 @@ protected:
    * Get mutable reference of 1st quad word
    */
   uint64_t& firstRef() {
-    return bb_.u64[0];
+    return bb_[0];
   }
 
   /**
    * Get mutable reference of 2nd quad word
    */
   uint64_t& secondRef() {
-    return bb_.u64[1];
+    return bb_[1];
   }
 
   static U findForward(uint64_t data) {
@@ -499,7 +398,7 @@ protected:
 #endif
   }
 
-  u128 bb_;
+  uint64_t bb_[2];
 
 };
 

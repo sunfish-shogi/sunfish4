@@ -19,10 +19,8 @@ SUNFISH_DEV:=sunfish_dev
 
 BUILD_DIR:=$(PROJ_ROOT)/out/build
 PROFOUT:=$(PROJ_ROOT)/out/profile.txt
-TESTRESULT_SSE:=$(PROJ_ROOT)/out/test_result_sse.xml
-TESTRESULT_NOSSE:=$(PROJ_ROOT)/out/test_result_nosse.xml
-COVOUT_SSE:=$(PROJ_ROOT)/out/coverage_sse.txt
-COVOUT_NOSSE:=$(PROJ_ROOT)/out/coverage_nosse.txt
+TESTRESULT:=$(PROJ_ROOT)/out/test_result.xml
+COVOUT:=$(PROJ_ROOT)/out/coverage.txt
 
 KIFU_PROF1:=$(PROJ_ROOT)/kifu/prof1
 KIFU_PROF5:=$(PROJ_ROOT)/kifu/prof5
@@ -31,7 +29,6 @@ KIFU_PROBLEM:=$(PROJ_ROOT)/kifu/problem
 GEN_COV:=$(PROJ_ROOT)/tools/gen_cov_report.py
 GROUP_PROF:=$(PROJ_ROOT)/tools/group_prof.pl
 
-HAS_SSE2:=$(shell $(CPP) -E -dM -xc /dev/null | grep __SSE2__ | sed 's/^.* //')
 HAS_COV:=$(shell which $(COV))
 
 .PHONY: all
@@ -100,33 +97,14 @@ prof1:
 	@echo "Please see the details in $(PROFOUT)."
 
 test:
-ifeq ($(HAS_SSE2),1)
-	$(MAKE) test-sse
-	$(MAKE) test-nosse
-else
-	$(MAKE) test-nosse
-endif
-
-test-sse:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=1 $(PROJ_ROOT)/src/test
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug $(PROJ_ROOT)/src/test
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
 	$(FIND) $(BUILD_DIR)/$@ -name '*.gcda' | xargs $(RM)
-	$(SHELL) -c './$(SUNFISH_TEST) --out $(TESTRESULT_SSE)'
+	$(SHELL) -c './$(SUNFISH_TEST) --out $(TESTRESULT)'
 ifneq ($(HAS_COV),)
-	cd $(BUILD_DIR)/$@ && $(SHELL) -c '$(GEN_COV) -s $(PROJ_ROOT)/src -e test > $(COVOUT_SSE)'
-endif
-
-test-nosse:
-	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
-	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Debug -D USE_SSE2=0 $(PROJ_ROOT)/src/test
-	cd $(BUILD_DIR)/$@ && $(MAKE)
-	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_TEST) $(SUNFISH_TEST)
-	$(FIND) $(BUILD_DIR)/$@ -name '*.gcda' | xargs $(RM)
-	$(SHELL) -c './$(SUNFISH_TEST) --out $(TESTRESULT_NOSSE)'
-ifneq ($(HAS_COV),)
-	cd $(BUILD_DIR)/$@ && $(SHELL) -c '$(GEN_COV) -s $(PROJ_ROOT)/src -e test > $(COVOUT_NOSSE)'
+	cd $(BUILD_DIR)/$@ && $(SHELL) -c '$(GEN_COV) -s $(PROJ_ROOT)/src -e test > $(COVOUT)'
 endif
 
 bm:

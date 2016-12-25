@@ -79,8 +79,7 @@ Score Evaluator::calculateMaterialScore(const Position& position) const {
   score -= material::Bishop * whiteHand.get(PieceType::bishop());
   score -= material::Rook   * whiteHand.get(PieceType::rook  ());
 
-  Bitboard occ = nosseOr(position.getBOccupiedBitboard(),
-                         position.getWOccupiedBitboard());
+  Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   occ.unset(position.getBlackKingSquare());
   occ.unset(position.getWhiteKingSquare());
 

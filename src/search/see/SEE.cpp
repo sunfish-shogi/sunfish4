@@ -44,8 +44,7 @@ Score SEE::calculate(const Position& position,
 Bitboard SEE::extractAttackers(const Position& position,
                                Square from,
                                Square to) {
-  Bitboard occ = nosseOr(position.getBOccupiedBitboard(),
-                         position.getWOccupiedBitboard());
+  Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   RotatedBitboard occ90 = position.get90RotatedBitboard();
   RotatedBitboard occR45 = position.getRight45RotatedBitboard();
   RotatedBitboard occL45 = position.getLeft45RotatedBitboard();
@@ -96,8 +95,7 @@ Bitboard SEE::extractShadowAttacker(const Position& position,
     return bb;
   }
 
-  Bitboard occ = nosseOr(position.getBOccupiedBitboard(),
-                         position.getWOccupiedBitboard());
+  Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   RotatedBitboard occ90 = position.get90RotatedBitboard();
   RotatedBitboard occR45 = position.getRight45RotatedBitboard();
   RotatedBitboard occL45 = position.getLeft45RotatedBitboard();
