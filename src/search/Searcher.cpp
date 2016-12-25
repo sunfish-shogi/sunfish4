@@ -20,7 +20,7 @@ using namespace sunfish;
 CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
 
 // extensions
-CONSTEXPR_CONST int ExtensionDepthForCheck     = Searcher::Depth1Ply * 1;
+CONSTEXPR_CONST int ExtensionDepthForCheck     = Searcher::Depth1Ply * 3 / 4;
 CONSTEXPR_CONST int ExtensionDepthForOneReply  = Searcher::Depth1Ply * 1 / 2;
 CONSTEXPR_CONST int ExtensionDepthForRecapture = Searcher::Depth1Ply * 1 / 4;
 
@@ -350,16 +350,10 @@ bool Searcher::aspsearch(Tree& tree,
                       -alpha,
                       newNodeStat);
 
-      if (!isInterrupted() && score > alpha && reduced != 0) {
+      if (!isInterrupted() &&
+          score > alpha &&
+          (reduced != 0 || score < beta)) {
         newDepth = newDepth + reduced;
-        score = -search(tree,
-                        newDepth,
-                        -(alpha + 1),
-                        -alpha,
-                        newNodeStat);
-      }
-
-      if (!isInterrupted() && score > alpha && score < beta) {
         score = -search(tree,
                         newDepth,
                         -beta,
@@ -776,7 +770,7 @@ Score Searcher::search(Tree& tree,
 
       if (!isInterrupted() &&
           score > newAlpha &&
-          (reduced != 0 || (score < beta && !isNullWindow))) {
+          (reduced != 0 || score < beta)) {
         newDepth = newDepth + reduced;
         score = -search(tree,
                         newDepth,
