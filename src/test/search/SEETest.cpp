@@ -81,11 +81,11 @@ TEST(SEETest, testCalculate) {
       "P-\n"
       "+\n");
     Move move(Square::s37(), Square::s46(), false);
-    ASSERT_EQ(material::LanceEx
-            - material::SilverEx
-            + material::KnightEx
-            - material::BishopEx
-            + material::GoldEx,
+    ASSERT_EQ(material::lanceEx()
+            - material::silverEx()
+            + material::knightEx()
+            - material::bishopEx()
+            + material::goldEx(),
               SEE::calculate(pos, move));
   }
 
@@ -104,8 +104,8 @@ TEST(SEETest, testCalculate) {
       "P-\n"
       "-\n");
     Move move(Square::s86(), Square::s75(), false);
-    ASSERT_EQ(material::PawnEx
-            - material::SilverEx,
+    ASSERT_EQ(material::pawnEx()
+            - material::silverEx(),
               SEE::calculate(pos, move));
   }
 
@@ -124,7 +124,7 @@ TEST(SEETest, testCalculate) {
       "P-\n"
       "+\n");
     Move move(Square::s45(), Square::s44(), false);
-    ASSERT_EQ(material::PawnEx,
+    ASSERT_EQ(material::pawnEx(),
               SEE::calculate(pos, move));
   }
 
@@ -162,7 +162,7 @@ TEST(SEETest, testCalculate) {
       "P-\n"
       "+\n");
     Move move(Square::s46(), Square::s56(), false);
-    ASSERT_EQ(-material::ProSilverEx,
+    ASSERT_EQ(-material::proSilverEx(),
               SEE::calculate(pos, move));
   }
 
@@ -181,8 +181,8 @@ TEST(SEETest, testCalculate) {
       "P-\n"
       "+\n");
     Move move(Square::s46(), Square::s56(), false);
-    ASSERT_EQ(-material::ProSilverEx
-             + material::TokinEx,
+    ASSERT_EQ(-material::proSilverEx()
+             + material::tokinEx(),
               SEE::calculate(pos, move));
   }
 }

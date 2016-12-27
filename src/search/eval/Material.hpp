@@ -24,37 +24,23 @@
 #define MATERIAL_SCORE_HORSE      827
 #define MATERIAL_SCORE_DRAGON     945
 
+#define MATERIAL_SCORE_PAWN_EX       (MATERIAL_SCORE_PAWN * 2)
+#define MATERIAL_SCORE_LANCE_EX      (MATERIAL_SCORE_LANCE * 2)
+#define MATERIAL_SCORE_KNIGHT_EX     (MATERIAL_SCORE_KNIGHT * 2)
+#define MATERIAL_SCORE_SILVER_EX     (MATERIAL_SCORE_SILVER * 2)
+#define MATERIAL_SCORE_GOLD_EX       (MATERIAL_SCORE_GOLD * 2)
+#define MATERIAL_SCORE_BISHOP_EX     (MATERIAL_SCORE_BISHOP * 2)
+#define MATERIAL_SCORE_ROOK_EX       (MATERIAL_SCORE_ROOK * 2)
+#define MATERIAL_SCORE_TOKIN_EX      (MATERIAL_SCORE_TOKIN + MATERIAL_SCORE_PAWN)
+#define MATERIAL_SCORE_PRO_LANCE_EX  (MATERIAL_SCORE_PRO_LANCE + MATERIAL_SCORE_LANCE)
+#define MATERIAL_SCORE_PRO_KNIGHT_EX (MATERIAL_SCORE_PRO_KNIGHT + MATERIAL_SCORE_KNIGHT)
+#define MATERIAL_SCORE_PRO_SILVER_EX (MATERIAL_SCORE_PRO_SILVER + MATERIAL_SCORE_SILVER)
+#define MATERIAL_SCORE_HORSE_EX      (MATERIAL_SCORE_HORSE + MATERIAL_SCORE_BISHOP)
+#define MATERIAL_SCORE_DRAGON_EX     (MATERIAL_SCORE_DRAGON + MATERIAL_SCORE_ROOK)
+
 namespace sunfish {
 
 namespace material {
-
-CONSTEXPR_CONST int16_t Pawn       = MATERIAL_SCORE_PAWN;
-CONSTEXPR_CONST int16_t Lance      = MATERIAL_SCORE_LANCE;
-CONSTEXPR_CONST int16_t Knight     = MATERIAL_SCORE_KNIGHT;
-CONSTEXPR_CONST int16_t Silver     = MATERIAL_SCORE_SILVER;
-CONSTEXPR_CONST int16_t Gold       = MATERIAL_SCORE_GOLD;
-CONSTEXPR_CONST int16_t Bishop     = MATERIAL_SCORE_BISHOP;
-CONSTEXPR_CONST int16_t Rook       = MATERIAL_SCORE_ROOK;
-CONSTEXPR_CONST int16_t Tokin      = MATERIAL_SCORE_TOKIN;
-CONSTEXPR_CONST int16_t ProLance   = MATERIAL_SCORE_PRO_LANCE;
-CONSTEXPR_CONST int16_t ProKnight  = MATERIAL_SCORE_PRO_KNIGHT;
-CONSTEXPR_CONST int16_t ProSilver  = MATERIAL_SCORE_PRO_SILVER;
-CONSTEXPR_CONST int16_t Horse      = MATERIAL_SCORE_HORSE;
-CONSTEXPR_CONST int16_t Dragon     = MATERIAL_SCORE_DRAGON;
-
-CONSTEXPR_CONST int16_t PawnEx       = Pawn * 2;
-CONSTEXPR_CONST int16_t LanceEx      = Lance * 2;
-CONSTEXPR_CONST int16_t KnightEx     = Knight * 2;
-CONSTEXPR_CONST int16_t SilverEx     = Silver * 2;
-CONSTEXPR_CONST int16_t GoldEx       = Gold * 2;
-CONSTEXPR_CONST int16_t BishopEx     = Bishop * 2;
-CONSTEXPR_CONST int16_t RookEx       = Rook * 2;
-CONSTEXPR_CONST int16_t TokinEx      = Tokin + Pawn;
-CONSTEXPR_CONST int16_t ProLanceEx   = ProLance + Lance;
-CONSTEXPR_CONST int16_t ProKnightEx  = ProKnight + Knight;
-CONSTEXPR_CONST int16_t ProSilverEx  = ProSilver + Silver;
-CONSTEXPR_CONST int16_t HorseEx      = Horse + Bishop;
-CONSTEXPR_CONST int16_t DragonEx     = Dragon + Rook;
 
 extern Score scores[PieceNumber::Num];
 extern Score exchangeScores[PieceNumber::Num];
@@ -71,6 +57,64 @@ inline Score exchangeScore(const Piece& piece) {
 inline Score promotionScore(const Piece& piece) {
   return promotionScores[piece.raw()];
 }
+
+#if LEARNING
+inline Score pawn()      { return scores[PieceNumber::Pawn]; }
+inline Score lance()     { return scores[PieceNumber::Lance]; }
+inline Score knight()    { return scores[PieceNumber::Knight]; }
+inline Score silver()    { return scores[PieceNumber::Silver]; }
+inline Score gold()      { return scores[PieceNumber::Gold]; }
+inline Score bishop()    { return scores[PieceNumber::Bishop]; }
+inline Score rook()      { return scores[PieceNumber::Rook]; }
+inline Score tokin()     { return scores[PieceNumber::Tokin]; }
+inline Score proLance()  { return scores[PieceNumber::ProLance]; }
+inline Score proKnight() { return scores[PieceNumber::ProKnight]; }
+inline Score proSilver() { return scores[PieceNumber::ProSilver]; }
+inline Score horse()     { return scores[PieceNumber::Horse]; }
+inline Score dragon()    { return scores[PieceNumber::Dragon]; }
+
+inline Score pawnEx()      { return exchangeScores[PieceNumber::Pawn]; }
+inline Score lanceEx()     { return exchangeScores[PieceNumber::Lance]; }
+inline Score knightEx()    { return exchangeScores[PieceNumber::Knight]; }
+inline Score silverEx()    { return exchangeScores[PieceNumber::Silver]; }
+inline Score goldEx()      { return exchangeScores[PieceNumber::Gold]; }
+inline Score bishopEx()    { return exchangeScores[PieceNumber::Bishop]; }
+inline Score rookEx()      { return exchangeScores[PieceNumber::Rook]; }
+inline Score tokinEx()     { return exchangeScores[PieceNumber::Tokin]; }
+inline Score proLanceEx()  { return exchangeScores[PieceNumber::ProLance]; }
+inline Score proKnightEx() { return exchangeScores[PieceNumber::ProKnight]; }
+inline Score proSilverEx() { return exchangeScores[PieceNumber::ProSilver]; }
+inline Score horseEx()     { return exchangeScores[PieceNumber::Horse]; }
+inline Score dragonEx()    { return exchangeScores[PieceNumber::Dragon]; }
+#else // LEARNING
+inline Score pawn()      { return MATERIAL_SCORE_PAWN; }
+inline Score lance()     { return MATERIAL_SCORE_LANCE; }
+inline Score knight()    { return MATERIAL_SCORE_KNIGHT; }
+inline Score silver()    { return MATERIAL_SCORE_SILVER; }
+inline Score gold()      { return MATERIAL_SCORE_GOLD; }
+inline Score bishop()    { return MATERIAL_SCORE_BISHOP; }
+inline Score rook()      { return MATERIAL_SCORE_ROOK; }
+inline Score tokin()     { return MATERIAL_SCORE_TOKIN; }
+inline Score proLance()  { return MATERIAL_SCORE_PRO_LANCE; }
+inline Score proKnight() { return MATERIAL_SCORE_PRO_KNIGHT; }
+inline Score proSilver() { return MATERIAL_SCORE_PRO_SILVER; }
+inline Score horse()     { return MATERIAL_SCORE_HORSE; }
+inline Score dragon()    { return MATERIAL_SCORE_DRAGON; }
+
+inline Score pawnEx()      { return MATERIAL_SCORE_PAWN_EX; }
+inline Score lanceEx()     { return MATERIAL_SCORE_LANCE_EX; }
+inline Score knightEx()    { return MATERIAL_SCORE_KNIGHT_EX; }
+inline Score silverEx()    { return MATERIAL_SCORE_SILVER_EX; }
+inline Score goldEx()      { return MATERIAL_SCORE_GOLD_EX; }
+inline Score bishopEx()    { return MATERIAL_SCORE_BISHOP_EX; }
+inline Score rookEx()      { return MATERIAL_SCORE_ROOK_EX; }
+inline Score tokinEx()     { return MATERIAL_SCORE_TOKIN_EX; }
+inline Score proLanceEx()  { return MATERIAL_SCORE_PRO_LANCE_EX; }
+inline Score proKnightEx() { return MATERIAL_SCORE_PRO_KNIGHT_EX; }
+inline Score proSilverEx() { return MATERIAL_SCORE_PRO_SILVER_EX; }
+inline Score horseEx()     { return MATERIAL_SCORE_HORSE_EX; }
+inline Score dragonEx()    { return MATERIAL_SCORE_DRAGON_EX; }
+#endif // LEARNING
 
 } // namespace material
 

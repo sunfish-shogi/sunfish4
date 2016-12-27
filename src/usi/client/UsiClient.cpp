@@ -500,7 +500,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
   int scoreValue;
   if (score > -Score::mate() && score < Score::mate()) {
     scoreKey = "cp";
-    scoreValue = score.raw() * 100.0 / material::Pawn;
+    scoreValue = score.raw() * 100.0 / material::pawn().raw();
   } else {
     scoreKey = "mate";
     if (score >= 0) {

@@ -191,8 +191,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::pawn(),
       square,
-      promotable ? material::Tokin - material::Pawn : Score::zero(),
-      promotable ? material::TokinEx : material::PawnEx
+      promotable ? material::tokin() - material::pawn() : Score::zero(),
+      promotable ? material::tokinEx() : material::pawnEx()
     };
   }
 
@@ -204,8 +204,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::lance(),
       square,
-      promotable ? material::ProLance - material::Lance : Score::zero(),
-      promotable ? material::ProLanceEx : material::LanceEx
+      promotable ? material::proLance() - material::lance() : Score::zero(),
+      promotable ? material::proLanceEx() : material::lanceEx()
     };
   }
 
@@ -217,8 +217,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::knight(),
       square,
-      promotable ? material::ProKnight - material::Knight : Score::zero(),
-      promotable ? material::ProKnightEx : material::KnightEx
+      promotable ? material::proKnight() - material::knight() : Score::zero(),
+      promotable ? material::proKnightEx() : material::knightEx()
     };
   }
 
@@ -230,8 +230,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::silver(),
       square,
-      promotable ? material::ProSilver - material::Silver : Score::zero(),
-      promotable ? material::ProSilverEx : material::SilverEx
+      promotable ? material::proSilver() - material::silver() : Score::zero(),
+      promotable ? material::proSilverEx() : material::silverEx()
     };
   }
 
@@ -256,8 +256,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::bishop(),
       square,
-      promotable ? material::Horse - material::Bishop : Score::zero(),
-      promotable ? material::HorseEx : material::BishopEx
+      promotable ? material::horse() - material::bishop() : Score::zero(),
+      promotable ? material::horseEx() : material::bishopEx()
     };
   }
 
@@ -269,8 +269,8 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
     return {
       PieceType::rook(),
       square,
-      promotable ? material::Dragon - material::Rook : Score::zero(),
-      promotable ? material::DragonEx : material::RookEx
+      promotable ? material::dragon() - material::rook() : Score::zero(),
+      promotable ? material::dragonEx() : material::rookEx()
     };
   }
 
@@ -283,7 +283,7 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
       PieceType::horse(),
       square,
       Score::zero(),
-      material::HorseEx
+      material::horseEx()
     };
   }
 
@@ -296,7 +296,7 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
       PieceType::dragon(),
       square,
       Score::zero(),
-      material::DragonEx
+      material::dragonEx()
     };
   }
 

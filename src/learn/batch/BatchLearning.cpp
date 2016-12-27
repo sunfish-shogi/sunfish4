@@ -5,6 +5,7 @@
 
 #include "learn/batch/BatchLearning.hpp"
 #include "search/eval/FeatureTemplates.hpp"
+#include "search/eval/Material.hpp"
 #include "search/Searcher.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "core/record/CsaReader.hpp"
@@ -18,6 +19,8 @@
 #include <utility>
 #include <mutex>
 #include <cmath>
+
+#define DEBUG_PRINT 0
 
 namespace {
 
@@ -432,6 +435,7 @@ bool BatchLearning::generateGradient() {
     }
 
     memset(reinterpret_cast<void*>(&th.og), 0, sizeof(th.og));
+    memset(reinterpret_cast<void*>(&th.mg), 0, sizeof(th.mg));
     th.loss = 0.0f;
   }
 
@@ -451,9 +455,11 @@ bool BatchLearning::generateGradient() {
   loss_ = failLoss_;
   auto og = std::unique_ptr<OptimizedGradient>(new OptimizedGradient);
   memset(reinterpret_cast<void*>(og.get()), 0, sizeof(OptimizedGradient));
+  memset(reinterpret_cast<void*>(mgradient_), 0, sizeof(MaterialGradient));
   for (auto& th : threads) {
     loss_ += th.loss;
     add(*og, th.og);
+    madd(mgradient_, th.mg);
   }
   expand(*gradient_, *og);
   symmetrize(*gradient_, [](float& g1, float& g2) {
@@ -515,6 +521,7 @@ void BatchLearning::generateGradient(GenGradThread& th,
     }
   }
 
+  float d0 = 0.0f;
   for (unsigned i = 1; i < trainingData.size(); i++) {
     Position pos = rootPos;
     const auto& pv = trainingData[i];
@@ -544,9 +551,12 @@ void BatchLearning::generateGradient(GenGradThread& th,
     if (rootPos.getTurn() == Turn::White) {
       d = -d;
     }
-    operate<FeatureOperationType::Extract>(th.og, pos0, d);
     operate<FeatureOperationType::Extract>(th.og, pos, -d);
+    extractMaterial(th.mg, pos, -d);
+    d0 += d;
   }
+  operate<FeatureOperationType::Extract>(th.og, pos0, d0);
+  extractMaterial(th.mg, pos0, d0);
 }
 
 void BatchLearning::updateParameters() {
@@ -563,6 +573,69 @@ void BatchLearning::updateParameters() {
   });
 
   optimize(*fv_, evaluator_->ofv());
+
+  std::array<float*, 13> m = {
+    &mgradient_[PieceNumber::Pawn],
+    &mgradient_[PieceNumber::Lance],
+    &mgradient_[PieceNumber::Knight],
+    &mgradient_[PieceNumber::Silver],
+    &mgradient_[PieceNumber::Gold],
+    &mgradient_[PieceNumber::Bishop],
+    &mgradient_[PieceNumber::Rook],
+    &mgradient_[PieceNumber::Tokin],
+    &mgradient_[PieceNumber::ProLance],
+    &mgradient_[PieceNumber::ProKnight],
+    &mgradient_[PieceNumber::ProSilver],
+    &mgradient_[PieceNumber::Horse],
+    &mgradient_[PieceNumber::Dragon],
+  };
+  std::sort(m.begin(), m.end(), [](float* lhs, float* rhs) {
+    return *lhs < *rhs;
+  });
+  random_.shuffle(m.begin(), m.begin() + 6);
+  random_.shuffle(m.begin() + 6, m.end());
+
+#if DEBUG_PRINT
+  Score mprev[PieceNumber::Num];
+  MaterialGradient mgprev;
+  memcpy(mprev, material::scores, sizeof(mprev));
+  memcpy(mgprev, mgradient_, sizeof(mgprev));
+#endif // DEBUG_PRINT
+
+  *m[ 0] = *m[ 1]          = -2.0f;
+  *m[ 2] = *m[ 3] = *m[ 4] = -1.0f;
+  *m[ 5] = *m[ 6] = *m[ 7] =  0.0f;
+  *m[ 8] = *m[ 9] = *m[10] =  1.0f;
+  *m[11] = *m[12]          =  2.0f;
+  PIECE_TYPE_EACH(pieceType) {
+    material::scores[pieceType.raw()] += mgradient_[pieceType.raw()];
+    material::scores[pieceType.white().raw()] = material::scores[pieceType.raw()];
+  }
+  PIECE_EACH(piece) {
+    material::exchangeScores[piece.raw()]
+      = material::scores[piece.raw()] + material::scores[piece.unpromote().raw()];
+    material::promotionScores[piece.raw()]
+      = material::scores[piece.promote().raw()] - material::scores[piece.unpromote().raw()];
+  }
+
+#if DEBUG_PRINT
+  TablePrinter tp;
+  tp.row() << "name" << "grad" << "g" << "prev" << "curr" << "(w)" << "exch" << "(w)" << "prom" << "(w)";
+  PIECE_TYPE_EACH(pieceType) {
+    tp.row() << pieceType
+             << mgprev[pieceType.raw()]
+             << mgradient_[pieceType.raw()]
+             << mprev[pieceType.raw()]
+             << material::scores[pieceType.raw()]
+             << material::scores[pieceType.white().raw()]
+             << material::exchangeScores[pieceType.raw()]
+             << material::exchangeScores[pieceType.white().raw()]
+             << material::promotionScores[pieceType.raw()]
+             << material::promotionScores[pieceType.white().raw()];
+  }
+  OUT(info) << tp.stringify();
+#endif // DEBUG_PRINT
+
   evaluator_->onChanged(Evaluator::DataSourceType::Custom);
 }
 
@@ -595,6 +668,13 @@ void BatchLearning::printParametersSummary() {
 
   OUT(info) << "";
   OUT(info) << "Summary:\n" << StringUtil::chomp(tp.stringify());
+
+  std::ostringstream oss;
+  PIECE_TYPE_EACH(pieceType) {
+    oss << pieceType << ": " << material::scores[pieceType.raw()] << "\n";
+  }
+  OUT(info) << "";
+  OUT(info) << "Material:\n" << StringUtil::chomp(oss.str());
 }
 
 } // namespace sunfish

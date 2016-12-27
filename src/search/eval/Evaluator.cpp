@@ -62,22 +62,22 @@ Score Evaluator::calculateMaterialScore(const Position& position) const {
   Score score = Score::zero();
 
   auto& blackHand = position.getBlackHand();
-  score += material::Pawn   * blackHand.get(PieceType::pawn  ());
-  score += material::Lance  * blackHand.get(PieceType::lance ());
-  score += material::Knight * blackHand.get(PieceType::knight());
-  score += material::Silver * blackHand.get(PieceType::silver());
-  score += material::Gold   * blackHand.get(PieceType::gold  ());
-  score += material::Bishop * blackHand.get(PieceType::bishop());
-  score += material::Rook   * blackHand.get(PieceType::rook  ());
+  score += material::pawn()   * blackHand.get(PieceType::pawn  ());
+  score += material::lance()  * blackHand.get(PieceType::lance ());
+  score += material::knight() * blackHand.get(PieceType::knight());
+  score += material::silver() * blackHand.get(PieceType::silver());
+  score += material::gold()   * blackHand.get(PieceType::gold  ());
+  score += material::bishop() * blackHand.get(PieceType::bishop());
+  score += material::rook()   * blackHand.get(PieceType::rook  ());
 
   auto& whiteHand = position.getWhiteHand();
-  score -= material::Pawn   * whiteHand.get(PieceType::pawn  ());
-  score -= material::Lance  * whiteHand.get(PieceType::lance ());
-  score -= material::Knight * whiteHand.get(PieceType::knight());
-  score -= material::Silver * whiteHand.get(PieceType::silver());
-  score -= material::Gold   * whiteHand.get(PieceType::gold  ());
-  score -= material::Bishop * whiteHand.get(PieceType::bishop());
-  score -= material::Rook   * whiteHand.get(PieceType::rook  ());
+  score -= material::pawn()   * whiteHand.get(PieceType::pawn  ());
+  score -= material::lance()  * whiteHand.get(PieceType::lance ());
+  score -= material::knight() * whiteHand.get(PieceType::knight());
+  score -= material::silver() * whiteHand.get(PieceType::silver());
+  score -= material::gold()   * whiteHand.get(PieceType::gold  ());
+  score -= material::bishop() * whiteHand.get(PieceType::bishop());
+  score -= material::rook()   * whiteHand.get(PieceType::rook  ());
 
   Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   occ.unset(position.getBlackKingSquare());

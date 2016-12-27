@@ -52,6 +52,7 @@ private:
     std::thread thread;
     std::ifstream is;
     OptimizedGradient og;
+    MaterialGradient mg;
     float loss;
   };
 
@@ -105,6 +106,7 @@ private:
   std::shared_ptr<Evaluator> evaluator_;
   std::unique_ptr<Evaluator::FVType> fv_;
   std::unique_ptr<Gradient> gradient_;
+  MaterialGradient mgradient_;
 
 };
 

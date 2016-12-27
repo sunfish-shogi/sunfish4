@@ -133,7 +133,7 @@ TEST(EvaluatorTest, testMaterial) {
       "P-\n"
       "-\n");
 
-    auto expect = material::Bishop + material::Horse;
+    auto expect = material::bishop() + material::horse();
     auto materialScore = g_eval.calculateMaterialScore(pos);
     ASSERT_EQ(expect, materialScore);
   }
