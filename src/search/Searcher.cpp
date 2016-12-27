@@ -277,11 +277,16 @@ void Searcher::idsearch(const Position& pos,
   for (int ti = 0; ti < treeSize_; ti++) {
     auto& tree = trees_[ti];
     auto& node = tree.nodes[tree.ply];
-    result_.move = node.moves[0].excludeExtData();
-    result_.score = moveToScore(node.moves[0]);
-    result_.pv = node.pv;
-    result_.depth = tree.completedDepth;
-    result_.elapsed = timer_.elapsed();
+    if (tree.completedDepth > result_.depth) {
+      result_.move = node.moves[0].excludeExtData();
+      result_.score = moveToScore(node.moves[0]);
+      result_.pv = node.pv;
+      result_.depth = tree.completedDepth;
+      result_.elapsed = timer_.elapsed();
+      if (ti != 0 && handler_ != nullptr) {
+        handler_->onUpdatePV(*this, result_.pv, result_.elapsed, result_.depth, result_.score);
+      }
+    }
   }
 }
 
