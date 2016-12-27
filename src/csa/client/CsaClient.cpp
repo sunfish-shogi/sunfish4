@@ -493,7 +493,7 @@ bool CsaClient::agree() {
   if (send("AGREE") &&
       receive() &&
       Start.match(lastReceivedString_)) {
-    gameId_ = lastReceivedString_.substr(7);
+    gameId_ = lastReceivedString_.substr(6);
     OUT(info) << "Game ID: " << gameId_;
     return true;
   }
