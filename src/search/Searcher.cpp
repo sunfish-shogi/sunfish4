@@ -17,7 +17,7 @@ namespace {
 
 using namespace sunfish;
 
-CONSTEXPR_CONST int AspirationSearchMinDepth = 4 * Searcher::Depth1Ply;
+CONSTEXPR_CONST int AspirationSearchMinDepth = 6 * Searcher::Depth1Ply;
 
 // extensions
 CONSTEXPR_CONST int ExtensionDepthForCheck     = Searcher::Depth1Ply * 3 / 4;
