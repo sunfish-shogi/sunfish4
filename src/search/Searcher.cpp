@@ -923,7 +923,7 @@ Score Searcher::search(Tree& tree,
  * quiesence search
  */
 Score Searcher::quies(Tree& tree,
-                      int qply,
+                      int depth,
                       Score alpha,
                       Score beta) {
   arrive(tree);
@@ -934,16 +934,26 @@ Score Searcher::quies(Tree& tree,
 
   node.checkState = tree.position.getCheckState();
 
+  Score bestScore = alpha;
+
   if (!isCheck(node.checkState)) {
     Score standPat = calculateStandPat(tree, *evaluator_);
-    if (standPat > alpha) {
-      alpha = standPat;
-      if (alpha >= beta) {
-        return alpha;
+    if (standPat > bestScore) {
+      bestScore = standPat;
+      if (bestScore >= beta) {
+        tt_.store(tree.position.getHash(),
+                  alpha,
+                  beta,
+                  bestScore,
+                  depth,
+                  tree.ply,
+                  Move::none(),
+                  false);
+        return bestScore;
       }
     }
   } else {
-    alpha = std::max(alpha, -Score::infinity() + tree.ply);
+    bestScore = std::max(bestScore, -Score::infinity() + tree.ply);
   }
 
   if (tree.ply == Tree::StackSize - 2) {
@@ -951,14 +961,48 @@ Score Searcher::quies(Tree& tree,
     return calculateStandPat(tree, *evaluator_);
   }
 
+  bool isNullWindow = alpha + 1 == beta;
+
+  // transposition table
+  TTElement tte;
+  if (tt_.get(tree.position.getHash(), tte)) {
+    auto ttScoreType = tte.scoreType();
+    Score ttScore = tte.score(tree.ply);
+    int ttDepth = tte.depth();
+
+    bool isMate = (ttScore <= -Score::mate() && (ttScoreType == TTScoreType::Exact ||
+                                                 ttScoreType == TTScoreType::Upper)) ||
+                  (ttScore >=  Score::mate() && (ttScoreType == TTScoreType::Exact ||
+                                                 ttScoreType == TTScoreType::Lower));
+
+    // cut
+    if (isNullWindow && (ttDepth >= depth || isMate)) {
+      if (ttScoreType == TTScoreType::Exact ||
+         (ttScoreType == TTScoreType::Upper && ttScore <= bestScore) ||
+         (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
+        tree.info.hashCut++;
+        return ttScore;
+      }
+    }
+  }
+
   if (!isCheck(node.checkState) &&
       Mate::mate1Ply(tree.position)) {
-    return Score::infinity() - tree.ply - 1;
+    bestScore = Score::infinity() - tree.ply - 1;
+    tt_.store(tree.position.getHash(),
+              alpha,
+              beta,
+              bestScore,
+              depth,
+              tree.ply,
+              Move::none(),
+              false);
+    return bestScore;
   }
 
   generateMovesOnQuies(tree,
-                       qply,
-                       alpha);
+                       depth,
+                       bestScore);
 
   // expand branches
   for (;;) {
@@ -973,9 +1017,9 @@ Score Searcher::quies(Tree& tree,
     }
 
     Score score = -quies(tree,
-                         qply + 1,
+                         depth - Depth1Ply,
                          -beta,
-                         -alpha);
+                         -bestScore);
 
     undoMove(tree);
 
@@ -983,8 +1027,8 @@ Score Searcher::quies(Tree& tree,
       return Score::zero();
     }
 
-    if (score > alpha) {
-      alpha = score;
+    if (score > bestScore) {
+      bestScore = score;
 
       auto& childNode = tree.nodes[tree.ply+1];
       node.pv.set(move, 0, childNode.pv);
@@ -996,7 +1040,16 @@ Score Searcher::quies(Tree& tree,
     }
   }
 
-  return alpha;
+  tt_.store(tree.position.getHash(),
+            alpha,
+            beta,
+            bestScore,
+            depth,
+            tree.ply,
+            Move::none(),
+            false);
+
+  return bestScore;
 }
 
 /**
@@ -1087,10 +1140,10 @@ Move Searcher::nextMove(Tree& tree) {
  * generate moves for quiesence search
  */
 void Searcher::generateMovesOnQuies(Tree& tree,
-                                    int qply,
+                                    int depth,
                                     Score alpha) {
   auto& node = tree.nodes[tree.ply];
-  bool excludeSmallCaptures = qply >= 6;
+  bool excludeSmallCaptures = depth <= -6;
 
   node.moves.clear();
   node.moveIterator = node.moves.begin();

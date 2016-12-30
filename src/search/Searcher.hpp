@@ -121,7 +121,7 @@ private:
                NodeStat nodeStat);
 
   Score quies(Tree& tree,
-              int qply,
+              int depth,
               Score alpha,
               Score beta);
 
@@ -131,7 +131,7 @@ private:
   Move nextMove(Tree& tree);
 
   void generateMovesOnQuies(Tree& tree,
-                            int qply,
+                            int depth,
                             Score alpha);
 
   Move nextMoveOnQuies(Node& node);
