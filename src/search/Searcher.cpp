@@ -941,14 +941,6 @@ Score Searcher::quies(Tree& tree,
     if (standPat > bestScore) {
       bestScore = standPat;
       if (bestScore >= beta) {
-        tt_.store(tree.position.getHash(),
-                  alpha,
-                  beta,
-                  bestScore,
-                  depth,
-                  tree.ply,
-                  Move::none(),
-                  false);
         return bestScore;
       }
     }
@@ -989,14 +981,6 @@ Score Searcher::quies(Tree& tree,
   if (!isCheck(node.checkState) &&
       Mate::mate1Ply(tree.position)) {
     bestScore = Score::infinity() - tree.ply - 1;
-    tt_.store(tree.position.getHash(),
-              alpha,
-              beta,
-              bestScore,
-              depth,
-              tree.ply,
-              Move::none(),
-              false);
     return bestScore;
   }
 
