@@ -38,13 +38,15 @@ std::string trainingDataPath(unsigned tn) {
   return oss.str();
 }
 
-CONSTEXPR_CONST float SearchWindow =  256;
+CONSTEXPR_CONST int SearchWindow =  256;
 
 inline float gain() {
   return 7.0f / SearchWindow;
 }
 
 inline float sigmoid(float x) {
+  if (x <= -SearchWindow) { return 0.0f; }
+  if (x >=  SearchWindow) { return 1.0f; }
   return 1.0 / (1.0 + std::exp(x * -gain()));
 }
 
@@ -508,6 +510,9 @@ void BatchLearning::generateGradient(GenGradThread& th,
     Score materialScore = evaluator_->calculateMaterialScore(pos0);
     score0 = evaluator_->calculateTotalScore(materialScore,
                                              pos0);
+    if (rootPos.getTurn() == Turn::White) {
+      score0 = -score0;
+    }
   }
 
   for (unsigned i = 1; i < trainingData.size(); i++) {
@@ -527,7 +532,6 @@ void BatchLearning::generateGradient(GenGradThread& th,
     auto score = evaluator_->calculateTotalScore(materialScore,
                                                  pos);
     if (rootPos.getTurn() == Turn::White) {
-      score0 = -score0;
       score = -score;
     }
 
