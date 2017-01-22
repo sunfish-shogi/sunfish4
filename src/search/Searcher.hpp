@@ -120,6 +120,14 @@ private:
                Score beta,
                NodeStat nodeStat);
 
+  void updateHistory(Tree& tree,
+                     Move move,
+                     int depth);
+
+  void updateHistoryWithValue(Tree& tree,
+                              Move move,
+                              int16_t value);
+
   Score quies(Tree& tree,
               int depth,
               Score alpha,
@@ -128,15 +136,12 @@ private:
   template <bool isRootNode>
   void generateMoves(Tree& tree);
 
+  void generateMovesOnQuies(Tree& tree, int depth);
+
   Move nextMove(Tree& tree);
 
-  void generateMovesOnQuies(Tree& tree,
-                            int depth,
-                            Score alpha);
-
-  Move nextMoveOnQuies(Node& node);
-
-  void sortMovesOnHistory(Tree& tree);
+  template <bool Capture>
+  void sortMoves(Tree& tree);
 
   void sortRootMoves(Tree& tree);
 
@@ -168,7 +173,8 @@ private:
 
   TT tt_;
 
-  History history_;
+  FromToHistory fromToHistory_;
+  PieceToHistory pieceToHistory_;
 
   Tree* trees_;
   int treeSize_;

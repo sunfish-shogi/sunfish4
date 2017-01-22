@@ -19,11 +19,11 @@ namespace sunfish {
 
 class Position;
 
-template <uint32_t capacity>
+template <uint32_t Capacity>
 class MoveArray {
 public:
 
-  using InternalContainerType = std::array<Move, capacity>;
+  using InternalContainerType = std::array<Move, Capacity>;
   using value_type = Move;
   using size_type = uint32_t;
   using difference_type = typename InternalContainerType::difference_type;
@@ -52,6 +52,13 @@ public:
    */
   size_type size() const {
     return size_;
+  }
+
+  /**
+   * Return the capacity.
+   */
+  size_type capacity() const {
+    return Capacity;
   }
 
   /**

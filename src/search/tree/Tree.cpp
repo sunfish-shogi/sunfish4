@@ -69,6 +69,7 @@ void arrive(Tree& tree) {
   node.isHistorical = false;
   node.hashMove = Move::none();
   node.pv.clear();
+  node.quietsSearched.clear();
 
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();
@@ -81,6 +82,7 @@ void rearrive(Tree& tree) {
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
   node.pv.clear();
+  node.quietsSearched.clear();
 
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();

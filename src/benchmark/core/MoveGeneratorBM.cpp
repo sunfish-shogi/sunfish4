@@ -71,24 +71,24 @@ auto DATA_Y =
   "-\n";
 }
 
-BENCHMARK(GenerateCapturingMoves, [](BenchmarkController& bc, bmstr_t data) {
+BENCHMARK(GenerateCaptures, [](BenchmarkController& bc, bmstr_t data) {
   Position pos = PositionUtil::createPositionFromCsaString(data);
 
   bc.start();
   while(bc.cont()) {
     Moves moves;
-    MoveGenerator::generateCapturingMoves(pos, moves);
+    MoveGenerator::generateCaptures(pos, moves);
   }
 })->args(BMSTR(DATA_A))
   ->args(BMSTR(DATA_B));
 
-BENCHMARK(GenerateNotCapturingMoves, [](BenchmarkController& bc, bmstr_t data) {
+BENCHMARK(GenerateQuiets, [](BenchmarkController& bc, bmstr_t data) {
   Position pos = PositionUtil::createPositionFromCsaString(data);
 
   bc.start();
   while(bc.cont()) {
     Moves moves;
-    MoveGenerator::generateNotCapturingMoves(pos, moves);
+    MoveGenerator::generateQuiets(pos, moves);
   }
 })->args(BMSTR(DATA_A))
   ->args(BMSTR(DATA_B));

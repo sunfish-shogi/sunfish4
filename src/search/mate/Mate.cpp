@@ -37,8 +37,8 @@ bool Mate::mate1Ply(const Position& position) {
     // position
     auto bb = (turn == Turn::Black ? position.getBGoldBitboard()
                                    : position.getWGoldBitboard());
-    bb &= (turn == Turn::Black ? AttackableTables::blackGold(king)
-                               : AttackableTables::whiteGold(king));
+    bb &= (turn == Turn::Black ? AggressableTables::blackGold(king)
+                               : AggressableTables::whiteGold(king));
     BB_EACH(from, bb) {
       auto bb2 = bbtGold & (turn == Turn::Black ? MoveTables::blackGold(from)
                                                 : MoveTables::whiteGold(from));
@@ -74,8 +74,8 @@ bool Mate::mate1Ply(const Position& position) {
     // position
     auto bb = turn == Turn::Black ? position.getBSilverBitboard()
                                   : position.getWSilverBitboard();
-    bb &= turn == Turn::Black ? AttackableTables::blackSilver(king)
-                              : AttackableTables::whiteSilver(king);
+    bb &= turn == Turn::Black ? AggressableTables::blackSilver(king)
+                              : AggressableTables::whiteSilver(king);
     BB_EACH(from, bb) {
       auto bbe = turn == Turn::Black ? MoveTables::blackSilver(from)
                                      : MoveTables::whiteSilver(from);
@@ -120,8 +120,8 @@ bool Mate::mate1Ply(const Position& position) {
     // position
     auto bb = turn == Turn::Black ? position.getBKnightBitboard()
                                   : position.getWKnightBitboard();
-    bb &= turn == Turn::Black ? AttackableTables::blackKnight(king)
-                              : AttackableTables::whiteKnight(king);
+    bb &= turn == Turn::Black ? AggressableTables::blackKnight(king)
+                              : AggressableTables::whiteKnight(king);
     auto bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
     bbt &= notSelfOcc;
     BB_EACH(from, bb) {
@@ -149,8 +149,8 @@ bool Mate::mate1Ply(const Position& position) {
     if (to.isValid()) {
       auto bb = turn == Turn::Black ? position.getBPawnBitboard()
                                     : position.getWPawnBitboard();
-      bb &= turn == Turn::Black ? AttackableTables::blackPawn(king)
-                                : AttackableTables::whitePawn(king);
+      bb &= turn == Turn::Black ? AggressableTables::blackPawn(king)
+                                : AggressableTables::whitePawn(king);
       if (turn == Turn::Black) {
         bb.rightShift64(1);
       } else {
@@ -188,8 +188,8 @@ bool Mate::mate1Ply(const Position& position) {
     bbt &= notSelfOcc;
     auto bb = turn == Turn::Black ? position.getBLanceBitboard()
                                   : position.getWLanceBitboard();
-    bb &= turn == Turn::Black ? AttackableTables::blackLance(king)
-                              : AttackableTables::whiteLance(king);
+    bb &= turn == Turn::Black ? AggressableTables::blackLance(king)
+                              : AggressableTables::whiteLance(king);
     BB_EACH(from, bb) {
       auto bbe = turn == Turn::Black ? MoveTables::blackLance(occ, from)
                                      : MoveTables::whiteLance(occ, from);
@@ -235,8 +235,8 @@ bool Mate::mate1Ply(const Position& position) {
     // position
     auto bb = turn == Turn::Black ? position.getBBishopBitboard()
                                   : position.getWBishopBitboard();
-    bb &= turn == Turn::Black ? AttackableTables::blackBishop(king)
-                              : AttackableTables::whiteBishop(king);
+    bb &= turn == Turn::Black ? AggressableTables::blackBishop(king)
+                              : AggressableTables::whiteBishop(king);
     auto bbt = MoveTables::diagR45(occr45, king)
              | MoveTables::diagL45(occl45, king);
     bbt &= notSelfOcc;
@@ -270,7 +270,7 @@ bool Mate::mate1Ply(const Position& position) {
     bbt &= notSelfOcc;
     auto bb = turn == Turn::Black ? position.getBHorseBitboard()
                                   : position.getWHorseBitboard();
-    bb &= AttackableTables::horse(king);
+    bb &= AggressableTables::horse(king);
     BB_EACH(from, bb) {
       auto bbe = MoveTables::diagR45(occr45, from)
                | MoveTables::diagL45(occl45, from)

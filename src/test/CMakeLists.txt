@@ -33,7 +33,6 @@ add_executable(sunfish_test
     core/SquareTest.cpp
     search/EvaluatorTest.cpp
     search/FeatureVectorTest.cpp
-    search/HistoryTest.cpp
     search/MaterialTest.cpp
     search/MateTest.cpp
     search/ScoreTest.cpp

@@ -504,21 +504,21 @@ const Bitboard& MoveTables::diagL45(const RotatedBitboard& occ, const Square& sq
   return DiagLeft45[square.raw()][pattern];
 }
 
-AttackableTables::TableType AttackableTables::BlackPawn;
-AttackableTables::TableType AttackableTables::WhitePawn;
-AttackableTables::TableType AttackableTables::BlackLance;
-AttackableTables::TableType AttackableTables::WhiteLance;
-AttackableTables::TableType AttackableTables::BlackKnight;
-AttackableTables::TableType AttackableTables::WhiteKnight;
-AttackableTables::TableType AttackableTables::BlackSilver;
-AttackableTables::TableType AttackableTables::WhiteSilver;
-AttackableTables::TableType AttackableTables::BlackBishop;
-AttackableTables::TableType AttackableTables::WhiteGold;
-AttackableTables::TableType AttackableTables::BlackGold;
-AttackableTables::TableType AttackableTables::WhiteBishop;
-AttackableTables::TableType AttackableTables::Horse;
+AggressableTables::TableType AggressableTables::BlackPawn;
+AggressableTables::TableType AggressableTables::WhitePawn;
+AggressableTables::TableType AggressableTables::BlackLance;
+AggressableTables::TableType AggressableTables::WhiteLance;
+AggressableTables::TableType AggressableTables::BlackKnight;
+AggressableTables::TableType AggressableTables::WhiteKnight;
+AggressableTables::TableType AggressableTables::BlackSilver;
+AggressableTables::TableType AggressableTables::WhiteSilver;
+AggressableTables::TableType AggressableTables::BlackBishop;
+AggressableTables::TableType AggressableTables::WhiteGold;
+AggressableTables::TableType AggressableTables::BlackGold;
+AggressableTables::TableType AggressableTables::WhiteBishop;
+AggressableTables::TableType AggressableTables::Horse;
 
-void AttackableTables::initialize() {
+void AggressableTables::initialize() {
   initialize(BlackPawn  , Piece::blackPawn  ());
   initialize(WhitePawn  , Piece::whitePawn  ());
   initialize(BlackLance , Piece::blackLance ());
@@ -534,7 +534,7 @@ void AttackableTables::initialize() {
   initialize(Horse      , Piece::blackHorse ());
 }
 
-void AttackableTables::initialize(TableType& table, Piece piece) {
+void AggressableTables::initialize(TableType& table, Piece piece) {
   auto setIfValid = [](Bitboard& bb, const Square& square) {
     if (square.isValid()) {
       bb.set(square);

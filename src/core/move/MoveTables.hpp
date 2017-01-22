@@ -99,12 +99,12 @@ private:
 
 };
 
-class AttackableTables {
+class AggressableTables {
 public:
 
   using TableType = std::array<Bitboard, NUMBER_OF_SQUARES>;
 
-  AttackableTables() = delete;
+  AggressableTables() = delete;
 
   static void initialize();
 

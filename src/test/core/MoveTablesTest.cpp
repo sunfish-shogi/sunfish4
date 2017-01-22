@@ -1059,7 +1059,7 @@ TEST(MoveTablesTest, testDiagLeft) {
   }
 }
 
-TEST(AttackableTablesTest, test) {
+TEST(AggressableTablesTest, test) {
   // black pawn
   ASSERT_EQ(
     "000000000\n"
@@ -1071,7 +1071,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackPawn(Square::s34()).toString());
+    AggressableTables::blackPawn(Square::s34()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1083,7 +1083,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackPawn(Square::s62()).toString());
+    AggressableTables::blackPawn(Square::s62()).toString());
 
   // white pawn
   ASSERT_EQ(
@@ -1096,7 +1096,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whitePawn(Square::s56()).toString());
+    AggressableTables::whitePawn(Square::s56()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1108,7 +1108,7 @@ TEST(AttackableTablesTest, test) {
     "000000101\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whitePawn(Square::s28()).toString());
+    AggressableTables::whitePawn(Square::s28()).toString());
 
   // black lance
   ASSERT_EQ(
@@ -1121,7 +1121,7 @@ TEST(AttackableTablesTest, test) {
     "000000100\n"
     "000000100\n"
     "000000100\n",
-    AttackableTables::blackLance(Square::s34()).toString());
+    AggressableTables::blackLance(Square::s34()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1133,7 +1133,7 @@ TEST(AttackableTablesTest, test) {
     "001110000\n"
     "001110000\n"
     "001110000\n",
-    AttackableTables::blackLance(Square::s62()).toString());
+    AggressableTables::blackLance(Square::s62()).toString());
 
   // white lance
   ASSERT_EQ(
@@ -1146,7 +1146,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whiteLance(Square::s56()).toString());
+    AggressableTables::whiteLance(Square::s56()).toString());
 
   ASSERT_EQ(
     "000000111\n"
@@ -1158,7 +1158,7 @@ TEST(AttackableTablesTest, test) {
     "000000101\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whiteLance(Square::s28()).toString());
+    AggressableTables::whiteLance(Square::s28()).toString());
 
   // black knight
   ASSERT_EQ(
@@ -1171,7 +1171,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000010101\n"
     "000000000\n",
-    AttackableTables::blackKnight(Square::s34()).toString());
+    AggressableTables::blackKnight(Square::s34()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1183,7 +1183,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackKnight(Square::s62()).toString());
+    AggressableTables::blackKnight(Square::s62()).toString());
 
   // white knight
   ASSERT_EQ(
@@ -1196,7 +1196,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whiteKnight(Square::s56()).toString());
+    AggressableTables::whiteKnight(Square::s56()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1208,7 +1208,7 @@ TEST(AttackableTablesTest, test) {
     "000000101\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::whiteKnight(Square::s28()).toString());
+    AggressableTables::whiteKnight(Square::s28()).toString());
 
   // black silver
   ASSERT_EQ(
@@ -1221,7 +1221,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackSilver(Square::s34()).toString());
+    AggressableTables::blackSilver(Square::s34()).toString());
 
   ASSERT_EQ(
     "010101000\n"
@@ -1233,7 +1233,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackSilver(Square::s62()).toString());
+    AggressableTables::blackSilver(Square::s62()).toString());
 
   // white silver
   ASSERT_EQ(
@@ -1246,7 +1246,7 @@ TEST(AttackableTablesTest, test) {
     "001010100\n"
     "001111100\n"
     "000000000\n",
-    AttackableTables::whiteSilver(Square::s56()).toString());
+    AggressableTables::whiteSilver(Square::s56()).toString());
 
   ASSERT_EQ(
     "000000000\n"
@@ -1258,7 +1258,7 @@ TEST(AttackableTablesTest, test) {
     "000001111\n"
     "000001101\n"
     "000001010\n",
-    AttackableTables::whiteSilver(Square::s28()).toString());
+    AggressableTables::whiteSilver(Square::s28()).toString());
 
   // black gold
   ASSERT_EQ(
@@ -1271,7 +1271,7 @@ TEST(AttackableTablesTest, test) {
     "000000000\n"
     "000000000\n"
     "000000000\n",
-    AttackableTables::blackGold(Square::s34()).toString());
+    AggressableTables::blackGold(Square::s34()).toString());
 
   // white gold
   ASSERT_EQ(
@@ -1284,7 +1284,7 @@ TEST(AttackableTablesTest, test) {
     "000101000\n"
     "000010000\n"
     "000000000\n",
-    AttackableTables::whiteGold(Square::s56()).toString());
+    AggressableTables::whiteGold(Square::s56()).toString());
 
   // black bishop
   ASSERT_EQ(
@@ -1297,7 +1297,7 @@ TEST(AttackableTablesTest, test) {
     "011101010\n"
     "111010101\n"
     "110101010\n",
-    AttackableTables::blackBishop(Square::s34()).toString());
+    AggressableTables::blackBishop(Square::s34()).toString());
 
   ASSERT_EQ(
     "110101101\n"
@@ -1309,7 +1309,7 @@ TEST(AttackableTablesTest, test) {
     "101010111\n"
     "010101011\n"
     "101010101\n",
-    AttackableTables::blackBishop(Square::s62()).toString());
+    AggressableTables::blackBishop(Square::s62()).toString());
 
   // white bishop
   ASSERT_EQ(
@@ -1322,7 +1322,7 @@ TEST(AttackableTablesTest, test) {
     "011111110\n"
     "111111111\n"
     "111101111\n",
-    AttackableTables::whiteBishop(Square::s56()).toString());
+    AggressableTables::whiteBishop(Square::s56()).toString());
 
   ASSERT_EQ(
     "111010101\n"
@@ -1334,7 +1334,7 @@ TEST(AttackableTablesTest, test) {
     "101011110\n"
     "010101101\n"
     "101011010\n",
-    AttackableTables::whiteBishop(Square::s28()).toString());
+    AggressableTables::whiteBishop(Square::s28()).toString());
 
   // horse
   ASSERT_EQ(
@@ -1347,5 +1347,5 @@ TEST(AttackableTablesTest, test) {
     "111101011\n"
     "111010101\n"
     "110101010\n",
-    AttackableTables::horse(Square::s43()).toString());
+    AggressableTables::horse(Square::s43()).toString());
 }

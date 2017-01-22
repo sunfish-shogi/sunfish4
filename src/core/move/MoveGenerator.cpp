@@ -23,9 +23,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
   // pawn
   {
     auto fbb = turn == Turn::Black ? pos.getBPawnBitboard() : pos.getWPawnBitboard();
-    if (type == GenerationType::Capturing) {
+    if (type == GenerationType::Capture) {
       fbb &= turn == Turn::Black ? capOrProm << 1 : capOrProm >> 1;
-    } else if (type == GenerationType::NotCapturing) {
+    } else if (type == GenerationType::Quiet) {
       fbb &= turn == Turn::Black ? notCapProm << 1 : notCapProm >> 1;;
     } else {
       fbb &= turn == Turn::Black ? mask << 1 : mask >> 1;;
@@ -44,9 +44,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       auto tbb = turn == Turn::Black
         ? MoveTables::blackSilver(from)
         : MoveTables::whiteSilver(from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= from.isPromotable<turn>() ? notSelfOcc : capOrProm;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCap;
       } else {
         tbb &= mask;
@@ -54,12 +54,12 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
 
       BB_EACH(to, tbb) {
         if (from.isPromotable<turn>() || to.isPromotable<turn>()) {
-          if (type == GenerationType::Capturing) {
+          if (type == GenerationType::Capture) {
             moves.add(Move(from, to, true));
             if (cap.check(to)) {
               moves.add(Move(from, to, false));
             }
-          } else if (type == GenerationType::NotCapturing) {
+          } else if (type == GenerationType::Quiet) {
             moves.add(Move(from, to, false));
           } else {
             moves.add(Move(from, to, true));
@@ -80,9 +80,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       auto tbb = turn == Turn::Black
         ? MoveTables::blackGold(from)
         : MoveTables::whiteGold(from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= cap;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCap;
       } else {
         tbb &= mask;
@@ -98,9 +98,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
   if (!exceptKing) {
     auto from = turn == Turn::Black ? pos.getBlackKingSquare() : pos.getWhiteKingSquare();
     auto tbb = MoveTables::king(from);
-    if (type == GenerationType::Capturing) {
+    if (type == GenerationType::Capture) {
       tbb &= cap;
-    } else if (type == GenerationType::NotCapturing) {
+    } else if (type == GenerationType::Quiet) {
       tbb &= notCap;
     } else {
       tbb &= mask;
@@ -114,23 +114,23 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
   // bishop
   {
     auto fbb = turn == Turn::Black ? pos.getBBishopBitboard() : pos.getWBishopBitboard();
-    if (type == GenerationType::NotCapturing) {
+    if (type == GenerationType::Quiet) {
       fbb &= turn == Turn::Black ? Bitboard::blackNotPromotable() : Bitboard::whiteNotPromotable();
     }
     BB_EACH(from, fbb) {
       auto tbb =
         MoveTables::diagR45(pos.getRight45RotatedBitboard(), from) |
         MoveTables::diagL45(pos.getLeft45RotatedBitboard(), from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= from.isPromotable<turn>() ? notSelfOcc : capOrProm;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCapProm;
       } else {
         tbb &= mask;
       }
 
       BB_EACH(to, tbb) {
-        if (type == GenerationType::Capturing || type == GenerationType::All) {
+        if (type == GenerationType::Capture || type == GenerationType::All) {
           auto promotable = from.isPromotable<turn>() || to.isPromotable<turn>();
           moves.add(Move(from, to, promotable));
         } else {
@@ -148,9 +148,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
         MoveTables::diagR45(pos.getRight45RotatedBitboard(), from) |
         MoveTables::diagL45(pos.getLeft45RotatedBitboard(), from) |
         MoveTables::king(from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= cap;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCap;
       } else {
         tbb &= mask;
@@ -165,23 +165,23 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
   // rook
   {
     auto fbb = turn == Turn::Black ? pos.getBRookBitboard() : pos.getWRookBitboard();
-    if (type == GenerationType::NotCapturing) {
+    if (type == GenerationType::Quiet) {
       fbb &= turn == Turn::Black ? Bitboard::blackNotPromotable() : Bitboard::whiteNotPromotable();
     }
     BB_EACH(from, fbb) {
       auto tbb =
         MoveTables::ver(occ, from) |
         MoveTables::hor(pos.get90RotatedBitboard(), from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= from.isPromotable<turn>() ? notSelfOcc : capOrProm;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCapProm;
       } else {
         tbb &= mask;
       }
 
       BB_EACH(to, tbb) {
-        if (type == GenerationType::Capturing || type == GenerationType::All) {
+        if (type == GenerationType::Capture || type == GenerationType::All) {
           auto promotable = from.isPromotable<turn>() || to.isPromotable<turn>();
           moves.add(Move(from, to, promotable));
         } else {
@@ -199,9 +199,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
         MoveTables::ver(occ, from) |
         MoveTables::hor(pos.get90RotatedBitboard(), from) |
         MoveTables::king(from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= cap;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCap;
       } else {
         tbb &= mask;
@@ -225,9 +225,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       auto tbb = turn == Turn::Black
         ? MoveTables::blackLance(occ, from)
         : MoveTables::whiteLance(occ, from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= capOrProm;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCapProm2;
       } else {
         tbb &= mask;
@@ -235,12 +235,12 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
 
       BB_EACH(to, tbb) {
         if (to.isPromotable<turn>()) {
-          if (type == GenerationType::Capturing) {
+          if (type == GenerationType::Capture) {
             moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7) && cap.check(to)) {
               moves.add(Move(from, to, false));
             }
-          } else if (type == GenerationType::NotCapturing) {
+          } else if (type == GenerationType::Quiet) {
             moves.add(Move(from, to, false));
           } else {
             moves.add(Move(from, to, true));
@@ -263,9 +263,9 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
       auto tbb = turn == Turn::Black
         ? MoveTables::blackKnight(from)
         : MoveTables::whiteKnight(from);
-      if (type == GenerationType::Capturing) {
+      if (type == GenerationType::Capture) {
         tbb &= capOrProm;
-      } else if (type == GenerationType::NotCapturing) {
+      } else if (type == GenerationType::Quiet) {
         tbb &= notCapProm2;
       } else {
         tbb &= mask;
@@ -273,12 +273,12 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
 
       BB_EACH(to, tbb) {
         if (to.isPromotable<turn>()) {
-          if (type == GenerationType::Capturing) {
+          if (type == GenerationType::Capture) {
             moves.add(Move(from, to, true));
             if (to.getRank() == (turn == Turn::Black ? 3 : 7) && cap.check(to)) {
               moves.add(Move(from, to, false));
             }
-          } else if (type == GenerationType::NotCapturing) {
+          } else if (type == GenerationType::Quiet) {
             moves.add(Move(from, to, false));
           } else {
             moves.add(Move(from, to, true));
@@ -294,10 +294,10 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
     }
   }
 }
-template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::Capturing, false>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::Capturing, false>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::NotCapturing, false>(const Position&, Moves&, const Bitboard&);
-template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::NotCapturing, false>(const Position&, Moves&, const Bitboard&);
+template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::Capture, false>(const Position&, Moves&, const Bitboard&);
+template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::Capture, false>(const Position&, Moves&, const Bitboard&);
+template void MoveGenerator::generateMovesOnBoard<Turn::Black, MoveGenerator::GenerationType::Quiet, false>(const Position&, Moves&, const Bitboard&);
+template void MoveGenerator::generateMovesOnBoard<Turn::White, MoveGenerator::GenerationType::Quiet, false>(const Position&, Moves&, const Bitboard&);
 
 template <Turn turn>
 void MoveGenerator::generateDrops(const Position& pos, Moves& moves, const Bitboard& mask) {

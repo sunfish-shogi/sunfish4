@@ -32,7 +32,7 @@ Score SEE::calculate(const Position& position,
     score += material::exchangeScore(captured);
   }
 
-  auto bb = extractAttackers(position, from, to);
+  auto bb = extractAggressors(position, from, to);
 
   if (position.getTurn() == Turn::Black) {
     return search(position, bb, to, score, material::exchangeScore(piece));
@@ -41,8 +41,8 @@ Score SEE::calculate(const Position& position,
   }
 }
 
-Bitboard SEE::extractAttackers(const Position& position,
-                               Square from,
+Bitboard SEE::extractAggressors(const Position& position,
+                                Square from,
                                Square to) {
   Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   RotatedBitboard occ90 = position.get90RotatedBitboard();
@@ -86,10 +86,10 @@ Bitboard SEE::extractAttackers(const Position& position,
   return bb;
 }
 
-Bitboard SEE::extractShadowAttacker(const Position& position,
-                                    Bitboard bb,
-                                    Square from,
-                                    Square to) {
+Bitboard SEE::extractShadowAggressor(const Position& position,
+                                     Bitboard bb,
+                                     Square from,
+                                     Square to) {
   Direction dir = from.dir(to);
   if (dir >= Direction::EndS) {
     return bb;
@@ -145,42 +145,42 @@ Score SEE::search(const Position& position,
     if (turn == Turn::Black) {
       alpha = std::max(alpha, score);
 
-      Attacker atk = pickAttacker<Turn::Black>(position, bb, to);
+      Aggressor agr = pickAggressor<Turn::Black>(position, bb, to);
 
-      if (atk.piece.isEmpty()) { return alpha; }
+      if (agr.piece.isEmpty()) { return alpha; }
 
-      score = score + materialScore + atk.prom;
+      score = score + materialScore + agr.prom;
 
       if (score <= alpha) { return alpha; }
 
-      bb = extractShadowAttacker(position, bb, atk.square, to);
+      bb = extractShadowAggressor(position, bb, agr.square, to);
 
-      materialScore = atk.exch;
+      materialScore = agr.exch;
       turn = Turn::White;
 
     } else {
       beta = std::min(beta, score);
 
-      Attacker atk = pickAttacker<Turn::White>(position, bb, to);
+      Aggressor agr = pickAggressor<Turn::White>(position, bb, to);
 
-      if (atk.piece.isEmpty()) { return beta; }
+      if (agr.piece.isEmpty()) { return beta; }
 
-      score = score - materialScore - atk.prom;
+      score = score - materialScore - agr.prom;
 
       if (score >= beta) { return beta; }
 
-      bb = extractShadowAttacker(position, bb, atk.square, to);
+      bb = extractShadowAggressor(position, bb, agr.square, to);
 
-      materialScore = atk.exch;
+      materialScore = agr.exch;
       turn = Turn::Black;
     }
   }
 }
 
 template <Turn turn>
-SEE::Attacker SEE::pickAttacker(const Position& position,
-                                Bitboard& bb,
-                                Square to) {
+SEE::Aggressor SEE::pickAggressor(const Position& position,
+                                  Bitboard& bb,
+                                  Square to) {
   bool promotable = to.isPromotable<Turn::Black>();
 
   auto masked = bb & (turn == Turn::Black ? position.getBPawnBitboard()
@@ -301,30 +301,6 @@ SEE::Attacker SEE::pickAttacker(const Position& position,
   }
 
   return { PieceType::empty(), Square::invalid(), Score::zero(), Score::zero() };
-}
-
-void SEE::sortMoves(const Position& position,
-                    Moves& moves,
-                    Moves::iterator begin,
-                    bool excludeNegative) {
-  for (auto ite = begin; ite != moves.end(); ) {
-    auto& move = *ite;
-
-    Score score = calculate(position, move);
-
-    if (excludeNegative && score < Score::zero()) {
-      ite = moves.remove(ite);
-      continue;
-    }
-
-    move.setExtData(static_cast<Move::RawType16>(score.raw()));
-
-    ite++;
-  }
-
-  std::sort(begin, moves.end(), [](const Move& lhs, const Move& rhs) {
-    return moveToScore(lhs) > moveToScore(rhs);
-  });
 }
 
 } // namespace sunfish

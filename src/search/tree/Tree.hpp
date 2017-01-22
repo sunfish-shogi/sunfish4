@@ -23,12 +23,25 @@ namespace sunfish {
 struct Record;
 class Evaluator;
 
-enum GenPhase : uint8_t {
-  CapturingMoves,
-  NotCapturingMoves,
+namespace GenPhase_ {
+
+enum Type : uint16_t {
+  Init,
+  Captures,
+  Quiets,
+  BadCaptures,
+  InitEvasions,
   Evasions,
+  InitQuies,
+  Quies,
+  InitQuies2,
+  Quies2,
   End,
 };
+
+} // namespace GenPhase_
+
+using GenPhase = GenPhase_::Type;
 
 struct Node {
   Zobrist::Type hash;
@@ -46,9 +59,11 @@ struct Node {
   int16_t killerCount1;
   int16_t killerCount2;
 
-  GenPhase genPhase;
+  uint16_t genPhase;
   Moves::iterator moveIterator;
+  Moves::iterator badCaptureEnd;
   Moves moves;
+  MoveArray<128> quietsSearched;
 
   PV pv;
 };

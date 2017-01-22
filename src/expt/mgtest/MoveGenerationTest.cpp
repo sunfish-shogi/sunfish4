@@ -50,8 +50,8 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
 
   Moves moves;
   if (!isCheck(cs)) {
-    MoveGenerator::generateCapturingMoves(position, moves);
-    MoveGenerator::generateNotCapturingMoves(position, moves);
+    MoveGenerator::generateCaptures(position, moves);
+    MoveGenerator::generateQuiets(position, moves);
   } else {
     MoveGenerator::generateEvasions(position, cs, moves);
   }

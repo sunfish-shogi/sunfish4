@@ -7,6 +7,7 @@
 #include "search/see/SEE.hpp"
 #include "search/mate/Mate.hpp"
 #include "search/eval/Evaluator.hpp"
+#include "search/eval/Material.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
@@ -163,7 +164,8 @@ Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
 
 void Searcher::clean() {
   tt_.clear();
-  history_.clear();
+  fromToHistory_.clear();
+  pieceToHistory_.clear();
   timeManager_.clearGame();
 }
 
@@ -178,7 +180,8 @@ void Searcher::onSearchStarted() {
   result_.depth = 0;
   result_.elapsed = 0.0f;
 
-  history_.reduce();
+  fromToHistory_.reduce();
+  pieceToHistory_.reduce();
 
   timeManager_.clearPosition(config_.optimumTimeMs,
                              config_.maximumTimeMs);
@@ -309,8 +312,8 @@ void Searcher::idsearch(Tree& tree,
   // generate moves
   node.moves.clear();
   if (!isCheck(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-    MoveGenerator::generateNotCapturingMoves(tree.position, node.moves);
+    MoveGenerator::generateCaptures(tree.position, node.moves);
+    MoveGenerator::generateQuiets(tree.position, node.moves);
   } else {
     MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
   }
@@ -610,6 +613,7 @@ Score Searcher::search(Tree& tree,
     auto ttScoreType = tte.scoreType();
     Score ttScore = tte.score(tree.ply);
     int ttDepth = tte.depth();
+    Move ttMove = tte.move();
 
     bool isMate = (ttScore <= -Score::mate() && (ttScoreType == TTScoreType::Exact ||
                                                  ttScoreType == TTScoreType::Upper)) ||
@@ -623,6 +627,12 @@ Score Searcher::search(Tree& tree,
       if (ttScoreType == TTScoreType::Exact ||
          (ttScoreType == TTScoreType::Upper && ttScore <= alpha) ||
          (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
+        // history heuristics
+        if (!ttMove.isNone() &&
+            !tree.position.isCapture(ttMove)) {
+          updateHistory(tree, ttMove, depth);
+        }
+
         tree.info.hashCut++;
         return ttScore;
       }
@@ -638,8 +648,8 @@ Score Searcher::search(Tree& tree,
       }
 
       // previous best move
-      Move ttMove = tte.move();
-      if (tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
+      if (!ttMove.isNone() &&
+          tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
         node.hashMove = ttMove;
       }
     }
@@ -885,6 +895,11 @@ Score Searcher::search(Tree& tree,
       node.pv.set(move, depth, childNode.pv);
     }
 
+    if (node.quietsSearched.size() < node.quietsSearched.capacity() &&
+        tree.position.isCapture(move)) {
+      node.quietsSearched.add(move);
+    }
+
     node.isHistorical |= childNode.isHistorical;
 
     isFirst = false;
@@ -896,12 +911,8 @@ Score Searcher::search(Tree& tree,
     addKiller(tree, bestMove);
 
     // history heuristics
-    unsigned hval = std::max(depth / (Depth1Ply / 4), 1);
-    for (auto& move : node.moves) {
-      history_.add(tree.position.getTurn(),
-                   move,
-                   hval,
-                   move == bestMove ? hval : 0);
+    if (!tree.position.isCapture(bestMove)) {
+      updateHistory(tree, bestMove, depth);
     }
   }
 
@@ -917,6 +928,38 @@ Score Searcher::search(Tree& tree,
   }
 
   return bestScore;
+}
+
+void Searcher::updateHistory(Tree& tree,
+                             Move bestMove,
+                             int depth) {
+  int d = depth / Depth1Ply;
+  int16_t value = (d + 1) * (d + 1) - 3;
+  updateHistoryWithValue(tree, bestMove, value);
+
+  auto& node = tree.nodes[tree.ply];
+  for (Move move: node.quietsSearched) {
+    if (move != bestMove) {
+      updateHistoryWithValue(tree, move, -value);
+    }
+  }
+}
+
+void Searcher::updateHistoryWithValue(Tree& tree,
+                                      Move move,
+                                      int16_t value) {
+  Turn turn = tree.position.getTurn();
+  if (move.isDrop()) {
+    auto pieceType = move.droppingPieceType();
+    pieceToHistory_.update(turn, pieceType, move.to(), value);
+  } else {
+    auto pieceType = tree.position.getPieceOnBoard(move.from()).type();
+    if (move.isPromotion()) {
+      pieceType = pieceType.promote();
+    }
+    fromToHistory_.update(turn, move.from(), move.to(), value);
+    pieceToHistory_.update(turn, pieceType, move.to(), value);
+  }
 }
 
 /**
@@ -984,15 +1027,23 @@ Score Searcher::quies(Tree& tree,
     return bestScore;
   }
 
-  generateMovesOnQuies(tree,
-                       depth,
-                       bestScore);
+  generateMovesOnQuies(tree, depth);
 
   // expand branches
   for (;;) {
-    Move move = nextMoveOnQuies(node);
+    Move move = nextMove(tree);
     if (move.isNone()) {
       break;
+    }
+
+    // futility pruning
+    if (!tree.position.isCheck(move) &&
+        !isCheck(node.checkState)) {
+      Score estScore = estimateScore(tree, move, *evaluator_);
+      if (estScore + 500 <= alpha) {
+        tree.info.futilityPruning++;
+        continue;
+      }
     }
 
     bool moveOk = doMove(tree, move, *evaluator_);
@@ -1042,9 +1093,9 @@ Score Searcher::quies(Tree& tree,
 template <bool isRootNode>
 void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-
   node.moves.clear();
   node.moveIterator = node.moves.begin();
+  node.badCaptureEnd = node.moves.begin();
 
   if (!node.hashMove.isNone()) {
     node.moves.add(node.hashMove);
@@ -1067,128 +1118,167 @@ void Searcher::generateMoves(Tree& tree) {
   }
 
   if (!isCheck(node.checkState)) {
-    node.genPhase = GenPhase::CapturingMoves;
+    node.genPhase = GenPhase::Init;
   } else {
-    node.genPhase = GenPhase::Evasions;
-  }
-}
-
-Move Searcher::nextMove(Tree& tree) {
-  auto& node = tree.nodes[tree.ply];
-
-  for (;;) {
-    if (node.moveIterator != node.moves.end()/* &&
-        // if the move has minus SEE value, carry foward it to NotCapturingMoves phase.
-        (node.genPhase != GenPhase::NotCapturingMoves ||
-         moveToScore(*node.moveIterator) >= Score::zero())*/) {
-      return *(node.moveIterator++);
-    }
-
-    switch (node.genPhase) {
-    case GenPhase::CapturingMoves:
-      MoveGenerator::generateCapturingMoves(tree.position, node.moves);
-      remove(node.moves, node.moveIterator, [&tree](const Move& move) {
-        return isPriorMove(tree, move);
-      });
-      SEE::sortMoves(tree.position,
-                     node.moves,
-                     node.moveIterator,
-                     false /* excludeNegative */);
-      node.genPhase = GenPhase::NotCapturingMoves;
-      break;
-
-    case GenPhase::NotCapturingMoves:
-      MoveGenerator::generateNotCapturingMoves(tree.position,
-                                               node.moves);
-      remove(node.moves, node.moveIterator, [&tree](const Move& move) {
-        return isPriorMove(tree, move);
-      });
-      sortMovesOnHistory(tree);
-      node.genPhase = GenPhase::End;
-      break;
-
-    case GenPhase::Evasions:
-      MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-      sortMovesOnHistory(tree);
-      node.genPhase = GenPhase::End;
-      break;
-
-    case GenPhase::End:
-      return Move::none();
-
-    }
+    node.genPhase = GenPhase::InitEvasions;
   }
 }
 
 /**
  * generate moves for quiesence search
  */
-void Searcher::generateMovesOnQuies(Tree& tree,
-                                    int depth,
-                                    Score alpha) {
+void Searcher::generateMovesOnQuies(Tree& tree, int depth) {
   auto& node = tree.nodes[tree.ply];
-  bool excludeSmallCaptures = depth <= -6;
-
   node.moves.clear();
   node.moveIterator = node.moves.begin();
 
   if (!isCheck(node.checkState)) {
-    MoveGenerator::generateCapturingMoves(tree.position, node.moves);
+    if (depth > -6 * Depth1Ply) {
+      node.genPhase = GenPhase::InitQuies;
+    } else {
+      node.genPhase = GenPhase::InitQuies2;
+    }
+  } else {
+    node.genPhase = GenPhase::InitEvasions;
+  }
+}
 
-    for (auto ite = node.moveIterator; ite != node.moves.end(); ) {
-      auto& move = *ite;
+Move Searcher::nextMove(Tree& tree) {
+  auto& node = tree.nodes[tree.ply];
 
-      if (excludeSmallCaptures) {
+  switch (node.genPhase) {
+  case GenPhase::Init:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+
+    MoveGenerator::generateCaptures(tree.position, node.moves);
+    remove(node.moves, node.moveIterator, [&tree](const Move& move) {
+      return isPriorMove(tree, move);
+    });
+    sortMoves<true>(tree);
+    node.genPhase++;
+
+  case GenPhase::Captures:
+    while (node.moveIterator != node.moves.end()) {
+      Move move = *node.moveIterator;
+      if (SEE::calculate(tree.position, move) >= Score::zero()) {
+        return *(node.moveIterator++);
+      }
+      *(node.badCaptureEnd++) = move;
+      node.moveIterator++;
+    }
+
+    MoveGenerator::generateQuiets(tree.position,
+                                  node.moves);
+    remove(node.moves, node.moveIterator, [&tree](const Move& move) {
+      return isPriorMove(tree, move);
+    });
+    sortMoves<false>(tree);
+    node.genPhase++;
+
+  case GenPhase::Quiets:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+    node.moveIterator = node.moves.begin();
+    node.moves.removeAfter(node.badCaptureEnd);
+    node.genPhase++;
+
+  case GenPhase::BadCaptures:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+    node.genPhase = GenPhase::End;
+    break;
+
+  case GenPhase::InitEvasions:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+
+    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+    sortMoves<true>(tree);
+    node.genPhase++;
+
+  case GenPhase::Evasions:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+    node.genPhase = GenPhase::End;
+    break;
+
+  case GenPhase::InitQuies: case GenPhase::InitQuies2:
+    MoveGenerator::generateCaptures(tree.position, node.moves);
+    sortMoves<true>(tree);
+    node.genPhase++;
+
+  case GenPhase::Quies: case GenPhase::Quies2:
+    for (; node.moveIterator != node.moves.end(); node.moveIterator++) {
+      Move move = *node.moveIterator;
+
+      if (node.genPhase == GenPhase::Quies2) {
         auto piece = tree.position.getPieceOnBoard(move.from());
         auto captured = tree.position.getPieceOnBoard(move.to());
         if ((captured.type() == PieceType::pawn() && !move.isPromotion()) ||
             (captured.isEmpty() && piece.type() != PieceType::pawn())) {
-          ite = node.moves.remove(ite);
           continue;
         }
       }
 
-      // futility pruning
-      Score estScore = estimateScore(tree, move, *evaluator_);
-      if (estScore + 500 <= alpha) {
-        ite = node.moves.remove(ite);
-        tree.info.futilityPruning++;
+      if (SEE::calculate(tree.position, move) < Score::zero()) {
         continue;
       }
 
-      ite++;
+      return *(node.moveIterator++);
     }
+    node.genPhase = GenPhase::End;
+    break;
 
-    SEE::sortMoves(tree.position,
-                   node.moves,
-                   node.moveIterator,
-                   true /* excludeNegative */);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-    sortMovesOnHistory(tree);
+  case GenPhase::End:
+    break;
+
   }
+  return Move::none();
 }
 
-Move Searcher::nextMoveOnQuies(Node& node) {
-  if (node.moveIterator == node.moves.end()) {
-    return Move::none();
-  }
-
-  return *(node.moveIterator++);
-}
-
-void Searcher::sortMovesOnHistory(Tree& tree) {
+template <bool Capture>
+void Searcher::sortMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   auto turn = tree.position.getTurn();
+  auto eking = tree.position.getTurn() == Turn::Black
+             ? tree.position.getWhiteKingSquare()
+             : tree.position.getBlackKingSquare();
 
   for (auto ite = node.moveIterator; ite != node.moves.end(); ite++) {
     auto& move = *ite;
-    auto r = history_.ratio(turn, move);
-    move.setExtData(static_cast<Move::RawType16>(r));
+    if (Capture && tree.position.isCapture(move)) {
+      Piece captured = tree.position.getPieceOnBoard(move.to());
+      Piece aggressor = tree.position.getPieceOnBoard(move.from());
+      Score score = (!captured.isEmpty() ? material::exchangeScore(captured) : Score::zero())
+                  - material::exchangeScore(aggressor)
+                  + HistoryMax * 2;
+      move.setExtData(static_cast<Move::RawType16>(score.raw()));
+    } else {
+      int16_t value;
+      if (move.isDrop()) {
+        auto pieceType = move.droppingPieceType();
+        value = pieceToHistory_.get(turn, pieceType, move.to());
+        value *= 2;
+      } else {
+        auto pieceType = tree.position.getPieceOnBoard(move.from()).type();
+        if (move.isPromotion()) {
+          pieceType = pieceType.promote();
+        }
+        value = fromToHistory_.get(turn, move.from(), move.to())
+              + pieceToHistory_.get(turn, pieceType, move.to());
+      }
+      move.setExtData(static_cast<Move::RawType16>(value));
+    }
   }
 
   std::sort(node.moveIterator, node.moves.end(), [](const Move& lhs, const Move& rhs) {
-    return lhs.extData() > rhs.extData();
+    return int16_t(lhs.extData()) > int16_t(rhs.extData());
   });
 }
 

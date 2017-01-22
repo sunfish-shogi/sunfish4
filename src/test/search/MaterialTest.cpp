@@ -16,10 +16,10 @@ TEST(MaterialTest, test) {
   ASSERT_TRUE(material::gold() < material::bishop());
   ASSERT_TRUE(material::bishop() < material::rook());
 
-  ASSERT_TRUE(material::tokin() > material::silver());
-  ASSERT_TRUE(material::proLance() > material::silver());
-  ASSERT_TRUE(material::proKnight() > material::silver());
-  ASSERT_TRUE(material::proSilver() > material::silver());
+  ASSERT_TRUE(material::tokin() > material::knight());
+  ASSERT_TRUE(material::proLance() > material::knight());
+  ASSERT_TRUE(material::proKnight() > material::knight());
+  ASSERT_TRUE(material::proSilver() > material::knight());
   ASSERT_TRUE(material::tokin() < material::bishop());
   ASSERT_TRUE(material::proLance() < material::bishop());
   ASSERT_TRUE(material::proKnight() < material::bishop());

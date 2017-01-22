@@ -18,12 +18,12 @@ public:
    * Generate capturing moves.
    * The result includes the illegal moves which leave check.
    */
-  static void generateCapturingMoves(const Position& pos, Moves& moves) {
+  static void generateCaptures(const Position& pos, Moves& moves) {
     ASSERT(!pos.inCheck());
     if (pos.getTurn() == Turn::Black) {
-      generateMovesOnBoard<Turn::Black, GenerationType::Capturing, false>(pos, moves, Bitboard::full());
+      generateMovesOnBoard<Turn::Black, GenerationType::Capture, false>(pos, moves, Bitboard::full());
     } else {
-      generateMovesOnBoard<Turn::White, GenerationType::Capturing, false>(pos, moves, Bitboard::full());
+      generateMovesOnBoard<Turn::White, GenerationType::Capture, false>(pos, moves, Bitboard::full());
     }
   }
 
@@ -31,13 +31,13 @@ public:
    * Generate not-capturing moves.
    * The result includes the illegal moves which leave check.
    */
-  static void generateNotCapturingMoves(const Position& pos, Moves& moves) {
+  static void generateQuiets(const Position& pos, Moves& moves) {
     ASSERT(!pos.inCheck());
     if (pos.getTurn() == Turn::Black) {
-      generateMovesOnBoard<Turn::Black, GenerationType::NotCapturing, false>(pos, moves, Bitboard::full());
+      generateMovesOnBoard<Turn::Black, GenerationType::Quiet, false>(pos, moves, Bitboard::full());
       generateDrops<Turn::Black>(pos, moves, Bitboard::full());
     } else {
-      generateMovesOnBoard<Turn::White, GenerationType::NotCapturing, false>(pos, moves, Bitboard::full());
+      generateMovesOnBoard<Turn::White, GenerationType::Quiet, false>(pos, moves, Bitboard::full());
       generateDrops<Turn::White>(pos, moves, Bitboard::full());
     }
   }
@@ -60,8 +60,8 @@ private:
   MoveGenerator();
 
   enum class GenerationType {
-    Capturing,
-    NotCapturing,
+    Capture,
+    Quiet,
     All,
   };
 

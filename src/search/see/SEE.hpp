@@ -11,14 +11,14 @@
 #include "core/move/Move.hpp"
 #include "search/eval/Score.hpp"
 
-void test_method_ScoreTest_testGenerateAttackers();
+void test_method_ScoreTest_testGenerateAggressors();
 
 namespace sunfish {
 
 class SEE {
 public:
 
-  struct Attacker {
+  struct Aggressor {
     PieceType piece;
     Square square;
     Score prom;
@@ -30,19 +30,14 @@ public:
   static Score calculate(const Position& position,
                          Move move);
 
-  static void sortMoves(const Position& position,
-                        Moves& moves,
-                        Moves::iterator begin,
-                        bool excludeNegative);
+  static Bitboard extractAggressors(const Position& position,
+                                    Square from,
+                                    Square to);
 
-  static Bitboard extractAttackers(const Position& position,
-                                   Square from,
-                                   Square to);
-
-  static Bitboard extractShadowAttacker(const Position& position,
-                                        Bitboard bb,
-                                        Square from,
-                                        Square to);
+  static Bitboard extractShadowAggressor(const Position& position,
+                                         Bitboard bb,
+                                         Square from,
+                                         Square to);
 
 private:
 
@@ -53,9 +48,9 @@ private:
                       Score materialScore);
 
   template <Turn turn>
-  static Attacker pickAttacker(const Position& position,
-                               Bitboard& bb,
-                               Square to);
+  static Aggressor pickAggressor(const Position& position,
+                                Bitboard& bb,
+                                Square to);
 
 };
 
