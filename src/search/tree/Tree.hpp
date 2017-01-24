@@ -28,6 +28,7 @@ namespace GenPhase_ {
 enum Type : uint16_t {
   Init,
   Captures,
+  Killers,
   Quiets,
   BadCaptures,
   InitEvasions,

@@ -133,7 +133,6 @@ private:
               Score alpha,
               Score beta);
 
-  template <bool isRootNode>
   void generateMoves(Tree& tree);
 
   void generateMovesOnQuies(Tree& tree, int depth);

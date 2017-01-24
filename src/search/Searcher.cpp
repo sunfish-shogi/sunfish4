@@ -774,7 +774,7 @@ Score Searcher::search(Tree& tree,
   Score bestScore = lowerScore;
   Move bestMove = Move::none();
 
-  generateMoves<false>(tree);
+  generateMoves(tree);
 
   // expand branches
   for (int moveCount = 0; ; moveCount++) {
@@ -906,14 +906,15 @@ Score Searcher::search(Tree& tree,
   }
 
   if (!bestMove.isNone() &&
-      !isCheck(node.checkState)) {
-    // killer move
-    addKiller(tree, bestMove);
+      !isCheck(node.checkState) &&
+      !tree.position.isCapture(bestMove)) {
+    if (!bestMove.isPromotion()) {
+      // killer move
+      addKiller(tree, bestMove);
+    }
 
     // history heuristics
-    if (!tree.position.isCapture(bestMove)) {
-      updateHistory(tree, bestMove, depth);
-    }
+    updateHistory(tree, bestMove, depth);
   }
 
   if (!node.isHistorical) {
@@ -1090,7 +1091,6 @@ Score Searcher::quies(Tree& tree,
 /**
  * generate moves for full expanding nodes
  */
-template <bool isRootNode>
 void Searcher::generateMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   node.moves.clear();
@@ -1099,22 +1099,6 @@ void Searcher::generateMoves(Tree& tree) {
 
   if (!node.hashMove.isNone()) {
     node.moves.add(node.hashMove);
-  }
-
-  if (!isRootNode &&
-      !isCheck(node.checkState) &&
-      hasKiller1(tree) &&
-      isKiller1Good(tree) &&
-      isKiller1Legal(tree)) {
-    node.moves.add(node.killerMove1);
-  }
-
-  if (!isRootNode &&
-      !isCheck(node.checkState) &&
-      hasKiller2(tree) &&
-      isKiller2Good(tree) &&
-      isKiller2Legal(tree)) {
-    node.moves.add(node.killerMove2);
   }
 
   if (!isCheck(node.checkState)) {
@@ -1153,8 +1137,8 @@ Move Searcher::nextMove(Tree& tree) {
     }
 
     MoveGenerator::generateCaptures(tree.position, node.moves);
-    remove(node.moves, node.moveIterator, [&tree](const Move& move) {
-      return isPriorMove(tree, move);
+    remove(node.moves, node.moveIterator, [&node](const Move& move) {
+      return move == node.hashMove;
     });
     sortMoves<true>(tree);
     node.genPhase++;
@@ -1167,6 +1151,28 @@ Move Searcher::nextMove(Tree& tree) {
       }
       *(node.badCaptureEnd++) = move;
       node.moveIterator++;
+    }
+
+    if (!isCheck(node.checkState)) {
+      if (hasKiller1(tree) &&
+          isKiller1Good(tree) &&
+          isKiller1Legal(tree) &&
+          !tree.position.isCapture(node.killerMove1)) {
+        node.moves.add(node.killerMove1);
+      }
+
+      if (hasKiller2(tree) &&
+          isKiller2Good(tree) &&
+          isKiller2Legal(tree) &&
+          !tree.position.isCapture(node.killerMove2)) {
+        node.moves.add(node.killerMove2);
+      }
+    }
+    node.genPhase++;
+
+  case GenPhase::Killers:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
     }
 
     MoveGenerator::generateQuiets(tree.position,
