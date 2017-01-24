@@ -1246,9 +1246,6 @@ template <bool Capture>
 void Searcher::sortMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
   auto turn = tree.position.getTurn();
-  auto eking = tree.position.getTurn() == Turn::Black
-             ? tree.position.getWhiteKingSquare()
-             : tree.position.getBlackKingSquare();
 
   for (auto ite = node.moveIterator; ite != node.moves.end(); ite++) {
     auto& move = *ite;
