@@ -45,7 +45,7 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
         ? MoveTables::blackSilver(from)
         : MoveTables::whiteSilver(from);
       if (type == GenerationType::Capture) {
-        tbb &= from.isPromotable<turn>() ? notSelfOcc : capOrProm;
+        tbb &= cap;
       } else if (type == GenerationType::Quiet) {
         tbb &= notCap;
       } else {
@@ -54,18 +54,8 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
 
       BB_EACH(to, tbb) {
         if (from.isPromotable<turn>() || to.isPromotable<turn>()) {
-          if (type == GenerationType::Capture) {
-            moves.add(Move(from, to, true));
-            if (cap.check(to)) {
-              moves.add(Move(from, to, false));
-            }
-          } else if (type == GenerationType::Quiet) {
-            moves.add(Move(from, to, false));
-          } else {
-            moves.add(Move(from, to, true));
-            moves.add(Move(from, to, false));
-          }
-
+          moves.add(Move(from, to, true));
+          moves.add(Move(from, to, false));
         } else {
           moves.add(Move(from, to, false));
         }
