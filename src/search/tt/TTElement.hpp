@@ -13,18 +13,18 @@
 #include <cassert>
 
 // 1st quad word
-#define TT_MATE_MASK   0x8000000000000000LLU
-#define TT_HASH_MASK   0x7fffffffffffffffLLU
+#define TT_MATE_MASK   0x0000000000000001LLU
+#define TT_HASH_MASK   0xfffffffffffffffeLLU
 
-#define TT_HASH_WIDTH  63
 #define TT_MATE_WIDTH   1
+#define TT_HASH_WIDTH  63
 
-#define TT_MATE_SHIFT  63
+#define TT_MATE_SHIFT   0
 
 static_assert(TT_MATE_WIDTH
             + TT_HASH_WIDTH <= 64, "invalid data size");
 static_assert(TT_MATE_MASK == (((1LLU << TT_MATE_WIDTH) - 1LLU) << TT_MATE_SHIFT), "invalid status");
-static_assert(TT_HASH_MASK == ~TT_MATE_MASK, "invalid status");
+static_assert(TT_HASH_MASK == (~((1LLU << (64 - TT_HASH_WIDTH)) - 1)), "invalid status");
 
 // 2nd quad word
 #define TT_MOVE_MASK  0x000000000000ffffLLU
