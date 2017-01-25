@@ -612,6 +612,9 @@ void BatchLearning::updateParameters() {
     material::scores[pieceType.white().raw()] = material::scores[pieceType.raw()];
   }
   PIECE_EACH(piece) {
+    if (piece.type() == PieceType::king()) {
+      continue;
+    }
     material::exchangeScores[piece.raw()]
       = material::scores[piece.raw()] + material::scores[piece.unpromote().raw()];
     material::promotionScores[piece.raw()]
