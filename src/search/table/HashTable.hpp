@@ -13,22 +13,37 @@
 
 namespace sunfish {
 
+template <size_t Mod, size_t CS, size_t S>
+struct Padding {
+  enum { Size = Padding<CS % (S + 1), CS, (S + 1)>::Size + 1 };
+};
+
+template <size_t CS, size_t S>
+struct Padding<0, CS, S> {
+  enum { Size = 0 };
+};
+
 /**
  * A base class for hash table
  */
 template <class E> class HashTable {
 public:
 
-  using ElementType = E;
   using SizeType = uint32_t;
 
+  static CONSTEXPR_CONST uintptr_t CacheLineSize = 64;
   static CONSTEXPR_CONST unsigned DefaultWidth = 18;
+
+  struct Element : E {
+    uint8_t padding[Padding<CacheLineSize % sizeof(E), CacheLineSize, sizeof(E)>::Size];
+  };
+
+  static_assert(CacheLineSize % sizeof(Element) == 0, "invalid element size");
 
 public:
 
   HashTable(unsigned width = DefaultWidth) :
       table_(nullptr),
-      width_(0),
       size_(0) {
     resize(width);
   }
@@ -36,7 +51,7 @@ public:
   HashTable(HashTable&&) = delete;
 
   ~HashTable() {
-    delete [] table_;
+    delete [] p_;
   }
 
   HashTable& operator=(const HashTable&) = delete;
@@ -44,25 +59,31 @@ public:
 
   void clear() {
     for (SizeType i = 0; i < size_; i++) {
-      table_[i] = ElementType();
+      table_[i] = Element();
     }
   }
 
   void resize(unsigned width) {
     SizeType newSize = 1 << width;
+    if (newSize == size_) {
+      return;
+    }
+
     size_ = newSize;
     mask_ = size_ - 1;
     if (table_ != nullptr) {
-      delete[] table_;
+      delete[] p_;
     }
-    table_ = new ElementType[size_];
+    p_ = new uint8_t[size_ * sizeof(Element) + CacheLineSize - 1];
+    table_ = reinterpret_cast<Element*>(p_ + CacheLineSize - 1 - (reinterpret_cast<uintptr_t>(p_) - 1) % CacheLineSize);
+    clear();
   }
 
   void resizeMB(unsigned mebiBytes) {
     unsigned width = 8;
     for (; width < 32; width++) {
       SizeType size = 1 << width;
-      size_t sb = sizeof(ElementType) * size;
+      size_t sb = sizeof(Element) * size;
       if (sb > mebiBytes * 1024 * 1024) {
         break;
       }
@@ -75,32 +96,32 @@ public:
   }
 
   void prefetch(Zobrist::Type hash) const {
-    const ElementType* p = &table_[hash & mask_];
+    const Element* p = &table_[hash & mask_];
     const char* addr = reinterpret_cast<const char*>(p);
-    memory::prefetch<sizeof(ElementType)>(addr);
+    memory::prefetch<sizeof(Element)>(addr);
   }
 
 protected:
 
-  ElementType& getElement(Zobrist::Type hash) {
+  Element& getElement(Zobrist::Type hash) {
     return table_[hash & mask_];
   }
 
-  ElementType& getElement(SizeType index) {
+  Element& getElement(SizeType index) {
     return table_[index];
   }
 
-  const ElementType& getElement(Zobrist::Type hash) const {
+  const Element& getElement(Zobrist::Type hash) const {
     return table_[hash & mask_];
   }
 
-  const ElementType& getElement(SizeType index) const {
+  const Element& getElement(SizeType index) const {
     return table_[index];
   }
 
 private:
-  ElementType* table_;
-  unsigned width_;
+  uint8_t* p_;
+  Element* table_;
   SizeType size_;
   SizeType mask_;
 

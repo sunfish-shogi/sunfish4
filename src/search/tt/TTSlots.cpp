@@ -10,7 +10,7 @@ namespace sunfish {
 TTStatus TTSlots::set(const TTElement& element) {
   const SizeType lastAccess = lastAccess_;
 
-  static_assert(Size == 4, "this logic is valid only when the slot size is 4.");
+  static_assert(Size == 3, "this logic is valid only when the slot size is 3.");
 
   // search a slot which has a same hash value.
   SizeType curr = lastAccess;
@@ -19,26 +19,17 @@ TTStatus TTSlots::set(const TTElement& element) {
     return TTStatus::Update;
   }
 
-  SizeType next = (lastAccess + 1) % Size;
-  if (slots_[next].hash() == element.hash()) {
-    slots_[next] = element;
-    lastAccess_ = next;
+  SizeType prev = (lastAccess + 2) % Size;
+  if (slots_[prev].hash() == element.hash()) {
+    slots_[prev] =  element;
+    lastAccess_ = prev;
     return TTStatus::Update;
   }
 
-  SizeType next2 = (lastAccess + 2) % Size;
-  if (slots_[next2].hash() == element.hash()) {
-    slots_[next2] = slots_[next];
-    slots_[next] = element;
-    lastAccess_ = next;
-    return TTStatus::Update;
-  }
-
-  SizeType next3 = (lastAccess + 3) % Size;
-  if (slots_[next3].hash() == element.hash()) {
-    slots_[next3] = slots_[curr];
-    slots_[curr] = element;
-    lastAccess_ = curr;
+  SizeType prev2 = (lastAccess + 1) % Size;
+  if (slots_[prev2].hash() == element.hash()) {
+    slots_[prev2] = element;
+    lastAccess_ = prev2;
     return TTStatus::Update;
   }
 
@@ -53,8 +44,8 @@ TTStatus TTSlots::set(const TTElement& element) {
   }
 
   // overwrite
-  slots_[next] = element;
-  lastAccess_ = next;
+  slots_[prev2] = element;
+  lastAccess_ = prev2;
   return TTStatus::Collide;
 }
 

@@ -48,10 +48,6 @@ private:
 class EvalCache : public HashTable<EvalCacheElement> {
 public:
 
-  static CONSTEXPR_CONST unsigned Width = 18;
-
-  static_assert(Width >= sizeof(Score) * 8, "too small table size");
-
   void entry(Zobrist::Type hash, const Score& score) {
     auto e = getElement(hash);
     e.set(hash, score);

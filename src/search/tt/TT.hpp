@@ -18,8 +18,6 @@ public:
 
   static CONSTEXPR_CONST unsigned DefaultWidth = 18;
 
-  static_assert((DefaultWidth + TT_HASH_WIDTH >= 64), "invalid hash table size");
-
   TT() : HashTable<TTSlots>(DefaultWidth) {}
   TT(const TT&) = delete;
   TT(TT&&) = delete;

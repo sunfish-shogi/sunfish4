@@ -615,18 +615,13 @@ Score Searcher::search(Tree& tree,
     int ttDepth = tte.depth();
     Move ttMove = tte.move();
 
-    bool isMate = (ttScore <= -Score::mate() && (ttScoreType == TTScoreType::Exact ||
-                                                 ttScoreType == TTScoreType::Upper)) ||
-                  (ttScore >=  Score::mate() && (ttScoreType == TTScoreType::Exact ||
-                                                 ttScoreType == TTScoreType::Lower));
+    bool isMate = (ttScore <= -Score::mate() && (ttScoreType & TTScoreType::Upper)) ||
+                  (ttScore >=  Score::mate() && (ttScoreType & TTScoreType::Lower));
 
     // cut
-    if (nodeStat.isHashCut() &&
-        isNullWindow &&
-        (ttDepth >= depth || isMate)) {
-      if (ttScoreType == TTScoreType::Exact ||
-         (ttScoreType == TTScoreType::Upper && ttScore <= alpha) ||
-         (ttScoreType == TTScoreType::Lower && ttScore >= beta)) {
+    if (nodeStat.isHashCut() && isNullWindow && (ttDepth >= depth || isMate)) {
+      if (ttScore <= alpha ? (ttScoreType & TTScoreType::Upper)
+                           : (ttScoreType & TTScoreType::Lower)) {
         // history heuristics
         if (!ttMove.isNone() &&
             !tree.position.isCapture(ttMove)) {
@@ -641,9 +636,7 @@ Score Searcher::search(Tree& tree,
     if (!shouldRecursiveIDSearch(depth) ||
         ttDepth >= recursiveIDSearchDepth(depth)) {
       // if the score is smaller than beta, exclude null window search.
-      if (ttScore < beta &&
-          (ttScoreType == TTScoreType::Exact ||
-           ttScoreType == TTScoreType::Upper)) {
+      if (ttScore < beta && (ttScoreType & TTScoreType::Upper)) {
         nodeStat.unsetNullMoveSearch();
       }
 

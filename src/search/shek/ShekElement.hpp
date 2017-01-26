@@ -16,12 +16,13 @@ namespace sunfish {
 class ShekElement {
 public:
 
-  using DataType = uint64_t;
+  using DataType = uint32_t;
 
-  static CONSTEXPR_CONST DataType MaxCount  = 0x000000000000000f;
-  static CONSTEXPR_CONST DataType CountMask = 0x000000000000000f;
-  static CONSTEXPR_CONST DataType TurnMask  = 0x0000000000000010;
-  static CONSTEXPR_CONST DataType HashMask  = 0xffffffffffffffe0;
+  static CONSTEXPR_CONST DataType MaxCount  = 0x00000007;
+  static CONSTEXPR_CONST DataType CountMask = 0x00000007;
+  static CONSTEXPR_CONST DataType TurnMask  = 0x00000008;
+  static CONSTEXPR_CONST DataType HashMask  = 0xfffffff0;
+  static CONSTEXPR_CONST int      HashShift = 32;
 
   ShekElement() : data_(0LLU) {
   }
@@ -53,7 +54,7 @@ public:
                     const HandSet& handSet,
                     Turn turn) {
     handSet_ = handSet;
-    data_ = hash & HashMask;
+    data_ = (hash >> HashShift) & HashMask;
     data_ |= turn == Turn::Black ? TurnMask : 0LLU;
     data_ |= 1LLU;
   }
@@ -74,7 +75,7 @@ public:
   }
 
   bool checkHash(Zobrist::Type hash) const {
-    return !isVacant() && ((hash ^ data_) & HashMask) == 0LLU;
+    return !isVacant() && ((static_cast<DataType>(hash >> HashShift) ^ data_) & HashMask) == 0LLU;
   }
 
   const HandSet& handSet() const {

@@ -52,6 +52,9 @@ private:
 
 };
 
+static_assert(sizeof(ShekElement) == 8, "invalid struct size");
+static_assert(sizeof(ShekSlots) <= 32, "invalid struct size");
+
 } // namespace sunfish
 
 #endif // SUNFISH_SEACH_SHEK_SHEKSLOTS_HPP__

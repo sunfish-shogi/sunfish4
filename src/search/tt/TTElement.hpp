@@ -12,98 +12,72 @@
 #include <cstdint>
 #include <cassert>
 
-// 1st quad word
-#define TT_MATE_MASK   0x0000000000000001LLU
-#define TT_HASH_MASK   0xfffffffffffffffeLLU
+#define TT_HASH_WIDTH 16
 
-#define TT_MATE_WIDTH   1
-#define TT_HASH_WIDTH  63
+#define TT_STYPE_MASK ((uint16_t)0x0003)
+#define TT_DEPTH_MASK ((uint16_t)0x03fc)
+#define TT_MATE_MASK  ((uint16_t)0x0400)
 
-#define TT_MATE_SHIFT   0
+#define TT_STYPE_WIDTH 2
+#define TT_DEPTH_WIDTH 8
+#define TT_MATE_WIDTH  1
 
-static_assert(TT_MATE_WIDTH
-            + TT_HASH_WIDTH <= 64, "invalid data size");
-static_assert(TT_MATE_MASK == (((1LLU << TT_MATE_WIDTH) - 1LLU) << TT_MATE_SHIFT), "invalid status");
-static_assert(TT_HASH_MASK == (~((1LLU << (64 - TT_HASH_WIDTH)) - 1)), "invalid status");
-
-// 2nd quad word
-#define TT_MOVE_MASK  0x000000000000ffffLLU
-#define TT_SCORE_MASK 0x00000000ffff0000LLU
-#define TT_STYPE_MASK 0x0000000300000000LLU
-#define TT_DEPTH_MASK 0x00000ffc00000000LLU
-#define TT_CSUM_MASK  0xffff000000000000LLU
-
-#define TT_MOVE_WIDTH  16
-#define TT_SCORE_WIDTH 16
-#define TT_STYPE_WIDTH  2
-#define TT_DEPTH_WIDTH 10
-#define TT_CSUM_WIDTH  16
-
-#define TT_MOVE_SHIFT  0
-#define TT_SCORE_SHIFT (TT_MOVE_SHIFT + TT_MOVE_WIDTH)
-#define TT_STYPE_SHIFT (TT_SCORE_SHIFT + TT_SCORE_WIDTH)
+#define TT_STYPE_SHIFT 0
 #define TT_DEPTH_SHIFT (TT_STYPE_SHIFT + TT_STYPE_WIDTH)
+#define TT_MATE_SHIFT  (TT_DEPTH_SHIFT + TT_DEPTH_WIDTH)
 
-static_assert(TT_MOVE_WIDTH
-            + TT_SCORE_WIDTH
-            + TT_STYPE_WIDTH
+static_assert(TT_STYPE_WIDTH
             + TT_DEPTH_WIDTH
-            + TT_CSUM_WIDTH <= 64, "invalid data size");
-static_assert(TT_MOVE_MASK  == (((1LLU << TT_MOVE_WIDTH) - 1) << TT_MOVE_SHIFT), "invalid status");
-static_assert(TT_SCORE_MASK == (((1LLU << TT_SCORE_WIDTH) - 1) << TT_SCORE_SHIFT), "invalid status");
-static_assert(TT_STYPE_MASK == (((1LLU << TT_STYPE_WIDTH) - 1) << TT_STYPE_SHIFT), "invalid status");
-static_assert(TT_DEPTH_MASK == (((1LLU << TT_DEPTH_WIDTH) - 1) << TT_DEPTH_SHIFT), "invalid status");
-static_assert(TT_CSUM_MASK  == (~((1LLU << (64 - TT_CSUM_WIDTH)) - 1)), "invalid status");
+            + TT_MATE_WIDTH <= 16, "invalid data size");
+static_assert(TT_MATE_MASK == (((1LLU << TT_MATE_WIDTH) - 1LLU) << TT_MATE_SHIFT), "invalid status");
+static_assert(TT_STYPE_MASK == (((1LLU << TT_STYPE_WIDTH) - 1LLU) << TT_STYPE_SHIFT), "invalid status");
+static_assert(TT_DEPTH_MASK == (((1LLU << TT_DEPTH_WIDTH) - 1LLU) << TT_DEPTH_SHIFT), "invalid status");
 
 static_assert(sizeof(sunfish::Score::RawType) == 2, "invalid data size");
 
-static_assert(TT_CSUM_WIDTH == 16, "invalid data size");
-static_assert(TT_CSUM_MASK == 0xffff000000000000LLU, "invalid data size");
-
 namespace sunfish {
 
-enum class TTScoreType : int {
-  Exact = 0,
-  Upper, /* = 1 */
-  Lower, /* = 2 */
-  None, /* = 3 */
+class TTScoreType {
+  TTScoreType() = delete;
+
+public:
+  static CONSTEXPR_CONST uint16_t None = 0;
+  static CONSTEXPR_CONST uint16_t Upper = 1;
+  static CONSTEXPR_CONST uint16_t Lower = 2;
+  static CONSTEXPR_CONST uint16_t Exact = Upper | Lower;
 };
 
 class TTElement {
-public:
-
-  using QuadWord = uint64_t;
-
 private:
 
-  QuadWord w1_;
-  QuadWord w2_;
+  uint16_t hash_;
+  uint16_t move_;
+  uint16_t score_;
+  uint16_t word_;
+  uint16_t sum_;
 
   bool update(Zobrist::Type newHash,
               Score newScore,
-              TTScoreType newScoreType,
+              int newScoreType,
               int newDepth,
               int ply,
               Move move,
               bool mateThreat);
 
-  QuadWord calcCheckSum() const {
-    return
-      (
-        (w1_) ^
-        (w1_ << 16) ^
-        (w1_ << 32) ^
-        (w1_ << 48) ^
-        (w2_ << 16) ^
-        (w2_ << 32) ^
-        (w2_ << 48)
-      );
+  uint16_t calcCheckSum() const {
+    return hash_
+         ^ move_
+         ^ score_
+         ^ word_;
   }
 
 public:
   TTElement() :
-      w1_(0),
-      w2_(TT_CSUM_MASK) {
+      hash_(0),
+      move_(Move::none().serialize16()),
+      score_(0),
+      word_(0),
+      sum_(0) {
   }
 
   bool update(Zobrist::Type newHash,
@@ -113,7 +87,7 @@ public:
               int newDepth, int ply,
               const Move& move,
               bool mateThreat) {
-    TTScoreType newScoreType;
+    int newScoreType;
     if (newScore >= beta) {
       newScoreType = TTScoreType::Lower;
     } else if (newScore <= alpha) {
@@ -137,24 +111,22 @@ public:
                 Move move);
 
   bool isLive() const {
-    return ((w2_ ^ calcCheckSum()) & TT_CSUM_MASK) == 0LLU;
+    return (sum_ ^ calcCheckSum()) == 0LLU;
   }
 
   bool checkHash(Zobrist::Type hash) const {
-    return ((w1_ ^ hash) & TT_HASH_MASK) == 0LLU && isLive();
+    return (static_cast<Zobrist::Type>(hash_) ^ (hash >> (64 - TT_HASH_WIDTH))) == 0LLU && isLive();
   }
 
-  Zobrist::Type hash() const {
-    return w1_ & TT_HASH_MASK;
+  uint16_t hash() const {
+    return hash_;
   }
 
   Score score(int ply) const {
-    auto data = (w2_ & TT_SCORE_MASK) >> TT_SCORE_SHIFT;
-    auto u16 = static_cast<uint16_t>(data);
-    auto rawValue = static_cast<Score::RawType>(u16);
+    auto rawValue = static_cast<Score::RawType>(score_);
     Score s(rawValue);
 
-    TTScoreType st = scoreType();
+    int st = scoreType();
     ASSERT(st == TTScoreType::None || s >= -Score::infinity());
     ASSERT(st == TTScoreType::None || s <= Score::infinity());
 
@@ -167,46 +139,26 @@ public:
     return s;
   }
 
-  TTScoreType scoreType() const {
-    auto data = (w2_ & TT_STYPE_MASK) >> TT_STYPE_SHIFT;
-    return static_cast<TTScoreType>(data);
+  uint16_t scoreType() const {
+    return (word_ & TT_STYPE_MASK) >> TT_STYPE_SHIFT;
   }
 
   int depth() const {
-    auto data = (w2_ & TT_DEPTH_MASK) >> TT_DEPTH_SHIFT;
+    auto data = (word_ & TT_DEPTH_MASK) >> TT_DEPTH_SHIFT;
     return static_cast<int>(data);
   }
 
   Move move() const {
-    auto data = (w2_ & TT_MOVE_MASK) >> TT_MOVE_SHIFT;
-    auto rawValue = static_cast<Move::RawType16>(data);
+    auto rawValue = static_cast<Move::RawType16>(move_);
     return Move::deserialize(rawValue);
   }
 
   bool isMateThreat() const {
-    return w1_ & TT_MATE_MASK;
+    return word_ & TT_MATE_MASK;
   }
 
 };
 
 } // namespace sunfish
-
-inline std::ostream& operator<<(std::ostream& os, sunfish::TTScoreType scrState) {
-  switch (scrState) {
-  case sunfish::TTScoreType::Exact:
-    os << "Exact";
-    break;
-  case sunfish::TTScoreType::Upper:
-    os << "Upper";
-    break;
-  case sunfish::TTScoreType::Lower:
-    os << "Lower";
-    break;
-  case sunfish::TTScoreType::None:
-    os << "None";
-    break;
-  }
-  return os;
-}
 
 #endif // SUNFISH_TT_TTSLOT_HPP__

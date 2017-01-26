@@ -24,9 +24,9 @@ enum class TTStatus : int {
 class TTSlots {
 public:
 
-  using SizeType = uint32_t;
+  using SizeType = uint16_t;
 
-  static CONSTEXPR_CONST SizeType Size = 4;
+  static CONSTEXPR_CONST SizeType Size = 3;
 
   TTSlots() : lastAccess_(0) {
   }
@@ -44,8 +44,8 @@ private:
 
 };
 
-static_assert(sizeof(TTElement) == 16, "invalid struct size");
-static_assert(sizeof(TTSlots) == 72, "invalid struct size");
+static_assert(sizeof(TTElement) == 10, "invalid struct size");
+static_assert(sizeof(TTSlots) <= 32, "invalid struct size");
 
 } // namespace sunfish
 

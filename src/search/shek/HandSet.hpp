@@ -18,7 +18,7 @@ namespace sunfish {
 class HandSet {
 public:
 
-  using Type = uint64_t;
+  using Type = uint32_t;
 
   HandSet() = default;
 

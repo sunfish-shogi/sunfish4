@@ -33,7 +33,7 @@ class Evaluator;
 class Searcher {
 public:
 
-  static CONSTEXPR_CONST int Depth1Ply = 8;
+  static CONSTEXPR_CONST int Depth1Ply = 4;
   static CONSTEXPR_CONST int DepthInfinity = INT_MAX;
 
   static void initialize();
