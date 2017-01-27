@@ -34,7 +34,7 @@ HAS_COV:=$(shell which $(COV))
 .PHONY: all
 .PHONY: expt solve
 .PHONY: expt-prof prof prof1
-.PHONY: test test-sse test-nosse
+.PHONY: test
 .PHONY: bm
 .PHONY: ln
 .PHONY: csa
