@@ -411,7 +411,7 @@ bool Searcher::aspsearch(Tree& tree,
       newDepth = newDepth - reduced;
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       LOG(warning) << "invalid state.";
       node.moves.remove(moveCount);
@@ -697,7 +697,7 @@ Score Searcher::search(Tree& tree,
     int newDepth = nullDepth(depth, standPat, beta);
     NodeStat newNodeStat = NodeStat::normal().unsetNullMoveSearch();
 
-    doNullMove(tree);
+    doNullMove(tree, tt_);
 
     Score score = newDepth < Depth1Ply
         ? -quies(tree,
@@ -829,7 +829,7 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       node.moveIterator = node.moves.remove(node.moveIterator-1);
       moveCount--;
@@ -1040,7 +1040,7 @@ Score Searcher::quies(Tree& tree,
       }
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       continue;
     }
@@ -1292,7 +1292,7 @@ void Searcher::sortRootMoves(Tree& tree) {
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Move move = node.moves[moveCount];
 
-    bool moveOk = doMove(tree, move, *evaluator_);
+    bool moveOk = doMove(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       node.moves.remove(moveCount);
       continue;
@@ -1345,7 +1345,7 @@ void Searcher::storePV(Tree& tree,
     return;
   }
 
-  if (doMove(tree, move, *evaluator_)) {
+  if (doMove(tree, move, *evaluator_, tt_)) {
     storePV(tree,
             pv,
             ply + 1,

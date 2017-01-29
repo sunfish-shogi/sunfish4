@@ -4,6 +4,7 @@
  */
 
 #include "search/tree/Tree.hpp"
+#include "search/tt/TT.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "core/record/Record.hpp"
 #include "logger/Logger.hpp"
@@ -127,7 +128,7 @@ void addKiller(Tree& tree, Move move) {
   }
 }
 
-bool doMove(Tree& tree, Move& move, Evaluator& eval) {
+bool doMove(Tree& tree, Move& move, Evaluator& eval, TT& tt) {
   auto& node = tree.nodes[tree.ply];
   node.hash = tree.position.getHash();
   tree.shekTable.retain(tree.position);
@@ -136,6 +137,8 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval) {
     tree.shekTable.release(tree.position);
     return false;
   }
+
+  tt.prefetch(tree.position.getHash());
 
   node.move = move;
   tree.ply++;
@@ -159,11 +162,13 @@ void undoMove(Tree& tree) {
   tree.shekTable.release(tree.position);
 }
 
-void doNullMove(Tree& tree) {
+void doNullMove(Tree& tree, TT& tt) {
   auto& node = tree.nodes[tree.ply];
   node.hash = tree.position.getHash();
 
   tree.position.doNullMove();
+
+  tt.prefetch(tree.position.getHash());
 
   node.move = Move::none();
   tree.ply++;

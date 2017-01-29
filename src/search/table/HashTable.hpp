@@ -98,7 +98,7 @@ public:
   void prefetch(Zobrist::Type hash) const {
     const Element* p = &table_[hash & mask_];
     const char* addr = reinterpret_cast<const char*>(p);
-    memory::prefetch<sizeof(Element)>(addr);
+    memory::prefetch(addr);
   }
 
 protected:

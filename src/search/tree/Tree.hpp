@@ -22,6 +22,7 @@ namespace sunfish {
 
 struct Record;
 class Evaluator;
+class TT;
 
 namespace GenPhase_ {
 
@@ -143,11 +144,11 @@ bool isPriorMove(const Tree& tree,
 
 void addKiller(Tree& tree, Move move);
 
-bool doMove(Tree& tree, Move& move, Evaluator& eval);
+bool doMove(Tree& tree, Move& move, Evaluator& eval, TT& tt);
 
 void undoMove(Tree& tree);
 
-void doNullMove(Tree& tree);
+void doNullMove(Tree& tree, TT& tt);
 
 void undoNullMove(Tree& tree);
 
