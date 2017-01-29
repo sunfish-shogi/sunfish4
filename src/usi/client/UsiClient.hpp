@@ -89,6 +89,8 @@ private:
 
   void onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
+  void onIterateEnd(const Searcher&, float, int) override {}
+
   Command receive();
 
   Command receiveWithBreak();

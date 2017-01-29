@@ -526,6 +526,10 @@ bool Searcher::aspsearch(Tree& tree,
             bestScore);
   }
 
+  if (isMainThread) {
+    handler_->onIterateEnd(*this, timer_.elapsed(), depth);
+  }
+
   return bestScore > -Score::mate() && bestScore < Score::mate();
 }
 

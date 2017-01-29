@@ -21,6 +21,7 @@ Solver::Solver() {
   config_.muximumDepth = 18;
   config_.muximumTimeSeconds = 3;
   config_.numberOfThreads = 1;
+  config_.noInterrupt = false;
 }
 
 bool Solver::solve(const char* path) {
@@ -152,10 +153,16 @@ bool Solver::solve(const Position& position, Move correct) {
 
 void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
-  if (depth >= 5 && pv.size() >= 1 && pv.getMove(0) == correct_) {
+  if (!config_.noInterrupt &&
+      depth >= 5 &&
+      pv.size() >= 1 &&
+      pv.getMove(0) == correct_) {
     searcher_.interrupt();
   }
+}
 
+void Solver::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
+  LoggingSearchHandler::onIterateEnd(searcher, elapsed, depth);
   auto& info = searcher.getInfo();
   auto realDepth = depth / Searcher::Depth1Ply;
   for (int i = 0; i < MaxDepthOfNodeCount; i++) {

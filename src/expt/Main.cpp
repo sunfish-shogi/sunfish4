@@ -26,6 +26,7 @@ int main(int argc, char** argv, char**) {
   po.addOption("time", "t", "a muximum time of search in seconds (This option will used when the --solve option is specified.)", true);
   po.addOption("depth", "d", "a muximum depth of search (This option will used when the --solve option is specified.)", true);
   po.addOption("threads", "r", "a number of search threads (This option will used when the --solve option is specified.)", true);
+  po.addOption("no-interrupt", "ni", "If this option is specified, it is disabled to interrupt. (This option will used when the --solve option is specified.)", false);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -65,6 +66,9 @@ int main(int argc, char** argv, char**) {
     }
     if (po.has("threads")) {
       config.numberOfThreads = std::stoi(po.getValue("threads"));
+    }
+    if (po.has("no-interrupt")) {
+      config.noInterrupt = true;
     }
     solver.setConfig(config);
 

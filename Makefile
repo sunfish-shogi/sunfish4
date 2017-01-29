@@ -80,7 +80,7 @@ expt-prof:
 
 prof:
 	$(MAKE) expt-prof
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROF5) --time 5 --depth 18
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROF5) -ni --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
 	@echo
 	$(SHELL) -c '$(GROUP_PROF) < $(PROFOUT)'
@@ -89,7 +89,7 @@ prof:
 
 prof1:
 	$(MAKE) expt-prof
-	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1) --time 5 --depth 18
+	./$(SUNFISH_EXPT) --solve $(KIFU_PROF1) -ni --time 5 --depth 18
 	$(SHELL) -c '$(PROF) ./$(SUNFISH_EXPT) > $(PROFOUT)'
 	@echo
 	$(SHELL) -c '$(GROUP_PROF) < $(PROFOUT)'
