@@ -16,6 +16,8 @@ namespace {
 
 const char* const EvalBin = "eval.bin";
 
+CONSTEXPR_CONST Score EnteringKing = 1000;
+
 } // namespace
 
 namespace sunfish {
@@ -93,6 +95,14 @@ Score Evaluator::calculateMaterialScore(const Position& position) const {
     }
   }
 
+  if (position.getBlackKingSquare().getRank() <= 3) {
+    score += EnteringKing;
+  }
+
+  if (position.getWhiteKingSquare().getRank() >= 7) {
+    score -= EnteringKing;
+  }
+
   return score;
 }
 
@@ -100,12 +110,24 @@ Score Evaluator::calculateMaterialScoreDiff(Score score,
                                             const Position& position,
                                             Move move,
                                             Piece captured) const {
+  Piece piece = position.getPieceOnBoard(move.to());
   if (move.isPromotion()) {
-    Piece piece = position.getPieceOnBoard(move.to());
     if (position.getTurn() == Turn::White) {
       score += material::promotionScore(piece);
     } else {
       score -= material::promotionScore(piece);
+    }
+  } else if (piece == Piece::blackKing()) {
+    if (move.from().getRank() >= 4 && move.to().getRank() <= 3) {
+      score += EnteringKing;
+    } else if (move.from().getRank() <= 3 && move.to().getRank() >= 4) {
+      score -= EnteringKing;
+    }
+  } else if (piece == Piece::whiteKing()) {
+    if (move.from().getRank() <= 6 && move.to().getRank() >= 7) {
+      score -= EnteringKing;
+    } else if (move.from().getRank() >= 7 && move.to().getRank() <= 6) {
+      score += EnteringKing;
     }
   }
 
