@@ -120,14 +120,14 @@ bool isKiller2Good(const Tree& tree) {
 inline
 bool isKiller1Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-  return tree.position.isLegalMoveMaybe(node.killerMove1,
+  return tree.position.validateMove(node.killerMove1,
                                         node.checkState);
 }
 
 inline
 bool isKiller2Legal(const Tree& tree) {
   auto& node = tree.nodes[tree.ply];
-  return tree.position.isLegalMoveMaybe(node.killerMove2,
+  return tree.position.validateMove(node.killerMove2,
                                         node.checkState);
 }
 

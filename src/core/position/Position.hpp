@@ -291,11 +291,11 @@ public:
   /**
    * Detect if the specified move is legal.
    */
-  bool isLegalMoveMaybe(const Move& move, const CheckState& checkState) const {
+  bool validateMove(const Move& move, const CheckState& checkState) const {
     if (turn_ == Turn::Black) {
-      return isLegalMoveMaybe<Turn::Black>(move, checkState);
+      return validateMove<Turn::Black>(move, checkState);
     } else {
-      return isLegalMoveMaybe<Turn::White>(move, checkState);
+      return validateMove<Turn::White>(move, checkState);
     }
   }
 
@@ -483,7 +483,7 @@ private:
   bool hasPawnInFile(int file) const;
 
   template <Turn turn>
-  bool isLegalMoveMaybe(Move move, const CheckState& checkState) const;
+  bool validateMove(Move move, const CheckState& checkState) const;
 
   template <Turn turn>
   bool doMove(Move move, Piece& wbCaptured);

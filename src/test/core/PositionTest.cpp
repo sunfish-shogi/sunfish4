@@ -212,48 +212,48 @@ TEST(PositionTest, testIsLegalMoveMaybe) {
     CheckState checkState = pos.getCheckState();
 
     // pawn (drop)
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s42()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s89()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s56()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s76()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s42()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s89()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s56()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s76()), checkState));
 
     // lance (drop)
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s32()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s56()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s99()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s47()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s32()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s56()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s99()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::lance(), Square::s47()), checkState));
 
     // silver (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s88()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s88()), checkState));
 
     // pawn
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s57(), Square::s56(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s57(), Square::s55(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s57(), Square::s58(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s57(), Square::s56(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s57(), Square::s55(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s57(), Square::s58(), false), checkState));
 
     // bishop
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s76(), Square::s65(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s76(), Square::s54(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s76(), Square::s43(), true ), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s76(), Square::s32(), true ), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s76(), Square::s46(), true ), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s76(), Square::s65(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s76(), Square::s54(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s76(), Square::s43(), true ), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s76(), Square::s32(), true ), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s76(), Square::s46(), true ), checkState));
 
     // dragon
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s23(), Square::s12(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s23(), Square::s12(), true ), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s23(), Square::s29(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s23(), Square::s33(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s23(), Square::s43(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s23(), Square::s53(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s23(), Square::s45(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s23(), Square::s12(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s23(), Square::s12(), true ), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s23(), Square::s29(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s23(), Square::s33(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s23(), Square::s43(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s23(), Square::s53(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s23(), Square::s45(), false), checkState));
 
     // king
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s47(), Square::s56(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s47(), Square::s57(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s47(), Square::s69(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s47(), Square::s56(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s47(), Square::s57(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s47(), Square::s69(), false), checkState));
 
     // not exists
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s38(), Square::s37(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s38(), Square::s37(), false), checkState));
   }
 
   {
@@ -273,31 +273,31 @@ TEST(PositionTest, testIsLegalMoveMaybe) {
     CheckState checkState = pos.getCheckState();
 
     // pawn (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s16()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s26()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s36()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s46()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s56()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s66()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s76()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s44()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s16()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s26()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s36()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s46()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s56()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s66()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s76()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s44()), checkState));
 
     // silver (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s26()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s36()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s46()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s56()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s66()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s26()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s36()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s46()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s56()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s66()), checkState));
 
     // pawn
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s27(), Square::s26(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s47(), Square::s46(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s77(), Square::s76(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s27(), Square::s26(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s47(), Square::s46(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s77(), Square::s76(), false), checkState));
 
     // king
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s66(), Square::s56(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s66(), Square::s75(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s66(), Square::s64(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s66(), Square::s56(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s66(), Square::s75(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s66(), Square::s64(), false), checkState));
   }
 
   {
@@ -317,48 +317,48 @@ TEST(PositionTest, testIsLegalMoveMaybe) {
     CheckState checkState = pos.getCheckState();
 
     // pawn (drop)
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s48()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s81()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s54()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s74()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s48()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s81()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s54()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s74()), checkState));
 
     // lance (drop)
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s38()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s54()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s91()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::lance(), Square::s43()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s38()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s54()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::lance(), Square::s91()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::lance(), Square::s43()), checkState));
 
     // silver (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s82()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s82()), checkState));
 
     // pawn
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s53(), Square::s54(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s53(), Square::s55(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s53(), Square::s52(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s53(), Square::s54(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s53(), Square::s55(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s53(), Square::s52(), false), checkState));
 
     // bishop
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s74(), Square::s65(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s74(), Square::s56(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s74(), Square::s47(), true ), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s74(), Square::s38(), true ), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s74(), Square::s44(), true ), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s74(), Square::s65(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s74(), Square::s56(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s74(), Square::s47(), true ), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s74(), Square::s38(), true ), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s74(), Square::s44(), true ), checkState));
 
     // dragon
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s27(), Square::s18(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s27(), Square::s18(), true ), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s27(), Square::s21(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s27(), Square::s37(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s27(), Square::s47(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s27(), Square::s57(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s27(), Square::s45(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s27(), Square::s18(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s27(), Square::s18(), true ), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s27(), Square::s21(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s27(), Square::s37(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s27(), Square::s47(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s27(), Square::s57(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s27(), Square::s45(), false), checkState));
 
     // king
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s43(), Square::s54(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s43(), Square::s53(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s43(), Square::s61(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s43(), Square::s54(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s43(), Square::s53(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s43(), Square::s61(), false), checkState));
 
     // not exists
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s32(), Square::s33(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s32(), Square::s33(), false), checkState));
   }
 
   {
@@ -378,31 +378,31 @@ TEST(PositionTest, testIsLegalMoveMaybe) {
     CheckState checkState = pos.getCheckState();
 
     // pawn (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s14()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s24()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s34()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s44()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s54()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s64()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s74()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::pawn(), Square::s46()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s14()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s24()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s34()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s44()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::pawn(), Square::s54()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s64()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s74()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::pawn(), Square::s46()), checkState));
 
     // silver (drop)
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s24()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s34()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s44()), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s54()), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(PieceType::silver(), Square::s64()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s24()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s34()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s44()), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(PieceType::silver(), Square::s54()), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(PieceType::silver(), Square::s64()), checkState));
 
     // pawn
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s23(), Square::s24(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s43(), Square::s44(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s73(), Square::s74(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s23(), Square::s24(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s43(), Square::s44(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s73(), Square::s74(), false), checkState));
 
     // king
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s64(), Square::s54(), false), checkState));
-    ASSERT_EQ(true , pos.isLegalMoveMaybe(Move(Square::s64(), Square::s75(), false), checkState));
-    ASSERT_EQ(false, pos.isLegalMoveMaybe(Move(Square::s64(), Square::s66(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s64(), Square::s54(), false), checkState));
+    ASSERT_EQ(true , pos.validateMove(Move(Square::s64(), Square::s75(), false), checkState));
+    ASSERT_EQ(false, pos.validateMove(Move(Square::s64(), Square::s66(), false), checkState));
   }
 }
 

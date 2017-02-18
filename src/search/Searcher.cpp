@@ -646,7 +646,7 @@ Score Searcher::search(Tree& tree,
 
       // previous best move
       if (!ttMove.isNone() &&
-          tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
+          tree.position.validateMove(ttMove, node.checkState)) {
         node.hashMove = ttMove;
       }
     }
@@ -761,7 +761,7 @@ Score Searcher::search(Tree& tree,
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
       Move ttMove = tte.move();
-      if (tree.position.isLegalMoveMaybe(ttMove, node.checkState)) {
+      if (tree.position.validateMove(ttMove, node.checkState)) {
         node.hashMove = ttMove;
       }
     }

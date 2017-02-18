@@ -475,7 +475,7 @@ template bool Position::hasPawnInFile<Turn::Black>(int) const;
 template bool Position::hasPawnInFile<Turn::White>(int) const;
 
 template <Turn turn>
-bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
+bool Position::validateMove(Move move, const CheckState& checkState) const {
   Square to = move.to();
   bool isDrop = move.isDrop();
   bool isKing = false;
@@ -590,8 +590,8 @@ bool Position::isLegalMoveMaybe(Move move, const CheckState& checkState) const {
 
   return true;
 }
-template bool Position::isLegalMoveMaybe<Turn::Black>(Move, const CheckState&) const;
-template bool Position::isLegalMoveMaybe<Turn::White>(Move, const CheckState&) const;
+template bool Position::validateMove<Turn::Black>(Move, const CheckState&) const;
+template bool Position::validateMove<Turn::White>(Move, const CheckState&) const;
 
 template <Turn turn>
 bool Position::doMove(Move move, Piece& wbCaptured) {
