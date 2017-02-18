@@ -283,7 +283,9 @@ void Searcher::idsearch(const Position& pos,
     if (tree.completedDepth > result_.depth) {
       result_.move = node.moves[0].excludeExtData();
       result_.score = moveToScore(node.moves[0]);
-      result_.pv = node.pv;
+      if (node.pv.size() != 0 && node.pv.getMove(0) == result_.move) {
+        result_.pv = node.pv;
+      }
       result_.depth = tree.completedDepth;
       result_.elapsed = timer_.elapsed();
       if (ti != 0 && handler_ != nullptr) {
@@ -358,6 +360,7 @@ void Searcher::idsearch(Tree& tree,
 bool Searcher::aspsearch(Tree& tree,
                          int depth) {
   auto& node = tree.nodes[tree.ply];
+  auto& childNode = tree.nodes[tree.ply+1];
   bool isMainThread = tree.index == 0;
 
   if (node.moves.size() == 0) {
@@ -463,7 +466,7 @@ bool Searcher::aspsearch(Tree& tree,
         doFullSearch = true;
         if (isMainThread && handler_ != nullptr) {
           PV pv;
-          pv.set(move, depth, pv);
+          pv.set(move, depth, childNode.pv);
           handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
         }
         continue;
@@ -471,6 +474,9 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     setScoreToMove(node.moves[moveCount], score);
+    if (score > bestScore) {
+      node.pv.set(move, depth, childNode.pv);
+    }
 
     // fail-high
     if (score >= beta) {
@@ -479,9 +485,7 @@ bool Searcher::aspsearch(Tree& tree,
       if (betas[betaIndex] > score) {
         doFullSearch = true;
         if (isMainThread && handler_ != nullptr) {
-          PV pv;
-          pv.set(move, depth, pv);
-          handler_->onFailHigh(*this, pv, timer_.elapsed(), depth, score);
+          handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
         }
         continue;
       }
@@ -489,9 +493,6 @@ bool Searcher::aspsearch(Tree& tree,
 
     if (score > bestScore) {
       bestScore = score;
-
-      auto& childNode = tree.nodes[tree.ply+1];
-      node.pv.set(move, depth, childNode.pv);
       if (isMainThread && handler_ != nullptr) {
         handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
       }
