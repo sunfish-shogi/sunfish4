@@ -147,6 +147,8 @@ private:
   void storePV(Tree& tree,
                const PV& pv,
                unsigned ply,
+               Score alpha,
+               Score beta,
                Score score);
 
   bool isInterrupted() const {

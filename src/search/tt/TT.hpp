@@ -46,20 +46,6 @@ public:
     return TTStatus::Reject;
   }
 
-  TTStatus storePV(Zobrist::Type hash,
-                   Score score,
-                   int depth,
-                   const Move& move) {
-    TTElement element;
-    TTSlots& slots = getElement(hash);
-    slots.get(hash, element);
-    element.updatePV(hash,
-                     score,
-                     depth,
-                     move);
-    return slots.set(element);
-  }
-
   bool get(Zobrist::Type hash, TTElement& e) {
     return getElement(hash).get(hash, e) &&
            e.checkHash(hash);

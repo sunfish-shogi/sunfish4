@@ -384,6 +384,8 @@ bool Searcher::aspsearch(Tree& tree,
   int maxBetaIndex = sizeof(betas) / sizeof(betas[0]) - 1;
   int alphaIndex = doAsp ? 0 : maxAlphaIndex;
   int betaIndex = doAsp ? 0 : maxBetaIndex;
+  Score pvAlpha = -Score::infinity();
+  Score pvBeta = -Score::infinity();
 
   Score bestScore = -Score::infinity();
 
@@ -476,6 +478,8 @@ bool Searcher::aspsearch(Tree& tree,
     setScoreToMove(node.moves[moveCount], score);
     if (score > bestScore) {
       node.pv.set(move, depth, childNode.pv);
+      pvAlpha = alpha;
+      pvBeta = beta;
     }
 
     // fail-high
@@ -520,10 +524,12 @@ bool Searcher::aspsearch(Tree& tree,
     return moveToScore(lhs) > moveToScore(rhs);
   });
 
-  if (node.pv.size() != 0 && bestScore != -Score::infinity()) {
+  if (pvBeta != -Score::infinity()) {
     storePV(tree,
             node.pv,
             0,
+            pvAlpha,
+            pvBeta,
             bestScore);
   }
 
@@ -1334,6 +1340,8 @@ void Searcher::sortRootMoves(Tree& tree) {
 void Searcher::storePV(Tree& tree,
                        const PV& pv,
                        unsigned ply,
+                       Score alpha,
+                       Score beta,
                        Score score) {
   if (ply >= pv.size()) {
     return;
@@ -1354,12 +1362,18 @@ void Searcher::storePV(Tree& tree,
     storePV(tree,
             pv,
             ply + 1,
+            -beta,
+            -alpha,
             -score);
     undoMove(tree);
-    tt_.storePV(tree.position.getHash(),
-                score,
-                depth,
-                move);
+    tt_.store(tree.position.getHash(),
+              alpha,
+              beta,
+              score,
+              depth,
+              ply,
+              move,
+              false);
   } else {
     LOG(warning) << "the PV contain an illegal move.";
   }
