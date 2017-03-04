@@ -1308,26 +1308,20 @@ void Searcher::sortRootMoves(Tree& tree) {
       node.moves.remove(moveCount);
       continue;
     }
+    undoMove(tree);
 
     if (move == ttMove) {
-      undoMove(tree);
       setScoreToMove(node.moves[moveCount], Score::infinity());
       moveCount++;
       continue;
     }
 
-    Score score = -quies(tree,
-                         0,
-                         -Score::infinity(),
-                         Score::infinity());
-
+    Score score = SEE::calculate(tree.position, move);
     if (move.isPromotion()) {
       score += 1;
     }
 
     setScoreToMove(node.moves[moveCount], score);
-
-    undoMove(tree);
 
     moveCount++;
   }
