@@ -57,7 +57,7 @@ uint8_t ReductionDepth[2][64][64];
 void initializeReductionDepth() {
   for (int d = 1; d < 64; d++) {
     for (int mc = 0; mc < 64; mc++) {
-      double r = 0.7 * log(d) + 0.4 * log(mc + 1);
+      double r = 0.5 * log(d) + 0.8 * log(mc + 1);
       if (r < 0.8) {
         continue;
       }
