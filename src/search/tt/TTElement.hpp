@@ -56,14 +56,6 @@ private:
   uint16_t word_;
   uint16_t sum_;
 
-  bool update(Zobrist::Type newHash,
-              Score newScore,
-              int newScoreType,
-              int newDepth,
-              int ply,
-              Move move,
-              bool mateThreat);
-
   uint16_t calcCheckSum() const {
     return hash_
          ^ move_
@@ -84,31 +76,10 @@ public:
               Score alpha,
               Score beta,
               Score newScore,
-              int newDepth, int ply,
-              const Move& move,
-              bool mateThreat) {
-    int newScoreType;
-    if (newScore >= beta) {
-      newScoreType = TTScoreType::Lower;
-    } else if (newScore <= alpha) {
-      newScoreType = TTScoreType::Upper;
-    } else {
-      newScoreType = TTScoreType::Exact;
-    }
-
-    return update(newHash,
-                  newScore,
-                  newScoreType,
-                  newDepth,
-                  ply,
-                  move,
-                  mateThreat);
-  }
-
-  void updatePV(Zobrist::Type newHash,
-                Score newScore,
-                int newDepth,
-                Move move);
+              int newDepth,
+              int ply,
+              Move move,
+              bool mateThreat);
 
   bool isLive() const {
     return (sum_ ^ calcCheckSum()) == 0LLU;

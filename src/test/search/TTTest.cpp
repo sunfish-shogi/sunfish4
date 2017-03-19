@@ -82,20 +82,6 @@ const char* posStr5 =
   "P-\n"
   "+\n";
 
-const char* posStr6 =
-  "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-  "P2 * -HI *  *  *  *  * -KA * \n"
-  "P3-FU * -FU-FU-FU-FU * -FU-FU\n"
-  "P4 * -FU *  *  *  * -FU *  * \n"
-  "P5 *  *  *  *  *  *  * +FU * \n"
-  "P6 *  * +FU *  *  *  *  *  * \n"
-  "P7+FU+FU * +FU+FU+FU+FU * +FU\n"
-  "P8 * +KA *  *  *  *  * +HI * \n"
-  "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-  "P+\n"
-  "P-\n"
-  "-\n";
-
 }
 
 using namespace sunfish;
@@ -106,7 +92,6 @@ TEST(TTTest, test) {
 
   Position pos1 = PositionUtil::createPositionFromCsaString(posStr1);
   Position pos2 = PositionUtil::createPositionFromCsaString(posStr2);
-  Position pos3 = PositionUtil::createPositionFromCsaString(posStr3);
 
   tt.store(/* hash  */ pos1.getHash(),
            /* alpha */ Score(-123),
@@ -117,14 +102,8 @@ TEST(TTTest, test) {
            /* move  */ Move(Square::s77(), Square::s76(), false),
            /* mate  */ false);
 
-  tt.storePV(/* hash  */ pos2.getHash(),
-             /* score */ Score(22),
-             /* depth */  7,
-             /* move  */ Move(Square::s33(), Square::s34(), false));
-
   ASSERT_EQ(true , tt.get(pos1.getHash(), tte));
-  ASSERT_EQ(true , tt.get(pos2.getHash(), tte));
-  ASSERT_EQ(false, tt.get(pos3.getHash(), tte));
+  ASSERT_EQ(false, tt.get(pos2.getHash(), tte));
 }
 
 TEST(TTTest, testInitialization) {
@@ -152,7 +131,6 @@ TEST(TTTest, testElement) {
   Position pos3 = PositionUtil::createPositionFromCsaString(posStr3);
   Position pos4 = PositionUtil::createPositionFromCsaString(posStr4);
   Position pos5 = PositionUtil::createPositionFromCsaString(posStr5);
-  Position pos6 = PositionUtil::createPositionFromCsaString(posStr6);
 
   tt.store(/* hash  */ pos1.getHash(),
            /* alpha */ Score(-123),
@@ -199,11 +177,6 @@ TEST(TTTest, testElement) {
            /* move  */ Move(Square::s84(), Square::s85(), false),
            /* mate  */ false);
 
-  tt.storePV(/* hash  */ pos6.getHash(),
-             /* score */ Score(-22),
-             /* depth */ 7,
-             /* move  */ Move(Square::s83(), Square::s84(), false));
-
   bool success = tt.get(pos1.getHash(), tte);
   ASSERT_EQ(true, success);
   ASSERT_EQ(Score(77), tte.score(8));
@@ -237,14 +210,6 @@ TEST(TTTest, testElement) {
   ASSERT_EQ(true, success);
   ASSERT_EQ(-Score::infinity() + 6, tte.score(5));
   ASSERT_EQ(TTScoreType::Upper, tte.scoreType());
-
-  success = tt.get(pos6.getHash(), tte);
-  ASSERT_EQ(true, success);
-  ASSERT_EQ(Score(-22), tte.score(8));
-  ASSERT_EQ(TTScoreType::Exact, tte.scoreType());
-  ASSERT_EQ(7, tte.depth());
-  ASSERT_EQ(Move(Square::s83(), Square::s84(), false), tte.move());
-  ASSERT_EQ(false, tte.isMateThreat());
 }
 
 TEST(TTTest, testUpdate) {

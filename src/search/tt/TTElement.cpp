@@ -10,13 +10,21 @@
 namespace sunfish {
 
 bool TTElement::update(Zobrist::Type newHash,
+                       Score alpha,
+                       Score beta,
                        Score newScore,
-                       int newScoreType,
                        int newDepth,
                        int ply,
                        Move move,
                        bool mateThreat) {
-  ASSERT(newScoreType < (1 << TT_STYPE_WIDTH));
+  int newScoreType;
+  if (newScore >= beta) {
+    newScoreType = TTScoreType::Lower;
+  } else if (newScore <= alpha) {
+    newScoreType = TTScoreType::Upper;
+  } else {
+    newScoreType = TTScoreType::Exact;
+  }
 
   newDepth = std::max(newDepth, 0);
   newDepth = std::min(newDepth, (1 << TT_DEPTH_WIDTH) - 1);
@@ -57,27 +65,6 @@ bool TTElement::update(Zobrist::Type newHash,
 
   return true;
 
-}
-
-void TTElement::updatePV(Zobrist::Type newHash,
-                         Score newScore,
-                         int newDepth,
-                         Move move) {
-  newDepth = std::max(newDepth, 0);
-
-  // check if a hash value of the current data is equal to a value of new data.
-  if (checkHash(newHash)) {
-    if (newDepth < depth()) {
-      return;
-    }
-  }
-
-  hash_ = newHash >> (64 - TT_HASH_WIDTH);
-  move_ = move.serialize16();
-  score_ = newScore.raw();
-  word_  = static_cast<uint16_t>(TTScoreType::Exact) << TT_STYPE_SHIFT;
-  word_ |= static_cast<uint16_t>(newDepth) << TT_DEPTH_SHIFT;
-  sum_ = calcCheckSum();
 }
 
 } // namespace sunfish
