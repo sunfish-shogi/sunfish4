@@ -461,7 +461,7 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     // fail-low
-    if (score <= alphas[alphaIndex] && score > bestScore) {
+    if (score <= alphas[alphaIndex] && alphaIndex < maxAlphaIndex && score > bestScore) {
       for (; score <= alphas[alphaIndex] && alphaIndex < maxAlphaIndex; alphaIndex++) {}
 
       if (alphas[alphaIndex] < score) {
@@ -483,7 +483,7 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     // fail-high
-    if (score >= beta) {
+    if (score >= beta && betaIndex < maxBetaIndex) {
       for (; score >= betas[betaIndex] && betaIndex < maxBetaIndex; betaIndex++) {}
 
       if (betas[betaIndex] > score) {
