@@ -56,7 +56,7 @@ public:
     for (SizeType i = 0; i < getSize(); i++) {
       usage += getElement(i).fullCount();
     }
-    return static_cast<float>(usage) / TTSlots::Size / getSize();
+    return static_cast<float>(usage) / (TTSlots::Size * getSize());
   }
 
 };

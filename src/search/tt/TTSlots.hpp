@@ -15,10 +15,9 @@ namespace sunfish {
 
 enum class TTStatus : int {
   None,
-  Reject,
-  New,
   Update,
-  Collide,
+  Replace,
+  Reject,
 };
 
 class TTSlots {
@@ -28,7 +27,7 @@ public:
 
   static CONSTEXPR_CONST SizeType Size = 3;
 
-  TTSlots() : lastAccess_(0) {
+  TTSlots() {
   }
 
   TTStatus set(const TTElement& element);
@@ -40,7 +39,6 @@ public:
 private:
 
   TTElement slots_[Size];
-  volatile SizeType lastAccess_;
 
 };
 

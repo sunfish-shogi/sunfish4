@@ -228,7 +228,7 @@ TEST(TTTest, testUpdate) {
                  /* ply   */ 3,
                  /* move  */ Move(Square::s77(), Square::s76(), false),
                  /* mate  */ false);
-  ASSERT_TRUE(TTStatus::New == tts);
+  ASSERT_TRUE(TTStatus::Replace == tts);
 
   // shallow
   tts = tt.store(/* hash  */ pos1.getHash(),
