@@ -37,7 +37,7 @@ bool TTElement::update(Zobrist::Type newHash,
         newScore > -Score::mate()) {
       return false;
     }
-    word_ &= TT_MATE_WIDTH;
+    word_ &= TT_MATE_MASK;
   } else {
     // overwrite
     move_ = Move::none().serialize16();
