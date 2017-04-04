@@ -886,6 +886,8 @@ Score Searcher::search(Tree& tree,
       bestScore = score;
       bestMove = move;
 
+      node.pv.set(move, depth, childNode.pv);
+
       // beta cut
       if (score >= beta) {
         node.isHistorical = childNode.isHistorical;
@@ -895,8 +897,6 @@ Score Searcher::search(Tree& tree,
         }
         break;
       }
-
-      node.pv.set(move, depth, childNode.pv);
     }
 
     if (node.quietsSearched.size() < node.quietsSearched.capacity() &&
