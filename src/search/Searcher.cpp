@@ -476,7 +476,7 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     setScoreToMove(node.moves[moveCount], score);
-    if (score > bestScore) {
+    if (score > alpha) {
       node.pv.set(move, depth, childNode.pv);
       pvAlpha = alpha;
       pvBeta = beta;
@@ -886,8 +886,6 @@ Score Searcher::search(Tree& tree,
       bestScore = score;
       bestMove = move;
 
-      node.pv.set(move, depth, childNode.pv);
-
       // beta cut
       if (score >= beta) {
         node.isHistorical = childNode.isHistorical;
@@ -897,6 +895,8 @@ Score Searcher::search(Tree& tree,
         }
         break;
       }
+
+      node.pv.set(move, depth, childNode.pv);
     }
 
     if (node.quietsSearched.size() < node.quietsSearched.capacity() &&
