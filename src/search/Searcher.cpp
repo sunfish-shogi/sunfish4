@@ -635,8 +635,9 @@ Score Searcher::search(Tree& tree,
                            : (ttScoreType & TTScoreType::Lower)) {
         // history heuristics
         if (!ttMove.isNone() &&
+            !isCheck(node.checkState) &&
             !tree.position.isCapture(ttMove)) {
-          updateHistory(tree, ttMove, depth);
+          updateHistory(tree, ttMove, ttDepth);
         }
 
         tree.info.hashCut++;
