@@ -38,6 +38,8 @@ enum Type : uint16_t {
   Quies,
   InitQuies2,
   Quies2,
+  InitProb,
+  ProbCaptures,
   End,
 };
 
@@ -63,6 +65,7 @@ struct Node {
   int16_t killerCount2;
 
   uint16_t genPhase;
+  Score probThreshold;
   Moves::iterator moveIterator;
   Moves::iterator badCaptureEnd;
   Moves moves;

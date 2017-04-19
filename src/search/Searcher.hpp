@@ -140,6 +140,8 @@ private:
 
   void generateMovesOnQuies(Tree& tree, int depth);
 
+  void generateMovesOnProbCut(Tree& tree, Score score);
+
   Move nextMove(Tree& tree);
 
   template <bool Capture>

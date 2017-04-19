@@ -19,6 +19,7 @@ struct SearchInfo {
   uint64_t nullMovePruning;
   uint64_t futilityPruning;
   uint64_t razoring;
+  uint64_t probCut;
   uint64_t failHigh;
   uint64_t failHighFirst;
   uint64_t singularExtension;
@@ -35,6 +36,7 @@ inline void mergeSearchInfo(SearchInfo& dst, const SearchInfo& src) {
   dst.nullMovePruning   += src.nullMovePruning;
   dst.futilityPruning   += src.futilityPruning;
   dst.razoring          += src.razoring;
+  dst.probCut           += src.probCut;
   dst.failHigh          += src.failHigh;
   dst.failHighFirst     += src.failHighFirst;
   dst.singularExtension += src.singularExtension;
@@ -55,6 +57,7 @@ inline void printSearchInfo(T& os, const SearchInfo& info, float elapsed) {
   os << "null move pruning  : " << info.nullMovePruning;
   os << "futility pruning   : " << info.futilityPruning;
   os << "razoring           : " << info.razoring;
+  os << "probCut            : " << info.probCut;
   os << "fail high first    : " << failHighFirst << "%";
   os << "singular extension : " << info.singularExtension;
 }

@@ -758,6 +758,46 @@ Score Searcher::search(Tree& tree,
     }
   }
 
+  // ProbCut
+  if (isNullWindow &&
+      beta < Score::mate() &&
+      beta > -Score::mate() &&
+      depth >= Depth1Ply * 5 &&
+      !isCheck(node.checkState)) {
+    Score pbeta = beta + 200;
+    int newDepth = depth - 4 * Depth1Ply;
+    generateMovesOnProbCut(tree, pbeta - standPat);
+
+    for (;;) {
+      Move move = nextMove(tree);
+      if (move.isNone()) {
+        break;
+      }
+
+      bool moveOk = doMove(tree, move, *evaluator_, tt_);
+      if (!moveOk) {
+        continue;
+      }
+
+      Score score = -search(tree,
+                            newDepth,
+                            -pbeta,
+                            -pbeta+1,
+                            NodeStat::normal());
+
+      undoMove(tree);
+
+      if (isInterrupted()) {
+        return Score::zero();
+      }
+
+      if (score >= pbeta) {
+        tree.info.probCut++;
+        return score;
+      }
+    }
+  }
+
   // recursive iterative deepening
   if (shouldRecursiveIDSearch(depth) &&
       node.ttMove.isNone() &&
@@ -1180,6 +1220,22 @@ void Searcher::generateMovesOnQuies(Tree& tree, int depth) {
   }
 }
 
+/**
+ * generate moves for ProbCut
+ */
+void Searcher::generateMovesOnProbCut(Tree& tree, Score threshold) {
+  auto& node = tree.nodes[tree.ply];
+  node.moves.clear();
+  node.moveIterator = node.moves.begin();
+  node.probThreshold = threshold;
+
+  if (!node.ttMove.isNone()) {
+    node.moves.add(node.ttMove);
+  }
+
+  node.genPhase = GenPhase::InitProb;
+}
+
 Move Searcher::nextMove(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
@@ -1286,6 +1342,31 @@ Move Searcher::nextMove(Tree& tree) {
       }
 
       if (SEE::calculate(tree.position, move) < Score::zero()) {
+        continue;
+      }
+
+      return *(node.moveIterator++);
+    }
+    node.genPhase = GenPhase::End;
+    break;
+
+  case GenPhase::InitProb:
+    if (node.moveIterator != node.moves.end()) {
+      return *(node.moveIterator++);
+    }
+
+    MoveGenerator::generateCaptures(tree.position, node.moves);
+    remove(node.moves, node.moveIterator, [&node](const Move& move) {
+      return move == node.ttMove;
+    });
+    sortMoves<true>(tree);
+    node.genPhase++;
+
+  case GenPhase::ProbCaptures:
+    for (; node.moveIterator != node.moves.end(); node.moveIterator++) {
+      Move move = *node.moveIterator;
+
+      if (SEE::calculate(tree.position, move) < node.probThreshold) {
         continue;
       }
 
