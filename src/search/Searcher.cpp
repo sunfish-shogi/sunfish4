@@ -9,6 +9,7 @@
 #include "search/eval/Evaluator.hpp"
 #include "search/eval/Material.hpp"
 #include "core/move/MoveGenerator.hpp"
+#include "common/math/Random.hpp"
 #include "logger/Logger.hpp"
 #include <algorithm>
 #include <cstring>
@@ -1293,7 +1294,7 @@ void Searcher::sortMoves(Tree& tree) {
 void Searcher::sortRootMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
-  tree.random.shuffle(node.moves.begin(), node.moves.end());
+  Random::shuffle(node.moves.begin(), node.moves.end());
 
   Move ttMove = Move::none();
   TTElement tte;

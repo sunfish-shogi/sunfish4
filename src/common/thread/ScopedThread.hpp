@@ -17,10 +17,10 @@ public:
   }
 
   ~ScopedThread() {
+    if (stop_) {
+      stop_();
+    }
     if (thread_.joinable()) {
-      if (stop_) {
-        stop_();
-      }
       thread_.join();
     }
   }

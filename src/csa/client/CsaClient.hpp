@@ -6,7 +6,6 @@
 #ifndef SUNFISH_CSA_CLIENT_USICLIENT_HPP__
 #define SUNFISH_CSA_CLIENT_USICLIENT_HPP__
 
-#include "common/math/Random.hpp"
 #include "search/Searcher.hpp"
 #include "core/record/Record.hpp"
 #include "book/Book.hpp"
@@ -143,8 +142,6 @@ private:
   std::mutex sendMutex_;
 
   Book book_;
-
-  Random random_;
 
 };
 

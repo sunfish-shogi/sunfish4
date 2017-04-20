@@ -6,6 +6,7 @@
 #include "expt/mgtest/MoveGenerationTest.hpp"
 #include "expt/mgtest/TardyMoveGenerator.hpp"
 #include "common/string/StringUtil.hpp"
+#include "common/math/Random.hpp"
 #include "core/position/Position.hpp"
 #include "core/move/Moves.hpp"
 #include "core/move/MoveGenerator.hpp"
@@ -110,7 +111,7 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
     return TestStatus::Mate;
   }
 
-  auto r = random_.int16(moves.size());
+  auto r = Random::uint16(moves.size());
   auto move = moves[r];
 
   Piece captured;

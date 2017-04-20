@@ -8,6 +8,7 @@
 #include "core/move/Move.hpp"
 #include "core/move/Moves.hpp"
 #include "core/move/MoveGenerator.hpp"
+#include "common/math/Random.hpp"
 
 namespace sunfish {
 
@@ -39,7 +40,7 @@ bool RandomSearcher::search(const Position& pos, Move& move) {
     return false;
   }
 
-  auto index = random_.int16(moves.size());
+  auto index = Random::uint16(moves.size());
 
   move = moves[index];
 

@@ -601,7 +601,7 @@ bool CsaClient::onMove() {
 void CsaClient::runSearch(ScopedThread& searchThread) {
   // check opening book
   if (config_.useBook) {
-    Move bookMove = BookUtil::select(book_, position_, random_);
+    Move bookMove = BookUtil::select(book_, position_);
     if (!bookMove.isNone()) {
       OUT(info) << "opening book hit";
       send(bookMove.toString(position_));

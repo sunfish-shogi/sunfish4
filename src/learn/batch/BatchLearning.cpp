@@ -9,6 +9,7 @@
 #include "search/Searcher.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "core/record/CsaReader.hpp"
+#include "common/math/Random.hpp"
 #include "common/file_system/Directory.hpp"
 #include "common/resource/Resource.hpp"
 #include "common/string/TablePrinter.hpp"
@@ -562,7 +563,7 @@ void BatchLearning::generateGradient(GenGradThread& th,
 void BatchLearning::updateParameters() {
   each(*fv_, *gradient_, [this](int16_t& e, float& g) {
     float n = norm(e, config_.norm);
-    int16_t step = random_.bit() + random_.bit();
+    int16_t step = Random::bit() + Random::bit();
     if      (g + n > 0.0f && e <= Int16Max - step) { e += step; }
     else if (g + n < 0.0f && e >= Int16Min + step) { e -= step; }
     else if (g + n != 0.0f) { LOG(warning) << "A parameter is out of bounce."; }
@@ -592,8 +593,8 @@ void BatchLearning::updateParameters() {
   std::sort(m.begin(), m.end(), [](float* lhs, float* rhs) {
     return *lhs < *rhs;
   });
-  random_.shuffle(m.begin(), m.begin() + 6);
-  random_.shuffle(m.begin() + 6, m.end());
+  Random::shuffle(m.begin(), m.begin() + 6);
+  Random::shuffle(m.begin() + 6, m.end());
 
 #if DEBUG_PRINT
   Score mprev[PieceNumber::Num];
