@@ -17,10 +17,10 @@ public:
   }
 
   ~ScopedThread() {
-    if (stop_) {
-      stop_();
-    }
     if (thread_.joinable()) {
+      if (stop_) {
+        stop_();
+      }
       thread_.join();
     }
   }
@@ -28,7 +28,7 @@ public:
   template <class T, class U>
   void start(T&& proc,
              U&& stop) {
-    thread_ = std::thread(proc);
+    thread_ = std::thread(std::forward<T>(proc));
     stop_ = std::forward<U>(stop);
   }
 
