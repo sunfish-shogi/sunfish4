@@ -160,6 +160,11 @@ void optimize(FV& fv, OFV& ofv) {
                fv.kingWLanceYR,
                fv.kingWLance,
                ofv.kingWLance);
+
+  FV_PART_COPY(ofv, fv, kingAllyEffect9);
+  FV_PART_COPY(ofv, fv, kingEnemyEffect9);
+  FV_PART_COPY(ofv, fv, kingAllyEffect25);
+  FV_PART_COPY(ofv, fv, kingEnemyEffect25);
 }
 
 template <class Open,
@@ -303,6 +308,11 @@ void expand(FV& fv, OFV& ofv) {
                fv.kingWLanceYR,
                fv.kingWLance,
                ofv.kingWLance);
+
+  FV_PART_COPY(fv, ofv, kingAllyEffect9);
+  FV_PART_COPY(fv, ofv, kingEnemyEffect9);
+  FV_PART_COPY(fv, ofv, kingAllyEffect25);
+  FV_PART_COPY(fv, ofv, kingEnemyEffect25);
 }
 
 template <class FV>
@@ -658,6 +668,27 @@ void symmetrize(FV& fv, T&& func) {
                  fv.kingWLanceYR,
                  fv.kingWLance,
                  std::forward<T>(func));
+
+  // effect
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    if (rking.raw() <= king.raw()) {
+      continue;
+    }
+
+    for (unsigned c = 0; c <= 9; c++) {
+      func(fv.kingAllyEffect9[king.raw()][c],
+           fv.kingAllyEffect9[rking.raw()][c]);
+      func(fv.kingEnemyEffect9[king.raw()][c],
+           fv.kingEnemyEffect9[rking.raw()][c]);
+    }
+    for (unsigned c = 0; c <= 25; c++) {
+      func(fv.kingAllyEffect25[king.raw()][c],
+           fv.kingAllyEffect25[rking.raw()][c]);
+      func(fv.kingEnemyEffect25[king.raw()][c],
+           fv.kingEnemyEffect25[rking.raw()][c]);
+    }
+  }
 }
 
 enum FeatureOperationType {
@@ -665,79 +696,145 @@ enum FeatureOperationType {
   Extract,
 };
 
-template <FeatureOperationType type, class OFV, class T>
-inline
-T operate(OFV& ofv, const Position& position, T delta) {
-  T sum = 0;
-  auto bking = position.getBlackKingSquare().raw();
-  auto wking = position.getWhiteKingSquare().psym().raw();
+struct NeighborPiece {
+  uint8_t n;
+  uint8_t idx;
+};
 
-  struct NeighborPiece {
-    uint8_t n;
-    uint8_t idx;
-  };
+struct FeatureMeta {
+  int bking;
+  int wking;
+  Bitboard bnoking;
+  Bitboard wnoking;
+  Bitboard noking;
   NeighborPiece bns[Neighbor3x3::NN];
   int bnn = 0;
   NeighborPiece wns[Neighbor3x3::NN];
   int wnn = 0;
+};
 
-  auto bnoking = position.getBOccupiedBitboard();
-  auto wnoking = position.getWOccupiedBitboard();
-  bnoking.unset(position.getBlackKingSquare());
-  wnoking.unset(position.getWhiteKingSquare());
+template <FeatureOperationType type, class OFV, class T, Turn turn>
+inline
+T operatePiece(OFV& ofv, T delta, FeatureMeta& m, int typeIndex, int bIndex, int wIndex, int bs, int ws) {
+  T sum = 0;
+  if (type == FeatureOperationType::Evaluate) {
+    sum += ofv.kingPiece[m.bking][bs][bIndex];
+    sum -= ofv.kingPiece[m.wking][ws][wIndex];
+    for (int i = 0; i < m.bnn; i++) {
+      sum += ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex];
+    }
+    for (int i = 0; i < m.wnn; i++) {
+      sum -= ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex];
+    }
+    if (turn == Turn::Black) {
+      sum += ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex];
+    } else {
+      sum -= ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex];
+    }
+  } else {
+    ofv.kingPiece[m.bking][bs][bIndex] += delta;
+    ofv.kingPiece[m.wking][ws][wIndex] -= delta;
+    for (int i = 0; i < m.bnn; i++) {
+      ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex] += delta;
+    }
+    for (int i = 0; i < m.wnn; i++) {
+      ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex] -= delta;
+    }
+    if (turn == Turn::Black) {
+      ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex] += delta;
+    } else {
+      ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex] -= delta;
+    }
+  }
+  return sum;
+}
 
-  auto noking = bnoking | wnoking;
+template <FeatureOperationType type, class OFV, class T, Turn turn>
+inline
+T operateHand(OFV& ofv, T delta, FeatureMeta& m, int n, int ti, int bi, int wi) {
+  T sum = 0;
+  if (n != 0) {
+    if (type == FeatureOperationType::Evaluate) {
+      sum += ofv.kingHand[m.bking][bi + n - 1];
+      sum -= ofv.kingHand[m.wking][wi + n - 1];
+      for (int i = 0; i < m.bnn; i++) {
+        sum += ofv.kingNeighborHand[m.bking][m.bns[i].n][m.bns[i].idx][bi + n - 1];
+      }
+      for (int i = 0; i < m.wnn; i++) {
+        sum -= ofv.kingNeighborHand[m.wking][m.wns[i].n][m.wns[i].idx][wi + n - 1];
+      }
+      if (turn == Turn::Black) {
+        sum += ofv.kingKingHand[m.bking][m.wking][ti + n - 1];
+      } else {
+        sum -= ofv.kingKingHand[m.wking][m.bking][ti + n - 1];
+      }
+    } else {
+      ofv.kingHand[m.bking][bi + n - 1] += delta;
+      ofv.kingHand[m.wking][wi + n - 1] -= delta;
+      for (int i = 0; i < m.bnn; i++) {
+        ofv.kingNeighborHand[m.bking][m.bns[i].n][m.bns[i].idx][bi + n - 1] += delta;
+      }
+      for (int i = 0; i < m.wnn; i++) {
+        ofv.kingNeighborHand[m.wking][m.wns[i].n][m.wns[i].idx][wi + n - 1] -= delta;
+      }
+      if (turn == Turn::Black) {
+        ofv.kingKingHand[m.bking][m.wking][ti + n - 1] += delta;
+      } else {
+        ofv.kingKingHand[m.wking][m.bking][ti + n - 1] -= delta;
+      }
+    }
+  }
+  return sum;
+}
+
+template <FeatureOperationType type, class OFV, class T>
+inline
+T operate(OFV& ofv, const Position& position, T delta) {
+  T sum = 0;
+
+  FeatureMeta m;
+
+  m.bking = position.getBlackKingSquare().raw();
+  m.wking = position.getWhiteKingSquare().psym().raw();
+
+  m.bnoking = position.getBOccupiedBitboard();
+  m.wnoking = position.getWOccupiedBitboard();
+  m.bnoking.unset(position.getBlackKingSquare());
+  m.wnoking.unset(position.getWhiteKingSquare());
+
+  m.noking = m.bnoking | m.wnoking;
 
   {
-    auto bb = bnoking & MoveTables::king(position.getBlackKingSquare());
+    auto bb = m.bnoking & MoveTables::king(position.getBlackKingSquare());
+    m.bnn = 0;
     BB_EACH(square, bb) {
       int n = getNeighbor3x3(position.getBlackKingSquare(), square);
       auto piece = position.getPieceOnBoard(square);
-      bns[bnn].n = n;
-      bns[bnn].idx = getEvalPieceTypeIndex(piece.type());
-      bnn++;
+      m.bns[m.bnn].n = n;
+      m.bns[m.bnn].idx = getEvalPieceTypeIndex(piece.type());
+      m.bnn++;
     }
   }
 
   {
-    auto bb = wnoking & MoveTables::king(position.getWhiteKingSquare());
+    m.wnn = 0;
+    auto bb = m.wnoking & MoveTables::king(position.getWhiteKingSquare());
     BB_EACH(square, bb) {
       int n = getNeighbor3x3R(position.getWhiteKingSquare(), square);
       auto piece = position.getPieceOnBoard(square);
-      wns[wnn].n = n;
-      wns[wnn].idx = getEvalPieceTypeIndex(piece.type());
-      wnn++;
+      m.wns[m.wnn].n = n;
+      m.wns[m.wnn].idx = getEvalPieceTypeIndex(piece.type());
+      m.wnn++;
     }
   }
 
-#define CALC_BLACK_HAND(t, T) do { \
-  auto n = blackHand.get(PieceType::t()); \
-  if (n != 0) { \
-    if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1]; \
-      sum -= ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1]; \
-      for (int i = 0; i < bnn; i++) { \
-        sum += ofv.kingNeighborHand[bking][bns[i].n][bns[i].idx][EvalHandIndex::B ## T + n - 1]; \
-      } \
-      for (int i = 0; i < wnn; i++) { \
-        sum -= ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::W ## T + n - 1]; \
-      } \
-      sum += ofv.kingKingHand[bking][wking][EvalHandTypeIndex:: T + n - 1]; \
-    } else { \
-      ofv.kingHand[bking][EvalHandIndex::B ## T + n - 1] += delta; \
-      ofv.kingHand[wking][EvalHandIndex::W ## T + n - 1] -= delta; \
-      for (int i = 0; i < bnn; i++) { \
-        ofv.kingNeighborHand[bking][bns[i].n][bns[i].idx][EvalHandIndex::B ## T + n - 1] += delta; \
-      } \
-      for (int i = 0; i < wnn; i++) { \
-        ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::W ## T + n - 1] -= delta; \
-      } \
-      ofv.kingKingHand[bking][wking][EvalHandTypeIndex:: T + n - 1] += delta; \
-    } \
-  } \
-} while (false)
+#define CALC_BLACK_HAND(pt, PT) \
+  sum += operateHand<type, OFV, T, Turn::Black>(ofv, delta, m, \
+                                                position.getBlackHand().get(PieceType::pt()), \
+                                                EvalHandTypeIndex::PT, \
+                                                EvalHandIndex::B ## PT, \
+                                                EvalHandIndex::W ## PT)
   {
-    auto& blackHand = position.getBlackHand();
     CALC_BLACK_HAND(pawn  , Pawn  );
     CALC_BLACK_HAND(lance , Lance );
     CALC_BLACK_HAND(knight, Knight);
@@ -748,34 +845,13 @@ T operate(OFV& ofv, const Position& position, T delta) {
   }
 #undef CALC_BLACK_HAND
 
-#define CALC_WHITE_HAND(t, T) do { \
-  auto n = whiteHand.get(PieceType::t()); \
-  if (n != 0) { \
-    if (type == FeatureOperationType::Evaluate) { \
-      sum += ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1]; \
-      sum -= ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1]; \
-      for (int i = 0; i < bnn; i++) { \
-        sum += ofv.kingNeighborHand[bking][bns[i].n][bns[i].idx][EvalHandIndex::W ## T + n - 1]; \
-      } \
-      for (int i = 0; i < wnn; i++) { \
-        sum -= ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::B ## T + n - 1]; \
-      } \
-      sum -= ofv.kingKingHand[wking][bking][EvalHandTypeIndex:: T + n - 1]; \
-    } else { \
-      ofv.kingHand[bking][EvalHandIndex::W ## T + n - 1] += delta; \
-      ofv.kingHand[wking][EvalHandIndex::B ## T + n - 1] -= delta; \
-      for (int i = 0; i < bnn; i++) { \
-        ofv.kingNeighborHand[bking][bns[i].n][bns[i].idx][EvalHandIndex::W ## T + n - 1] += delta; \
-      } \
-      for (int i = 0; i < wnn; i++) { \
-        ofv.kingNeighborHand[wking][wns[i].n][wns[i].idx][EvalHandIndex::B ## T + n - 1] -= delta; \
-      } \
-      ofv.kingKingHand[wking][bking][EvalHandTypeIndex:: T + n - 1] -= delta; \
-    } \
-  } \
-} while (false)
+#define CALC_WHITE_HAND(pt, PT) \
+  sum += operateHand<type, OFV, T, Turn::White>(ofv, delta, m, \
+                                                position.getWhiteHand().get(PieceType::pt()), \
+                                                EvalHandTypeIndex::PT, \
+                                                EvalHandIndex::W ## PT, \
+                                                EvalHandIndex::B ## PT)
   {
-    auto& whiteHand = position.getWhiteHand();
     CALC_WHITE_HAND(pawn  , Pawn  );
     CALC_WHITE_HAND(lance , Lance );
     CALC_WHITE_HAND(knight, Knight);
@@ -786,102 +862,273 @@ T operate(OFV& ofv, const Position& position, T delta) {
   }
 #undef CALC_WHITE_HAND
 
-  {
-    auto bb = noking;
-    BB_EACH(square, bb) {
-      auto piece = position.getPieceOnBoard(square);
-      int bs = square.raw();
-      int ws = square.psym().raw();
-      int bIndex = getEvalPieceIndex(piece);
-      int wIndex = getEvalPieceIndex(piece.enemy());
+  auto bef = Bitboard::zero();
+  auto wef = Bitboard::zero();
 
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPiece[bking][bs][bIndex];
-        sum -= ofv.kingPiece[wking][ws][wIndex];
-        for (int i = 0; i < bnn; i++) {
-          sum += ofv.kingNeighborPiece[bking][bns[i].n][bns[i].idx][bs][bIndex];
-        }
-        for (int i = 0; i < wnn; i++) {
-          sum -= ofv.kingNeighborPiece[wking][wns[i].n][wns[i].idx][ws][wIndex];
-        }
-        if (piece.isBlack()) {
-          sum += ofv.kingKingPiece[bking][wking][bs][getEvalPieceTypeIndex(piece.type())];
-        } else {
-          sum -= ofv.kingKingPiece[wking][bking][ws][getEvalPieceTypeIndex(piece.type())];
-        }
-      } else {
-        ofv.kingPiece[bking][bs][bIndex] += delta;
-        ofv.kingPiece[wking][ws][wIndex] -= delta;
-        for (int i = 0; i < bnn; i++) {
-          ofv.kingNeighborPiece[bking][bns[i].n][bns[i].idx][bs][bIndex] += delta;
-        }
-        for (int i = 0; i < wnn; i++) {
-          ofv.kingNeighborPiece[wking][wns[i].n][wns[i].idx][ws][wIndex] -= delta;
-        }
-        if (piece.isBlack()) {
-          ofv.kingKingPiece[bking][wking][bs][getEvalPieceTypeIndex(piece.type())] += delta;
-        } else {
-          ofv.kingKingPiece[wking][bking][ws][getEvalPieceTypeIndex(piece.type())] -= delta;
-        }
-      }
+  // pawn
+  {
+    auto bpawn = position.getBPawnBitboard();
+    bef |= bpawn >> 1;
+    BB_EACH(square, bpawn) {
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Pawn,
+                                                     EvalPieceIndex::BPawn,
+                                                     EvalPieceIndex::WPawn,
+                                                     square.raw(),
+                                                     square.psym().raw());
+    }
+  }
+
+  {
+    auto wpawn = position.getWPawnBitboard();
+    wef |= wpawn << 1;
+    BB_EACH(square, wpawn) {
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Pawn,
+                                                     EvalPieceIndex::WPawn,
+                                                     EvalPieceIndex::BPawn,
+                                                     square.raw(),
+                                                     square.psym().raw());
+    }
+  }
+
+  // silver
+  {
+    auto bsilver = position.getBSilverBitboard();
+    bef |= (bsilver >> 10) & Bitboard::rank1to8();
+    bef |= (bsilver >> 8) & Bitboard::rank2to9();
+    bef |= (bsilver >> 1) & Bitboard::rank1to8();
+    bef |= (bsilver << 8) & Bitboard::rank1to8();
+    bef |= (bsilver << 10) & Bitboard::rank2to9();
+    BB_EACH(square, bsilver) {
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Silver,
+                                                     EvalPieceIndex::BSilver,
+                                                     EvalPieceIndex::WSilver,
+                                                     square.raw(),
+                                                     square.psym().raw());
+    }
+  }
+
+  {
+    auto wsilver = position.getWSilverBitboard();
+    wef |= (wsilver >> 10) & Bitboard::rank1to8();
+    wef |= (wsilver >> 8) & Bitboard::rank2to9();
+    wef |= (wsilver << 1) & Bitboard::rank2to9();
+    wef |= (wsilver << 8) & Bitboard::rank1to8();
+    wef |= (wsilver << 10) & Bitboard::rank2to9();
+    BB_EACH(square, wsilver) {
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Silver,
+                                                     EvalPieceIndex::WSilver,
+                                                     EvalPieceIndex::BSilver,
+                                                     square.raw(),
+                                                     square.psym().raw());
+    }
+  }
+
+  // gold, tokin, promoted-lance, promoted-knight, promoted-siver
+  {
+    auto bgold = position.getBGoldBitboard();
+    bef |= (bgold >> 10) & Bitboard::rank1to8();
+    bef |= bgold >> 9;
+    bef |= (bgold >> 1) & Bitboard::rank1to8();
+    bef |= (bgold << 1) & Bitboard::rank2to9();
+    bef |= (bgold << 8) & Bitboard::rank1to8();
+    bef |= bgold << 9;
+    BB_EACH(square, bgold) {
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Gold,
+                                                     EvalPieceIndex::BGold,
+                                                     EvalPieceIndex::WGold,
+                                                     square.raw(),
+                                                     square.psym().raw());
+    }
+  }
+
+  {
+    auto wgold = position.getWGoldBitboard();
+    wef |= wgold >> 9;
+    wef |= (wgold >> 8) & Bitboard::rank2to9();
+    wef |= (wgold >> 1) & Bitboard::rank1to8();
+    wef |= (wgold << 1) & Bitboard::rank2to9();
+    wef |= wgold << 9;
+    wef |= (wgold << 10) & Bitboard::rank2to9();
+    BB_EACH(square, wgold) {
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Gold,
+                                                     EvalPieceIndex::WGold,
+                                                     EvalPieceIndex::BGold,
+                                                     square.raw(),
+                                                     square.psym().raw());
     }
   }
 
   auto occR45 = position.getRight45RotatedBitboard();
   auto occL45 = position.getLeft45RotatedBitboard();
 
+  // bishop
   {
-    auto bbishop = position.getBBishopBitboard() | position.getBHorseBitboard();
+    auto bbishop = position.getBBishopBitboard();
     BB_EACH(square, bbishop) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Bishop,
+                                                     EvalPieceIndex::BBishop,
+                                                     EvalPieceIndex::WBishop,
+                                                     bs, ws);
 
-      int count = MoveTables::diagR45(occR45, square).count() - 1;
+      auto eff = MoveTables::diagR45(occR45, square);
+      bef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagR45[bking][bIndex][count];
-        sum -= ofv.kingWBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
+        sum -= ofv.kingWBishopDiagR45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagR45[bking][bIndex][count] += delta;
-        ofv.kingWBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingBBishopDiagR45[m.bking][bs][count] += delta;
+        ofv.kingWBishopDiagR45[m.wking][ws][count] -= delta;
       }
 
-      count = MoveTables::diagL45(occL45, square).count() - 1;
+      eff = MoveTables::diagL45(occL45, square);
+      bef |= eff;
+
+      count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagL45[bking][bIndex][count];
-        sum -= ofv.kingWBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
+        sum -= ofv.kingWBishopDiagL45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagL45[bking][bIndex][count] += delta;
-        ofv.kingWBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingBBishopDiagL45[m.bking][bs][count] += delta;
+        ofv.kingWBishopDiagL45[m.wking][ws][count] -= delta;
       }
     }
   }
 
   {
-    auto wbishop = position.getWBishopBitboard() | position.getWHorseBitboard();
+    auto wbishop = position.getWBishopBitboard();
     BB_EACH(square, wbishop) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Bishop,
+                                                     EvalPieceIndex::WBishop,
+                                                     EvalPieceIndex::BBishop,
+                                                     bs, ws);
 
-      int count = MoveTables::diagR45(occR45, square).count() - 1;
+      auto eff = MoveTables::diagR45(occR45, square);
+      wef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagR45[bking][bIndex][count];
-        sum -= ofv.kingBBishopDiagR45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
+        sum -= ofv.kingBBishopDiagR45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagR45[bking][bIndex][count] += delta;
-        ofv.kingBBishopDiagR45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagR45[m.bking][bs][count] += delta;
+        ofv.kingBBishopDiagR45[m.wking][ws][count] -= delta;
       }
 
-      count = MoveTables::diagL45(occL45, square).count() - 1;
+      eff = MoveTables::diagL45(occL45, square);
+      wef |= eff;
+
+      count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagL45[bking][bIndex][count];
-        sum -= ofv.kingBBishopDiagL45[wking][wIndex][count];
+        sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
+        sum -= ofv.kingBBishopDiagL45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagL45[bking][bIndex][count] += delta;
-        ofv.kingBBishopDiagL45[wking][wIndex][count] -= delta;
+        ofv.kingWBishopDiagL45[m.bking][bs][count] += delta;
+        ofv.kingBBishopDiagL45[m.wking][ws][count] -= delta;
+      }
+    }
+  }
+
+  // horse
+  {
+    auto bhorse = position.getBHorseBitboard();
+    bef |= bhorse >> 9;
+    bef |= (bhorse >> 1) & Bitboard::rank1to8();
+    bef |= (bhorse << 1) & Bitboard::rank2to9();
+    bef |= bhorse << 9;
+    BB_EACH(square, bhorse) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Horse,
+                                                     EvalPieceIndex::BHorse,
+                                                     EvalPieceIndex::WHorse,
+                                                     bs, ws);
+
+      auto eff = MoveTables::diagR45(occR45, square);
+      bef |= eff;
+
+      int count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
+        sum -= ofv.kingWBishopDiagR45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopDiagR45[m.bking][bs][count] += delta;
+        ofv.kingWBishopDiagR45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::diagL45(occL45, square);
+      bef |= eff;
+
+      count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
+        sum -= ofv.kingWBishopDiagL45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopDiagL45[m.bking][bs][count] += delta;
+        ofv.kingWBishopDiagL45[m.wking][ws][count] -= delta;
+      }
+    }
+  }
+
+  {
+    auto whorse = position.getWHorseBitboard();
+    wef |= whorse >> 9;
+    wef |= (whorse >> 1) & Bitboard::rank1to8();
+    wef |= (whorse << 1) & Bitboard::rank2to9();
+    wef |= whorse << 9;
+    BB_EACH(square, whorse) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Horse,
+                                                     EvalPieceIndex::WHorse,
+                                                     EvalPieceIndex::BHorse,
+                                                     bs, ws);
+
+      auto eff = MoveTables::diagR45(occR45, square);
+      wef |= eff;
+
+      int count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
+        sum -= ofv.kingBBishopDiagR45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopDiagR45[m.bking][bs][count] += delta;
+        ofv.kingBBishopDiagR45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::diagL45(occL45, square);
+      wef |= eff;
+
+      count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
+        sum -= ofv.kingBBishopDiagL45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopDiagL45[m.bking][bs][count] += delta;
+        ofv.kingBBishopDiagL45[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -889,76 +1136,195 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   auto occ90 = position.get90RotatedBitboard();
 
+  // rook
   {
-    auto brook = position.getBRookBitboard() | position.getBDragonBitboard();
+    auto brook = position.getBRookBitboard();
     BB_EACH(square, brook) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Rook,
+                                                     EvalPieceIndex::BRook,
+                                                     EvalPieceIndex::WRook,
+                                                     bs, ws);
 
-      int count = MoveTables::ver(occ, square).count() - 1;
+      auto eff = MoveTables::ver(occ, square);
+      bef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookVer[bking][bIndex][count];
-        sum -= ofv.kingWRookVer[wking][wIndex][count];
+        sum += ofv.kingBRookVer[m.bking][bs][count];
+        sum -= ofv.kingWRookVer[m.wking][ws][count];
       } else {
-        ofv.kingBRookVer[bking][bIndex][count] += delta;
-        ofv.kingWRookVer[wking][wIndex][count] -= delta;
+        ofv.kingBRookVer[m.bking][bs][count] += delta;
+        ofv.kingWRookVer[m.wking][ws][count] -= delta;
       }
 
-      count = MoveTables::hor(occ90, square).count() - 1;
+      eff = MoveTables::hor(occ90, square);
+      bef |= eff;
+
+      count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookHor[bking][bIndex][count];
-        sum -= ofv.kingWRookHor[wking][wIndex][count];
+        sum += ofv.kingBRookHor[m.bking][bs][count];
+        sum -= ofv.kingWRookHor[m.wking][ws][count];
       } else {
-        ofv.kingBRookHor[bking][bIndex][count] += delta;
-        ofv.kingWRookHor[wking][wIndex][count] -= delta;
+        ofv.kingBRookHor[m.bking][bs][count] += delta;
+        ofv.kingWRookHor[m.wking][ws][count] -= delta;
       }
     }
   }
 
   {
-    auto wrook = position.getWRookBitboard() | position.getWDragonBitboard();
+    auto wrook = position.getWRookBitboard();
     BB_EACH(square, wrook) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Rook,
+                                                     EvalPieceIndex::WRook,
+                                                     EvalPieceIndex::BRook,
+                                                     bs, ws);
 
-      int count = MoveTables::ver(occ, square).count() - 1;
+      auto eff = MoveTables::ver(occ, square);
+      wef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookVer[bking][bIndex][count];
-        sum -= ofv.kingBRookVer[wking][wIndex][count];
+        sum += ofv.kingWRookVer[m.bking][bs][count];
+        sum -= ofv.kingBRookVer[m.wking][ws][count];
       } else {
-        ofv.kingWRookVer[bking][bIndex][count] += delta;
-        ofv.kingBRookVer[wking][wIndex][count] -= delta;
+        ofv.kingWRookVer[m.bking][bs][count] += delta;
+        ofv.kingBRookVer[m.wking][ws][count] -= delta;
       }
 
-      count = MoveTables::hor(occ90, square).count() - 1;
+      eff = MoveTables::hor(occ90, square);
+      wef |= eff;
+
+      count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookHor[bking][bIndex][count];
-        sum -= ofv.kingBRookHor[wking][wIndex][count];
+        sum += ofv.kingWRookHor[m.bking][bs][count];
+        sum -= ofv.kingBRookHor[m.wking][ws][count];
       } else {
-        ofv.kingWRookHor[bking][bIndex][count] += delta;
-        ofv.kingBRookHor[wking][wIndex][count] -= delta;
+        ofv.kingWRookHor[m.bking][bs][count] += delta;
+        ofv.kingBRookHor[m.wking][ws][count] -= delta;
       }
     }
   }
 
+  // dragon
+  {
+    auto bdragon = position.getBDragonBitboard();
+    bef |= (bdragon >> 10) & Bitboard::rank1to8();
+    bef |= (bdragon >> 8) & Bitboard::rank2to9();
+    bef |= (bdragon << 8) & Bitboard::rank1to8();
+    bef |= (bdragon << 10) & Bitboard::rank2to9();
+    BB_EACH(square, bdragon) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Dragon,
+                                                     EvalPieceIndex::BDragon,
+                                                     EvalPieceIndex::WDragon,
+                                                     bs, ws);
+
+      auto eff = MoveTables::ver(occ, square);
+      bef |= eff;
+
+      int count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookVer[m.bking][bs][count];
+        sum -= ofv.kingWRookVer[m.wking][ws][count];
+      } else {
+        ofv.kingBRookVer[m.bking][bs][count] += delta;
+        ofv.kingWRookVer[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::hor(occ90, square);
+      bef |= eff;
+
+      count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookHor[m.bking][bs][count];
+        sum -= ofv.kingWRookHor[m.wking][ws][count];
+      } else {
+        ofv.kingBRookHor[m.bking][bs][count] += delta;
+        ofv.kingWRookHor[m.wking][ws][count] -= delta;
+      }
+    }
+  }
+
+  {
+    auto wdragon = position.getWDragonBitboard();
+    wef |= (wdragon >> 10) & Bitboard::rank1to8();
+    wef |= (wdragon >> 8) & Bitboard::rank2to9();
+    wef |= (wdragon << 8) & Bitboard::rank1to8();
+    wef |= (wdragon << 10) & Bitboard::rank2to9();
+    BB_EACH(square, wdragon) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Dragon,
+                                                     EvalPieceIndex::WDragon,
+                                                     EvalPieceIndex::BDragon,
+                                                     bs, ws);
+
+      auto eff = MoveTables::ver(occ, square);
+      wef |= eff;
+
+      int count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookVer[m.bking][bs][count];
+        sum -= ofv.kingBRookVer[m.wking][ws][count];
+      } else {
+        ofv.kingWRookVer[m.bking][bs][count] += delta;
+        ofv.kingBRookVer[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::hor(occ90, square);
+      wef |= eff;
+
+      count = eff.count() - 1;
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookHor[m.bking][bs][count];
+        sum -= ofv.kingBRookHor[m.wking][ws][count];
+      } else {
+        ofv.kingWRookHor[m.bking][bs][count] += delta;
+        ofv.kingBRookHor[m.wking][ws][count] -= delta;
+      }
+    }
+  }
+
+  // lance
   {
     auto blance = position.getBLanceBitboard();
     BB_EACH(square, blance) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Lance,
+                                                     EvalPieceIndex::BLance,
+                                                     EvalPieceIndex::WLance,
+                                                     bs, ws);
 
-      int count = MoveTables::blackLance(occ, square).count() - 1;
+      auto eff = MoveTables::blackLance(occ, square);
+      bef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBLance[bking][bIndex][count];
-        sum -= ofv.kingWLance[wking][wIndex][count];
+        sum += ofv.kingBLance[m.bking][bs][count];
+        sum -= ofv.kingWLance[m.wking][ws][count];
       } else {
-        ofv.kingBLance[bking][bIndex][count] += delta;
-        ofv.kingWLance[wking][wIndex][count] -= delta;
+        ofv.kingBLance[m.bking][bs][count] += delta;
+        ofv.kingWLance[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -966,18 +1332,113 @@ T operate(OFV& ofv, const Position& position, T delta) {
   {
     auto wlance = position.getWLanceBitboard();
     BB_EACH(square, wlance) {
-      int bIndex = square.raw();
-      int wIndex = square.psym().raw();
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Lance,
+                                                     EvalPieceIndex::WLance,
+                                                     EvalPieceIndex::BLance,
+                                                     bs, ws);
 
-      int count = MoveTables::whiteLance(occ, square).count() - 1;
+      auto eff = MoveTables::whiteLance(occ, square);
+      wef |= eff;
+
+      int count = eff.count() - 1;
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWLance[bking][bIndex][count];
-        sum -= ofv.kingBLance[wking][wIndex][count];
+        sum += ofv.kingWLance[m.bking][bs][count];
+        sum -= ofv.kingBLance[m.wking][ws][count];
       } else {
-        ofv.kingWLance[bking][bIndex][count] += delta;
-        ofv.kingBLance[wking][wIndex][count] -= delta;
+        ofv.kingWLance[m.bking][bs][count] += delta;
+        ofv.kingBLance[m.wking][ws][count] -= delta;
       }
+    }
+  }
+
+  // knight
+  {
+    auto bknight = position.getBKnightBitboard();
+    bef |= bknight >> 11;
+    bef |= bknight << 7;
+    BB_EACH(square, bknight) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Knight,
+                                                     EvalPieceIndex::BKnight,
+                                                     EvalPieceIndex::WKnight,
+                                                     bs, ws);
+    }
+  }
+
+  {
+    auto wknight = position.getWKnightBitboard();
+    wef |= wknight >> 7;
+    wef |= wknight << 11;
+    BB_EACH(square, wknight) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Knight,
+                                                     EvalPieceIndex::WKnight,
+                                                     EvalPieceIndex::BKnight,
+                                                     bs, ws);
+    }
+  }
+
+  {
+    auto& mask = MoveTables::neighbor3x3(position.getBlackKingSquare());
+
+    auto bc = (bef & mask).count();
+    auto wc = (wef & mask).count();
+    if (type == FeatureOperationType::Evaluate) {
+      sum += ofv.kingAllyEffect9[m.bking][bc];
+      sum += ofv.kingEnemyEffect9[m.bking][wc];
+    } else {
+      ofv.kingAllyEffect9[m.bking][bc] += delta;
+      ofv.kingEnemyEffect9[m.bking][wc] += delta;
+    }
+  }
+
+  {
+    auto& mask = MoveTables::neighbor5x5(position.getBlackKingSquare());
+
+    auto bc = (bef & mask).count();
+    auto wc = (wef & mask).count();
+    if (type == FeatureOperationType::Evaluate) {
+      sum += ofv.kingAllyEffect25[m.bking][bc];
+      sum += ofv.kingEnemyEffect25[m.bking][wc];
+    } else {
+      ofv.kingAllyEffect25[m.bking][bc] += delta;
+      ofv.kingEnemyEffect25[m.bking][wc] += delta;
+    }
+  }
+
+  {
+    auto& mask = MoveTables::neighbor3x3(position.getWhiteKingSquare());
+
+    auto bc = (bef & mask).count();
+    auto wc = (wef & mask).count();
+    if (type == FeatureOperationType::Evaluate) {
+      sum -= ofv.kingAllyEffect9[m.wking][wc];
+      sum -= ofv.kingEnemyEffect9[m.wking][bc];
+    } else {
+      ofv.kingAllyEffect9[m.wking][wc] -= delta;
+      ofv.kingEnemyEffect9[m.wking][bc] -= delta;
+    }
+  }
+
+  {
+    auto& mask = MoveTables::neighbor5x5(position.getWhiteKingSquare());
+
+    auto bc = (bef & mask).count();
+    auto wc = (wef & mask).count();
+    if (type == FeatureOperationType::Evaluate) {
+      sum -= ofv.kingAllyEffect25[m.wking][wc];
+      sum -= ofv.kingEnemyEffect25[m.wking][bc];
+    } else {
+      ofv.kingAllyEffect25[m.wking][wc] -= delta;
+      ofv.kingEnemyEffect25[m.wking][bc] -= delta;
     }
   }
 
@@ -1096,6 +1557,10 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingWLanceXR),
     FV_SUMMARIZE(kingWLanceYR),
     FV_SUMMARIZE(kingWLance),
+    FV_SUMMARIZE(kingAllyEffect9),
+    FV_SUMMARIZE(kingEnemyEffect9),
+    FV_SUMMARIZE(kingAllyEffect25),
+    FV_SUMMARIZE(kingEnemyEffect25),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

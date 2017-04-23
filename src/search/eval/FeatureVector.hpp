@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2016.09.21.2"
+#define SUNFISH_FV_VERSION "2017.05.23.0"
 
 namespace sunfish {
 
@@ -131,6 +131,8 @@ struct FeatureVector {
   using KingOpenXR = Type[SQUARE_FILES][RelativeSquare::N][8];
   using KingOpenYR = Type[SQUARE_RANKS][RelativeSquare::N][8];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingEffect9 = Type[Square::N][10];
+  using KingEffect25 = Type[Square::N][26];
 
   KingHand kingHand;
 
@@ -162,52 +164,57 @@ struct FeatureVector {
   KingOpen kingWRookVer;
 
   Open bRookHor;
-  KingOpenR kingBRookHorR ;
+  KingOpenR kingBRookHorR;
   KingOpenXR kingBRookHorXR;
   KingOpenYR kingBRookHorYR;
   KingOpen kingBRookHor;
 
   Open wRookHor;
-  KingOpenR kingWRookHorR ;
+  KingOpenR kingWRookHorR;
   KingOpenXR kingWRookHorXR;
   KingOpenYR kingWRookHorYR;
   KingOpen kingWRookHor;
 
   Open bBishopDiagL45;
-  KingOpenR kingBBishopDiagL45R ;
+  KingOpenR kingBBishopDiagL45R;
   KingOpenXR kingBBishopDiagL45XR;
   KingOpenYR kingBBishopDiagL45YR;
   KingOpen kingBBishopDiagL45;
 
   Open wBishopDiagL45;
-  KingOpenR kingWBishopDiagL45R ;
+  KingOpenR kingWBishopDiagL45R;
   KingOpenXR kingWBishopDiagL45XR;
   KingOpenYR kingWBishopDiagL45YR;
   KingOpen kingWBishopDiagL45;
 
   Open bBishopDiagR45;
-  KingOpenR kingBBishopDiagR45R ;
+  KingOpenR kingBBishopDiagR45R;
   KingOpenXR kingBBishopDiagR45XR;
   KingOpenYR kingBBishopDiagR45YR;
   KingOpen kingBBishopDiagR45;
 
   Open wBishopDiagR45;
-  KingOpenR kingWBishopDiagR45R ;
+  KingOpenR kingWBishopDiagR45R;
   KingOpenXR kingWBishopDiagR45XR;
   KingOpenYR kingWBishopDiagR45YR;
   KingOpen kingWBishopDiagR45;
 
   Open bLance;
-  KingOpenR kingBLanceR ;
+  KingOpenR kingBLanceR;
   KingOpenXR kingBLanceXR;
   KingOpenYR kingBLanceYR;
   KingOpen kingBLance;
 
   Open wLance;
-  KingOpenR kingWLanceR ;
+  KingOpenR kingWLanceR;
   KingOpenXR kingWLanceXR;
   KingOpenYR kingWLanceYR;
   KingOpen kingWLance;
+
+  KingEffect9 kingAllyEffect9;
+  KingEffect9 kingEnemyEffect9;
+  KingEffect25 kingAllyEffect25;
+  KingEffect25 kingEnemyEffect25;
 };
 
 template <class T>
@@ -220,6 +227,8 @@ struct OptimizedFeatureVector {
   using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
   using KingKingPiece = Type[Square::N][Square::N][Square::N][EvalPieceTypeIndex::End];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingEffect9 = Type[Square::N][10];
+  using KingEffect25 = Type[Square::N][26];
 
   KingHand kingHand;
 
@@ -242,6 +251,11 @@ struct OptimizedFeatureVector {
   KingOpen kingWBishopDiagR45;
   KingOpen kingBLance;
   KingOpen kingWLance;
+
+  KingEffect9 kingAllyEffect9;
+  KingEffect9 kingEnemyEffect9;
+  KingEffect25 kingAllyEffect25;
+  KingEffect25 kingEnemyEffect25;
 };
 
 } // namespace sunfish

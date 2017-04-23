@@ -207,6 +207,8 @@ bool load(const char* path, Evaluator::FVType& fv) {
     return false;
   }
 
+  memset(reinterpret_cast<void*>(&fv), 0, sizeof(Evaluator::FVType));
+
   file.read(reinterpret_cast<char*>(&fv), sizeof(Evaluator::FVType));
 
   file.close();
