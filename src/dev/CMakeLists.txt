@@ -8,6 +8,7 @@ include(../Common.cmake)
 
 include_directories("..")
 
+add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_dev
@@ -15,4 +16,5 @@ add_executable(sunfish_dev
     code_generator/ZobristCodeGenerator.cpp
 )
 
+target_link_libraries(sunfish_dev common)
 target_link_libraries(sunfish_dev logger)
