@@ -367,20 +367,6 @@ TEST(BitboardTest, testConstants) {
         "100000000\n",
         Bitboard::file9().toString());
   }
-
-  {
-    ASSERT_EQ(
-        "011111110\n"
-        "111111111\n"
-        "111111111\n"
-        "111111111\n"
-        "111111111\n"
-        "111111111\n"
-        "111111111\n"
-        "111111111\n"
-        "011111110\n",
-        Bitboard::nocorner().toString());
-  }
 }
 
 TEST(BitboardTest, testOperators) {

@@ -831,7 +831,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
   auto occL45 = position.getLeft45RotatedBitboard();
 
   {
-    auto bbishop = (position.getBBishopBitboard() | position.getBHorseBitboard()) & Bitboard::nocorner();
+    auto bbishop = position.getBBishopBitboard() | position.getBHorseBitboard();
     BB_EACH(square, bbishop) {
       int bIndex = square.raw();
       int wIndex = square.psym().raw();
@@ -859,7 +859,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
   }
 
   {
-    auto wbishop = (position.getWBishopBitboard() | position.getWHorseBitboard()) & Bitboard::nocorner();
+    auto wbishop = position.getWBishopBitboard() | position.getWHorseBitboard();
     BB_EACH(square, wbishop) {
       int bIndex = square.raw();
       int wIndex = square.psym().raw();
