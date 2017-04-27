@@ -7,7 +7,6 @@
 #define SUNFISH_SEARCH_TREE_TREE_HPP__
 
 #include "common/Def.hpp"
-#include "common/math/Random.hpp"
 #include "search/tree/PV.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "search/shek/ShekTable.hpp"
@@ -75,7 +74,6 @@ struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
   std::thread thread;
-  Random random;
   int index;
   int completedDepth;
   Position position;
