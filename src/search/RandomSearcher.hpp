@@ -6,6 +6,8 @@
 #ifndef SUNFISH_SEARCH_RANDOMSEARCHER_HPP__
 #define SUNFISH_SEARCH_RANDOMSEARCHER_HPP__
 
+#include "common/math/Random.hpp"
+
 namespace sunfish {
 
 class Position;
@@ -17,6 +19,10 @@ public:
   RandomSearcher();
 
   bool search(const Position& pos, Move& move);
+
+private:
+
+  Random random_;
 
 };
 

@@ -18,13 +18,13 @@ public:
 
   BookUtil() = delete;
 
-  static Move select(const Book& book, const Position& position) {
+  static Move select(const Book& book, const Position& position, Random& random) {
     auto bookMoves = book.get(position);
     if (bookMoves == nullptr || bookMoves->size() == 0) {
       return Move::none();
     }
 
-    unsigned idx = Random::nonuniform(bookMoves->size(), [bookMoves](unsigned i) {
+    unsigned idx = random.nonuniform(bookMoves->size(), [bookMoves](unsigned i) {
       return bookMoves->at(i).count;
     });
     return bookMoves->at(idx).move;

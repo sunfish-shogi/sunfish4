@@ -6,6 +6,8 @@
 #ifndef SUNFISH_EXPT_MGTEST_MOVEGENERATION_HPP__
 #define SUNFISH_EXPT_MGTEST_MOVEGENERATION_HPP__
 
+#include "common/math/Random.hpp"
+
 namespace sunfish {
 
 class Position;
@@ -26,6 +28,10 @@ private:
   bool testOnce(int count, int length);
 
   TestStatus testAndDoMove(Position& position);
+
+private:
+
+  Random random_;
 
 };
 

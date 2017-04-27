@@ -9,6 +9,7 @@
 #include "common/Def.hpp"
 #include <random>
 #include <algorithm>
+#include <ctime>
 #include <cstdint>
 
 namespace sunfish {
@@ -16,51 +17,54 @@ namespace sunfish {
 template <class GenType>
 class BaseRandom {
 public:
-  BaseRandom() = delete;
+  BaseRandom() : rgen(static_cast<unsigned>(time(NULL))) {
+  }
+  BaseRandom(const BaseRandom&) = delete;
+  BaseRandom(BaseRandom&&) = delete;
 
-  static uint16_t uint16() {
+  uint16_t int16() {
     std::uniform_int_distribution<uint16_t> dst16;
-    return dst16(gen());
+    return dst16(rgen);
   }
 
-  static uint16_t uint16(uint16_t num) {
+  uint16_t int16(uint16_t num) {
     std::uniform_int_distribution<uint16_t> dst16(0, num-1);
-    return dst16(gen());
+    return int16() % num;
   }
 
-  static uint32_t uint32() {
+  uint32_t int32() {
     std::uniform_int_distribution<uint32_t> dst32;
-    return dst32(gen());
+    return dst32(rgen);
   }
 
-  static uint32_t uint32(uint32_t num) {
+  uint32_t int32(uint32_t num) {
     std::uniform_int_distribution<uint32_t> dst32(0, num-1);
-    return dst32(gen());
+    return int32() % num;
   }
 
-  static uint64_t uint64() {
+  uint64_t int64() {
     std::uniform_int_distribution<uint64_t> dst64;
-    return dst64(gen());
+    return dst64(rgen);
   }
 
-  static uint64_t uint64(uint64_t num) {
+  uint64_t int64(uint64_t num) {
     std::uniform_int_distribution<uint64_t> dst64(0, num-1);
-    return dst64(gen());
+    return int64() % num;
   }
 
-  static unsigned bit() {
+  unsigned bit() {
     std::uniform_int_distribution<unsigned> dstBit(0, 1);
-    return dstBit(gen());
+    return dstBit(rgen);
   }
 
   template <class T>
-  static unsigned nonuniform(unsigned num, T&& weightFunc) {
+  unsigned nonuniform(unsigned num, T&& weightFunc) {
     uint64_t total = 0.0f;
     for (unsigned i = 0; i < num; i++) {
       total += weightFunc(i);
     }
 
-    uint64_t r = uint64(total);
+    uint64_t r = int64(total);
 
     for (unsigned i = 0; i < num - 1; i++) {
       uint64_t w = weightFunc(i);
@@ -73,12 +77,12 @@ public:
   }
 
   template <class Iterator>
-  static void shuffle(Iterator begin, Iterator end) {
-    std::shuffle(begin, end, gen());
+  void shuffle(Iterator begin, Iterator end) {
+    std::shuffle(begin, end, rgen);
   }
 
 private:
-  static GenType& gen();
+  GenType rgen;
 
 };
 

@@ -7,6 +7,7 @@
 #define SUNFISH_LEARN_BATCH_BATCHLEARNING_HPP__
 
 #include "common/time/Timer.hpp"
+#include "common/math/Random.hpp"
 #include "core/move/Move.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "learn/batch/Gradient.hpp"
@@ -96,6 +97,7 @@ private:
 
   Config config_;
   Timer timer_;
+  Random random_;
 
   int failLoss_;
   float loss_;

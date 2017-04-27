@@ -21,9 +21,10 @@ Evaluator g_eval(Evaluator::InitType::Zero);
 } // namespace
 
 TEST_BEFORE(EvaluatorTest) {
+  Random r;
   auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
-  each(*fv, [](int16_t& v) {
-    v = Random::uint16(2001) - 1000;
+  each(*fv, [&r](int16_t& v) {
+    v = r.int16() % 2001 - 1000;
   });
   symmetrize(*fv, [](int16_t& e1, int16_t& e2) {
     e1 = e2;

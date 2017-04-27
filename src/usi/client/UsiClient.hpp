@@ -6,6 +6,7 @@
 #ifndef SUNFISH_USI_CLIENT_USICLIENT_HPP__
 #define SUNFISH_USI_CLIENT_USICLIENT_HPP__
 
+#include "common/math/Random.hpp"
 #include "core/position/Position.hpp"
 #include "core/record/Record.hpp"
 #include "book/Book.hpp"
@@ -133,6 +134,8 @@ private:
 
   Book book_;
   bool isBookLoaded;
+
+  Random random_;
 
   std::mutex sendMutex_;
   std::mutex receiveMutex_;

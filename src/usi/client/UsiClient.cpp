@@ -301,7 +301,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   // check opening book
   if (options_.useBook) {
     auto pos = generatePosition(record_, -1);
-    Move bookMove = BookUtil::select(book_, pos);
+    Move bookMove = BookUtil::select(book_, pos, random_);
     if (!bookMove.isNone()) {
       OUT(info) << "opening book hit";
       send("bestmove", bookMove.toStringSFEN());
