@@ -29,7 +29,7 @@ public:
 
   uint16_t int16(uint16_t num) {
     std::uniform_int_distribution<uint16_t> dst16(0, num-1);
-    return int16() % num;
+    return dst16(rgen);
   }
 
   uint32_t int32() {
@@ -39,7 +39,7 @@ public:
 
   uint32_t int32(uint32_t num) {
     std::uniform_int_distribution<uint32_t> dst32(0, num-1);
-    return int32() % num;
+    return dst32(rgen);
   }
 
   uint64_t int64() {
@@ -49,7 +49,7 @@ public:
 
   uint64_t int64(uint64_t num) {
     std::uniform_int_distribution<uint64_t> dst64(0, num-1);
-    return int64() % num;
+    return dst64(rgen);
   }
 
   unsigned bit() {
