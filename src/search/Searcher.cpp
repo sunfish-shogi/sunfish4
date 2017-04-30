@@ -187,11 +187,8 @@ void Searcher::onSearchStarted() {
                              config_.maximumTimeMs);
 
   if (treeSize_ != config_.numberOfThreads) {
-    if (treeSize_ != 0) {
-      delete[] trees_;
-    }
     treeSize_ = config_.numberOfThreads;
-    trees_ = new Tree[treeSize_];
+    trees_.reset(new Tree[treeSize_]);
   }
 
   for (int ti = 0; ti < treeSize_; ti++) {

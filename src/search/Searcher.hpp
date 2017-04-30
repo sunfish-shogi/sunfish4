@@ -177,7 +177,7 @@ private:
   FromToHistory fromToHistory_;
   PieceToHistory pieceToHistory_;
 
-  Tree* trees_;
+  std::unique_ptr<Tree[]> trees_;
   int treeSize_;
 
   Random random_;
