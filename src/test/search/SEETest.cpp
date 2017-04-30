@@ -185,4 +185,25 @@ TEST(SEETest, testCalculate) {
              + material::tokinEx(),
               SEE::calculate(pos, move));
   }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  * -FU *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU * +HI+KI * \n"
+      "P+\n"
+      "P-00HI\n"
+      "-\n");
+    Move move(PieceType::rook(), Square::s38());
+    ASSERT_EQ(-material::rookEx()
+             + material::goldEx()
+             - material::pawnEx(),
+              SEE::calculate(pos, move));
+  }
 }

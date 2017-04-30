@@ -12,24 +12,31 @@ namespace sunfish {
 
 Score SEE::calculate(const Position& position,
                      Move move) {
-  Square from = move.from();
+  Square from;
   Square to = move.to();
-  Piece piece = position.getPieceOnBoard(from);
+  Piece piece;
   Piece captured = position.getPieceOnBoard(to);
-
-  ASSERT(!piece.isEmpty());
-  ASSERT(position.getTurn() == Turn::Black ? piece.isBlack() : piece.isWhite());
-  ASSERT(position.getTurn() == Turn::Black ? !captured.isBlack() : !captured.isWhite());
-
   Score score = Score::zero();
 
-  if (move.isPromotion()) {
-    score += material::promotionScore(piece);
-    piece = piece.promote();
-  }
+  if (move.isDrop()) {
+    from = Square::invalid();
+    piece = move.droppingPieceType().black();
 
-  if (!captured.isEmpty()) {
-    score += material::exchangeScore(captured);
+  } else {
+    from = move.from();
+    piece = position.getPieceOnBoard(from);
+    ASSERT(!piece.isEmpty());
+    ASSERT(position.getTurn() == Turn::Black ? piece.isBlack() : piece.isWhite());
+    ASSERT(position.getTurn() == Turn::Black ? !captured.isBlack() : !captured.isWhite());
+
+    if (move.isPromotion()) {
+      score += material::promotionScore(piece);
+      piece = piece.promote();
+    }
+
+    if (!captured.isEmpty()) {
+      score += material::exchangeScore(captured);
+    }
   }
 
   auto bb = extractAggressors(position, from, to);
@@ -43,16 +50,18 @@ Score SEE::calculate(const Position& position,
 
 Bitboard SEE::extractAggressors(const Position& position,
                                 Square from,
-                               Square to) {
+                                Square to) {
   Bitboard occ = position.getBOccupiedBitboard() | position.getWOccupiedBitboard();
   RotatedBitboard occ90 = position.get90RotatedBitboard();
   RotatedBitboard occR45 = position.getRight45RotatedBitboard();
   RotatedBitboard occL45 = position.getLeft45RotatedBitboard();
 
-  occ.unset(from);
-  occ90.unset(from.rotate90());
-  occR45.unset(from.rotateRight45());
-  occL45.unset(from.rotateLeft45());
+  if (from.isValid()) {
+    occ.unset(from);
+    occ90.unset(from.rotate90());
+    occR45.unset(from.rotateRight45());
+    occL45.unset(from.rotateLeft45());
+  }
 
   Bitboard bb = Bitboard::zero();
   bb |= (Bitboard::mask(to) << 1) & position.getBPawnBitboard();
@@ -81,7 +90,9 @@ Bitboard SEE::extractAggressors(const Position& position,
        (position.getBDragonBitboard() |
         position.getWDragonBitboard()); // TODO: king
 
-  bb.unset(from);
+  if (from.isValid()) {
+    bb.unset(from);
+  }
 
   return bb;
 }
