@@ -37,7 +37,7 @@ HAS_COV:=$(shell which $(COV))
 .PHONY: test
 .PHONY: bm
 .PHONY: ln
-.PHONY: csa
+.PHONY: csa csa-debug
 .PHONY: usi usi-debug
 .PHONY: tools
 .PHONY: dev
@@ -54,6 +54,7 @@ help:
 	@echo '  make bm'
 	@echo '  make ln'
 	@echo '  make csa'
+	@echo '  make csa-debug'
 	@echo '  make usi'
 	@echo '  make usi-debug'
 	@echo '  make tools'
@@ -122,6 +123,12 @@ ln:
 csa:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release $(PROJ_ROOT)/src/csa
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_CSA) $(SUNFISH_CSA)
+
+csa-debug:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=RelWithDebInfo $(PROJ_ROOT)/src/csa
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_CSA) $(SUNFISH_CSA)
 
