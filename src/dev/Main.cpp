@@ -9,6 +9,7 @@
 #include "logger/Logger.hpp"
 
 #include "dev/code_generator/ZobristCodeGenerator.hpp"
+#include "dev/conv_eval/ConvertEvalBin.hpp"
 
 using namespace sunfish;
 
@@ -16,6 +17,7 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("gen-zobrist", "generate Zobrist.cpp");
+  po.addOption("conv-eval", "convert eval.bin");
   po.addOption("silent", "s", "silent mode");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
@@ -48,6 +50,10 @@ int main(int argc, char** argv, char**) {
     ZobristCodeGenerator generator;
     bool ok = generator.generate();
 
+    return ok ? 0 : 1;
+
+  } else if (po.has("conv-eval")) {
+    bool ok = ConvertEvalBin::convert();
     return ok ? 0 : 1;
   }
 
