@@ -8,13 +8,18 @@ include(../Common.cmake)
 
 include_directories("..")
 
+add_subdirectory(../search "${CMAKE_CURRENT_BINARY_DIR}/search")
+add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_dev
     code_generator/CodeGenerator.hpp
     code_generator/ZobristCodeGenerator.cpp
     code_generator/ZobristCodeGenerator.hpp
+    conv_eval/ConvertEvalBin.cpp
     Main.cpp
 )
 
+target_link_libraries(sunfish_dev search)
+target_link_libraries(sunfish_dev core)
 target_link_libraries(sunfish_dev logger)
