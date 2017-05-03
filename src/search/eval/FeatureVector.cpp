@@ -45,19 +45,19 @@ int getEvalPieceIndex(Piece piece) {
 
 int getEvalPieceTypeIndex(PieceType pieceType) {
   switch (pieceType.raw()) {
-  case PieceNumber::Pawn     : return EvalPieceTypeIndex::BPawn;
-  case PieceNumber::Lance    : return EvalPieceTypeIndex::BLance;
-  case PieceNumber::Knight   : return EvalPieceTypeIndex::BKnight;
-  case PieceNumber::Silver   : return EvalPieceTypeIndex::BSilver;
+  case PieceNumber::Pawn     : return EvalPieceTypeIndex::Pawn;
+  case PieceNumber::Lance    : return EvalPieceTypeIndex::Lance;
+  case PieceNumber::Knight   : return EvalPieceTypeIndex::Knight;
+  case PieceNumber::Silver   : return EvalPieceTypeIndex::Silver;
   case PieceNumber::Gold     : // fall through
   case PieceNumber::Tokin    : // fall through
   case PieceNumber::ProLance : // fall through
   case PieceNumber::ProKnight: // fall through
-  case PieceNumber::ProSilver: return EvalPieceTypeIndex::BGold;
-  case PieceNumber::Bishop   : return EvalPieceTypeIndex::BBishop;
-  case PieceNumber::Horse    : return EvalPieceTypeIndex::BHorse;
-  case PieceNumber::Rook     : return EvalPieceTypeIndex::BRook;
-  case PieceNumber::Dragon   : return EvalPieceTypeIndex::BDragon;
+  case PieceNumber::ProSilver: return EvalPieceTypeIndex::Gold;
+  case PieceNumber::Bishop   : return EvalPieceTypeIndex::Bishop;
+  case PieceNumber::Horse    : return EvalPieceTypeIndex::Horse;
+  case PieceNumber::Rook     : return EvalPieceTypeIndex::Rook;
+  case PieceNumber::Dragon   : return EvalPieceTypeIndex::Dragon;
   }
   ASSERT(false);
   return 0; // unreachable

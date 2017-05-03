@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2016.09.21.1"
+#define SUNFISH_FV_VERSION "2016.09.21.2"
 
 namespace sunfish {
 
@@ -80,24 +80,15 @@ int getEvalPieceIndex(Piece piece);
 
 namespace EvalPieceTypeIndex_ {
 enum Type {
-  BPawn = 0,
-  WPawn,
-  BLance,
-  WLance,
-  BKnight,
-  WKnight,
-  BSilver,
-  WSilver,
-  BGold,
-  WGold,
-  BBishop,
-  WBishop,
-  BHorse,
-  WHorse,
-  BRook,
-  WRook,
-  BDragon,
-  WDragon,
+  Pawn = 0,
+  Lance,
+  Knight,
+  Silver,
+  Gold,
+  Bishop,
+  Horse,
+  Rook,
+  Dragon,
   End,
 };
 } // namespace EvalPieceTypeIndex_
