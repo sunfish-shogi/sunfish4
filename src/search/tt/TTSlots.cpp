@@ -18,14 +18,10 @@ TTStatus TTSlots::set(const TTElement& element) {
   }
 
   // find lesser slot
-  TTElement dummy;
-  TTElement* e = &dummy;
-  int minDepth = INT_MAX;
-  for (SizeType i = 0; i < Size; i++) {
-    int depth = slots_[i].depth();
-    if (depth < minDepth) {
+  TTElement* e = &slots_[0];
+  for (SizeType i = 1; i < Size; i++) {
+    if (slots_[i].depth() < e->depth()) {
       e = &slots_[i];
-      minDepth = depth;
     }
   }
   *e = element;
