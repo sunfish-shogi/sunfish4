@@ -201,16 +201,6 @@ void Searcher::onSearchStarted() {
   }
 }
 
-void Searcher::onSearchStopped() {
-  interrupt();
-
-  for (int ti = 0; ti < treeSize_; ti++) {
-    if (trees_[ti].thread.joinable()) {
-      trees_[ti].thread.join();
-    }
-  }
-}
-
 void Searcher::updateInfo() {
   initializeSearchInfo(info_);
   mergeSearchInfo(info_, trees_[0].info);
@@ -249,8 +239,6 @@ void Searcher::search(const Position& pos,
   result_.pv = node.pv;
   result_.depth = depth;
   result_.elapsed = timer_.elapsed();
-
-  onSearchStopped();
 }
 
 /**
@@ -261,18 +249,24 @@ void Searcher::idsearch(const Position& pos,
                         Record* record /*= nullptr*/) {
   onSearchStarted();
 
+  prepareIDSearch(trees_[0], trees_[0], pos, record);
+
   for (int ti = 1; ti < treeSize_; ti++) {
+    prepareIDSearch(trees_[ti], trees_[0], pos, record);
     trees_[ti].thread = std::thread([this, ti, &pos, maxDepth, record]() {
-      idsearch(trees_[ti], pos, maxDepth, record);
+      idsearch(trees_[ti], maxDepth);
     });
   }
 
-  idsearch(trees_[0],
-           pos,
-           maxDepth,
-           record);
+  idsearch(trees_[0], maxDepth);
 
-  onSearchStopped();
+  interrupt();
+
+  for (int ti = 1; ti < treeSize_; ti++) {
+    if (trees_[ti].thread.joinable()) {
+      trees_[ti].thread.join();
+    }
+  }
 
   for (int ti = 0; ti < treeSize_; ti++) {
     auto& tree = trees_[ti];
@@ -292,10 +286,10 @@ void Searcher::idsearch(const Position& pos,
   }
 }
 
-void Searcher::idsearch(Tree& tree,
-                        const Position& pos,
-                        int maxDepth,
-                        Record* record) {
+void Searcher::prepareIDSearch(Tree& tree,
+                               Tree& tree0,
+                               const Position& pos,
+                               Record* record) {
   bool isMainThread = tree.index == 0;
 
   initializeTree(tree,
@@ -308,16 +302,31 @@ void Searcher::idsearch(Tree& tree,
   auto& node = tree.nodes[tree.ply];
   node.checkState = tree.position.getCheckState();
 
-  // generate moves
-  node.moves.clear();
-  if (!isCheck(node.checkState)) {
-    MoveGenerator::generateCaptures(tree.position, node.moves);
-    MoveGenerator::generateQuiets(tree.position, node.moves);
-  } else {
-    MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
-  }
+  if (isMainThread) {
+    // generate moves
+    node.moves.clear();
+    if (!isCheck(node.checkState)) {
+      MoveGenerator::generateCaptures(tree.position, node.moves);
+      MoveGenerator::generateQuiets(tree.position, node.moves);
+    } else {
+      MoveGenerator::generateEvasions(tree.position, node.checkState, node.moves);
+    }
 
-  sortRootMoves(tree);
+    sortRootMoves(tree);
+  } else {
+    // copy from main thread tree
+    node.moves.clear();
+    auto& node0 = tree0.nodes[tree0.ply];
+    for (auto ite = node0.moves.cbegin(); ite != node0.moves.cend(); ite++) {
+      node.moves.add(*ite);
+    }
+  }
+}
+
+void Searcher::idsearch(Tree& tree,
+                        int maxDepth) {
+  bool isMainThread = tree.index == 0;
+  auto& node = tree.nodes[tree.ply];
 
   if (node.moves.size() == 0) {
     return;

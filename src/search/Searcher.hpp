@@ -102,14 +102,16 @@ public:
 private:
 
   void onSearchStarted();
-  void onSearchStopped();
 
   void updateInfo();
 
+  void prepareIDSearch(Tree& tree,
+                       Tree& tree0,
+                       const Position& pos,
+                       Record* record);
+
   void idsearch(Tree& tree,
-                const Position& pos,
-                int maxDepth,
-                Record* record);
+                int maxDepth);
 
   bool aspsearch(Tree& tree,
                  int depth);
