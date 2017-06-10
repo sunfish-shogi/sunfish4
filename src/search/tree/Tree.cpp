@@ -68,13 +68,14 @@ void visit(Tree& tree) {
 
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
-  node.hashMove = Move::none();
+  node.ttMove = Move::none();
   node.pv.clear();
   node.quietsSearched.clear();
 
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();
   childNode.killerMove2 = Move::none();
+  childNode.excludedMove = Move::none();
 }
 
 void revisit(Tree& tree) {
@@ -88,6 +89,7 @@ void revisit(Tree& tree) {
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();
   childNode.killerMove2 = Move::none();
+  childNode.excludedMove = Move::none();
 }
 
 void sortKiller(Node& node) {

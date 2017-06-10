@@ -54,7 +54,8 @@ struct Node {
 
   Piece captured;
   Move move;
-  Move hashMove;
+  Move ttMove;
+  Move excludedMove;
 
   Move killerMove1;
   Move killerMove2;
@@ -135,7 +136,7 @@ inline
 bool isPriorMove(const Tree& tree,
                  const Move& move) {
   auto& node = tree.nodes[tree.ply];
-  return move == node.hashMove ||
+  return move == node.ttMove ||
          (isKiller1Good(tree) &&
           move == node.killerMove1) ||
          (isKiller2Good(tree) &&
