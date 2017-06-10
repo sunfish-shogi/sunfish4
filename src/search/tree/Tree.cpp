@@ -63,7 +63,7 @@ void initializeTree(Tree& tree,
   }
 }
 
-void arrive(Tree& tree) {
+void visit(Tree& tree) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];
@@ -77,7 +77,7 @@ void arrive(Tree& tree) {
   childNode.killerMove2 = Move::none();
 }
 
-void rearrive(Tree& tree) {
+void revisit(Tree& tree) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];

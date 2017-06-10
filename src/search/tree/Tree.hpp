@@ -89,9 +89,9 @@ void initializeTree(Tree& tree,
                     Evaluator& eval,
                     const Record* record);
 
-void arrive(Tree& tree);
+void visit(Tree& tree);
 
-void rearrive(Tree& tree);
+void revisit(Tree& tree);
 
 inline
 bool hasKiller1(const Tree& tree) {

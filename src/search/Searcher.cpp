@@ -303,7 +303,7 @@ void Searcher::idsearch(Tree& tree,
                  *evaluator_,
                  record);
 
-  arrive(tree);
+  visit(tree);
 
   auto& node = tree.nodes[tree.ply];
   node.checkState = tree.position.getCheckState();
@@ -556,7 +556,7 @@ Score Searcher::search(Tree& tree,
   }
 #endif
 
-  arrive(tree);
+  visit(tree);
 
   auto& node = tree.nodes[tree.ply];
 
@@ -694,7 +694,7 @@ Score Searcher::search(Tree& tree,
       return score;
     }
 
-    rearrive(tree);
+    revisit(tree);
   }
 
   // null move pruning
@@ -761,7 +761,7 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
-    rearrive(tree);
+    revisit(tree);
 
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
@@ -972,7 +972,7 @@ Score Searcher::quies(Tree& tree,
                       int depth,
                       Score alpha,
                       Score beta) {
-  arrive(tree);
+  visit(tree);
 
   auto& node = tree.nodes[tree.ply];
 
