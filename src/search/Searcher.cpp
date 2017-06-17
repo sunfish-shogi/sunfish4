@@ -1017,10 +1017,8 @@ Score Searcher::quies(Tree& tree,
     Score ttScore = tte.score(tree.ply);
     int ttDepth = tte.depth();
 
-    bool isMate = (ttScore <= -Score::mate() && (ttScoreType == TTScoreType::Exact ||
-                                                 ttScoreType == TTScoreType::Upper)) ||
-                  (ttScore >=  Score::mate() && (ttScoreType == TTScoreType::Exact ||
-                                                 ttScoreType == TTScoreType::Lower));
+    bool isMate = (ttScore <= -Score::mate() && (ttScoreType & TTScoreType::Upper)) ||
+                  (ttScore >=  Score::mate() && (ttScoreType & TTScoreType::Lower));
 
     // cut
     if (isNullWindow && (ttDepth >= depth || isMate)) {
