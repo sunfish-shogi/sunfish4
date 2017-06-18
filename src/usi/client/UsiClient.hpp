@@ -36,6 +36,7 @@ private:
     bool snappy;
     int marginMs;
     int numberOfThreads;
+    int maxDepth;
   };
 
   enum class CommandState : uint8_t {

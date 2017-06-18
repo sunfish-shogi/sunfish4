@@ -47,6 +47,7 @@ UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   options_.snappy = true;
   options_.marginMs = 500;
   options_.numberOfThreads = 1;
+  options_.maxDepth = Searcher::DepthInfinity;
 }
 
 bool UsiClient::start() {
@@ -93,6 +94,7 @@ bool UsiClient::acceptUsi() {
   send("option", "name", "Snappy", "type", "check", "default", "true");
   send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
   send("option", "name", "Threads", "type", "spin", "default", "1", "min", "1", "max", "32");
+  send("option", "name", "MaxDepth", "type", "spin", "default", "64", "min", "1", "max", "64");
 
   send("usiok");
 
@@ -180,6 +182,11 @@ bool UsiClient::setOption(const CommandArguments& args) {
 
   if (name == "Threads") {
     options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
+    return true;
+  }
+
+  if (name == "MaxDepth") {
+    options_.maxDepth = StringUtil::toInt(value, options_.maxDepth);
     return true;
   }
 
@@ -375,7 +382,7 @@ void UsiClient::search() {
 
   searcher_->setConfig(config);
 
-  searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
+  searcher_->idsearch(pos, options_.maxDepth * Searcher::Depth1Ply, &record_);
 
   if (isInfinite_) {
     waitForStopCommand();
@@ -459,7 +466,7 @@ void UsiClient::ponder() {
 
   searcher_->setConfig(config);
 
-  searcher_->idsearch(pos, Searcher::DepthInfinity, &record_);
+  searcher_->idsearch(pos, options_.maxDepth * Searcher::Depth1Ply, &record_);
 
   OUT(info) << "ponder thread is stopped. tid=" << std::this_thread::get_id();
 }
