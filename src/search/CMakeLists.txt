@@ -13,6 +13,7 @@ add_library(search STATIC
     history/History.hpp
     mate/Mate.cpp
     mate/Mate.hpp
+	Param.hpp
     RandomSearcher.cpp
     RandomSearcher.hpp
     SearchConfig.hpp

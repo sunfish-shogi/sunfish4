@@ -3,6 +3,7 @@
  * Kubo Ryosuke
  */
 
+#include "search/Param.hpp"
 #include "search/Searcher.hpp"
 #include "search/see/SEE.hpp"
 #include "search/mate/Mate.hpp"
@@ -21,9 +22,9 @@ using namespace sunfish;
 CONSTEXPR_CONST int AspirationSearchMinDepth = 6 * Searcher::Depth1Ply;
 
 // extensions
-CONSTEXPR_CONST int ExtensionDepthForCheck     = Searcher::Depth1Ply * 3 / 4;
-CONSTEXPR_CONST int ExtensionDepthForOneReply  = Searcher::Depth1Ply * 1 / 2;
-CONSTEXPR_CONST int ExtensionDepthForRecapture = Searcher::Depth1Ply * 1 / 4;
+CONSTEXPR_CONST int ExtensionDepthForCheck     = EXT_DEPTH_CHECK;
+CONSTEXPR_CONST int ExtensionDepthForOneReply  = EXT_DEPTH_ONE_REPLY;
+CONSTEXPR_CONST int ExtensionDepthForRecapture = EXT_DEPTH_RECAP;
 
 /**
  * Check whether the recursive-iterative deepening should be run.
@@ -44,9 +45,9 @@ inline int recursiveIDSearchDepth(int depth) {
  * Calculate a depth of null move search.
  */
 inline int nullDepth(int depth, Score standPat, Score beta) {
-  return depth * 11 / 16
-       - Searcher::Depth1Ply * 7 / 2
-       - std::max(Searcher::Depth1Ply * ((int)standPat.raw() - (int)beta.raw()) / 150, 0);
+  return depth * NULL_DEPTH_RATE / 16
+       - NULL_DEPTH_REDUCE
+       - std::max(Searcher::Depth1Ply * ((int)standPat.raw() - (int)beta.raw()) / NULL_DEPTH_VRATE, 0);
 }
 
 /**
@@ -57,7 +58,8 @@ uint8_t ReductionDepth[2][64][64];
 void initializeReductionDepth() {
   for (int d = 1; d < 64; d++) {
     for (int mc = 0; mc < 64; mc++) {
-      double r = 0.5 * log(d) + 0.8 * log(mc + 1);
+      double r = 0.05 * REDUCTION_RATE1 * log(d)
+               + 0.08 * REDUCTION_RATE2 * log(mc + 1);
       if (r < 0.8) {
         continue;
       }
@@ -80,7 +82,7 @@ int reductionDepth(int depth,
                        [std::min(mc, 63)];
 }
 
-uint16_t RazorMargin[4] = { 300, 400, 400, 450 };
+uint16_t RazorMargin[4] = { RAZOR_MARGIN1, RAZOR_MARGIN2, RAZOR_MARGIN3, RAZOR_MARGIN4 };
 
 /**
  * Returnes the margin of razoring
@@ -93,14 +95,14 @@ Score razorMargin(int depth) {
 /**
  * the maximum depth of futility pruning.
  */
-CONSTEXPR_CONST int FutilityPruningMaxDepth = 7 * Searcher::Depth1Ply;
+CONSTEXPR_CONST int FutilityPruningMaxDepth = FUT_PRUN_MAX_DEPTH;
 
 /**
  * Returns the margin of futility pruning.
  */
 inline
 Score futilityPruningMargin(int depth) {
-  return depth * (300 / Searcher::Depth1Ply);
+  return depth * FUT_PRUN_MARGIN_RATE;
 }
 
 const int HalfDensity[][9] = {
@@ -764,7 +766,7 @@ Score Searcher::search(Tree& tree,
       beta > -Score::mate() &&
       depth >= Depth1Ply * 5 &&
       !isCheck(node.checkState)) {
-    Score pbeta = beta + 200;
+    Score pbeta = beta + PROBCUT_MARGIN;
     int newDepth = depth - 4 * Depth1Ply;
     generateMovesOnProbCut(tree, pbeta - standPat);
 
@@ -922,7 +924,7 @@ Score Searcher::search(Tree& tree,
         newAlpha > -Score::mate() &&
         !isPriorMove(tree, move)) {
       Score futScore = estimateScore(tree, move, *evaluator_)
-                     + 500 + futilityPruningMargin(newDepth);
+                     + FUT_PRUN_MARGIN + futilityPruningMargin(newDepth);
       if (futScore <= newAlpha) {
         isFirst = false;
         bestScore = std::max(bestScore, futScore);
@@ -1134,7 +1136,7 @@ Score Searcher::quies(Tree& tree,
     if (!tree.position.isCheck(move) &&
         !isCheck(node.checkState)) {
       Score estScore = estimateScore(tree, move, *evaluator_);
-      if (estScore + 500 <= alpha) {
+      if (estScore + FUT_PRUN_MARGIN <= alpha) {
         tree.info.futilityPruning++;
         continue;
       }
