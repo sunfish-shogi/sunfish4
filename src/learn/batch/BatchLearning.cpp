@@ -115,9 +115,9 @@ BatchLearning::BatchLearning() :
 }
 
 bool BatchLearning::run() {
-  OUT(info) << "####################################################################";
-  OUT(info) << "##                         BatchLearning                          ##";
-  OUT(info) << "####################################################################";
+  MSG(info) << "####################################################################";
+  MSG(info) << "##                         BatchLearning                          ##";
+  MSG(info) << "####################################################################";
 
   timer_.start();
 
@@ -132,8 +132,8 @@ bool BatchLearning::run() {
   }
 
   auto elapsed = timer_.elapsed();
-  OUT(info) << "completed";
-  OUT(info) << "elapsed: " << elapsed;
+  MSG(info) << "completed";
+  MSG(info) << "elapsed: " << elapsed;
 
   return true;
 }
@@ -149,13 +149,13 @@ void BatchLearning::readConfigFromIniFile() {
   config_.depth             = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
   config_.norm              = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
 
-  OUT(info) << "KifuDir         : " << config_.kifuDir;
-  OUT(info) << "Iteration       : " << config_.iteration;
-  OUT(info) << "Restart         : " << config_.restart;
-  OUT(info) << "RestartIteration: " << config_.restartIteration;
-  OUT(info) << "NumThreads      : " << config_.numThreads;
-  OUT(info) << "Depth           : " << config_.depth;
-  OUT(info) << "Norm            : " << config_.norm;
+  MSG(info) << "KifuDir         : " << config_.kifuDir;
+  MSG(info) << "Iteration       : " << config_.iteration;
+  MSG(info) << "Restart         : " << config_.restart;
+  MSG(info) << "RestartIteration: " << config_.restartIteration;
+  MSG(info) << "NumThreads      : " << config_.numThreads;
+  MSG(info) << "Depth           : " << config_.depth;
+  MSG(info) << "Norm            : " << config_.norm;
 }
 
 bool BatchLearning::validateConfig() {
@@ -178,17 +178,17 @@ bool BatchLearning::iterate() {
 
   for (int i = 0; i < config_.iteration; i++) {
     if (!config_.restart || i >= config_.restartIteration) {
-      OUT(info) << "";
-      OUT(info) << "ITERATION - " << i;
+      MSG(info) << "";
+      MSG(info) << "ITERATION - " << i;
 
-      OUT(info) << "generating training data..";
+      MSG(info) << "generating training data..";
 
       bool ok = generateTrainingData();
       if (!ok) {
         return false;
       }
 
-      OUT(info) << "adjusting parameters..";
+      MSG(info) << "adjusting parameters..";
 
       float lossFirst = 0.0f;
       float lossLast = 0.0f;
@@ -209,12 +209,12 @@ bool BatchLearning::iterate() {
         }
       }
 
-      OUT(info) << "writing to file..";
+      MSG(info) << "writing to file..";
 
       save(*fv_);
 
-      OUT(info) << "";
-      OUT(info) << "loss = " << lossFirst << " - " << lossLast;
+      MSG(info) << "";
+      MSG(info) << "loss = " << lossFirst << " - " << lossLast;
 
       printParametersSummary();
     }
@@ -636,7 +636,7 @@ void BatchLearning::updateParameters() {
              << material::promotionScores[pieceType.raw()]
              << material::promotionScores[pieceType.white().raw()];
   }
-  OUT(info) << tp.stringify();
+  MSG(info) << tp.stringify();
 #endif // DEBUG_PRINT
 
   evaluator_->onChanged(Evaluator::DataSourceType::Custom);
@@ -669,15 +669,15 @@ void BatchLearning::printParametersSummary() {
              << s.aveAbs;
   }
 
-  OUT(info) << "";
-  OUT(info) << "Summary:\n" << StringUtil::chomp(tp.stringify());
+  MSG(info) << "";
+  MSG(info) << "Summary:\n" << StringUtil::chomp(tp.stringify());
 
   std::ostringstream oss;
   PIECE_TYPE_EACH(pieceType) {
     oss << pieceType << ": " << material::scores[pieceType.raw()] << "\n";
   }
-  OUT(info) << "";
-  OUT(info) << "Material:\n" << StringUtil::chomp(oss.str());
+  MSG(info) << "";
+  MSG(info) << "Material:\n" << StringUtil::chomp(oss.str());
 }
 
 } // namespace sunfish

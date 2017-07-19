@@ -56,7 +56,7 @@ Directory::Files Directory::files(const char* wildcard) {
   HANDLE hFind = FindFirstFile(pattern.str().c_str(), &fd);
   if (hFind == INVALID_HANDLE_VALUE) {
     LOG(warning) << "There are no files in `" << path_ << '\'';
-    return 0;
+    return {};
   }
 #else
   DIR* pdir;

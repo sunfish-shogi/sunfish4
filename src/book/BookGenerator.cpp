@@ -43,7 +43,7 @@ bool BookGenerator::generate(const std::string& path) {
   std::ifstream file(path);
   if (!file) {
     LOG(error) << "could not open a file: " << path;
-    OUT(info) << "";
+    MSG(info) << "";
     return false;
   }
 

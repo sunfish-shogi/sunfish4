@@ -300,17 +300,17 @@ bool UsiClient::runSearch(const CommandArguments& args) {
     }
   }
 
-  OUT(info) << "btime    : " << blackTimeMs_;
-  OUT(info) << "wtime    : " << whiteTimeMs_;
-  OUT(info) << "byoyomi  : " << byoyomiMs_;
-  OUT(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
+  MSG(info) << "btime    : " << blackTimeMs_;
+  MSG(info) << "wtime    : " << whiteTimeMs_;
+  MSG(info) << "byoyomi  : " << byoyomiMs_;
+  MSG(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
 
   // check opening book
   if (options_.useBook) {
     auto pos = generatePosition(record_, -1);
     Move bookMove = BookUtil::select(book_, pos, random_);
     if (!bookMove.isNone()) {
-      OUT(info) << "opening book hit";
+      MSG(info) << "opening book hit";
       send("bestmove", bookMove.toStringSFEN());
       return true;
     }
@@ -352,7 +352,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
 }
 
 void UsiClient::search() {
-  OUT(info) << "search thread is started. tid=" << std::this_thread::get_id();
+  MSG(info) << "search thread is started. tid=" << std::this_thread::get_id();
 
   auto pos = generatePosition(record_, -1);
   auto config = searcher_->getConfig();
@@ -404,12 +404,12 @@ void UsiClient::search() {
   }
 
   // print the result of search
-  printSearchInfo(OUT(info), info, result.elapsed);
+  printSearchInfo(MSG(info), info, result.elapsed);
 
   // notify to receiver
   breakReceive();
 
-  OUT(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
+  MSG(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
 }
 
 bool UsiClient::runPonder(const CommandArguments&) {
@@ -454,7 +454,7 @@ bool UsiClient::runPonder(const CommandArguments&) {
 }
 
 void UsiClient::ponder() {
-  OUT(info) << "ponder thread is started. tid=" << std::this_thread::get_id();
+  MSG(info) << "ponder thread is started. tid=" << std::this_thread::get_id();
 
   record_.moveList.pop_back();
   auto pos = generatePosition(record_, -1);
@@ -468,7 +468,7 @@ void UsiClient::ponder() {
 
   searcher_->idsearch(pos, options_.maxDepth * Searcher::Depth1Ply, &record_);
 
-  OUT(info) << "ponder thread is stopped. tid=" << std::this_thread::get_id();
+  MSG(info) << "ponder thread is stopped. tid=" << std::this_thread::get_id();
 }
 
 void UsiClient::waitForSearcherIsStarted() {
@@ -517,7 +517,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
     }
   }
 
-  OUT(info) << std::setw(2) << realDepth << ": "
+  MSG(info) << std::setw(2) << realDepth << ": "
             << std::setw(10) << (info.nodes + info.quiesNodes) << ": "
             << std::setw(7) << timeMs << ' '
             << pv.toString() << ": "
@@ -538,7 +538,7 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
 
 void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  OUT(info) << "fail-low";
+  MSG(info) << "fail-low";
   if (!inPonder_) {
     send("info", "string", "fail-low");
   }
@@ -546,7 +546,7 @@ void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed,
 
 void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  OUT(info) << "fail-low";
+  MSG(info) << "fail-low";
   if (!inPonder_) {
     send("info", "string", "fail-high");
   }
@@ -603,12 +603,12 @@ void UsiClient::receiver() {
       LOG(error) << "received an empty string.";
 
     } else if (command == "quit") {
-      OUT(info) << "quit";
+      MSG(info) << "quit";
       exit(0);
 
     } else {
       state = CommandState::Ok;
-      OUT(receive) << command;
+      MSG(receive) << command;
     }
 
     {
@@ -631,7 +631,7 @@ void UsiClient::send(T&& command) {
 
   std::cout << command << std::endl;
   std::cout.flush();
-  OUT(send) << command;
+  MSG(send) << command;
 }
 
 template <class T, class... Args>

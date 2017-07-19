@@ -68,9 +68,9 @@ const Wildcard Censored("#CENSORED");
 namespace sunfish {
 
 bool CsaClient::start() {
-  OUT(info) << "####################################################################";
-  OUT(info) << "##                           CSA Client                           ##";
-  OUT(info) << "####################################################################";
+  MSG(info) << "####################################################################";
+  MSG(info) << "##                           CSA Client                           ##";
+  MSG(info) << "####################################################################";
 
   readConfigFromIniFile();
   if (!validateConfig()) {
@@ -122,30 +122,30 @@ void CsaClient::readConfigFromIniFile() {
 
   config_.kifuDir = getValue(ini, "File", "KifuDir");
 
-  OUT(info) << "Configurations";
-  OUT(info) << "  Server";
-  OUT(info) << "    Host     : " << config_.host;
-  OUT(info) << "    Port     : " << config_.port;
-  OUT(info) << "    User     : " << config_.user;
-  OUT(info) << "    Pass     : " << config_.pass;
-  OUT(info) << "    Floodgate: " << config_.floodgate;
-  OUT(info) << "  Search";
-  OUT(info) << "    Depth   : " << config_.depth;
-  OUT(info) << "    Limit   : " << config_.limit;
-  OUT(info) << "    Repeat  : " << config_.repeat;
-  OUT(info) << "    Worker  : " << config_.worker;
-  OUT(info) << "    Ponder  : " << config_.ponder;
-  OUT(info) << "    UseBook : " << config_.useBook;
-  OUT(info) << "    HashMem : " << config_.hashMem;
-  OUT(info) << "    MarginMs: " << config_.marginMs;
-  OUT(info) << "  KeepAlive";
-  OUT(info) << "    Keepalive: " << config_.keepalive;
-  OUT(info) << "    Keepidle : " << config_.keepidle ;
-  OUT(info) << "    Keepintvl: " << config_.keepintvl;
-  OUT(info) << "    Keepcnt  : " << config_.keepcnt;
-  OUT(info) << "  File";
-  OUT(info) << "    KifuDir: " << config_.kifuDir;
-  OUT(info) << "";
+  MSG(info) << "Configurations";
+  MSG(info) << "  Server";
+  MSG(info) << "    Host     : " << config_.host;
+  MSG(info) << "    Port     : " << config_.port;
+  MSG(info) << "    User     : " << config_.user;
+  MSG(info) << "    Pass     : " << config_.pass;
+  MSG(info) << "    Floodgate: " << config_.floodgate;
+  MSG(info) << "  Search";
+  MSG(info) << "    Depth   : " << config_.depth;
+  MSG(info) << "    Limit   : " << config_.limit;
+  MSG(info) << "    Repeat  : " << config_.repeat;
+  MSG(info) << "    Worker  : " << config_.worker;
+  MSG(info) << "    Ponder  : " << config_.ponder;
+  MSG(info) << "    UseBook : " << config_.useBook;
+  MSG(info) << "    HashMem : " << config_.hashMem;
+  MSG(info) << "    MarginMs: " << config_.marginMs;
+  MSG(info) << "  KeepAlive";
+  MSG(info) << "    Keepalive: " << config_.keepalive;
+  MSG(info) << "    Keepidle : " << config_.keepidle ;
+  MSG(info) << "    Keepintvl: " << config_.keepintvl;
+  MSG(info) << "    Keepcnt  : " << config_.keepcnt;
+  MSG(info) << "  File";
+  MSG(info) << "    KifuDir: " << config_.kifuDir;
+  MSG(info) << "";
 }
 
 bool CsaClient::validateConfig() {
@@ -201,10 +201,10 @@ void CsaClient::play() {
   whiteTime_ = gameSummary_.totalTime;
 
   for (;;) {
-    OUT(info) << "Time";
-    OUT(info) << "  Black: " << blackTime_;
-    OUT(info) << "  White: " << whiteTime_;
-    OUT(info) << "";
+    MSG(info) << "Time";
+    MSG(info) << "  Black: " << blackTime_;
+    MSG(info) << "  White: " << whiteTime_;
+    MSG(info) << "";
 
     ScopedThread searchThread;
     bool isMyTurn = gameSummary_.myTurn == position_.getTurn();
@@ -317,27 +317,27 @@ bool CsaClient::onGameSummary() {
     }
   }
 
-  OUT(info) << "GameSummary";
-  OUT(info) << "  MyTurn            : " << gameSummary_.myTurn;
-  OUT(info) << "  GameId            : " << gameSummary_.gameId;
-  OUT(info) << "  BlackName         : " << gameSummary_.blackName;
-  OUT(info) << "  WhiteName         : " << gameSummary_.whiteName;
-  OUT(info) << "  FirstTurn         : " << gameSummary_.firstTurn;
-  OUT(info) << "  MaxMoves          : " << gameSummary_.maxMoves;
-  OUT(info) << "  ProtocolVersion   : " << gameSummary_.protocolVersion;
-  OUT(info) << "  ProtocolMode      : " << gameSummary_.protocolMode;
-  OUT(info) << "  Format            : " << gameSummary_.format;
-  OUT(info) << "  Declaration       : " << gameSummary_.declaration;
-  OUT(info) << "  RematchOnDraw     : " << gameSummary_.rematchOnDraw;
-  OUT(info) << "  Time";
-  OUT(info) << "    TotalTime       : " << gameSummary_.totalTime;
-  OUT(info) << "    Byoyomi         : " << gameSummary_.byoyomi;
-  OUT(info) << "    LeastTimePerMove: " << gameSummary_.leastTimePerMove;
-  OUT(info) << "    TimeRoundup     : " << gameSummary_.timeRoundup;
-  OUT(info) << "    Delay           : " << gameSummary_.delay;
-  OUT(info) << "    Increment       : " << gameSummary_.increment;
-  OUT(info) << "";
-  OUT(info) << position_.toString();
+  MSG(info) << "GameSummary";
+  MSG(info) << "  MyTurn            : " << gameSummary_.myTurn;
+  MSG(info) << "  GameId            : " << gameSummary_.gameId;
+  MSG(info) << "  BlackName         : " << gameSummary_.blackName;
+  MSG(info) << "  WhiteName         : " << gameSummary_.whiteName;
+  MSG(info) << "  FirstTurn         : " << gameSummary_.firstTurn;
+  MSG(info) << "  MaxMoves          : " << gameSummary_.maxMoves;
+  MSG(info) << "  ProtocolVersion   : " << gameSummary_.protocolVersion;
+  MSG(info) << "  ProtocolMode      : " << gameSummary_.protocolMode;
+  MSG(info) << "  Format            : " << gameSummary_.format;
+  MSG(info) << "  Declaration       : " << gameSummary_.declaration;
+  MSG(info) << "  RematchOnDraw     : " << gameSummary_.rematchOnDraw;
+  MSG(info) << "  Time";
+  MSG(info) << "    TotalTime       : " << gameSummary_.totalTime;
+  MSG(info) << "    Byoyomi         : " << gameSummary_.byoyomi;
+  MSG(info) << "    LeastTimePerMove: " << gameSummary_.leastTimePerMove;
+  MSG(info) << "    TimeRoundup     : " << gameSummary_.timeRoundup;
+  MSG(info) << "    Delay           : " << gameSummary_.delay;
+  MSG(info) << "    Increment       : " << gameSummary_.increment;
+  MSG(info) << "";
+  MSG(info) << position_.toString();
 
   return true;
 }
@@ -494,7 +494,7 @@ bool CsaClient::agree() {
       receive() &&
       Start.match(lastReceivedString_)) {
     gameId_ = lastReceivedString_.substr(6);
-    OUT(info) << "Game ID: " << gameId_;
+    MSG(info) << "Game ID: " << gameId_;
     return true;
   }
 
@@ -582,7 +582,7 @@ bool CsaClient::onMove() {
   }
   record_.moveList.push_back(move);
 
-  OUT(info) << position_;
+  MSG(info) << position_;
 
   if (!tstr.empty() && tstr[0] == 'T') {
     int reduced = std::stoi(tstr.c_str() + 1);
@@ -603,7 +603,7 @@ void CsaClient::runSearch(ScopedThread& searchThread) {
   if (config_.useBook) {
     Move bookMove = BookUtil::select(book_, position_, random_);
     if (!bookMove.isNone()) {
-      OUT(info) << "opening book hit";
+      MSG(info) << "opening book hit";
       send(bookMove.toString(position_));
       return;
     }
@@ -730,7 +730,7 @@ bool CsaClient::send(const T& str) {
     return false;
   }
 
-  OUT(send) << str;
+  MSG(send) << str;
 
   return true;
 }
@@ -746,7 +746,7 @@ bool CsaClient::receive() {
     lastReceivedString_.resize(lastReceivedString_.length() - 1);
   }
 
-  OUT(receive) << lastReceivedString_;
+  MSG(receive) << lastReceivedString_;
 
   return true;
 }

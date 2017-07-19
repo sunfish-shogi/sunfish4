@@ -25,7 +25,7 @@ void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, fl
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
   auto realDepth = depth / Searcher::Depth1Ply;
 
-  OUT(info) << std::setw(2) << realDepth << ": "
+  MSG(info) << std::setw(2) << realDepth << ": "
             << std::setw(10) << (info.nodes + info.quiesNodes) << ": "
             << std::setw(7) << timeMs << ' '
             << pv.toString() << ": "
@@ -34,12 +34,12 @@ void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, fl
 
 void LoggingSearchHandler::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  OUT(info) << "fail-low";
+  MSG(info) << "fail-low";
 }
 
 void LoggingSearchHandler::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  OUT(info) << "fail-high";
+  MSG(info) << "fail-high";
 }
  
 } // namespace sunfish

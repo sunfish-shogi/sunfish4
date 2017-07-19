@@ -51,7 +51,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
+    MSG(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
   // execute
@@ -60,7 +60,7 @@ int main(int argc, char** argv, char**) {
   // write results to a file in xUnit format
   std::ofstream fout(resultFileName, std::ios::out);
   if (!fout) {
-    OUT(error) << "Could not open output file: " << resultFileName;
+    MSG(error) << "Could not open output file: " << resultFileName;
     return 1;
   }
   fout << TestSuite::getXml();
@@ -68,11 +68,11 @@ int main(int argc, char** argv, char**) {
 
   // show result
   if (result) {
-    OUT(info) << ESC_SEQ_COLOR_GREEN << "Test passed." << ESC_SEQ_COLOR_RESET;
+    MSG(info) << ESC_SEQ_COLOR_GREEN << "Test passed." << ESC_SEQ_COLOR_RESET;
   } else {
-    OUT(error) << "Test failed.";
+    MSG(error) << "Test failed.";
   }
-  OUT(info) << "See '" << resultFileName << "'.";
+  MSG(info) << "See '" << resultFileName << "'.";
 
   // return value
   return result ? 0 : 1;

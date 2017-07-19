@@ -184,7 +184,7 @@ public:
 #endif //NDEBUG
 };
 
-#define OUT(type) sunfish::Loggers::type
+#define MSG(type) sunfish::Loggers::type
 #define LOG(type) sunfish::Loggers::type.getSubLogger(__FILE_LINE__)
 
 #ifdef NDEBUG

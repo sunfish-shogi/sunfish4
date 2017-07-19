@@ -19,7 +19,7 @@ void debugPrint(const Moves& moves) {
   for (const auto& move : moves) {
     oss << ' ' << move.toString();
   }
-  OUT(debug) << oss.str();
+  MSG(debug) << oss.str();
 }
 #endif
 

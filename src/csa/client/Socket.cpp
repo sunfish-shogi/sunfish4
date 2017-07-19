@@ -90,7 +90,7 @@ bool Socket::connect() {
     return false;
   }
 
-  OUT(info) << "connected to " << host_ << ':' << port_;
+  MSG(info) << "connected to " << host_ << ':' << port_;
 
   return true;
 }
@@ -102,7 +102,7 @@ void Socket::disconnect() {
 
   close(sock_);
   opened_ = false;
-  OUT(info) << "disconnected from " << host_ << ':' << port_;
+  MSG(info) << "disconnected from " << host_ << ':' << port_;
 }
 
 bool Socket::receiveString(std::string& out) {

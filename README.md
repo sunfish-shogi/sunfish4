@@ -41,14 +41,15 @@ cd out/xcode_test
 cmake -G Xcode ../../src/test
 ```
 
-### Visual Studio (not maitained)
+### Visual Studio
 
 Set parameters into CMake as follows.
+( target is `usi`, `csa`, etc.)
 
-| Name                        | Value                   |
-|:----------------------------|------------------------:|
-| Where is the source code    | path/to/sunfish4/src    |
-| Where to build the binaries | path/to/build_directory |
+| Name                        | Value                       |
+|:----------------------------|----------------------------:|
+| Where is the source code    | path/to/sunfish4/src/target |
+| Where to build the binaries | path/to/sunfish4/vs/target  |
 
 Usage
 -----

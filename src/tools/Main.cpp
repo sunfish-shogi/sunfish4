@@ -44,7 +44,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
+    MSG(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
   // sfen2csa
@@ -66,7 +66,7 @@ int main(int argc, char** argv, char**) {
     return 0;
   }
 
-  OUT(error) << "No action is specified.";
+  MSG(error) << "No action is specified.";
   std::cout << po.help();
 
   return 0;

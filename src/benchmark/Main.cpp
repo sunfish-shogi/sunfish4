@@ -48,7 +48,7 @@ int main(int argc, char** argv, char**) {
 
     fout.open(resultFileName, std::ios::out);
     if (!fout) {
-      OUT(error) << "Could not open output file: " << resultFileName;
+      MSG(error) << "Could not open output file: " << resultFileName;
       return 1;
     }
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
+    MSG(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
   // initialization

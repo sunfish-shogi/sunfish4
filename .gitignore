@@ -2,6 +2,7 @@
 /out/test_result.xml
 /out/build
 /out/date
+/vs/
 
 *.html
 *.csa

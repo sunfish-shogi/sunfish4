@@ -64,7 +64,7 @@ int main(int argc, char** argv, char**) {
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
-    OUT(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
+    MSG(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
   // CSA client

@@ -23,7 +23,7 @@ bool MoveGenerationTest::test(int repeatCount, int maximumNumberOfMoves) {
 }
 
 bool MoveGenerationTest::testOnce(int count, int maximumNumberOfMoves) {
-  OUT(info) << "Test Count: " << count;
+  MSG(info) << "Test Count: " << count;
 
   Position position(Position::Handicap::Even);
 
@@ -31,17 +31,17 @@ bool MoveGenerationTest::testOnce(int count, int maximumNumberOfMoves) {
     auto status = testAndDoMove(position);
 
     if (status == TestStatus::Error) {
-      OUT(info) << "Stopped on " << StringUtil::ordinal(nom) << " move.";
+      MSG(info) << "Stopped on " << StringUtil::ordinal(nom) << " move.";
       return false;
     }
 
     if (status == TestStatus::Mate) {
-      OUT(info) << "Mate on " << StringUtil::ordinal(nom) << " move.";
+      MSG(info) << "Mate on " << StringUtil::ordinal(nom) << " move.";
       return true;
     }
   }
 
-  OUT(info) << "Reached to the maximum number of moves.";
+  MSG(info) << "Reached to the maximum number of moves.";
   return true;
 }
 
@@ -67,12 +67,12 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
   sortMovesForDebug(moves2, position);
 
   if (moves.size() != moves2.size()) {
-    OUT(error) << "sizes of moves are not euqal.";
-    OUT(error) << position.toString();
-    OUT(error) << "moves 1: "
+    MSG(error) << "sizes of moves are not euqal.";
+    MSG(error) << position.toString();
+    MSG(error) << "moves 1: "
                << "n=" << moves.size() << ": "
                << moves.toString(position);
-    OUT(error) << "moves 2: "
+    MSG(error) << "moves 2: "
                << "n=" << moves2.size() << ": "
                << moves2.toString(position);
     return TestStatus::Error;
@@ -80,14 +80,14 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
 
   for (Moves::size_type i = 0; i < moves.size(); i++) {
     if (moves[i] != moves2[i]) {
-      OUT(error) << "generated different moves.";
-      OUT(error) << "moves 1: "
+      MSG(error) << "generated different moves.";
+      MSG(error) << "moves 1: "
                  << "n=" << moves.size() << ": "
                  << moves.toString(position);
-      OUT(error) << "moves 2: "
+      MSG(error) << "moves 2: "
                  << "n=" << moves2.size() << ": "
                  << moves2.toString(position);
-      OUT(error) << moves[i].toString(position)
+      MSG(error) << moves[i].toString(position)
                  << " is not equal to "
                  << moves2[i].toString(position);
       return TestStatus::Error;
@@ -116,8 +116,8 @@ MoveGenerationTest::TestStatus MoveGenerationTest::testAndDoMove(Position& posit
   Piece captured;
   if (!position.doMove(move, captured)) {
     LOG(error) << "fatal error";
-    OUT(error) << position.toString();
-    OUT(error) << move.toString(position);
+    MSG(error) << position.toString();
+    MSG(error) << move.toString(position);
     return TestStatus::Error;
   }
 

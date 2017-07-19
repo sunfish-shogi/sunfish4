@@ -34,7 +34,7 @@ bool Solver::solve(const char* path) {
     int n = 0;
     for (const auto& path : files) {
       n++;
-      OUT(info) << "------------------------ [" << n << "] ------------------------";
+      MSG(info) << "------------------------ [" << n << "] ------------------------";
       if (!solveCsaFile(path.c_str())) {
         return false;
       }
@@ -52,22 +52,22 @@ bool Solver::solve(const char* path) {
     return false;
   }
 
-  OUT(info) << "--------------------- completed ---------------------";
+  MSG(info) << "--------------------- completed ---------------------";
 
   auto percentage = [](float n, float d) {
     return n / d * 100.0f;
   };
   auto total = result_.corrected + result_.incorrected;
-  OUT(info) << "summary:";
-  OUT(info) << "  total     : " << total;
-  OUT(info) << "  correct   : " << result_.corrected
+  MSG(info) << "summary:";
+  MSG(info) << "  total     : " << total;
+  MSG(info) << "  correct   : " << result_.corrected
                               << " (" << percentage(result_.corrected, total) << "%)";
-  OUT(info) << "  incorrect : " << result_.incorrected
+  MSG(info) << "  incorrect : " << result_.incorrected
                               << " (" << percentage(result_.incorrected, total) << "%)";
-  OUT(info) << "  nps       : " << static_cast<uint64_t>(result_.nodes / result_.elapsed);
+  MSG(info) << "  nps       : " << static_cast<uint64_t>(result_.nodes / result_.elapsed);
   for (int i = 0; i < MaxDepthOfNodeCount; i++) {
     if (result_.nodesEachDepth[i].sample != 0) {
-      OUT(info) << "  nodes " << std::setw(2) << (i+1) << "  : "
+      MSG(info) << "  nodes " << std::setw(2) << (i+1) << "  : "
         << (result_.nodesEachDepth[i].nodes / result_.nodesEachDepth[i].sample)
         << " (" << result_.nodesEachDepth[i].sample << ")";
     }
@@ -77,13 +77,13 @@ bool Solver::solve(const char* path) {
 }
 
 bool Solver::solveCsaFile(const char* path) {
-  OUT(info) << "[" << path << "]";
-  OUT(info) << "";
+  MSG(info) << "[" << path << "]";
+  MSG(info) << "";
 
   std::ifstream file(path);
   if (!file) {
     LOG(error) << "could not open a file: " << path;
-    OUT(info) << "";
+    MSG(info) << "";
     return false;
   }
 
@@ -101,7 +101,7 @@ bool Solver::solveCsaFile(const char* path) {
     if (!position.doMove(move, captured)) {
       LOG(error) << "an illegal move is detected: " << move.toString(position) << "\n"
                  << position.toString();
-      OUT(info) << "";
+      MSG(info) << "";
       return false;
     }
   }
@@ -110,7 +110,7 @@ bool Solver::solveCsaFile(const char* path) {
 }
 
 bool Solver::solve(const Position& position, Move correct) {
-  OUT(info) << StringUtil::chomp(position.toString());
+  MSG(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
   config.maximumTimeMs = config_.muximumTimeSeconds * 1000;
@@ -141,12 +141,12 @@ bool Solver::solve(const Position& position, Move correct) {
     result_.elapsed += result.elapsed;
   }
 
-  printSearchInfo(OUT(info), info, result.elapsed);
-  OUT(info) << "";
-  OUT(info) << "answer : " << result.move.toString(position);
-  OUT(info) << "correct: " << correct.toString(position);
-  OUT(info) << "result : " << (isCorrect ? "correct" : "incorrect");
-  OUT(info) << "";
+  printSearchInfo(MSG(info), info, result.elapsed);
+  MSG(info) << "";
+  MSG(info) << "answer : " << result.move.toString(position);
+  MSG(info) << "correct: " << correct.toString(position);
+  MSG(info) << "result : " << (isCorrect ? "correct" : "incorrect");
+  MSG(info) << "";
 
   return true;
 }

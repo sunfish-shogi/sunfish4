@@ -10,6 +10,9 @@
 #include "common/bitope/BitOpe.hpp"
 #include <cstdint>
 #include <cassert>
+#if defined(WIN32) && !defined(__MINGW32__)
+#include <intrin.h> 
+#endif
 
 namespace sunfish {
 
@@ -366,7 +369,7 @@ protected:
   static U findForward(uint64_t data) {
 #if defined(WIN32) && !defined(__MINGW32__)
     unsigned long offset;
-    return _BitScanForward64((DWORD*)&offset, data) ? (offset + 1) : 0;
+    return _BitScanForward64((unsigned long*)&offset, data) ? (offset + 1) : 0;
 #elif defined(UNIX)
     return data == 0x00LL ? 0 : __builtin_ffsll(data);
 #else

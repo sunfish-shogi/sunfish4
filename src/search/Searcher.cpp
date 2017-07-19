@@ -136,7 +136,7 @@ void printMoves(const Position& pos,
     Score score = moveToScore(move);
     oss << move.toString(pos) << '(' << score << ") ";
   }
-  OUT(info) << oss.str();
+  MSG(info) << oss.str();
 }
 #endif
 
