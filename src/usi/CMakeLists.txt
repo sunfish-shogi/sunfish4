@@ -16,6 +16,7 @@ add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_usi
     client/UsiClient.cpp
+    client/UsiClient.hpp
     Main.cpp
 )
 

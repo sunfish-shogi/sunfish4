@@ -1,17 +1,47 @@
 cmake_minimum_required(VERSION 2.8)
 
 add_library(search STATIC
+    eval/EvalCache.hpp
     eval/Evaluator.cpp
+    eval/Evaluator.hpp
+    eval/FeatureTemplates.hpp
     eval/FeatureVector.cpp
+    eval/FeatureVector.hpp
     eval/Material.cpp
+    eval/Material.hpp
+    eval/Score.hpp
+    history/History.hpp
     mate/Mate.cpp
-    see/SEE.cpp
-    shek/SCRDetector.cpp
-    time/TimeManager.cpp
-    tree/Tree.cpp
-    tt/TTElement.cpp
-    tt/TTSlots.cpp
+    mate/Mate.hpp
     RandomSearcher.cpp
+    RandomSearcher.hpp
+    SearchConfig.hpp
     Searcher.cpp
+    Searcher.hpp
     SearchHandler.cpp
+    SearchHandler.hpp
+    SearchInfo.hpp
+    SearchResult.hpp
+    see/SEE.cpp
+    see/SEE.hpp
+    shek/HandSet.hpp
+    shek/SCRDetector.cpp
+    shek/SCRDetector.hpp
+    shek/ShekElement.hpp
+    shek/ShekSlots.hpp
+    shek/ShekState.hpp
+    shek/ShekTable.hpp
+    table/HashTable.hpp
+    time/TimeManager.cpp
+    time/TimeManager.hpp
+    tree/NodeStat.hpp
+    tree/PV.hpp
+    tree/Tree.cpp
+    tree/Tree.hpp
+    tt/TT.hpp
+    tt/TTElement.cpp
+    tt/TTElement.hpp
+    tt/TTSlots.cpp
+    tt/TTSlots.hpp
+    util/SearchUtil.hpp
 )

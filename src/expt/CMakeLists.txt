@@ -16,8 +16,11 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_executable(sunfish_expt
     Main.cpp
     mgtest/MoveGenerationTest.cpp
+    mgtest/MoveGenerationTest.hpp
     mgtest/TardyMoveGenerator.cpp
+    mgtest/TardyMoveGenerator.hpp
     solve/Solver.cpp
+    solve/Solver.hpp
 )
 
 target_link_libraries(sunfish_expt search)

@@ -15,9 +15,10 @@ add_subdirectory(../search "${CMAKE_CURRENT_BINARY_DIR}/search")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_bm
-    Main.cpp
+    Benchmark.hpp
     core/MoveGeneratorBM.cpp
     core/PositionBM.cpp
+    Main.cpp
     search/EvaluatorBM.cpp
 )
 

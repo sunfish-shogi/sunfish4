@@ -17,9 +17,8 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_test
-    Main.cpp
-    book/BookTest.cpp
     book/BookGeneratorTest.cpp
+    book/BookTest.cpp
     core/BitboardTest.cpp
     core/CsaReaderTest.cpp
     core/CsaWriterTest.cpp
@@ -31,6 +30,7 @@ add_executable(sunfish_test
     core/PositionTest.cpp
     core/SfenParserTest.cpp
     core/SquareTest.cpp
+    Main.cpp
     search/EvaluatorTest.cpp
     search/FeatureVectorTest.cpp
     search/MaterialTest.cpp
@@ -40,6 +40,7 @@ add_executable(sunfish_test
     search/SEETest.cpp
     search/ShekTest.cpp
     search/TTTest.cpp
+    Test.hpp
 )
 
 target_link_libraries(sunfish_test search)

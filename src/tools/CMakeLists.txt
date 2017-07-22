@@ -16,6 +16,7 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_executable(sunfish_tools
     Main.cpp
     sfen2csa/Sfen2Csa.cpp
+    sfen2csa/Sfen2Csa.hpp
 )
 
 target_link_libraries(sunfish_tools book)

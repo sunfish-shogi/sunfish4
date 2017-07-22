@@ -15,8 +15,10 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish_csa
-	client/CsaClient.cpp
+    client/CsaClient.cpp
+    client/CsaClient.hpp
     client/Socket.cpp
+    client/Socket.hpp
     Main.cpp
 )
 
