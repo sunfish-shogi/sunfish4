@@ -25,9 +25,15 @@
 
 #if defined(WIN32)
 # define NOMINMAX
-# define CONSTEXPR
-# define CONSTEXPR_CONST const
-# define NOEXCEPT
+# if _MSC_VER >= 1900
+#  define CONSTEXPR constexpr
+#  define CONSTEXPR_CONST constexpr
+#  define NOEXCEPT noexcept
+# else
+#  define CONSTEXPR
+#  define CONSTEXPR_CONST const
+#  define NOEXCEPT
+# endif
 # define ALIGNAS(a) __declspec(align(a))
 #else
 # define CONSTEXPR constexpr
