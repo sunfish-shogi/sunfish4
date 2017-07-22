@@ -8,7 +8,6 @@
 
 #include "common/Def.hpp"
 #include <random>
-#include <algorithm>
 #include <ctime>
 #include <cstdint>
 
@@ -78,7 +77,13 @@ public:
 
   template <class Iterator>
   void shuffle(Iterator begin, Iterator end) {
-    std::shuffle(begin, end, rgen);
+    size_t n = end - begin;
+    for (size_t i = 0; i + 1 < n; i++) {
+      size_t t = i + int64(n - i);
+      auto tmp = begin[i];
+      begin[i] = begin[t];
+      begin[t] = tmp;
+    }
   }
 
 private:
