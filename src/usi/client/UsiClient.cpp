@@ -283,6 +283,8 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   blackTimeMs_ = 0;
   whiteTimeMs_ = 0;
   byoyomiMs_ = 0;
+  blackIncMs_ = 0;
+  whiteIncMs_ = 0;
   isInfinite_ = false;
 
   for (size_t i = 1; i < args.size(); i++) {
@@ -295,6 +297,12 @@ bool UsiClient::runSearch(const CommandArguments& args) {
     } else if (args[i] == "byoyomi") {
       byoyomiMs_ = strtol(args[++i].c_str(), nullptr, 10);
 
+    } else if (args[i] == "binc") {
+      blackIncMs_ = strtol(args[++i].c_str(), nullptr, 10);
+
+    } else if (args[i] == "winc") {
+      whiteIncMs_ = strtol(args[++i].c_str(), nullptr, 10);
+
     } else if (args[i] == "infinite") {
       isInfinite_ = true;
     }
@@ -303,6 +311,8 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   MSG(info) << "btime    : " << blackTimeMs_;
   MSG(info) << "wtime    : " << whiteTimeMs_;
   MSG(info) << "byoyomi  : " << byoyomiMs_;
+  MSG(info) << "binc     : " << blackIncMs_;
+  MSG(info) << "winc     : " << whiteIncMs_;
   MSG(info) << "inifinite: " << (isInfinite_ ? "true" : "false");
 
   // check opening book
@@ -364,16 +374,17 @@ void UsiClient::search() {
   } else {
     bool isBlack = pos.getTurn() == Turn::Black;
     TimeType remainingTimeMs = isBlack ?  blackTimeMs_ : whiteTimeMs_;
+    TimeType incrementMs = isBlack ?  blackIncMs_ : whiteIncMs_;
     config.maximumTimeMs = remainingTimeMs + byoyomiMs_ - options_.marginMs;
     config.optimumTimeMs = std::max(remainingTimeMs / 50,
-                           std::min(remainingTimeMs, byoyomiMs_/* + incrementMs*/))
+                           std::min(remainingTimeMs, byoyomiMs_ + incrementMs))
                          + byoyomiMs_;
 
     if (options_.snappy) {
       config.optimumTimeMs /= 3;
     }
 
-    if (!options_.snappy && remainingTimeMs == 0/* && incrementMs == 0*/) {
+    if (!options_.snappy && remainingTimeMs == 0 && incrementMs == 0) {
       config.optimumTimeMs = SearchConfig::InfinityTime;
     }
   }

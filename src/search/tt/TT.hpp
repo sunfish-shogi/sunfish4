@@ -52,7 +52,7 @@ public:
   }
 
   float usageRates() const {
-    uint64_t usage = 0.0;
+    uint64_t usage = 0;
     for (SizeType i = 0; i < getSize(); i++) {
       usage += getElement(i).fullCount();
     }

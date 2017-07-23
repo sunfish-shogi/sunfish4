@@ -125,6 +125,8 @@ private:
   TimeType blackTimeMs_;
   TimeType whiteTimeMs_;
   TimeType byoyomiMs_;
+  TimeType blackIncMs_;
+  TimeType whiteIncMs_;
   bool isInfinite_;
   bool inPonder_;
 
