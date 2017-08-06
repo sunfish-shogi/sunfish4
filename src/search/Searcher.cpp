@@ -191,9 +191,11 @@ void Searcher::onSearchStarted() {
     trees_.reset(new Tree[treeSize_]);
   }
 
+  initializeSearchInfo(info_);
   for (int ti = 0; ti < treeSize_; ti++) {
     trees_[ti].index = ti;
     trees_[ti].completedDepth = 0;
+    initializeSearchInfo(trees_[ti].info);
   }
 
   if (handler_ != nullptr) {
@@ -201,9 +203,10 @@ void Searcher::onSearchStarted() {
   }
 }
 
-void Searcher::updateInfo() {
-  initializeSearchInfo(info_);
-  mergeSearchInfo(info_, trees_[0].info);
+void Searcher::mergeInfo(Tree& tree) {
+  std::lock_guard<std::mutex> lock(infoMutex_);
+  mergeSearchInfo(info_, tree.info);
+  initializeSearchInfo(tree.info);
 }
 
 /**
@@ -460,7 +463,7 @@ bool Searcher::aspsearch(Tree& tree,
 
     undoMove(tree);
 
-    updateInfo();
+    mergeInfo(tree);
 
     if (isInterrupted()) {
       break;

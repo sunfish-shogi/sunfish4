@@ -19,6 +19,7 @@
 #include "common/math/Random.hpp"
 #include "common/time/Timer.hpp"
 #include <memory>
+#include <mutex>
 #include <atomic>
 #include <array>
 #include <climits>
@@ -103,7 +104,7 @@ private:
 
   void onSearchStarted();
 
-  void updateInfo();
+  void mergeInfo(Tree& tree);
 
   void prepareIDSearch(Tree& tree,
                        Tree& tree0,
@@ -168,6 +169,7 @@ private:
   SearchConfig config_;
   SearchResult result_;
   SearchInfo info_;
+  std::mutex infoMutex_;
 
   std::atomic_bool interrupted_;
   Timer timer_;
