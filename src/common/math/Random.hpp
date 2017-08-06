@@ -58,7 +58,7 @@ public:
 
   template <class T>
   unsigned nonuniform(unsigned num, T&& weightFunc) {
-    uint64_t total = 0.0f;
+    uint64_t total = 0;
     for (unsigned i = 0; i < num; i++) {
       total += weightFunc(i);
     }
