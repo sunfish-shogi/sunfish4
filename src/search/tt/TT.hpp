@@ -9,6 +9,7 @@
 #include "search/tt/TTSlots.hpp"
 #include "search/table/HashTable.hpp"
 #include "core/position/Zobrist.hpp"
+#include <algorithm>
 #include <cstdint>
 
 namespace sunfish {
@@ -53,10 +54,11 @@ public:
 
   float usageRates() const {
     uint64_t usage = 0;
-    for (SizeType i = 0; i < getSize(); i++) {
+    auto size = std::min(getSize(), (uint32_t)10000);
+    for (SizeType i = 0; i < size; i++) {
       usage += getElement(i).fullCount();
     }
-    return static_cast<float>(usage) / (TTSlots::Size * getSize());
+    return static_cast<float>(usage) / (TTSlots::Size * size);
   }
 
 };
