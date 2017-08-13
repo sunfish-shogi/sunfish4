@@ -63,6 +63,57 @@ TEST(SEETest, testExtractAggressors) {
     ASSERT_TRUE(bb.check(Square::s71()));
     ASSERT_TRUE(bb.check(Square::s93()));
   }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  * -KY *  *  *  *  *  * \n"
+      "P5 *  *  * -GI *  *  *  *  * \n"
+      "P6 *  * -KI *  *  *  *  *  * \n"
+      "P7 *  * +FU+OU *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  * +KY *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Square from = Square::s77();
+    Square to = Square::s76();
+
+    auto bb = SEE::extractAggressors(pos, from, to);
+
+    ASSERT_EQ(4, bb.count());
+    ASSERT_TRUE(bb.check(Square::s67()));
+    ASSERT_TRUE(bb.check(Square::s79()));
+    ASSERT_TRUE(bb.check(Square::s65()));
+    ASSERT_TRUE(bb.check(Square::s74()));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  * -KI-OU-KI *  *  * \n"
+      "P2 *  *  *  * +KI *  *  *  * \n"
+      "P3 *  *  *  * +FU *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+    Square from = Square::s41();
+    Square to = Square::s52();
+
+    auto bb = SEE::extractAggressors(pos, from, to);
+
+    ASSERT_EQ(3, bb.count());
+    ASSERT_TRUE(bb.check(Square::s53()));
+    ASSERT_TRUE(bb.check(Square::s51()));
+    ASSERT_TRUE(bb.check(Square::s61()));
+  }
 }
 
 TEST(SEETest, testCalculate) {
@@ -204,6 +255,92 @@ TEST(SEETest, testCalculate) {
     ASSERT_EQ(-material::rookEx()
              + material::goldEx()
              - material::pawnEx(),
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  * +OU * -GI * \n"
+      "P7 *  *  *  *  *  * -TO *  * \n"
+      "P8 *  *  *  *  *  * +KI *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s38(), Square::s37(), false);
+    ASSERT_EQ(material::tokinEx()
+            - material::goldEx()
+            + material::silverEx(),
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  * -OU *  *  *  * \n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3 *  *  *  *  *  *  *  *  * \n"
+      "P4 *  *  * +UM *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  * -KA\n"
+      "P6 *  *  *  *  * +OU * -GI * \n"
+      "P7 *  *  *  *  *  * -TO *  * \n"
+      "P8 *  *  *  *  *  * +KI *  * \n"
+      "P9 *  *  *  *  *  *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "+\n");
+    Move move(Square::s38(), Square::s37(), false);
+    ASSERT_EQ(material::tokinEx()
+            - material::goldEx() - (material::proSilver() - material::silver()),
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  * +KA\n"
+      "P2 *  *  *  *  *  *  * +KA * \n"
+      "P3 *  *  *  * -KI-KI *  *  * \n"
+      "P4 *  *  *  *  * +FU-OU *  * \n"
+      "P5 *  *  *  * +GI *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+    Move move(Square::s43(), Square::s44(), false);
+    ASSERT_EQ(material::pawnEx()
+            - material::goldEx(),
+              SEE::calculate(pos, move));
+  }
+
+  {
+    Position pos = PositionUtil::createPositionFromCsaString(
+      "P1 *  *  *  *  *  *  *  * +KA\n"
+      "P2 *  *  *  *  *  *  * +KA * \n"
+      "P3 *  *  *  * -KI-KI *  *  * \n"
+      "P4 *  * -HI *  * +FU-OU *  * \n"
+      "P5 *  *  *  * +GI *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7 *  *  *  *  *  *  *  *  * \n"
+      "P8 *  *  *  *  *  *  *  *  * \n"
+      "P9 *  *  *  * +OU *  *  *  * \n"
+      "P+\n"
+      "P-\n"
+      "-\n");
+    Move move(Square::s43(), Square::s44(), false);
+    ASSERT_EQ(material::pawnEx()
+            - material::goldEx()
+            + material::silverEx()
+            - material::goldEx()
+            + material::bishopEx()
+            - material::rookEx()
+            + material::bishopEx(),
               SEE::calculate(pos, move));
   }
 }

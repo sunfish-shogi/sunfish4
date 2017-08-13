@@ -86,9 +86,10 @@ Bitboard SEE::extractAggressors(const Position& position,
          position.getBHorseBitboard() |
          position.getWBishopBitboard() |
          position.getWHorseBitboard());
-  bb |= MoveTables::king(to) &
-       (position.getBDragonBitboard() |
-        position.getWDragonBitboard()); // TODO: king
+  Bitboard king = position.getBDragonBitboard() | position.getWDragonBitboard();
+  king.set(position.getBlackKingSquare());
+  king.set(position.getWhiteKingSquare());
+  bb |= MoveTables::king(to) & king;
 
   if (from.isValid()) {
     bb.unset(from);
@@ -123,16 +124,17 @@ Bitboard SEE::extractShadowAggressor(const Position& position,
     break;
   case Direction::RightUp:
   case Direction::LeftDown:
-    masked = MoveTables::diagR45(occR45, to);
+    masked = MoveTables::diagR45(occR45, from);
     break;
   case Direction::LeftUp:
   case Direction::RightDown:
-    masked = MoveTables::diagL45(occL45, to);
+    masked = MoveTables::diagL45(occL45, from);
     break;
   default:
     ASSERT(false);
   }
 
+  masked = bb.andNot(masked);
   BB_EACH(square, masked) {
     Piece piece = position.getPieceOnBoard(square);
     if (square.dir(from) == dir && MoveTables::isMovableInLongStep(piece, dir)) {
@@ -164,6 +166,15 @@ Score SEE::search(const Position& position,
 
       if (score <= alpha) { return alpha; }
 
+      if (agr.piece == PieceType::king()) {
+        auto agg = bb & position.getWOccupiedBitboard();
+        if (agg.first() != 0 || agg.second() != 0) {
+          return alpha;
+        }
+
+        return score;
+      }
+
       bb = extractShadowAggressor(position, bb, agr.square, to);
 
       materialScore = agr.exch;
@@ -180,6 +191,15 @@ Score SEE::search(const Position& position,
 
       if (score >= beta) { return beta; }
 
+      if (agr.piece == PieceType::king()) {
+        auto agg = bb & position.getBOccupiedBitboard();
+        if (agg.first() != 0 || agg.second() != 0) {
+          return beta;
+        }
+
+        return score;
+      }
+
       bb = extractShadowAggressor(position, bb, agr.square, to);
 
       materialScore = agr.exch;
@@ -192,8 +212,8 @@ template <Turn turn>
 SEE::Aggressor SEE::pickAggressor(const Position& position,
                                   Bitboard& bb,
                                   Square to) {
-  bool promotable = to.isPromotable<Turn::Black>();
-
+  bool promotable = turn == Turn::Black ? to.isPromotable<Turn::Black>()
+                                        : to.isPromotable<Turn::White>();
   auto masked = bb & (turn == Turn::Black ? position.getBPawnBitboard()
                                           : position.getWPawnBitboard());
   Square square = Square(masked.findForward());
@@ -308,6 +328,18 @@ SEE::Aggressor SEE::pickAggressor(const Position& position,
       square,
       Score::zero(),
       material::dragonEx()
+    };
+  }
+
+  square = turn == Turn::Black ? position.getBlackKingSquare()
+                               : position.getWhiteKingSquare();
+  if (bb.check(square)) {
+    bb.unset(square);
+    return {
+      PieceType::king(),
+      square,
+      Score::zero(),
+      0,
     };
   }
 
