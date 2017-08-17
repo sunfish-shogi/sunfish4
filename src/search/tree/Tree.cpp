@@ -121,10 +121,6 @@ void addKiller(Tree& tree, Move move) {
     node.killerCount2 = 0;
     node.killerCount1 -= 1;
     sortKiller(node);
-  } else if (node.killerCount1 < 0) {
-    node.killerMove1 = move;
-    node.killerCount1 = 0;
-    node.killerCount2 -= 1;
   }
 }
 
