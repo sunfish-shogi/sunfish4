@@ -40,6 +40,7 @@ add_executable(sunfish_test
     search/SCRDetectorTest.cpp
     search/SEETest.cpp
     search/ShekTest.cpp
+    search/TimeManagerTest.cpp
     search/TreeTest.cpp
     search/TTTest.cpp
     Test.hpp

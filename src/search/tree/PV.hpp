@@ -32,6 +32,14 @@ public:
   PV() : num_(0) {
   }
 
+  PV(SizeType size, const Move moves[]) {
+    num_ = size;
+    for (SizeType i = 0; i < num_; i++) {
+      elements_[i].move = moves[i].serialize16();
+      elements_[i].depth = i;
+    }
+  }
+
   PV(const PV&) = default;
   PV(PV&&) = default;
 
