@@ -12,6 +12,7 @@
 #include "search/shek/ShekTable.hpp"
 #include "search/shek/SCRDetector.hpp"
 #include "search/SearchInfo.hpp"
+#include "search/tree/NodeStat.hpp"
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 #include <string>
@@ -40,6 +41,7 @@ enum Type : uint16_t {
   Quies2,
   InitProb,
   ProbCaptures,
+  InitRoot,
   End,
 };
 
@@ -93,9 +95,9 @@ void initializeTree(Tree& tree,
                     Evaluator& eval,
                     const Record* record);
 
-void visit(Tree& tree);
+void visit(Tree& tree, NodeStat nodeStat);
 
-void revisit(Tree& tree);
+void revisit(Tree& tree, NodeStat nodeStat);
 
 inline
 bool hasKiller1(const Tree& tree) {

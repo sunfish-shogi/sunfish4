@@ -15,11 +15,6 @@ void LoggingSearchHandler::onStart(const Searcher&) {
 }
 
 void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  if (pv.size() == 0) {
-    LOG(warning) << "PV is empty.";
-    return;
-  }
-
   auto& info = searcher.getInfo();
 
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);

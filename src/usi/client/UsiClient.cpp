@@ -479,11 +479,6 @@ void UsiClient::onStart(const Searcher&) {
 }
 
 void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  if (pv.size() == 0) {
-    LOG(warning) << "PV is empty.";
-    return;
-  }
-
   auto& info = searcher.getInfo();
 
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
@@ -535,7 +530,7 @@ void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed,
 
 void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
   onUpdatePV(searcher, pv, elapsed, depth, score);
-  MSG(info) << "fail-low";
+  MSG(info) << "fail-high";
   if (!inPonder_) {
     send("info", "string", "fail-high");
   }

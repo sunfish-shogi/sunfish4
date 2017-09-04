@@ -26,21 +26,19 @@ TEST(TimeManagerTest, testTimeManager) {
     int depth;
     Score score;
     PV pv;
-    int moveCount;
-    int maxMoveCount;
     bool shouldInterrupt;
   };
   Scenario scenario[] = {
-    // clear optimumTimeMs maximumTimeMs elapsedMs depth score   pv moveCount maxMoveCount shouldInterrupt
-    {   true,          inf,          inf,    10000,   10,  100, pv1,        1,         100,          false },
-    {  false,          inf,          inf,   581000,   11,  100, pv1,        1,         100,          false },
-    {  false,          inf,          inf,   582000,   12,  100, pv2,        1,         100,          false }, // 97% of maximumTimeMs
-    {   true,          inf,       600000,    10000,   10,  100, pv1,        1,         100,          false },
-    {  false,          inf,       600000,   581000,   11,  100, pv1,        1,         100,          false },
-    {  false,          inf,       600000,   582000,   12,  100, pv2,        1,         100,           true }, // 97% of maximumTimeMs
-    {   true,       100000,       600000,    10000,   10,  100, pv1,        1,         100,          false },
-    {  false,       100000,       600000,   581000,   11,  100, pv2,        1,         100,          false },
-    {  false,       100000,       600000,   582000,   12,  100, pv2,        1,         100,           true }, // 97% of maximumTimeMs
+    // clear optimumTimeMs maximumTimeMs elapsedMs depth score   pv shouldInterrupt
+    {   true,          inf,          inf,    10000,   10,  100, pv1,          false },
+    {  false,          inf,          inf,   581000,   11,  100, pv1,          false },
+    {  false,          inf,          inf,   582000,   12,  100, pv2,          false }, // 97% of maximumTimeMs
+    {   true,          inf,       600000,    10000,   10,  100, pv1,          false },
+    {  false,          inf,       600000,   581000,   11,  100, pv1,          false },
+    {  false,          inf,       600000,   582000,   12,  100, pv2,           true }, // 97% of maximumTimeMs
+    {   true,       100000,       600000,    10000,   10,  100, pv1,          false },
+    {  false,       100000,       600000,   581000,   11,  100, pv2,          false },
+    {  false,       100000,       600000,   582000,   12,  100, pv2,           true }, // 97% of maximumTimeMs
   };
 
   TimeManager timeManager;
@@ -55,9 +53,7 @@ TEST(TimeManagerTest, testTimeManager) {
     timeManager.update(s.elapsedMs,
                        s.depth * Searcher::Depth1Ply,
                        s.score,
-                       s.pv,
-                       s.moveCount,
-                       s.maxMoveCount);
+                       s.pv);
     ASSERT_EQ(s.shouldInterrupt, timeManager.shouldInterrupt());
   }
 }

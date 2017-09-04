@@ -49,9 +49,7 @@ void TimeManager::clearPosition(SearchConfig::TimeType optimumTimeMs,
 void TimeManager::update(uint32_t elapsedMs,
                          int depth,
                          Score score,
-                         const PV& pv,
-                         int moveCount,
-                         int maxMoveCount) {
+                         const PV& pv) {
   if (current_->depth != 0 &&
       current_->depth != depth) {
     *previous2_ = *previous_;
@@ -89,13 +87,6 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 10 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 128 && scoreDiff > -32) {
-    if ((pvStability >= 10 || pvStability2 >= 11) &&
-        (moveCount >= 20 || moveCount >= maxMoveCount)) {
-      shouldInterrupt_ = true;
-      LOG(info) << "TimeManager: interrupt(10% of OPTIM, L" << __LINE__ << ")";
-      return;
-    }
-
     if (pvStability >= 7 && pvStability2 >= 7) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(10% of OPTIM, L" << __LINE__ << ")";
@@ -107,13 +98,6 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 70 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 256 && scoreDiff > -64) {
-    if ((pvStability >= 6 || pvStability2 >= 7) &&
-        (moveCount >= 8 || moveCount >= maxMoveCount)) {
-      shouldInterrupt_ = true;
-      LOG(info) << "TimeManager: interrupt(50% of OPTIM, L" << __LINE__ << ")";
-      return;
-    }
-
     if (pvStability >= 3 && pvStability2 >= 3) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(50% of OPTIM, L" << __LINE__ << ")";
@@ -125,13 +109,6 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs >= optimumTimeMs_ &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 512 && scoreDiff > -128) {
-    if ((pvStability >= 4 || pvStability2 >= 5) &&
-        (moveCount >= 3 || moveCount >= maxMoveCount)) {
-      shouldInterrupt_ = true;
-      LOG(info) << "TimeManager: interrupt(100% of OPTIM, L" << __LINE__ << ")";
-      return;
-    }
-
     if (pvStability >= 2 && pvStability2 >= 2) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(100% of OPTIM, L" << __LINE__ << ")";
@@ -143,14 +120,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 200 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 1024 && scoreDiff > -256) {
-    if ((pvStability >= 3 || pvStability2 >= 3) &&
-        (moveCount >= 3 || moveCount >= maxMoveCount)) {
-      shouldInterrupt_ = true;
-      LOG(info) << "TimeManager: interrupt(200% of OPTIM, L" << __LINE__ << ")";
-      return;
-    }
-
-    if (pvStability >= 2 || pvStability2 >= 2) {
+    if (pvStability >= 2 && pvStability2 >= 2) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(200% of OPTIM, L" << __LINE__ << ")";
       return;
@@ -161,13 +131,6 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 400 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 2048 && scoreDiff > -512) {
-    if ((pvStability >= 2 || pvStability2 >= 2) &&
-        (moveCount >= 2 || moveCount >= maxMoveCount)) {
-      shouldInterrupt_ = true;
-      LOG(info) << "TimeManager: interrupt(400% of OPTIM, L" << __LINE__ << ")";
-      return;
-    }
-
     if (pvStability >= 2 && pvStability2 >= 2) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(400% of OPTIM, L" << __LINE__ << ")";

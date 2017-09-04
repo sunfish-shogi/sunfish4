@@ -19,7 +19,7 @@ namespace {
 
 using namespace sunfish;
 
-CONSTEXPR_CONST int AspirationSearchMinDepth = 6 * Searcher::Depth1Ply;
+CONSTEXPR_CONST int AspirationSearchMinDepth = ASP_MIN_DEPTH * Searcher::Depth1Ply;
 
 // extensions
 CONSTEXPR_CONST int ExtensionDepthForCheck     = EXT_DEPTH_CHECK;
@@ -254,7 +254,9 @@ void Searcher::idsearch(const Position& pos,
                         Record* record /*= nullptr*/) {
   onSearchStarted(pos, record);
 
-  prepareIDSearch(trees_[0], trees_[0]);
+  if (!prepareIDSearch(trees_[0], trees_[0])) {
+    return;
+  }
 
   for (int ti = 1; ti < treeSize_; ti++) {
     prepareIDSearch(trees_[ti], trees_[0]);
@@ -291,13 +293,12 @@ void Searcher::idsearch(const Position& pos,
   }
 }
 
-void Searcher::prepareIDSearch(Tree& tree,
+bool Searcher::prepareIDSearch(Tree& tree,
                                Tree& tree0) {
-  visit(tree);
-
   bool isMainThread = tree.index == 0;
   auto& node = tree.nodes[tree.ply];
   node.checkState = tree.position.getCheckState();
+  node.pv.clear();
 
   if (isMainThread) {
     // generate moves
@@ -318,20 +319,13 @@ void Searcher::prepareIDSearch(Tree& tree,
       node.moves.add(*ite);
     }
   }
+
+  return node.moves.size() != 0;
 }
 
 void Searcher::idsearch(Tree& tree,
                         int maxDepth) {
   bool isMainThread = tree.index == 0;
-  auto& node = tree.nodes[tree.ply];
-
-  if (node.moves.size() == 0) {
-    return;
-  }
-
-  if (isInterrupted()) {
-    return;
-  }
 
   for (int depth = Depth1Ply * 3 / 2; ; depth += Depth1Ply) {
     if (!isMainThread) {
@@ -363,184 +357,90 @@ void Searcher::idsearch(Tree& tree,
 bool Searcher::aspsearch(Tree& tree,
                          int depth) {
   auto& node = tree.nodes[tree.ply];
-  auto& childNode = tree.nodes[tree.ply+1];
   bool isMainThread = tree.index == 0;
-
-  if (node.moves.size() == 0) {
-    return false;
-  }
 
   bool doAsp = depth >= AspirationSearchMinDepth;
 
-  Score prevScore = moveToScore(node.moves[0]);
-  Score alphas[] = {
-    prevScore - 128,
-    prevScore - 512,
-    -Score::infinity()
-  };
-  Score betas[] = {
-    prevScore + 128,
-    prevScore + 512,
-    Score::infinity()
-  };
-  int maxAlphaIndex = sizeof(alphas) / sizeof(alphas[0]) - 1;
-  int maxBetaIndex = sizeof(betas) / sizeof(betas[0]) - 1;
-  int alphaIndex = doAsp ? 0 : maxAlphaIndex;
-  int betaIndex = doAsp ? 0 : maxBetaIndex;
-  Score pvAlpha = -Score::infinity();
-  Score pvBeta = -Score::infinity();
+  int delta       = ASP_1ST_DELTA;
+  Score alpha     = doAsp ? moveToScore(node.moves[0]) - delta : -Score::infinity();
+  Score beta      = doAsp ? moveToScore(node.moves[0]) + delta : +Score::infinity();
+  Score score;
 
-  Score bestScore = -Score::infinity();
-
-  bool doFullSearch = true;
-
-  for (Moves::size_type i = 1; i < node.moves.size(); i++) {
-    setScoreToMove(node.moves[i], -Score::infinity());
-  }
-
-  // expand branches
-  int maxMoveCount = (int)node.moves.size() - 1;
-  for (int moveCount = 0; moveCount <= maxMoveCount;) {
-    Score alpha = std::max(alphas[alphaIndex], bestScore);
-    Score beta = betas[betaIndex];
-
-    Move move = node.moves[moveCount];
-    int newDepth = depth - Depth1Ply;
-
-    // late move reduction
-    int reduced = 0;
-    if (!doFullSearch &&
-        newDepth >= Depth1Ply &&
-        !isCheck(node.checkState) &&
-        !isTacticalMove(tree.position, move)) {
-      reduced = reductionDepth(newDepth,
-                               false,
-                               moveCount);
-      newDepth = newDepth - reduced;
+  for (;;) {
+    for (Moves::size_type i = 1; i < node.moves.size(); i++) {
+      setScoreToMove(node.moves[i], -Score::infinity());
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_, tt_);
-    if (!moveOk) {
-      LOG(warning) << "invalid state.";
-      node.moves.remove(moveCount);
-      continue;
-    }
-
-    NodeStat newNodeStat = NodeStat::normal();
-
-    Score score;
-    if (doFullSearch) {
-      score = -search(tree,
-                      newDepth,
-                      -beta,
-                      -alpha,
-                      newNodeStat);
-    } else {
-      // nega-scout
-      score = -search(tree,
-                      newDepth,
-                      -(alpha + 1),
-                      -alpha,
-                      newNodeStat);
-
-      if (!isInterrupted() &&
-          score > alpha &&
-          (reduced != 0 || score < beta)) {
-        newDepth = newDepth + reduced;
-        score = -search(tree,
-                        newDepth,
-                        -beta,
-                        -alpha,
-                        newNodeStat);
-      }
-    }
-
-    undoMove(tree);
+    score = search(tree,
+                   depth,
+                   alpha,
+                   beta,
+                   NodeStat::normal().setRoot()
+                                     .unsetMateDetection()
+                                     .unsetHashCut()
+                                     .unsetRecursiveIDSearch()
+                                     .unsetRecaptureExtension());
 
     mergeInfo(tree);
+
+    std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
+      return moveToScore(lhs) > moveToScore(rhs);
+    });
 
     if (isInterrupted()) {
       break;
     }
 
-    // fail-low
-    if (score <= alphas[alphaIndex] && alphaIndex < maxAlphaIndex && score > bestScore) {
-      for (; score <= alphas[alphaIndex] && alphaIndex < maxAlphaIndex; alphaIndex++) {}
-
-      if (alphas[alphaIndex] < score) {
-        doFullSearch = true;
-        if (isMainThread && handler_ != nullptr) {
-          PV pv;
-          pv.set(move, depth, childNode.pv);
-          handler_->onFailLow(*this, pv, timer_.elapsed(), depth, score);
-        }
-        continue;
-      }
-    }
-
-    setScoreToMove(node.moves[moveCount], score);
-    if (score > alpha) {
-      node.pv.set(move, depth, childNode.pv);
-      pvAlpha = alpha;
-      pvBeta = beta;
-    }
-
-    // fail-high
-    if (score >= beta && betaIndex < maxBetaIndex) {
-      for (; score >= betas[betaIndex] && betaIndex < maxBetaIndex; betaIndex++) {}
-
-      if (betas[betaIndex] > score) {
-        doFullSearch = true;
-        if (isMainThread && handler_ != nullptr) {
-          handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
-        }
-        continue;
-      }
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
+    if (score <= alpha && alpha > -Score::infinity()) {
+      // fail-low
+      alpha = score > -Score::infinity() + delta
+            ? score - delta
+            : -Score::infinity();
       if (isMainThread && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, bestScore);
+        handler_->onFailLow(*this, node.pv, timer_.elapsed(), depth, score);
       }
+    } else if (score >= beta && beta < Score::infinity()) {
+      // fail-high
+      beta = score < Score::infinity() - delta
+           ? score + delta
+           : Score::infinity();
+      if (isMainThread && handler_ != nullptr) {
+        handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
+      }
+    } else {
+      if (isMainThread && handler_ != nullptr) {
+        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
+      }
+      if (score != -Score::infinity()) {
+        storePV(tree,
+                node.pv,
+                0,
+                alpha,
+                beta,
+                score);
+      }
+      break;
     }
+
+    delta += delta * ASP_DELTA_RATE / 100;
 
     if (isMainThread) {
       timeManager_.update(timer_.elapsedMs(),
                           depth,
-                          bestScore,
-                          node.pv,
-                          moveCount,
-                          maxMoveCount);
+                          score,
+                          node.pv);
       if (timeManager_.shouldInterrupt()) {
         interrupt();
         break;
       }
     }
-
-    moveCount++;
-
-    doFullSearch = false;
-  }
-
-  std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
-    return moveToScore(lhs) > moveToScore(rhs);
-  });
-
-  if (pvBeta != -Score::infinity()) {
-    storePV(tree,
-            node.pv,
-            0,
-            pvAlpha,
-            pvBeta,
-            bestScore);
   }
 
   if (isMainThread) {
     handler_->onIterateEnd(*this, timer_.elapsed(), depth);
   }
 
-  return bestScore > -Score::mate() && bestScore < Score::mate();
+  return score > -Score::mate() && score < Score::mate();
 }
 
 /**
@@ -562,35 +462,37 @@ Score Searcher::search(Tree& tree,
   }
 #endif
 
-  visit(tree);
+  visit(tree, nodeStat);
 
   auto& node = tree.nodes[tree.ply];
 
-  // SHEK(strong horizontal effect killer)
-  switch (tree.shekTable.check(tree.position)) {
-  case ShekState::Equal4:
-    node.isHistorical = true;
-    switch (tree.scr.detect(tree)) {
-    case SCRState::Draw:
-      return Score::zero();
-    case SCRState::Win:
+  if (!nodeStat.isRoot()) {
+    // SHEK(strong horizontal effect killer)
+    switch (tree.shekTable.check(tree.position)) {
+    case ShekState::Equal4:
+      node.isHistorical = true;
+      switch (tree.scr.detect(tree)) {
+      case SCRState::Draw:
+        return Score::zero();
+      case SCRState::Win:
+        return Score::infinity() - tree.ply;
+      case SCRState::Lose:
+        return -Score::infinity() + tree.ply;
+      case SCRState::None:
+        break;
+      }
+
+    case ShekState::Superior:
+      node.isHistorical = true;
       return Score::infinity() - tree.ply;
-    case SCRState::Lose:
+
+    case ShekState::Inferior:
+      node.isHistorical = true;
       return -Score::infinity() + tree.ply;
-    case SCRState::None:
+
+    default:
       break;
     }
-
-  case ShekState::Superior:
-    node.isHistorical = true;
-    return Score::infinity() - tree.ply;
-
-  case ShekState::Inferior:
-    node.isHistorical = true;
-    return -Score::infinity() + tree.ply;
-
-  default:
-    break;
   }
 
   // quiesence search
@@ -600,8 +502,6 @@ Score Searcher::search(Tree& tree,
                  alpha,
                  beta);
   }
-
-  tree.info.nodes++;
 
   if (tree.ply == Tree::StackSize - 2) {
     node.isHistorical = true;
@@ -616,6 +516,8 @@ Score Searcher::search(Tree& tree,
   } else if (upperScore <= alpha) {
     return upperScore;
   }
+
+  tree.info.nodes++;
 
   bool isNullWindow = alpha + 1 == beta;
 
@@ -683,7 +585,8 @@ Score Searcher::search(Tree& tree,
   Score standPat = calculateStandPat(tree, *evaluator_);
 
   // futility pruning
-  if (!isCheck(node.checkState) &&
+  if (!nodeStat.isRoot() &&
+      !isCheck(node.checkState) &&
       depth < FutilityPruningMaxDepth &&
       standPat - futilityPruningMargin(depth) >= beta) {
     tree.info.futilityPruning++;
@@ -706,7 +609,7 @@ Score Searcher::search(Tree& tree,
       return score;
     }
 
-    revisit(tree);
+    revisit(tree, nodeStat);
   }
 
   // null move pruning
@@ -813,7 +716,7 @@ Score Searcher::search(Tree& tree,
       return Score::zero();
     }
 
-    revisit(tree);
+    revisit(tree, nodeStat);
 
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
@@ -853,7 +756,7 @@ Score Searcher::search(Tree& tree,
       doSingularExtension = true;
     }
 
-    revisit(tree);
+    revisit(tree, nodeStat);
     node.ttMove = ttMove;
   }
 
@@ -861,7 +764,12 @@ Score Searcher::search(Tree& tree,
   Score bestScore = lowerScore;
   Move bestMove = Move::none();
 
-  generateMoves(tree);
+  if (nodeStat.isRoot()) {
+    node.moveIterator = node.moves.begin();
+    node.genPhase = GenPhase::InitRoot;
+  } else {
+    generateMoves(tree);
+  }
 
   // expand branches
   for (int moveCount = 0; ; moveCount++) {
@@ -911,7 +819,8 @@ Score Searcher::search(Tree& tree,
     Score newAlpha = std::max(alpha, bestScore);
 
     // futility pruning
-    if (!currentMoveIsCheck &&
+    if (!nodeStat.isRoot() &&
+        !currentMoveIsCheck &&
         !isCheck(node.checkState) &&
         newDepth < FutilityPruningMaxDepth &&
         newAlpha > -Score::mate() &&
@@ -964,6 +873,10 @@ Score Searcher::search(Tree& tree,
 
     if (isInterrupted()) {
       return Score::zero();
+    }
+
+    if (nodeStat.isRoot()) {
+      setScoreToMove(*(node.moveIterator-1), score);
     }
 
     auto& childNode = tree.nodes[tree.ply+1];
@@ -1060,7 +973,7 @@ Score Searcher::quies(Tree& tree,
                       int depth,
                       Score alpha,
                       Score beta) {
-  visit(tree);
+  visit(tree, NodeStat::normal());
 
   auto& node = tree.nodes[tree.ply];
 
@@ -1365,6 +1278,13 @@ Move Searcher::nextMove(Tree& tree) {
         continue;
       }
 
+      return *(node.moveIterator++);
+    }
+    node.genPhase = GenPhase::End;
+    break;
+
+  case GenPhase::InitRoot:
+    if (node.moveIterator != node.moves.end()) {
       return *(node.moveIterator++);
     }
     node.genPhase = GenPhase::End;

@@ -107,7 +107,7 @@ private:
 
   void mergeInfo(Tree& tree);
 
-  void prepareIDSearch(Tree& tree,
+  bool prepareIDSearch(Tree& tree,
                        Tree& tree0);
 
   void idsearch(Tree& tree,

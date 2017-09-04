@@ -63,14 +63,16 @@ void initializeTree(Tree& tree,
   }
 }
 
-void visit(Tree& tree) {
+void visit(Tree& tree, NodeStat nodeStat) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
   node.ttMove = Move::none();
-  node.pv.clear();
   node.quietsSearched.clear();
+  if (!nodeStat.isRoot()) {
+    node.pv.clear();
+  }
 
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();
@@ -78,13 +80,15 @@ void visit(Tree& tree) {
   childNode.excludedMove = Move::none();
 }
 
-void revisit(Tree& tree) {
+void revisit(Tree& tree, NodeStat nodeStat) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
-  node.pv.clear();
   node.quietsSearched.clear();
+  if (!nodeStat.isRoot()) {
+    node.pv.clear();
+  }
 
   Node& childNode = tree.nodes[tree.ply+1];
   childNode.killerMove1 = Move::none();

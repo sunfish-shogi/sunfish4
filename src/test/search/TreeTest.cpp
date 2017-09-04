@@ -15,7 +15,7 @@ TEST(TreeTest, testSortKiller) {
 
   Tree tree;
   tree.ply = 4;
-  visit(tree);
+  visit(tree, NodeStat::normal());
   tree.ply = 5;
 
   addKiller(tree, move1);

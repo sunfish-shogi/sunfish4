@@ -36,9 +36,7 @@ public:
   void update(uint32_t elapsedMs,
               int depth,
               Score score,
-              const PV& pv,
-              int moveCount,
-              int maxMoveCount);
+              const PV& pv);
 
   bool shouldInterrupt() {
     return shouldInterrupt_;
