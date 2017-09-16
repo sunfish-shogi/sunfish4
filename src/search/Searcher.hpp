@@ -16,7 +16,7 @@
 #include "search/tree/NodeStat.hpp"
 #include "search/tt/TT.hpp"
 #include "search/history/History.hpp"
-#include "common/math/Random.hpp"
+//#include "common/math/Random.hpp"
 #include "common/time/Timer.hpp"
 #include <memory>
 #include <mutex>
@@ -186,7 +186,7 @@ private:
   std::unique_ptr<Tree[]> trees_;
   int treeSize_;
 
-  Random random_;
+  //Random random_;
 
   TimeManager timeManager_;
 
