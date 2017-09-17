@@ -384,7 +384,7 @@ public:
   }
 
   /**
-   * Indicate whether 
+   * Indicate whether the current position will be checkmate by pawn drop.
    */
   bool isMateWithPawnDrop() const {
     if (turn_ == Turn::Black) {

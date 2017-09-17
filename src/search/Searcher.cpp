@@ -258,7 +258,7 @@ void Searcher::idsearch(const Position& pos,
 
   for (int ti = 1; ti < treeSize_; ti++) {
     prepareIDSearch(trees_[ti], trees_[0]);
-    trees_[ti].thread = std::thread([this, ti, &pos, maxDepth, record]() {
+    trees_[ti].thread = std::thread([this, ti, maxDepth]() {
       idsearch(trees_[ti], maxDepth);
     });
   }
