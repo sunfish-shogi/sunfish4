@@ -772,10 +772,10 @@ bool CsaClient::writeRecord() {
   info.timeLimitHours = 0;
   info.timeLimitMinutes = gameSummary_.totalTime / 60;
   info.timeLimitReadoff = gameSummary_.byoyomi;
-  CsaWriter::write(fout, record_, &info);
+  bool ok = CsaWriter::write(fout, record_, &info);
 
   fout.close();
-  return false;
+  return ok;
 }
 
 } // namespace sunfish

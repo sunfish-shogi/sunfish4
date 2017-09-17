@@ -91,7 +91,7 @@ bool Book::load(std::istream& is) {
 
       auto columns = StringUtil::split(buffer, ' ');
       if (columns.size() < 2) {
-        LOG(error) << "";
+        LOG(error) << "invalid format";
         return false;
       }
 

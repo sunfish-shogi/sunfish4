@@ -62,7 +62,7 @@ private:
 
   bool ready();
 
-  bool setOption(const CommandArguments&);
+  void setOption(const CommandArguments&);
 
   bool receiveNewGame();
 

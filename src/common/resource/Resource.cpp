@@ -33,7 +33,7 @@ Resource::INI Resource::ini(const char* path) {
 
   if (!fin) {
     LOG(error) << "could not open the INI file: " << path;
-    return Resource::INI{};
+    exit(1); // TODO: return error
   }
 
   static Wildcard Comment(";*");
@@ -51,7 +51,7 @@ Resource::INI Resource::ini(const char* path) {
 
     if (fin.fail()) {
       LOG(error) << "an error occured while reading INI file: " << path;
-      return Resource::INI{};
+      exit(1); // TODO: return error
     }
 
     line = StringUtil::trim(line);
@@ -69,7 +69,7 @@ Resource::INI Resource::ini(const char* path) {
     if (sepPos == std::string::npos || sepPos == 0) {
       LOG(error) << "invalid INI file format: " << path;
       LOG(error) << line;
-      return Resource::INI{};
+      exit(1); // TODO: return error
     }
 
     auto key = StringUtil::trim(line.substr(0, sepPos));

@@ -22,7 +22,7 @@ Position generatePosition(const Record& record,
     if (!pos.doMove(move, captured)) {
       LOG(error) << "fatal error: an illegal move is contained: "
                  << StringUtil::ordinal << ": " << move.toString();
-      break;
+      exit(1); // TODO: return error
     }
   }
 

@@ -114,7 +114,7 @@ bool UsiClient::ready() {
         if (dataSourceType != Evaluator::DataSourceType::EvalBin) {
           LOG(error) << "Invalid data source type: " << dataSourceType;
           LOG(error) << "Failed to read eval.bin.";
-          exit(0);
+          exit(1);
         }
         searcher_.reset(new Searcher(Evaluator::sharedEvaluator()));
         searcher_->setHandler(this);
@@ -140,10 +140,8 @@ bool UsiClient::ready() {
     });
 
     if (args[0] == "setoption") {
-      if (setOption(args)) {
-        continue;
-      }
-      return false;
+      setOption(args);
+      continue;
     }
 
     LOG(error) << "unknown command: " << command.value;
@@ -151,47 +149,27 @@ bool UsiClient::ready() {
   }
 }
 
-bool UsiClient::setOption(const CommandArguments& args) {
+void UsiClient::setOption(const CommandArguments& args) {
   const auto& name = args[2];
   const auto& value = args[4];
 
   if (name == "USI_Ponder") {
     options_.ponder = value == "true";
-    return true;
-  }
-  
-  if (name == "USI_Hash") {
+  } else if (name == "USI_Hash") {
     options_.hash = std::stoi(value);
-    return true;
-  }
-
-  if (name == "UseBook") {
+  } else if (name == "UseBook") {
     options_.useBook = value == "true";
-    return true;
-  }
-
-  if (name == "Snappy") {
+  } else if (name == "Snappy") {
     options_.snappy = value == "true";
-    return true;
-  }
-
-  if (name == "MarginMs") {
+  } else if (name == "MarginMs") {
     options_.marginMs = StringUtil::toInt(value, options_.marginMs);
-    return true;
-  }
-
-  if (name == "Threads") {
+  } else if (name == "Threads") {
     options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
-    return true;
-  }
-
-  if (name == "MaxDepth") {
+  } else if (name == "MaxDepth") {
     options_.maxDepth = StringUtil::toInt(value, options_.maxDepth);
-    return true;
+  } else {
+    LOG(warning) << "unknown option: " << name;
   }
-
-  LOG(warning) << "unknown option: " << name;
-  return true;
 }
 
 bool UsiClient::receiveNewGame() {
@@ -271,7 +249,7 @@ bool UsiClient::receiveGo() {
  
   // > go mate
   if (args[1] == "mate") {
-    LOG(error) << "mate option is not supported";
+    LOG(warning) << "mate option is not supported";
     send("checkmate" "nomate");
     return true;
   }
