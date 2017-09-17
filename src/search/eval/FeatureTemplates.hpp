@@ -982,7 +982,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       auto eff = MoveTables::diagR45(occR45, square);
       bef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
@@ -995,7 +996,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       eff = MoveTables::diagL45(occL45, square);
       bef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
@@ -1021,7 +1023,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       auto eff = MoveTables::diagR45(occR45, square);
       wef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
@@ -1034,7 +1037,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       eff = MoveTables::diagL45(occL45, square);
       wef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
@@ -1065,7 +1069,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       auto eff = MoveTables::diagR45(occR45, square);
       bef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
@@ -1078,7 +1083,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       eff = MoveTables::diagL45(occL45, square);
       bef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
@@ -1108,7 +1114,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       auto eff = MoveTables::diagR45(occR45, square);
       wef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
@@ -1121,7 +1128,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
       eff = MoveTables::diagL45(occL45, square);
       wef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
         sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
