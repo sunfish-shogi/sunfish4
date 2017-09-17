@@ -102,14 +102,13 @@ public:
 
 private:
 
-  void onSearchStarted();
+  void onSearchStarted(const Position& pos,
+                       Record* record);
 
   void mergeInfo(Tree& tree);
 
   void prepareIDSearch(Tree& tree,
-                       Tree& tree0,
-                       const Position& pos,
-                       Record* record);
+                       Tree& tree0);
 
   void idsearch(Tree& tree,
                 int maxDepth);

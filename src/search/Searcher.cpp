@@ -171,7 +171,8 @@ void Searcher::clean() {
   timeManager_.clearGame();
 }
 
-void Searcher::onSearchStarted() {
+void Searcher::onSearchStarted(const Position& pos,
+                               Record* record) {
   timer_.start();
 
   interrupted_ = false;
@@ -197,6 +198,10 @@ void Searcher::onSearchStarted() {
   for (int ti = 0; ti < treeSize_; ti++) {
     trees_[ti].index = ti;
     trees_[ti].completedDepth = 0;
+    initializeTree(trees_[ti],
+                   pos,
+                   *evaluator_,
+                   record);
     initializeSearchInfo(trees_[ti].info);
   }
 
@@ -219,14 +224,9 @@ void Searcher::search(const Position& pos,
                       Score alpha,
                       Score beta,
                       Record* record /*= nullptr*/) {
-  onSearchStarted();
+  onSearchStarted(pos, record);
 
   auto& tree = trees_[0];
-  initializeTree(tree,
-                 pos,
-                 *evaluator_,
-                 record);
-
   Score score = search(tree,
                        depth,
                        alpha,
@@ -252,12 +252,12 @@ void Searcher::search(const Position& pos,
 void Searcher::idsearch(const Position& pos,
                         int maxDepth,
                         Record* record /*= nullptr*/) {
-  onSearchStarted();
+  onSearchStarted(pos, record);
 
-  prepareIDSearch(trees_[0], trees_[0], pos, record);
+  prepareIDSearch(trees_[0], trees_[0]);
 
   for (int ti = 1; ti < treeSize_; ti++) {
-    prepareIDSearch(trees_[ti], trees_[0], pos, record);
+    prepareIDSearch(trees_[ti], trees_[0]);
     trees_[ti].thread = std::thread([this, ti, &pos, maxDepth, record]() {
       idsearch(trees_[ti], maxDepth);
     });
@@ -292,18 +292,10 @@ void Searcher::idsearch(const Position& pos,
 }
 
 void Searcher::prepareIDSearch(Tree& tree,
-                               Tree& tree0,
-                               const Position& pos,
-                               Record* record) {
-  bool isMainThread = tree.index == 0;
-
-  initializeTree(tree,
-                 pos,
-                 *evaluator_,
-                 record);
-
+                               Tree& tree0) {
   visit(tree);
 
+  bool isMainThread = tree.index == 0;
   auto& node = tree.nodes[tree.ply];
   node.checkState = tree.position.getCheckState();
 
