@@ -113,7 +113,7 @@ private:
   void idsearch(Tree& tree,
                 int maxDepth);
 
-  bool aspsearch(Tree& tree,
+  void aspsearch(Tree& tree,
                  int depth);
 
   Score search(Tree& tree,

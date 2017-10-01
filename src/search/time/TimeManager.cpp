@@ -60,9 +60,9 @@ void TimeManager::update(uint32_t elapsedMs,
   current_->score = score;
   current_->pv = pv;
 
-  // if 97% of maximumTimeMs is already used
+  // if 80% of maximumTimeMs is already used
   if (maximumTimeMs_ != SearchConfig::InfinityTime &&
-      elapsedMs * 100 >= maximumTimeMs_ * 97) {
+      elapsedMs * 100 >= maximumTimeMs_ * 80) {
     shouldInterrupt_ = true;
     LOG(info) << "TimeManager: interrupt(97% of MAX)";
     return;
@@ -87,7 +87,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 10 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 128 && scoreDiff > -32) {
-    if (pvStability >= 7 && pvStability2 >= 7) {
+    if (pvStability >= 10 || pvStability2 >= 11) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(10% of OPTIM, L" << __LINE__ << ")";
       return;
@@ -98,7 +98,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 70 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 256 && scoreDiff > -64) {
-    if (pvStability >= 3 && pvStability2 >= 3) {
+    if (pvStability >= 4 || pvStability2 >= 5) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(50% of OPTIM, L" << __LINE__ << ")";
       return;
@@ -109,7 +109,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs >= optimumTimeMs_ &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 512 && scoreDiff > -128) {
-    if (pvStability >= 2 && pvStability2 >= 2) {
+    if (pvStability >= 3 || pvStability2 >= 3) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(100% of OPTIM, L" << __LINE__ << ")";
       return;
@@ -120,7 +120,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 200 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 1024 && scoreDiff > -256) {
-    if (pvStability >= 2 && pvStability2 >= 2) {
+    if (pvStability >= 2 || pvStability2 >= 2) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(200% of OPTIM, L" << __LINE__ << ")";
       return;
@@ -131,7 +131,7 @@ void TimeManager::update(uint32_t elapsedMs,
   if (elapsedMs * 100 >= optimumTimeMs_ * 400 &&
       depth >= Searcher::Depth1Ply * 12 &&
       scoreDiff < 2048 && scoreDiff > -512) {
-    if (pvStability >= 2 && pvStability2 >= 2) {
+    if (pvStability >= 1 || pvStability2 >= 1) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(400% of OPTIM, L" << __LINE__ << ")";
       return;

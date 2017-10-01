@@ -325,6 +325,7 @@ bool Searcher::prepareIDSearch(Tree& tree,
 
 void Searcher::idsearch(Tree& tree,
                         int maxDepth) {
+  auto& node = tree.nodes[tree.ply];
   bool isMainThread = tree.index == 0;
 
   for (int depth = Depth1Ply * 3 / 2; ; depth += Depth1Ply) {
@@ -335,7 +336,7 @@ void Searcher::idsearch(Tree& tree,
       }
     }
 
-    bool cont = aspsearch(tree, depth);
+    aspsearch(tree, depth);
 
     if (isInterrupted()) {
       break;
@@ -343,8 +344,20 @@ void Searcher::idsearch(Tree& tree,
 
     tree.completedDepth = depth;
 
-    if (!cont || depth >= maxDepth) {
+    Score score = moveToScore(node.moves[0]);
+    if (score <= -Score::mate() || score >= Score::mate() || depth >= maxDepth) {
       break;
+    }
+
+    if (isMainThread) {
+      timeManager_.update(timer_.elapsedMs(),
+                          depth,
+                          score,
+                          node.pv);
+      if (timeManager_.shouldInterrupt()) {
+        interrupt();
+        break;
+      }
     }
   }
 
@@ -354,7 +367,7 @@ void Searcher::idsearch(Tree& tree,
 /**
  * aspiration search
  */
-bool Searcher::aspsearch(Tree& tree,
+void Searcher::aspsearch(Tree& tree,
                          int depth) {
   auto& node = tree.nodes[tree.ply];
   bool isMainThread = tree.index == 0;
@@ -364,22 +377,21 @@ bool Searcher::aspsearch(Tree& tree,
   int delta       = ASP_1ST_DELTA;
   Score alpha     = doAsp ? moveToScore(node.moves[0]) - delta : -Score::infinity();
   Score beta      = doAsp ? moveToScore(node.moves[0]) + delta : +Score::infinity();
-  Score score;
 
   for (;;) {
     for (Moves::size_type i = 1; i < node.moves.size(); i++) {
       setScoreToMove(node.moves[i], -Score::infinity());
     }
 
-    score = search(tree,
-                   depth,
-                   alpha,
-                   beta,
-                   NodeStat::normal().setRoot()
-                                     .unsetMateDetection()
-                                     .unsetHashCut()
-                                     .unsetRecursiveIDSearch()
-                                     .unsetRecaptureExtension());
+    Score score = search(tree,
+                         depth,
+                         alpha,
+                         beta,
+                         NodeStat::normal().setRoot()
+                                           .unsetMateDetection()
+                                           .unsetHashCut()
+                                           .unsetRecursiveIDSearch()
+                                           .unsetRecaptureExtension());
 
     mergeInfo(tree);
 
@@ -423,24 +435,11 @@ bool Searcher::aspsearch(Tree& tree,
     }
 
     delta += delta * ASP_DELTA_RATE / 100;
-
-    if (isMainThread) {
-      timeManager_.update(timer_.elapsedMs(),
-                          depth,
-                          score,
-                          node.pv);
-      if (timeManager_.shouldInterrupt()) {
-        interrupt();
-        break;
-      }
-    }
   }
 
   if (isMainThread) {
     handler_->onIterateEnd(*this, timer_.elapsed(), depth);
   }
-
-  return score > -Score::mate() && score < Score::mate();
 }
 
 /**
