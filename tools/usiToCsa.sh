@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 SUNFISH_ROOT=$(cd $(dirname $0)/..;pwd)
 SHOGI_SERVER_ROOT=path/to/shogi-server

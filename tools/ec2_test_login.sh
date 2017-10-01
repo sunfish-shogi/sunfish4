@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 source config/ec2_test
 
