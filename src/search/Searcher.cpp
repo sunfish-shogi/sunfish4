@@ -643,7 +643,8 @@ Score Searcher::search(Tree& tree,
           // history heuristics
           if (!ttMove.isNone() &&
               !isCheck(node.checkState) &&
-              !tree.position.isCapture(ttMove)) {
+              !tree.position.isCapture(ttMove) &&
+              tree.position.validateMove(ttMove, node.checkState)) {
             updateHistory(tree, ttMove, ttDepth);
           }
 
