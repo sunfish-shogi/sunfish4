@@ -85,11 +85,22 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 10% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 10 &&
-      depth >= Searcher::Depth1Ply * 12 &&
-      scoreDiff < 128 && scoreDiff > -32) {
-    if (pvStability >= 10 || pvStability2 >= 11) {
+      depth >= Searcher::Depth1Ply * 16 &&
+      scoreDiff < 32 && scoreDiff > -16) {
+    if (pvStability >= 14 || pvStability2 >= 15) {
       shouldInterrupt_ = true;
       LOG(info) << "TimeManager: interrupt(10% of OPTIM, L" << __LINE__ << ")";
+      return;
+    }
+  }
+
+  // 20% of optimumTimeMs_
+  if (elapsedMs * 100 >= optimumTimeMs_ * 20 &&
+      depth >= Searcher::Depth1Ply * 14 &&
+      scoreDiff < 64 && scoreDiff > -32) {
+    if (pvStability >= 12 || pvStability2 >= 13) {
+      shouldInterrupt_ = true;
+      LOG(info) << "TimeManager: interrupt(20% of OPTIM, L" << __LINE__ << ")";
       return;
     }
   }
