@@ -134,7 +134,7 @@ Bitboard SEE::extractShadowAggressor(const Position& position,
     ASSERT(false);
   }
 
-  masked = bb.andNot(masked);
+  masked = bb.andNot(masked & occ);
   BB_EACH(square, masked) {
     Piece piece = position.getPieceOnBoard(square);
     if (square.dir(from) == dir && MoveTables::isMovableInLongStep(piece, dir)) {
