@@ -122,7 +122,13 @@ bool Mate::mate1Ply(const Position& position) {
                                   : position.getWKnightBitboard();
     bb &= turn == Turn::Black ? AggressableTables::blackKnight(king)
                               : AggressableTables::whiteKnight(king);
-    auto bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
+    auto bbt = Bitboard::zero();
+    if (to1.isValid()) {
+      bbt |= Bitboard::mask(to1);
+    }
+    if (to2.isValid()) {
+      bbt |= Bitboard::mask(to2);
+    }
     bbt &= notSelfOcc;
     BB_EACH(from, bb) {
       auto bbe = turn == Turn::Black ? MoveTables::blackKnight(from)

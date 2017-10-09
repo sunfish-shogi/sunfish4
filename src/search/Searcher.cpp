@@ -720,7 +720,7 @@ Score Searcher::search(Tree& tree,
     TTElement tte;
     if (tt_.get(tree.position.getHash(), tte)) {
       Move ttMove = tte.move();
-      if (tree.position.validateMove(ttMove, node.checkState)) {
+      if (!ttMove.isNone() && tree.position.validateMove(ttMove, node.checkState)) {
         node.ttMove = ttMove;
         ttScoreType = tte.scoreType();
         ttScore = tte.score(tree.ply);
