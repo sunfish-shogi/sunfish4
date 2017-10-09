@@ -7,6 +7,7 @@
 #define SUNFISH_COMMON_PROGRAMOPTIONS_PROGRAMOPTIONS__
 
 #include <vector>
+#include <algorithm>
 #include <string>
 #include <sstream>
 
