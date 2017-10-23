@@ -1,3 +1,4 @@
+#define EXT_SINGULAR 4
 #define EXT_DEPTH_CHECK 2
 #define EXT_DEPTH_ONE_REPLY 3
 #define EXT_DEPTH_RECAP 2

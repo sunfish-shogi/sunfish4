@@ -22,6 +22,7 @@ using namespace sunfish;
 CONSTEXPR_CONST int AspirationSearchMinDepth = ASP_MIN_DEPTH * Searcher::Depth1Ply;
 
 // extensions
+CONSTEXPR_CONST int ExtensionSingular          = EXT_SINGULAR;
 CONSTEXPR_CONST int ExtensionDepthForCheck     = EXT_DEPTH_CHECK;
 CONSTEXPR_CONST int ExtensionDepthForOneReply  = EXT_DEPTH_ONE_REPLY;
 CONSTEXPR_CONST int ExtensionDepthForRecapture = EXT_DEPTH_RECAP;
@@ -782,7 +783,11 @@ Score Searcher::search(Tree& tree,
     NodeStat newNodeStat = NodeStat::normal();
 
     // extensions
-    if (currentMoveIsCheck) {
+    if (doSingularExtension && move == node.ttMove) {
+      newDepth += ExtensionSingular;
+      tree.info.singularExtension++;
+
+    } else if (currentMoveIsCheck) {
       newDepth += ExtensionDepthForCheck;
 
     } else if (isFirst &&
@@ -796,9 +801,6 @@ Score Searcher::search(Tree& tree,
       newDepth += ExtensionDepthForRecapture;
       nodeStat.unsetRecaptureExtension();
       newNodeStat.unsetRecaptureExtension();
-    } else if (doSingularExtension && move == node.ttMove) {
-      newDepth += Depth1Ply;
-      tree.info.singularExtension++;
     }
 
     // late move reduction
