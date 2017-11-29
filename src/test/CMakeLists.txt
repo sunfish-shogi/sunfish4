@@ -19,6 +19,7 @@ add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 add_executable(sunfish_test
     book/BookGeneratorTest.cpp
     book/BookTest.cpp
+	common/RandomTest.cpp
     core/BitboardTest.cpp
     core/CsaReaderTest.cpp
     core/CsaWriterTest.cpp
