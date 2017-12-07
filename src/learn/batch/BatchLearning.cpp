@@ -4,14 +4,15 @@
  */
 
 #include "learn/batch/BatchLearning.hpp"
+#include "learn/util/LearningUtil.hpp"
 #include "search/eval/FeatureTemplates.hpp"
 #include "search/eval/Material.hpp"
 #include "search/Searcher.hpp"
 #include "core/move/MoveGenerator.hpp"
 #include "core/record/CsaReader.hpp"
+#include "core/record/SfenParser.hpp"
 #include "common/file_system/Directory.hpp"
 #include "common/resource/Resource.hpp"
-#include "common/string/TablePrinter.hpp"
 #include "common/string/StringUtil.hpp"
 #include "logger/Logger.hpp"
 #include <atomic>
@@ -110,8 +111,8 @@ private:
 
 BatchLearning::BatchLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
-    fv_(new Evaluator::FVType),
-    gradient_(new Gradient) {
+    fv_(new Evaluator::FVType()),
+    gradient_(new Gradient()) {
 }
 
 bool BatchLearning::run() {
@@ -171,7 +172,9 @@ bool BatchLearning::iterate() {
   int updateCount = MaximumUpdateCount;
 
   if (config_.restart) {
-    load(*fv_);
+    if (!load(*fv_)) {
+      return false;
+    }
     optimize(*fv_, evaluator_->ofv());
     evaluator_->onChanged(Evaluator::DataSourceType::Custom);
   }
@@ -215,8 +218,10 @@ bool BatchLearning::iterate() {
 
       MSG(info) << "";
       MSG(info) << "loss = " << lossFirst << " - " << lossLast;
-
-      printParametersSummary();
+      MSG(info) << "";
+      LearningUtil::printFVSummary(fv_.get());
+      MSG(info) << "";
+      LearningUtil::printMaterial();
     }
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
@@ -252,8 +257,7 @@ bool BatchLearning::generateTrainingData() {
     th.numberOfData = 0;
   }
 
-  for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& th = threads[tn];
+  for (auto& th : threads) {
     th.thread = std::thread([this, &th]() {
       generateTrainingData(th);
     });
@@ -404,8 +408,10 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
     return;
   }
 
-  auto mp = pos.getMutablePosition();
-  th.os.write(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
+  auto sfen = pos.toStringSFEN();
+  char sfenSize = static_cast<char>(sfen.size());
+  th.os.write(&sfenSize, sizeof(sfenSize));
+  th.os.write(sfen.c_str(), sfenSize);
 
   for (const auto& result : results) {
     uint8_t length = result.pv.size() + 1;
@@ -439,8 +445,7 @@ bool BatchLearning::generateGradient() {
     th.loss = 0.0f;
   }
 
-  for (unsigned tn = 0; tn < threads.size(); tn++) {
-    auto& th = threads[tn];
+  for (auto& th : threads) {
     th.thread = std::thread([this, &th]() {
       generateGradient(th);
     });
@@ -471,12 +476,16 @@ bool BatchLearning::generateGradient() {
 
 void BatchLearning::generateGradient(GenGradThread& th) {
   for (;;) {
-    MutablePosition mp;
-    th.is.read(reinterpret_cast<char*>(&mp), sizeof(MutablePosition));
+    char sfenSize;
+    th.is.read(&sfenSize, sizeof(sfenSize));
 
     if (th.is.eof()) {
       return;
     }
+
+    char sfen[sfenSize+1];
+    memset(sfen, 0, sizeof(sfen));
+    th.is.read(sfen, sfenSize);
 
     std::vector<std::vector<Move>> trainingData;
     for (;;) {
@@ -493,7 +502,13 @@ void BatchLearning::generateGradient(GenGradThread& th) {
       trainingData.push_back(std::move(pv));
     }
 
-    generateGradient(th, Position(mp), trainingData);
+    Position pos;
+    if (!SfenParser::parsePosition(sfen, pos)) {
+      LOG(error) << "invalid SFEN: " << static_cast<const char*>(sfen);
+      continue;
+    }
+
+    generateGradient(th, pos, trainingData);
   }
 }
 
@@ -640,44 +655,6 @@ void BatchLearning::updateParameters() {
 #endif // DEBUG_PRINT
 
   evaluator_->onChanged(Evaluator::DataSourceType::Custom);
-}
-
-void BatchLearning::printParametersSummary() {
-  auto summary = summarize(*fv_);
-  TablePrinter tp;
-
-  tp.row() << "name"
-           << "num"
-           << "zero"
-           << "non-zero"
-           << "non-zero(%)"
-           << "max"
-           << "min"
-           << "max-abs"
-           << "ave-abs"
-           << "";
-  for (const auto& s : summary) {
-    float nonZeroPer = (float)s.nonZero / s.num * 100.0f;
-    tp.row() << s.name
-             << s.num
-             << s.zero
-             << s.nonZero
-             << nonZeroPer
-             << s.max
-             << s.min
-             << s.maxAbs
-             << s.aveAbs;
-  }
-
-  MSG(info) << "";
-  MSG(info) << "Summary:\n" << StringUtil::chomp(tp.stringify());
-
-  std::ostringstream oss;
-  PIECE_TYPE_EACH(pieceType) {
-    oss << pieceType << ": " << material::scores[pieceType.raw()] << "\n";
-  }
-  MSG(info) << "";
-  MSG(info) << "Material:\n" << StringUtil::chomp(oss.str());
 }
 
 } // namespace sunfish

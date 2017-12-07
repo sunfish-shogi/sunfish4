@@ -10,7 +10,7 @@
 #include "common/math/Random.hpp"
 #include "core/move/Move.hpp"
 #include "search/eval/Evaluator.hpp"
-#include "learn/batch/Gradient.hpp"
+#include "learn/gradient/Gradient.hpp"
 #include <thread>
 #include <fstream>
 #include <iostream>
@@ -90,8 +90,6 @@ private:
                         const std::vector<std::vector<Move>>& trainingData);
 
   void updateParameters();
-
-  void printParametersSummary();
 
 private:
 

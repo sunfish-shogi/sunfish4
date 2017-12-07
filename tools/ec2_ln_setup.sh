@@ -4,6 +4,7 @@ source config/ec2_ln
 
 echo EC2_HOST=${EC2_HOST}
 echo EC2_SSH_KEY=${EC2_SSH_KEY}
+echo LNTYPE=${LNTYPE}
 echo KIFU_TARBALL=${KIFU_TARBALL}
 echo SUNFISH_REPO=${SUNFISH_REPO}
 echo TARGET_BRANCH=${TARGET_BRANCH}
@@ -13,7 +14,11 @@ KIFU_TARBALL_NAME=`basename ${KIFU_TARBALL}`
 
 YUM_PACKAGES="git gcc-c++ cmake"
 
-CONF_FILE_PATH="config/batch_learn.ini"
+if [ "x${LNTYPE}" == "xonline" ]; then
+	CONF_FILE_PATH="config/online_learn.ini"
+else
+	CONF_FILE_PATH="config/batch_learn.ini"
+fi
 CONF_FILE_NAME=`basename ${CONF_FILE_PATH}`
 
 REVISION_FILE=revision
@@ -53,7 +58,7 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 		gzip -dc ~/${EVAL_BIN_GZ} > ${EVAL_BIN}
 	fi
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
-	nohup ./sunfish_ln --silent > out/stdout.log 2> out/stderr.log < /dev/null &
+	nohup ./sunfish_ln --type ${LNTYPE} --silent > out/stdout.log 2> out/stderr.log < /dev/null &
 	sleep 5
 	nohup ./tools/ln_backup.sh ${REMOTE_BACKUP_HOST} ${NAME} < /dev/null &
 	sleep 5

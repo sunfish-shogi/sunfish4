@@ -3,7 +3,7 @@
  * Kubo Ryosuke
  */
 
-#include "learn/batch/Gradient.hpp"
+#include "learn/gradient/Gradient.hpp"
 #include "core/position/Position.hpp"
 
 namespace sunfish {

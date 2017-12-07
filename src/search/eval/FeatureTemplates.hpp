@@ -341,6 +341,39 @@ void each(FV1& fv1, FV2& fv2, T&& func) {
   }
 }
 
+template <class FV1, class FV2, class FV3, class T>
+inline
+void each(FV1& fv1, FV2& fv2, FV3& fv3, T&& func) {
+  for (size_t i = 0; i < sizeof(FV1) / sizeof(typename FV1::Type); i++) {
+    func(reinterpret_cast<typename FV1::Type*>(&fv1)[i],
+         reinterpret_cast<typename FV2::Type*>(&fv2)[i],
+         reinterpret_cast<typename FV3::Type*>(&fv3)[i]);
+  }
+}
+
+template <class FV1, class FV2, class FV3, class FV4, class T>
+inline
+void each(FV1& fv1, FV2& fv2, FV3& fv3, FV4& fv4, T&& func) {
+  for (size_t i = 0; i < sizeof(FV1) / sizeof(typename FV1::Type); i++) {
+    func(reinterpret_cast<typename FV1::Type*>(&fv1)[i],
+         reinterpret_cast<typename FV2::Type*>(&fv2)[i],
+         reinterpret_cast<typename FV3::Type*>(&fv3)[i],
+         reinterpret_cast<typename FV4::Type*>(&fv4)[i]);
+  }
+}
+
+template <class FV1, class FV2, class FV3, class FV4, class FV5, class T>
+inline
+void each(FV1& fv1, FV2& fv2, FV3& fv3, FV4& fv4, FV5& fv5, T&& func) {
+  for (size_t i = 0; i < sizeof(FV1) / sizeof(typename FV1::Type); i++) {
+    func(reinterpret_cast<typename FV1::Type*>(&fv1)[i],
+         reinterpret_cast<typename FV2::Type*>(&fv2)[i],
+         reinterpret_cast<typename FV3::Type*>(&fv3)[i],
+         reinterpret_cast<typename FV4::Type*>(&fv4)[i],
+         reinterpret_cast<typename FV5::Type*>(&fv5)[i]);
+  }
+}
+
 template <class Open,
           class KingOpenR,
           class KingOpenXR,

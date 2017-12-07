@@ -9,6 +9,8 @@
 #include "core/util/CoreUtil.hpp"
 #include "search/util/SearchUtil.hpp"
 #include "learn/batch/BatchLearning.hpp"
+#include "learn/online/OnlineLearning.hpp"
+#include "learn/util/LearningUtil.hpp"
 #include "logger/Logger.hpp"
 #include <iostream>
 #include <fstream>
@@ -30,7 +32,9 @@ int main(int argc, char** argv, char**) {
 
   // program options
   ProgramOptions po;
+  po.addOption("summary", "m", "print summary of eval.bin");
   po.addOption("silent", "s", "silent mode");
+  po.addOption("type", "t", "batch(default)|online", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -67,8 +71,25 @@ int main(int argc, char** argv, char**) {
     MSG(warning) << "WARNING: "  << invalidArgument.reason << ": `" << invalidArgument.arg << "'";
   }
 
-  BatchLearning batch;
-  bool ok = batch.run();
+  if (po.has("summary")) {
+    std::unique_ptr<Evaluator::FVType> fv(new Evaluator::FVType());
+    if (!load(*fv)) {
+      MSG(error) << "failed to load eval.bin";
+      return 1;
+    }
+    LearningUtil::printFVSummary(fv.get());
+    return 0;
+  }
 
-  return ok ? 0 : 1;
+  if (po.getValue("type") == std::string("online")) {
+    OnlineLearning online;
+    return online.run() ? 0 : 1;
+
+  } else if (!po.has("type") || po.getValue("type") == std::string("batch")) {
+    BatchLearning batch;
+    return batch.run() ? 0 : 1;
+
+  } else {
+    MSG(error) << "ERROR: invalid type: " << po.getValue("type");
+  }
 }

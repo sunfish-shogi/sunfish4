@@ -16,8 +16,12 @@ add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 add_executable(sunfish_ln
     batch/BatchLearning.cpp
     batch/BatchLearning.hpp
-    batch/Gradient.cpp
-    batch/Gradient.hpp
+    gradient/Gradient.cpp
+    gradient/Gradient.hpp
+    online/OnlineLearning.cpp
+    online/OnlineLearning.hpp
+    util/LearningUtil.cpp
+    util/LearningUtil.hpp
     Main.cpp
 )
 
