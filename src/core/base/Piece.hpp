@@ -133,7 +133,7 @@ public:
    * Assignment operator
    */
   T& operator=(const T& rhs) {
-    number_ == rhs.number_;
+    number_ = rhs.number_;
     return *(static_cast<T*>(this));
   }
 
