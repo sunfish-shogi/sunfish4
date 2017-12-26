@@ -47,6 +47,7 @@ if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then
 fi
 
 ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
+	#!/bin/bash -eu
 	chmod 600 .ssh/id_rsa
 	sudo yum update -y
 	sudo yum install -y ${YUM_PACKAGES}
