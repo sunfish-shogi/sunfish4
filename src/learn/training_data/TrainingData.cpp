@@ -71,12 +71,14 @@ void TrainingDataGenerator::shuffle(Random& random) {
 }
 
 TrainingDataReader::~TrainingDataReader() {
-  file_.close();
+  if (file_.is_open()) {
+    file_.close();
+  }
 }
 
 bool TrainingDataReader::open(const char* path) {
   file_.open(path, std::ios::in | std::ios::binary);
-  return file_.operator bool();
+  return !file_.fail();
 }
 
 
