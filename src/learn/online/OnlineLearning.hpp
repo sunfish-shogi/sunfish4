@@ -10,6 +10,7 @@
 #include "common/math/Random.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "learn/gradient/Gradient.hpp"
+#include "learn/training_data/TrainingData.hpp"
 #include <string>
 #include <thread>
 #include <memory>
@@ -25,7 +26,7 @@ class OnlineLearning {
 public:
 
   struct Config {
-    std::string kifuDir;
+    std::string trainingData;
     int numThreads;
     int depth;
     float norm;
@@ -36,12 +37,7 @@ public:
 
 private:
 
-  struct TrainingDataRecord {
-    std::string sfen;
-    sunfish::Move move;
-  };
-
-  using TrainingDataQueue = std::queue<TrainingDataRecord>;
+  using TrainingDataQueue = std::queue<TrainingDataElement>;
 
   struct Thread {
     std::thread thread;
@@ -55,8 +51,6 @@ private:
   void readConfigFromIniFile();
 
   bool validateConfig();
-
-  bool shuffleTrainingData();
 
   bool iterateMiniBatch();
 

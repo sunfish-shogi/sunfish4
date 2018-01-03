@@ -18,7 +18,6 @@
 #include <atomic>
 #include <sstream>
 #include <utility>
-#include <mutex>
 #include <cmath>
 
 #define DEBUG_PRINT 0
@@ -77,38 +76,6 @@ inline float norm(int16_t x, float n) {
 
 namespace sunfish {
 
-class RecordQueue {
-public:
-
-  using QueueType = Directory::Files;
-
-  template <class T>
-  RecordQueue(T&& files) : files_(std::forward<T>(files)) {
-    iterator_ = files_.begin();
-  }
-
-  RecordQueue() = delete;
-  RecordQueue(const RecordQueue&) = delete;
-  RecordQueue(RecordQueue&&) = delete;
-
-  bool pop(const std::string** path) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (iterator_ == files_.end()) {
-      return false;
-    }
-    *path = &(*iterator_);
-    iterator_++;
-    return true;
-  }
-
-private:
-
-  QueueType files_;
-  QueueType::iterator iterator_;
-  std::mutex mutex_;
-
-};
-
 BatchLearning::BatchLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
     fv_(new Evaluator::FVType()),
@@ -142,7 +109,7 @@ bool BatchLearning::run() {
 void BatchLearning::readConfigFromIniFile() {
   auto ini = Resource::ini(BatchLearnIni);
 
-  config_.kifuDir           = getValue(ini, "Learn", "KifuDir");
+  config_.trainingData      = getValue(ini, "Learn", "TrainingData");
   config_.iteration         = StringUtil::toInt(getValue(ini, "Learn", "Iteration"), DefaultIteration);
   config_.restart           = StringUtil::toInt(getValue(ini, "Learn", "Restart"), 0);
   config_.restartIteration  = StringUtil::toInt(getValue(ini, "Learn", "RestartIteration"), 0);
@@ -150,7 +117,7 @@ void BatchLearning::readConfigFromIniFile() {
   config_.depth             = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
   config_.norm              = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
 
-  MSG(info) << "KifuDir         : " << config_.kifuDir;
+  MSG(info) << "TrainingData    : " << config_.trainingData;
   MSG(info) << "Iteration       : " << config_.iteration;
   MSG(info) << "Restart         : " << config_.restart;
   MSG(info) << "RestartIteration: " << config_.restartIteration;
@@ -230,15 +197,12 @@ bool BatchLearning::iterate() {
 }
 
 bool BatchLearning::generateTrainingData() {
-  Directory directory(config_.kifuDir.c_str());
-  auto files = directory.files("*.csa");
-
-  if (files.size() == 0) {
-    LOG(error) << ".csa files not found";
+  reader_.reset(new TrainingDataReader());
+  if (!reader_->open(config_.trainingData)) {
+    LOG(error) << "failed to read training data";
     return false;
   }
 
-  RecordQueue recordQueue(std::move(files));
   std::vector<GenTrDataThread> threads(config_.numThreads);
 
   for (unsigned tn = 0; tn < threads.size(); tn++) {
@@ -251,7 +215,6 @@ bool BatchLearning::generateTrainingData() {
       return false;
     }
 
-    th.recordQueue = &recordQueue;
     th.searcher.reset(new Searcher(evaluator_));
     th.failLoss = 0;
     th.numberOfData = 0;
@@ -281,37 +244,21 @@ bool BatchLearning::generateTrainingData() {
 
 void BatchLearning::generateTrainingData(GenTrDataThread& th) {
   for (;;) {
-    const std::string* path;
-    if (!th.recordQueue->pop(&path)) {
-      break;
+    TrainingDataElement td;
+    {
+      std::lock_guard<std::mutex> lock(readerMutex_);
+      if (!reader_->read(td)) {
+        break;
+      }
     }
-    generateTrainingData(th, *path);
-  }
-}
 
-void BatchLearning::generateTrainingData(GenTrDataThread& th,
-                                         const std::string& path) {
-  std::ifstream file(path);
-  if (!file) {
-    LOG(error) << "could not open a file: " << path;
-    return;
-  }
-  Record record;
-  CsaReader::read(file, record);
-  file.close();
-
-  th.searcher->clean();
-
-  Position pos = record.initialPosition;
-  for (const auto& move : record.moveList) {
-    generateTrainingData(th, pos, move);
-
-    Piece captured;
-    if (!pos.doMove(move, captured)) {
-      LOG(error) << "an illegal move is detected: " << move.toString(pos) << "\n"
-                 << pos.toString();
-      return;
+    Position pos;
+    if (!SfenParser::parsePosition(td.sfen, pos)) {
+      LOG(error) << "invalid SFEN: " << td.sfen;
+      continue;
     }
+
+    generateTrainingData(th, pos, td.move);
   }
 }
 

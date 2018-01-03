@@ -20,7 +20,6 @@
 namespace {
 
 const char* const OnlineLearnIni = "config/online_learn.ini";
-const char* const TrainingDataPath = "out/online_training.dat";
 
 CONSTEXPR_CONST int DefaultDepth = 2;
 CONSTEXPR_CONST float DefaultNorm = 1.0e-2f;
@@ -83,10 +82,6 @@ bool OnlineLearning::run() {
     return false;
   }
 
-  if (!shuffleTrainingData()) {
-    return false;
-  }
-
   if (!iterateMiniBatch()) {
     return false;
   }
@@ -101,7 +96,7 @@ bool OnlineLearning::run() {
 void OnlineLearning::readConfigFromIniFile() {
   auto ini = Resource::ini(OnlineLearnIni);
 
-  config_.kifuDir           = getValue(ini, "Learn", "KifuDir");
+  config_.trainingData      = getValue(ini, "Learn", "TrainingData");
   config_.numThreads        = StringUtil::toInt(getValue(ini, "Learn", "NumThreads"), std::thread::hardware_concurrency());
   config_.depth             = StringUtil::toInt(getValue(ini, "Learn", "Depth"), DefaultDepth);
   config_.norm              = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
@@ -109,7 +104,7 @@ void OnlineLearning::readConfigFromIniFile() {
   config_.miniBatchSize     = StringUtil::toInt(getValue(ini, "Learn", "MiniBatchSize"), DefaultMiniBatchSize);
   config_.maxBrothers       = StringUtil::toInt(getValue(ini, "Learn", "MaxBrothers"), DefaultMaxBrothers);
 
-  MSG(info) << "KifuDir      : " << config_.kifuDir;
+  MSG(info) << "TrainingData : " << config_.trainingData;
   MSG(info) << "NumThreads   : " << config_.numThreads;
   MSG(info) << "Depth        : " << config_.depth;
   MSG(info) << "Norm         : " << config_.norm;
@@ -128,89 +123,31 @@ bool OnlineLearning::validateConfig() {
   return true;
 }
 
-bool OnlineLearning::shuffleTrainingData() {
-  Directory directory(config_.kifuDir.c_str());
-  auto files = directory.files("*.csa");
-
-  if (files.size() == 0) {
-    LOG(error) << ".csa files not found";
-    return false;
-  }
-
-  std::vector<TrainingDataRecord> trainingData;
-
-  for (auto ite = files.begin(); ite != files.end(); ite++) {
-    std::ifstream file(*ite);
-    if (!file) {
-      LOG(error) << "could not open a file: " << *ite;
-      continue;
-    }
-    Record record;
-    CsaReader::read(file, record);
-    file.close();
-
-    Position pos = record.initialPosition;
-    for (const auto& move : record.moveList) {
-      auto sfen = pos.toStringSFEN();
-      trainingData.push_back({ std::move(sfen), move });
-
-      Piece captured;
-      if (!pos.doMove(move, captured)) {
-        LOG(error) << "an illegal move is detected: " << move.toString(pos) << "\n"
-                   << pos.toString();
-        break;
-      }
-    }
-  }
-
-  random_.shuffle(trainingData.begin(), trainingData.end());
-
-  std::ofstream file(TrainingDataPath, std::ios::out | std::ios::binary);
-  if (!file) {
-    LOG(error) << "could not open a file: " << TrainingDataPath;
-    return false;
-  }
-
-  for (auto ite = trainingData.begin(); ite != trainingData.end(); ite++) {
-    char sfenSize = static_cast<char>(ite->sfen.size());
-    file.write(&sfenSize, sizeof(sfenSize));
-    file.write(ite->sfen.c_str(), ite->sfen.size());
-    uint16_t move = ite->move.serialize16();
-    file.write(reinterpret_cast<char*>(&move), sizeof(move));
-  }
-  file.close();
-
-  MSG(info) << "The training data was written to " << TrainingDataPath << " with " << trainingData.size() << " records.";
-
-  return true;
-}
-
 bool OnlineLearning::iterateMiniBatch() {
   std::vector<Thread> threads(config_.numThreads);
   for (auto& th : threads) {
     th.searcher.reset(new Searcher(evaluator_));
   }
 
-  std::ifstream file(TrainingDataPath);
+  TrainingDataReader reader;
+  if (!reader.open(config_.trainingData)) {
+    LOG(error) << "failed to open training data file";
+    return false;
+  }
 
-  for (int mbi = 1; file; mbi++) {
+  for (int mbi = 1; ; mbi++) {
     MSG(info) << "Mini Batch - " << mbi;
 
     for (int i = 0; i < config_.miniBatchSize; i++) {
-      char sfenSize;
-      file.read(&sfenSize, sizeof(sfenSize));
-      if (file.eof()) {
-        break;
+      TrainingDataElement td;
+      if (!reader.read(td)) {
+        if (i == 0) {
+          goto label_end;
+        } else {
+          break;
+        }
       }
-
-      char sfen[sfenSize+1];
-      memset(sfen, 0, sizeof(sfen));
-      file.read(sfen, sfenSize);
-
-      uint16_t move;
-      file.read(reinterpret_cast<char*>(&move), sizeof(move));
-
-      queue_.push({ sfen, Move::deserialize(move)});
+      queue_.push(std::move(td));
     }
 
     for (auto& th : threads) {
@@ -267,7 +204,7 @@ bool OnlineLearning::iterateMiniBatch() {
     MSG(info) << "";
   }
 
-  file.close();
+label_end:
 
   LearningUtil::printFVSummary(fv_.get());
   MSG(info) << "";
@@ -281,7 +218,7 @@ void OnlineLearning::generateGradient(Thread& th) {
   th.numberOfData = 0;
 
   while (true) {
-    TrainingDataRecord data;
+    TrainingDataElement data;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (queue_.empty()) {

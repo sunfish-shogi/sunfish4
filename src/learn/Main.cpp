@@ -10,6 +10,7 @@
 #include "search/util/SearchUtil.hpp"
 #include "learn/batch/BatchLearning.hpp"
 #include "learn/online/OnlineLearning.hpp"
+#include "learn/training_data/TrainingData.hpp"
 #include "learn/util/LearningUtil.hpp"
 #include "logger/Logger.hpp"
 #include <iostream>
@@ -33,6 +34,7 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("summary", "m", "print summary of eval.bin");
+  po.addOption("gen-td-csa", "csa", "generate training data file from CSA files");
   po.addOption("silent", "s", "silent mode");
   po.addOption("type", "t", "batch(default)|online", true);
   po.addOption("help", "h", "show this help");
@@ -78,6 +80,30 @@ int main(int argc, char** argv, char**) {
       return 1;
     }
     LearningUtil::printFVSummary(fv.get());
+    return 0;
+  }
+
+  if (po.has("gen-td-csa")) {
+    auto& args = po.getStdArguments();
+    if (args.size() != 2) {
+      MSG(error) << "Usage: sunfish_ln --gen-td-csa SRC_DIR DST_FILE";
+      return 1;
+    }
+
+    TrainingDataGenerator td;
+    if (!td.loadCsaFiles(args[0])) {
+      MSG(error) << "failed to load CSA files";
+      return 1;
+    }
+
+    Random random;
+    td.shuffle(random);
+
+    if (!td.writeToFile(args[1])) {
+      MSG(error) << "failed to write training data";
+      return 1;
+    }
+
     return 0;
   }
 

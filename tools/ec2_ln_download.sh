@@ -4,9 +4,6 @@ source config/ec2_ln
 
 echo EC2_HOST=${EC2_HOST}
 echo EC2_SSH_KEY=${EC2_SSH_KEY}
-echo KIFU_TARBALL=${KIFU_TARBALL}
-echo SUNFISH_REPO=${SUNFISH_REPO}
-echo TARGET_BRANCH=${TARGET_BRANCH}
 echo WORK_DIR=${WORK_DIR}
 
 EVAL_BIN="eval.bin"

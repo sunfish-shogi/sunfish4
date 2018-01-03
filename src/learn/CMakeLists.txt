@@ -20,6 +20,8 @@ add_executable(sunfish_ln
     gradient/Gradient.hpp
     online/OnlineLearning.cpp
     online/OnlineLearning.hpp
+    training_data/TrainingData.cpp
+    training_data/TrainingData.hpp
     util/LearningUtil.cpp
     util/LearningUtil.hpp
     Main.cpp

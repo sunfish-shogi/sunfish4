@@ -11,24 +11,25 @@
 #include "core/move/Move.hpp"
 #include "search/eval/Evaluator.hpp"
 #include "learn/gradient/Gradient.hpp"
+#include "learn/training_data/TrainingData.hpp"
 #include <thread>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <memory>
+#include <mutex>
 
 namespace sunfish {
 
 class Position;
 class Searcher;
-class RecordQueue;
 
 class BatchLearning {
 public:
 
   struct Config {
-    std::string kifuDir;
+    std::string trainingData;
     int iteration;
     int restart;
     int restartIteration;
@@ -41,7 +42,6 @@ private:
 
   struct GenTrDataThread {
     std::thread thread;
-    RecordQueue* recordQueue;
     std::ofstream os;
     std::unique_ptr<Searcher> searcher;
     int failLoss;
@@ -75,9 +75,6 @@ private:
   void generateTrainingData(GenTrDataThread& th);
 
   void generateTrainingData(GenTrDataThread& th,
-                            const std::string& path);
-
-  void generateTrainingData(GenTrDataThread& th,
                             Position& pos,
                             Move bestMove);
 
@@ -100,6 +97,9 @@ private:
   int failLoss_;
   float loss_;
   int numberOfData_;
+
+  std::unique_ptr<TrainingDataReader> reader_;
+  std::mutex readerMutex_;
 
   std::shared_ptr<Evaluator> evaluator_;
   std::unique_ptr<Evaluator::FVType> fv_;

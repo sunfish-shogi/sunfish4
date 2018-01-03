@@ -6,8 +6,8 @@ LNTYPE=online
 # the key file for SSH login
 EC2_SSH_KEY=
 
-# the tar-ball which contains .csa files
-KIFU_TARBALL=
+# a gzip file of training data
+TRAINING_DATA_GZ=
 
 # specify this option if you want to restart
 SRC_EVAL_BIN_GZ=
