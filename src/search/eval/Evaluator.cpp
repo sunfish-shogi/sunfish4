@@ -222,7 +222,9 @@ bool load(Evaluator::FVType& fv) {
 
 bool load(const char* path, Evaluator& eval) {
   auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
-  load(path, *fv.get());
+  if (!load(path, *fv.get())) {
+    return false;
+  }
   optimize(*fv, eval.ofv());
   eval.onChanged(Evaluator::DataSourceType::EvalBin);
   return true;
