@@ -20,11 +20,14 @@
 namespace {
 
 const char* const OnlineLearnIni = "config/online_learn.ini";
+const char* FVBin = "fv.bin";
+const char* AGBin = "ag.bin";
 
 CONSTEXPR_CONST int DefaultDepth = 2;
 CONSTEXPR_CONST float DefaultNorm = 1.0e-2f;
 CONSTEXPR_CONST float DefaultEta = 10.0;
 CONSTEXPR_CONST int DefaultMiniBatchSize = 100;
+CONSTEXPR_CONST int DefaultMiniBatchBegin = 1;
 CONSTEXPR_CONST int DefaultMaxBrothers = 16;
 
 CONSTEXPR_CONST int SearchWindow =  256;
@@ -58,6 +61,36 @@ inline float gnorm(float x) {
   else            { return  0.0f; }
 }
 
+bool load(const char* path, sunfish::FeatureVector<float>& fv) {
+  std::ifstream file(path, std::ios::in | std::ios::binary);
+  if (!file) {
+    LOG(warning) << "failed to open: " << path;
+    return false;
+  }
+
+  memset(reinterpret_cast<void*>(&fv), 0, sizeof(sunfish::FeatureVector<float>));
+
+  file.read(reinterpret_cast<char*>(&fv), sizeof(sunfish::FeatureVector<float>));
+
+  file.close();
+
+  return true;
+}
+
+bool save(const char* path, const sunfish::FeatureVector<float>& fv) {
+  std::ofstream file(path, std::ios::out | std::ios::binary);
+  if (!file) {
+    LOG(warning) << "failed to open: " << path;
+    return false;
+  }
+
+  file.write(reinterpret_cast<const char*>(&fv), sizeof(sunfish::FeatureVector<float>));
+
+  file.close();
+
+  return true;
+}
+
 } // namespace
 
 namespace sunfish {
@@ -66,7 +99,6 @@ OnlineLearning::OnlineLearning() :
     evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
     fv_(new Evaluator::FVType()),
     f_(new FeatureVector<float>()),
-    av_(new FeatureVector<float>()),
     ag_(new FeatureVector<float>()) {
 }
 
@@ -102,15 +134,17 @@ void OnlineLearning::readConfigFromIniFile() {
   config_.norm              = StringUtil::toFloat(getValue(ini, "Learn", "Norm"), DefaultNorm);
   config_.eta               = StringUtil::toFloat(getValue(ini, "Learn", "Eta"), DefaultEta);
   config_.miniBatchSize     = StringUtil::toInt(getValue(ini, "Learn", "MiniBatchSize"), DefaultMiniBatchSize);
+  config_.miniBatchBegin    = StringUtil::toInt(getValue(ini, "Learn", "MiniBatchBegin"), DefaultMiniBatchBegin);
   config_.maxBrothers       = StringUtil::toInt(getValue(ini, "Learn", "MaxBrothers"), DefaultMaxBrothers);
 
-  MSG(info) << "TrainingData : " << config_.trainingData;
-  MSG(info) << "NumThreads   : " << config_.numThreads;
-  MSG(info) << "Depth        : " << config_.depth;
-  MSG(info) << "Norm         : " << config_.norm;
-  MSG(info) << "Eta          : " << config_.eta;
-  MSG(info) << "MiniBatchSize: " << config_.miniBatchSize;
-  MSG(info) << "MaxBrothers  : " << config_.maxBrothers;
+  MSG(info) << "TrainingData  : " << config_.trainingData;
+  MSG(info) << "NumThreads    : " << config_.numThreads;
+  MSG(info) << "Depth         : " << config_.depth;
+  MSG(info) << "Norm          : " << config_.norm;
+  MSG(info) << "Eta           : " << config_.eta;
+  MSG(info) << "MiniBatchSize : " << config_.miniBatchSize;
+  MSG(info) << "MiniBatchBegin: " << config_.miniBatchBegin;
+  MSG(info) << "MaxBrothers   : " << config_.maxBrothers;
   MSG(info) << "";
 }
 
@@ -135,7 +169,14 @@ bool OnlineLearning::iterateMiniBatch() {
     return false;
   }
 
-  for (int mbi = 1; ; mbi++) {
+  ::load(FVBin, *f_);
+  ::load(AGBin, *ag_);
+  each(*f_, *fv_, [](float& f, int16_t& v) {
+    v = int16_t(f);
+  });
+  optimize(*fv_, evaluator_->ofv());
+
+  for (int mbi = config_.miniBatchBegin; ; mbi++) {
     MSG(info) << "Mini Batch - " << mbi;
 
     for (int i = 0; i < config_.miniBatchSize; i++) {
@@ -177,7 +218,7 @@ bool OnlineLearning::iterateMiniBatch() {
       g1 = g2 = g1 + g2;
     });
 
-    each(*gradient, *ag_, *f_, *av_, *fv_, [this, mbi](float& g0, float& ag, float& f, float& av, int16_t& v) {
+    each(*gradient, *ag_, *f_, *fv_, [this, mbi](float& g0, float& ag, float& f, int16_t& v) {
       float g = 0;
       if (g0 != 0.0) {
         ag += g0 * g0;
@@ -188,17 +229,13 @@ bool OnlineLearning::iterateMiniBatch() {
         g += config_.norm * gn / mbi;
       }
       f += g;
-      av += g * mbi;
       v = int16_t(f);
     });
 
     optimize(*fv_, evaluator_->ofv());
-
-    each(*f_, *av_, *fv_, [mbi](float& f, float& av, int16_t& v) {
-      v = int16_t(f - av / mbi);
-    });
-
     save(*fv_);
+    ::save(FVBin, *f_);
+    ::save(AGBin, *ag_);
 
     MSG(info) << "Loss: " << (loss / numberOfData);
     MSG(info) << "";

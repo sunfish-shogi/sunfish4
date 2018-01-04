@@ -32,6 +32,7 @@ public:
     float norm;
     float eta;
     int miniBatchSize;
+    int miniBatchBegin;
     int maxBrothers;
   };
 
@@ -74,7 +75,6 @@ private:
   std::shared_ptr<Evaluator> evaluator_;
   std::unique_ptr<Evaluator::FVType> fv_;
   std::unique_ptr<FeatureVector<float>> f_;
-  std::unique_ptr<FeatureVector<float>> av_; // Difference of Averaged Perceptron
   std::unique_ptr<FeatureVector<float>> ag_; // Ada Gard
 
 };
