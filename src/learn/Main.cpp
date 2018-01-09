@@ -108,8 +108,13 @@ int main(int argc, char** argv, char**) {
   }
 
   if (po.getValue("type") == std::string("online")) {
+#if !MATERIAL_LEARNING_ONLY
     OnlineLearning online;
     return online.run() ? 0 : 1;
+#else // MATERIAL_LEARNING_ONLY
+    LOG(error) << "online learning is not supported in MATERIAL_LEARNING_ONLY mode.";
+    return 1;
+#endif
 
   } else if (!po.has("type") || po.getValue("type") == std::string("batch")) {
     BatchLearning batch;

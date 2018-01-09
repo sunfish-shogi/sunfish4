@@ -36,7 +36,7 @@ HAS_COV:=$(shell which $(COV))
 .PHONY: expt-prof prof prof1
 .PHONY: test
 .PHONY: bm
-.PHONY: ln
+.PHONY: ln ln-no-mat ln-mat-only
 .PHONY: csa csa-debug
 .PHONY: usi usi-debug
 .PHONY: tools
@@ -117,6 +117,18 @@ bm:
 ln:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D LEARNING=ON $(PROJ_ROOT)/src/learn
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_LN) $(SUNFISH_LN)
+
+ln-no-mat:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D LEARNING=ON -D NO_MATERIAL_LEARNING=ON $(PROJ_ROOT)/src/learn
+	cd $(BUILD_DIR)/$@ && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_LN) $(SUNFISH_LN)
+
+ln-mat-only:
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=Release -D LEARNING=ON -D MATERIAL_LEARNING_ONLY=ON $(PROJ_ROOT)/src/learn
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_LN) $(SUNFISH_LN)
 

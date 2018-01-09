@@ -51,8 +51,12 @@ private:
   struct GenGradThread {
     std::thread thread;
     std::ifstream is;
+#if !MATERIAL_LEARNING_ONLY
     OptimizedGradient og;
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
     MaterialGradient mg;
+#endif // !NO_MATERIAL_LEARNING
     float loss;
   };
 
@@ -102,9 +106,13 @@ private:
   std::mutex readerMutex_;
 
   std::shared_ptr<Evaluator> evaluator_;
+#if !MATERIAL_LEARNING_ONLY
   std::unique_ptr<Evaluator::FVType> fv_;
   std::unique_ptr<Gradient> gradient_;
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
   MaterialGradient mgradient_;
+#endif // !NO_MATERIAL_LEARNING
 
 };
 

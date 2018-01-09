@@ -1,6 +1,7 @@
 NAME=
 EC2_HOST=
 TARGET_BRANCH=master
+BUILD_TARGET=ln
 LNTYPE=online
 
 # the key file for SSH login

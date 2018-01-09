@@ -77,9 +77,12 @@ inline float norm(int16_t x, float n) {
 namespace sunfish {
 
 BatchLearning::BatchLearning() :
-    evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
-    fv_(new Evaluator::FVType()),
-    gradient_(new Gradient()) {
+    evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero))
+#if !MATERIAL_LEARNING_ONLY
+    ,fv_(new Evaluator::FVType())
+    ,gradient_(new Gradient())
+#endif // !MATERIAL_LEARNING_ONLY
+  {
 }
 
 bool BatchLearning::run() {
@@ -139,11 +142,16 @@ bool BatchLearning::iterate() {
   int updateCount = MaximumUpdateCount;
 
   if (config_.restart) {
+#if !MATERIAL_LEARNING_ONLY
     if (!load(*fv_)) {
       return false;
     }
     optimize(*fv_, evaluator_->ofv());
     evaluator_->onChanged(Evaluator::DataSourceType::Custom);
+#else // MATERIAL_LEARNING_ONLY
+    LOG(error) << "Restart option can not be used in MATERIAL_LEARNING_ONLY mode.";
+    return false;
+#endif
   }
 
   for (int i = 0; i < config_.iteration; i++) {
@@ -181,14 +189,20 @@ bool BatchLearning::iterate() {
 
       MSG(info) << "writing to file..";
 
+#if !MATERIAL_LEARNING_ONLY
       save(*fv_);
+#endif // !MATERIAL_LEARNING_ONLY
 
       MSG(info) << "";
       MSG(info) << "loss = " << lossFirst << " - " << lossLast;
+#if !MATERIAL_LEARNING_ONLY
       MSG(info) << "";
       LearningUtil::printFVSummary(fv_.get());
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
       MSG(info) << "";
       LearningUtil::printMaterial();
+#endif // !NO_MATERIAL_LEARNING
     }
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
@@ -395,8 +409,12 @@ bool BatchLearning::generateGradient() {
       return false;
     }
 
+#if !MATERIAL_LEARNING_ONLY
     memset(reinterpret_cast<void*>(&th.og), 0, sizeof(th.og));
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
     memset(reinterpret_cast<void*>(&th.mg), 0, sizeof(th.mg));
+#endif // !NO_MATERIAL_LEARNING
     th.loss = 0.0f;
   }
 
@@ -415,16 +433,24 @@ bool BatchLearning::generateGradient() {
   loss_ = failLoss_;
   auto og = std::unique_ptr<OptimizedGradient>(new OptimizedGradient);
   memset(reinterpret_cast<void*>(og.get()), 0, sizeof(OptimizedGradient));
+#if !NO_MATERIAL_LEARNING
   memset(reinterpret_cast<void*>(mgradient_), 0, sizeof(MaterialGradient));
+#endif // !NO_MATERIAL_LEARNING
   for (auto& th : threads) {
     loss_ += th.loss;
+#if !MATERIAL_LEARNING_ONLY
     add(*og, th.og);
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
     madd(mgradient_, th.mg);
+#endif // !NO_MATERIAL_LEARNING
   }
+#if !MATERIAL_LEARNING_ONLY
   expand(*gradient_, *og);
   symmetrize(*gradient_, [](float& g1, float& g2) {
     g1 = g2 = g1 + g2;
   });
+#endif // !MATERIAL_LEARNING_ONLY
 
   return true;
 }
@@ -521,15 +547,24 @@ void BatchLearning::generateGradient(GenGradThread& th,
     if (rootPos.getTurn() == Turn::White) {
       d = -d;
     }
+#if !MATERIAL_LEARNING_ONLY
     operate<FeatureOperationType::Extract>(th.og, pos, -d);
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
     extractMaterial(th.mg, pos, -d);
+#endif // !NO_MATERIAL_LEARNING
     d0 += d;
   }
+#if !MATERIAL_LEARNING_ONLY
   operate<FeatureOperationType::Extract>(th.og, pos0, d0);
+#endif // !MATERIAL_LEARNING_ONLY
+#if !NO_MATERIAL_LEARNING
   extractMaterial(th.mg, pos0, d0);
+#endif // !NO_MATERIAL_LEARNING
 }
 
 void BatchLearning::updateParameters() {
+#if !MATERIAL_LEARNING_ONLY
   each(*fv_, *gradient_, [this](int16_t& e, float& g) {
     float n = norm(e, config_.norm);
     int16_t step = random_.bit() + random_.bit();
@@ -543,7 +578,9 @@ void BatchLearning::updateParameters() {
   });
 
   optimize(*fv_, evaluator_->ofv());
+#endif // !MATERIAL_LEARNING_ONLY
 
+#if !NO_MATERIAL_LEARNING
   std::array<float*, 13> m = {
     &mgradient_[PieceNumber::Pawn],
     &mgradient_[PieceNumber::Lance],
@@ -590,6 +627,7 @@ void BatchLearning::updateParameters() {
     material::promotionScores[piece.raw()]
       = material::scores[piece.promote().raw()] - material::scores[piece.unpromote().raw()];
   }
+#endif // !NO_MATERIAL_LEARNING
 
 #if DEBUG_PRINT
   TablePrinter tp;

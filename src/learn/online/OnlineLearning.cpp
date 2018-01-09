@@ -63,11 +63,14 @@ inline float gnorm(float x) {
 namespace sunfish {
 
 OnlineLearning::OnlineLearning() :
-    evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero)),
-    fv_(new Evaluator::FVType()),
-    f_(new FeatureVector<float>()),
-    av_(new FeatureVector<float>()),
-    ag_(new FeatureVector<float>()) {
+    evaluator_(std::make_shared<Evaluator>(Evaluator::InitType::Zero))
+#if !MATERIAL_LEARNING_ONLY
+    ,fv_(new Evaluator::FVType())
+    ,f_(new FeatureVector<float>())
+    ,av_(new FeatureVector<float>())
+    ,ag_(new FeatureVector<float>())
+#endif // !MATERIAL_LEARNING_ONLY
+  {
 }
 
 bool OnlineLearning::run() {
@@ -170,8 +173,11 @@ bool OnlineLearning::iterateMiniBatch() {
     for (auto& th : threads) {
       loss += th.loss;
       numberOfData += th.numberOfData;
+#if !MATERIAL_LEARNING_ONLY
       add(*og, th.og);
+#endif // !MATERIAL_LEARNING_ONLY
     }
+#if !MATERIAL_LEARNING_ONLY
     expand(*gradient, *og);
     symmetrize(*gradient, [](float& g1, float& g2) {
       g1 = g2 = g1 + g2;
@@ -199,6 +205,7 @@ bool OnlineLearning::iterateMiniBatch() {
     });
 
     save(*fv_);
+#endif // !MATERIAL_LEARNING_ONLY
 
     MSG(info) << "Loss: " << (loss / numberOfData);
     MSG(info) << "";
@@ -206,14 +213,18 @@ bool OnlineLearning::iterateMiniBatch() {
 
 label_end:
 
+#if !MATERIAL_LEARNING_ONLY
   LearningUtil::printFVSummary(fv_.get());
   MSG(info) << "";
+#endif // !MATERIAL_LEARNING_ONLY
 
   return true;
 }
 
 void OnlineLearning::generateGradient(Thread& th) {
+#if !MATERIAL_LEARNING_ONLY
   memset(reinterpret_cast<void*>(&th.og), 0, sizeof(th.og));
+#endif // !MATERIAL_LEARNING_ONLY
   th.loss = 0.0;
   th.numberOfData = 0;
 
@@ -352,10 +363,14 @@ void OnlineLearning::generateGradient(Thread& th) {
       if (rootPos.getTurn() == Turn::White) {
         d = -d;
       }
+#if !MATERIAL_LEARNING_ONLY
       operate<FeatureOperationType::Extract>(th.og, pos, -d);
+#endif // !MATERIAL_LEARNING_ONLY
       d0 += d;
     }
+#if !MATERIAL_LEARNING_ONLY
     operate<FeatureOperationType::Extract>(th.og, pos0, d0);
+#endif // !MATERIAL_LEARNING_ONLY
     th.numberOfData++;
   }
 }

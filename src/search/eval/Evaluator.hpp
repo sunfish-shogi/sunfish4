@@ -63,9 +63,11 @@ public:
                       const Position& position,
                       Move move);
 
+#if !MATERIAL_LEARNING_ONLY
   OFVType& ofv() {
     return ofv_;
   }
+#endif // !MATERIAL_LEARNING_ONLY
 
   DataSourceType dataSourceType() const {
     return dataSourceType_;
@@ -75,7 +77,9 @@ private:
 
   EvalCache cache_;
 
+#if !MATERIAL_LEARNING_ONLY
   OFVType ofv_;
+#endif // !MATERIAL_LEARNING_ONLY
 
   DataSourceType dataSourceType_;
 

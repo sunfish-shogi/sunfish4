@@ -829,7 +829,10 @@ Score Searcher::search(Tree& tree,
         newAlpha > -Score::mate() &&
         !isPriorMove(tree, move)) {
       Score futScore = estimateScore(tree, move, *evaluator_)
-                     + FUT_PRUN_MARGIN + futilityPruningMargin(newDepth);
+#if !MATERIAL_LEARNING_ONLY
+                     + FUT_PRUN_MARGIN
+#endif // !MATERIAL_LEARNING_ONLY
+                     + futilityPruningMargin(newDepth);
       if (futScore <= newAlpha) {
         isFirst = false;
         bestScore = std::max(bestScore, futScore);
@@ -1045,7 +1048,11 @@ Score Searcher::quies(Tree& tree,
     if (!tree.position.isCheck(move) &&
         !isCheck(node.checkState)) {
       Score estScore = estimateScore(tree, move, *evaluator_);
-      if (estScore + FUT_PRUN_MARGIN <= alpha) {
+      if (estScore
+#if !MATERIAL_LEARNING_ONLY
+          + FUT_PRUN_MARGIN
+#endif // !MATERIAL_LEARNING_ONLY
+          <= alpha) {
         tree.info.futilityPruning++;
         continue;
       }

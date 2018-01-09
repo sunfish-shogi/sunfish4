@@ -8,6 +8,7 @@ echo LNTYPE=${LNTYPE}
 echo TRAINING_DATA_GZ=${TRAINING_DATA_GZ}
 echo SUNFISH_REPO=${SUNFISH_REPO}
 echo TARGET_BRANCH=${TARGET_BRANCH}
+echo BUILD_TARGET=${BUILD_TARGET}
 echo WORK_DIR=${WORK_DIR}
 
 TRAINING_DATA_GZ_NAME=`basename ${TRAINING_DATA_GZ}`
@@ -53,7 +54,7 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	sudo yum install -y ${YUM_PACKAGES}
 	git clone --branch "${TARGET_BRANCH}" --depth 1 "${SUNFISH_REPO}" "${WORK_DIR}"
 	cd "${WORK_DIR}"
-	make ln -j
+	make ${BUILD_TARGET} -j
 	mv ~/${TRAINING_DATA_GZ_NAME} ${TRAINING_DATA_GZ_NAME}
 	gzip -d ${TRAINING_DATA_GZ_NAME}
 	if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then

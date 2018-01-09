@@ -51,7 +51,9 @@ Evaluator::Evaluator(InitType type) {
 }
 
 void Evaluator::initializeZero() {
+#if !MATERIAL_LEARNING_ONLY
   memset(reinterpret_cast<void*>(&ofv_), 0, sizeof(ofv_));
+#endif // !MATERIAL_LEARNING_ONLY
   onChanged(DataSourceType::Zero);
 }
 
@@ -143,9 +145,13 @@ Score Evaluator::calculateMaterialScoreDiff(Score score,
 }
 
 Score Evaluator::calculatePositionalScore(const Position& position) {
+#if !MATERIAL_LEARNING_ONLY
   int32_t score = operate<FeatureOperationType::Evaluate>
                          (ofv_, position, 0);
   return static_cast<Score::RawType>(score / positionalScoreScale());
+#else // !MATERIAL_LEARNING_ONLY
+  return 0;
+#endif
 }
 
 Score Evaluator::calculateTotalScore(Score materialScore,
@@ -221,11 +227,13 @@ bool load(Evaluator::FVType& fv) {
 }
 
 bool load(const char* path, Evaluator& eval) {
+#if !MATERIAL_LEARNING_ONLY
   auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
   if (!load(path, *fv.get())) {
     return false;
   }
   optimize(*fv, eval.ofv());
+#endif // !MATERIAL_LEARNING_ONLY
   eval.onChanged(Evaluator::DataSourceType::EvalBin);
   return true;
 }

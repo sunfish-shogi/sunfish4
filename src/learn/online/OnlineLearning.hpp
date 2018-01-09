@@ -42,7 +42,9 @@ private:
   struct Thread {
     std::thread thread;
     std::unique_ptr<Searcher> searcher;
+#if !MATERIAL_LEARNING_ONLY
     OptimizedGradient og;
+#endif // !MATERIAL_LEARNING_ONLY
     float loss;
     int numberOfData;
     Random random;
@@ -72,10 +74,12 @@ private:
   std::mutex mutex_;
 
   std::shared_ptr<Evaluator> evaluator_;
+#if !MATERIAL_LEARNING_ONLY
   std::unique_ptr<Evaluator::FVType> fv_;
   std::unique_ptr<FeatureVector<float>> f_;
   std::unique_ptr<FeatureVector<float>> av_; // Difference of Averaged Perceptron
   std::unique_ptr<FeatureVector<float>> ag_; // Ada Gard
+#endif // !MATERIAL_LEARNING_ONLY
 
 };
 
