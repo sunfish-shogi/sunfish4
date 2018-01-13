@@ -10,6 +10,8 @@
 #include "core/move/Move.hpp"
 #include "core/position/Position.hpp"
 #include "book/Book.hpp"
+#include <sstream>
+#include <iomanip>
 
 namespace sunfish {
 
@@ -28,6 +30,19 @@ public:
       return bookMoves->at(i).count;
     });
     return bookMoves->at(idx).move;
+  }
+
+  static std::string stringify(const Position& position, const BookMoves& bookMoves) {
+    std::ostringstream oss;
+    float sum = 0.0;
+    for (auto& m : bookMoves) {
+      sum += m.count;
+    }
+    for (auto& m : bookMoves) {
+      float rate = m.count / sum * 100;
+      oss << m.move.toString(position) << "(" << std::setprecision(3) << rate << "%) ";
+    }
+    return oss.str();
   }
 
 };

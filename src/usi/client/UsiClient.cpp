@@ -299,6 +299,8 @@ bool UsiClient::runSearch(const CommandArguments& args) {
     Move bookMove = BookUtil::select(book_, pos, random_);
     if (!bookMove.isNone()) {
       MSG(info) << "opening book hit";
+      auto bookMoves = book_.get(pos);
+      send("info", "string", BookUtil::stringify(pos, *bookMoves));
       send("bestmove", bookMove.toStringSFEN());
       return true;
     }
