@@ -74,6 +74,8 @@ bool BookGenerator::generate(const std::string& path) {
     }
   }
 
+  book_.sort();
+
   return true;
 }
 

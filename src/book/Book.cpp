@@ -38,6 +38,14 @@ void Book::insert(const Position& position, Move move, int count) {
   bookMoves.push_back({ move, static_cast<uint16_t>(count) });
 }
 
+void Book::sort() {
+  for (auto& pair : map_) {
+    std::sort(pair.second.begin(), pair.second.end(), [](BookMove lhs, BookMove rhs) {
+      return lhs.count >= rhs.count;
+    });
+  }
+}
+
 const BookMoves* Book::get(const Position& position) const {
   std::string sfen = position.toStringSFEN();
   auto ite = map_.find(sfen);

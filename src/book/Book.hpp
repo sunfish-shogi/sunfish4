@@ -37,6 +37,8 @@ public:
 
   void insert(const Position& position, Move move, int count);
 
+  void sort();
+
   const BookMoves* get(const Position& position) const;
 
   void clear() {
