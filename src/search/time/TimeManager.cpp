@@ -85,7 +85,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 10% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 10 &&
-      depth >= Searcher::Depth1Ply * 16 &&
+      depth >= Searcher::Depth1Ply * 25 &&
       scoreDiff < 32 && scoreDiff > -16) {
     if (pvStability >= 14 || pvStability2 >= 15) {
       shouldInterrupt_ = true;
@@ -96,7 +96,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 20% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 20 &&
-      depth >= Searcher::Depth1Ply * 14 &&
+      depth >= Searcher::Depth1Ply * 23 &&
       scoreDiff < 64 && scoreDiff > -32) {
     if (pvStability >= 12 || pvStability2 >= 13) {
       shouldInterrupt_ = true;
@@ -107,7 +107,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 50% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 70 &&
-      depth >= Searcher::Depth1Ply * 12 &&
+      depth >= Searcher::Depth1Ply * 18 &&
       scoreDiff < 256 && scoreDiff > -64) {
     if (pvStability >= 4 || pvStability2 >= 5) {
       shouldInterrupt_ = true;
@@ -118,7 +118,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 100% of optimumTimeMs_
   if (elapsedMs >= optimumTimeMs_ &&
-      depth >= Searcher::Depth1Ply * 12 &&
+      depth >= Searcher::Depth1Ply * 18 &&
       scoreDiff < 512 && scoreDiff > -128) {
     if (pvStability >= 3 || pvStability2 >= 3) {
       shouldInterrupt_ = true;
@@ -129,7 +129,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 200% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 200 &&
-      depth >= Searcher::Depth1Ply * 12 &&
+      depth >= Searcher::Depth1Ply * 18 &&
       scoreDiff < 1024 && scoreDiff > -256) {
     if (pvStability >= 2 || pvStability2 >= 2) {
       shouldInterrupt_ = true;
@@ -140,7 +140,7 @@ void TimeManager::update(uint32_t elapsedMs,
 
   // 400% of optimumTimeMs_
   if (elapsedMs * 100 >= optimumTimeMs_ * 400 &&
-      depth >= Searcher::Depth1Ply * 12 &&
+      depth >= Searcher::Depth1Ply * 18 &&
       scoreDiff < 2048 && scoreDiff > -512) {
     if (pvStability >= 1 || pvStability2 >= 1) {
       shouldInterrupt_ = true;
