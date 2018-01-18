@@ -396,9 +396,11 @@ void Searcher::aspsearch(Tree& tree,
 
     mergeInfo(tree);
 
-    std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
-      return moveToScore(lhs) > moveToScore(rhs);
-    });
+    if (score > alpha) {
+      std::stable_sort(node.moves.begin(), node.moves.end(), [](Move lhs, Move rhs) {
+        return moveToScore(lhs) > moveToScore(rhs);
+      });
+    }
 
     if (isInterrupted()) {
       break;
