@@ -7,18 +7,24 @@
 #include "logger/Logger.hpp"
 
 #include <cstring>
-#include <unistd.h>
 #include <csignal>
-#include <dirent.h>
-#include <strings.h>
-#include <sched.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/param.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <netdb.h>
 #include <errno.h>
+
+#ifdef WIN32
+# include <winsock2.h>
+using ssize_t = int;
+#else
+# include <unistd.h>
+# include <dirent.h>
+# include <strings.h>
+# include <sched.h>
+# include <sys/socket.h>
+# include <sys/param.h>
+# include <netinet/in.h>
+# include <netinet/tcp.h>
+# include <netdb.h>
+#endif
 
 namespace sunfish {
 
@@ -100,7 +106,11 @@ void Socket::disconnect() {
     return;
   }
 
+#if WIN32
+  closesocket(sock_);
+#else
   close(sock_);
+#endif
   opened_ = false;
   MSG(info) << "disconnected from " << host_ << ':' << port_;
 }

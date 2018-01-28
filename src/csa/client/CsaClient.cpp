@@ -318,11 +318,11 @@ bool CsaClient::onGameSummary() {
   }
 
   MSG(info) << "GameSummary";
-  MSG(info) << "  MyTurn            : " << gameSummary_.myTurn;
+  MSG(info) << "  MyTurn            : " << turnToString(gameSummary_.myTurn);
   MSG(info) << "  GameId            : " << gameSummary_.gameId;
   MSG(info) << "  BlackName         : " << gameSummary_.blackName;
   MSG(info) << "  WhiteName         : " << gameSummary_.whiteName;
-  MSG(info) << "  FirstTurn         : " << gameSummary_.firstTurn;
+  MSG(info) << "  FirstTurn         : " << turnToString(gameSummary_.firstTurn);
   MSG(info) << "  MaxMoves          : " << gameSummary_.maxMoves;
   MSG(info) << "  ProtocolVersion   : " << gameSummary_.protocolVersion;
   MSG(info) << "  ProtocolMode      : " << gameSummary_.protocolMode;

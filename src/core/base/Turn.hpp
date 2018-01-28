@@ -16,10 +16,14 @@ enum Turn : bool {
   White = false,
 };
 
+inline const char* turnToString(Turn turn) {
+  return (turn == sunfish::Turn::Black ? "Black" : "White");
+}
+
 }
 
 inline std::ostream& operator<<(std::ostream& os, sunfish::Turn turn) {
-  os << (turn == sunfish::Turn::Black ? "Black" : "White");
+  os << turnToString(turn);
   return os;
 }
 

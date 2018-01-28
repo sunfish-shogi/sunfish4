@@ -22,6 +22,10 @@ add_executable(sunfish_csa
     Main.cpp
 )
 
+if(WIN32)
+    target_link_libraries(sunfish_csa wsock32 ws2_32)
+endif()
+
 target_link_libraries(sunfish_csa search)
 target_link_libraries(sunfish_csa book)
 target_link_libraries(sunfish_csa core)
