@@ -20,7 +20,11 @@ LOCAL_BACKUP_DIR=${BACKUP_DIR}/${DATE}_${NAME}_${EC2_HOST}
 ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	#!/bin/bash -eu
 	cd ${WORK_DIR}
-	gzip -c ${EVAL_BIN} > ${EVAL_BIN_GZ}
+	if [ -f ${EVAL_BIN} ]; then
+		gzip -c ${EVAL_BIN} > ${EVAL_BIN_GZ}
+	else
+		echo "not exists: ${EVAL_BIN}"
+	fi
 	exit
 EOF
 
