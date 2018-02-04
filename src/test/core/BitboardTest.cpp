@@ -469,126 +469,135 @@ TEST(BitboardTest, testOperators) {
     ASSERT_EQ(0x8LL, bb.first());
     ASSERT_EQ(0x2LL, bb.second());
   }
-
-  {
-    // left shift assignment operator
-    Bitboard bb = bb1;
-    bb <<= 3;
-    ASSERT_EQ(0x18LL, bb.first());
-    ASSERT_EQ(0x60LL, bb.second());
-
-    RotatedBitboard rbb = rbb1;
-    rbb <<= 3;
-    ASSERT_EQ(0x18LL, rbb.raw());
-  }
-
-  {
-    // right shift assignment operator
-    Bitboard bb = bb1;
-    bb >>= 1;
-    ASSERT_EQ(0x1LL, bb.first());
-    ASSERT_EQ(0x6LL, bb.second());
-
-    RotatedBitboard rbb = rbb1;
-    rbb >>= 1;
-    ASSERT_EQ(0x1LL, rbb.raw());
-  }
-
-  {
-    // left shift operator
-    Bitboard bb = bb1 << 3;
-    ASSERT_EQ(0x18LL, bb.first());
-    ASSERT_EQ(0x60LL, bb.second());
-
-    RotatedBitboard rbb = rbb1 << 3;
-    ASSERT_EQ(0x18LL, rbb.raw());
-  }
-
-  {
-    // right shift operator
-    Bitboard bb = bb1 >> 1;
-    ASSERT_EQ(0x1LL, bb.first());
-    ASSERT_EQ(0x6LL, bb.second());
-
-    RotatedBitboard rbb = rbb1 >> 1;
-    ASSERT_EQ(0x1LL, rbb.raw());
-  }
 }
 
-TEST(BitboardTest, testPerfectShift) {
+TEST(BitboardTest, testShift) {
   {
     Bitboard bb = Bitboard::zero();
-    bb.set(Square::s19());
-    bb.set(Square::s29());
-    bb.set(Square::s39());
-    bb.set(Square::s49());
-    bb.set(Square::s59());
+    bb.set(Square::s11());
+    bb.set(Square::s24());
+    bb.set(Square::s32());
+    bb.set(Square::s46());
+    bb.set(Square::s53());
     bb.set(Square::s69());
-    bb.set(Square::s79());
-    bb.set(Square::s89());
-    bb.set(Square::s99());
-    bb.leftShift(1);
+    bb.set(Square::s77());
+    bb.set(Square::s88());
+    bb.set(Square::s95());
     ASSERT_EQ(
-        "011111111\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n"
-        "000000000\n",
-        bb.toString());
-  }
-
-  {
-    Bitboard bb = Bitboard::zero();
-    bb.set(Square::s17());
-    bb.set(Square::s26());
-    bb.set(Square::s34());
-    bb.set(Square::s49());
-    bb.set(Square::s55());
-    bb.set(Square::s61());
-    bb.set(Square::s72());
-    bb.set(Square::s89());
-    bb.set(Square::s96());
-    bb.leftShift(9);
-    ASSERT_EQ(
+        "000000001\n"
+        "000000100\n"
         "000010000\n"
-        "000100000\n"
-        "000000000\n"
         "000000010\n"
+        "100000000\n"
         "000001000\n"
-        "010000001\n"
-        "000000000\n"
-        "000000000\n"
-        "001000100\n",
-        bb.toString());
-  }
-
-  {
-    Bitboard bb = Bitboard::zero();
-    bb.set(Square::s17());
-    bb.set(Square::s26());
-    bb.set(Square::s34());
-    bb.set(Square::s49());
-    bb.set(Square::s55());
-    bb.set(Square::s61());
-    bb.set(Square::s72());
-    bb.set(Square::s89());
-    bb.set(Square::s96());
-    bb.rightShift(9);
-    ASSERT_EQ(
         "001000000\n"
         "010000000\n"
+        "000100000\n",
+        bb.toString());
+
+    // up
+    ASSERT_EQ(
+        "000000100\n"
+        "000010000\n"
+        "000000010\n"
+        "100000000\n"
+        "000001000\n"
+        "001000000\n"
+        "010000000\n"
+        "000100000\n"
+        "000000000\n",
+        bb.up().toString());
+
+    // down
+    ASSERT_EQ(
         "000000000\n"
+        "000000001\n"
+        "000000100\n"
+        "000010000\n"
+        "000000010\n"
+        "100000000\n"
+        "000001000\n"
+        "001000000\n"
+        "010000000\n",
+        bb.down().toString());
+
+    // left
+    ASSERT_EQ(
+        "000000010\n"
         "000001000\n"
         "000100000\n"
         "000000100\n"
-        "000000010\n"
         "000000000\n"
-        "100010000\n",
-        bb.toString());
+        "000010000\n"
+        "010000000\n"
+        "100000000\n"
+        "001000000\n",
+        bb.left().toString());
+
+    // right
+    ASSERT_EQ(
+        "000000000\n"
+        "000000010\n"
+        "000001000\n"
+        "000000001\n"
+        "010000000\n"
+        "000000100\n"
+        "000100000\n"
+        "001000000\n"
+        "000010000\n",
+        bb.right().toString());
+
+    // left-up
+    ASSERT_EQ(
+        "000001000\n"
+        "000100000\n"
+        "000000100\n"
+        "000000000\n"
+        "000010000\n"
+        "010000000\n"
+        "100000000\n"
+        "001000000\n"
+        "000000000\n",
+        bb.leftUp().toString());
+
+    // left-down
+    ASSERT_EQ(
+        "000000000\n"
+        "000000010\n"
+        "000001000\n"
+        "000100000\n"
+        "000000100\n"
+        "000000000\n"
+        "000010000\n"
+        "010000000\n"
+        "100000000\n",
+        bb.leftDown().toString());
+
+    // right-up
+    ASSERT_EQ(
+        "000000010\n"
+        "000001000\n"
+        "000000001\n"
+        "010000000\n"
+        "000000100\n"
+        "000100000\n"
+        "001000000\n"
+        "000010000\n"
+        "000000000\n",
+        bb.rightUp().toString());
+
+    // right-down
+    ASSERT_EQ(
+        "000000000\n"
+        "000000000\n"
+        "000000010\n"
+        "000001000\n"
+        "000000001\n"
+        "010000000\n"
+        "000000100\n"
+        "000100000\n"
+        "001000000\n",
+        bb.rightDown().toString());
   }
 }
 

@@ -24,11 +24,11 @@ void MoveGenerator::generateMovesOnBoard(const Position& pos, Moves& moves, cons
   {
     auto fbb = turn == Turn::Black ? pos.getBPawnBitboard() : pos.getWPawnBitboard();
     if (type == GenerationType::Capture) {
-      fbb &= turn == Turn::Black ? capOrProm << 1 : capOrProm >> 1;
+      fbb &= turn == Turn::Black ? capOrProm.down() : capOrProm.up();
     } else if (type == GenerationType::Quiet) {
-      fbb &= turn == Turn::Black ? notCapProm << 1 : notCapProm >> 1;;
+      fbb &= turn == Turn::Black ? notCapProm.down() : notCapProm.up();
     } else {
-      fbb &= turn == Turn::Black ? mask << 1 : mask >> 1;;
+      fbb &= turn == Turn::Black ? mask.down() : mask.up();
     }
 
     BB_EACH(from, fbb) {

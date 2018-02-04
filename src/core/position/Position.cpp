@@ -1222,7 +1222,7 @@ bool Position::isMovable(const Bitboard& mask) const {
   // pawn
   {
     auto fbb = turn == Turn::Black ? bbBPawn_ : bbWPawn_;
-    fbb &= turn == Turn::Black ? mask << 1 : mask >> 1;
+    fbb &= turn == Turn::Black ? mask.down() : mask.up();
     BB_EACH(from, fbb) {
       if (!isPinned<turn>(from)) {
         return true;

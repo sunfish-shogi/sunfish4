@@ -128,70 +128,6 @@ public:
     return T((~first()) & rhs.first(), (~second()) & rhs.second());
   }
 
-  /**
-   * Shifts as the two unsgined 64-bit integers.
-   */
-  void leftShift64(U n) {
-    firstRef() <<= n;
-    secondRef() <<= n;
-  }
-
-  /**
-   * Shifts as the two unsgined 64-bit integers.
-   */
-  void rightShift64(U n) {
-    firstRef() >>= n;
-    secondRef() >>= n;
-  }
-
-  void leftShift(U n) {
-    uint64_t f = first();
-    uint64_t s = second();
-    firstRef() = (f << n) & Mask1;
-    secondRef() = ((s << n) | f >> (W1 - n)) & Mask2;
-  }
-
-  void rightShift(U n) {
-    uint64_t f = first();
-    uint64_t s = second();
-    firstRef() = ((f >> n) | (s << (W1 - n))) & Mask1;
-    secondRef() = (s >> n) & Mask2;
-  }
-
-  /**
-   * Left shift assignment operator.
-   * This function uses <leftShift64> from the inside.
-   */
-  const T& operator<<=(U n) {
-    leftShift64(n);
-    return *(static_cast<T*>(this));
-  }
-
-  /**
-   * Right shift assignment operator.
-   * This function uses <rightShift64> from the inside.
-   */
-  const T& operator>>=(U n) {
-    rightShift64(n);
-    return *(static_cast<T*>(this));
-  }
-
-  /**
-   * Left shift operator.
-   * This function uses <leftShift64> from the inside.
-   */
-  T operator<<(U n) const {
-    return T(*(static_cast<const T*>(this))) <<= n;
-  }
-
-  /**
-   * Right shift operator.
-   * This function uses <rightShift64> from the inside.
-   */
-  T operator>>(U n) const {
-    return T(*(static_cast<const T*>(this))) >>= n;
-  }
-
 #ifndef NDEBUG
   /**
    * EQUAL operator
@@ -350,6 +286,44 @@ protected:
   bool check2(U offset) const {
     ASSERT(offset < Width2);
     return second() & (1LLU << offset);
+  }
+
+  /**
+   * Shifts as the two unsgined 64-bit integers.
+   */
+  T leftShift64(U n) const {
+    T x(*(static_cast<const T*>(this)));
+    x.firstRef() <<= n;
+    x.secondRef() <<= n;
+    return x;
+  }
+
+  /**
+   * Shifts as the two unsgined 64-bit integers.
+   */
+  T rightShift64(U n) const {
+    T x(*(static_cast<const T*>(this)));
+    x.firstRef() >>= n;
+    x.secondRef() >>= n;
+    return x;
+  }
+
+  T leftShift(U n) const {
+    T x;
+    uint64_t f = first();
+    uint64_t s = second();
+    x.firstRef() = (f << n) & Mask1;
+    x.secondRef() = ((s << n) | f >> (W1 - n)) & Mask2;
+    return x;
+  }
+
+  T rightShift(U n) const {
+    T x;
+    uint64_t f = first();
+    uint64_t s = second();
+    x.firstRef() = ((f >> n) | (s << (W1 - n))) & Mask1;
+    x.secondRef() = (s >> n) & Mask2;
+    return x;
   }
 
   /**

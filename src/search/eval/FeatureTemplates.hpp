@@ -901,7 +901,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // pawn
   {
     auto bpawn = position.getBPawnBitboard();
-    bef |= bpawn >> 1;
+    bef |= bpawn.up();
     BB_EACH(square, bpawn) {
       sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Pawn,
@@ -914,7 +914,7 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto wpawn = position.getWPawnBitboard();
-    wef |= wpawn << 1;
+    wef |= wpawn.down();
     BB_EACH(square, wpawn) {
       sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Pawn,
@@ -928,11 +928,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // silver
   {
     auto bsilver = position.getBSilverBitboard();
-    bef |= (bsilver >> 10) & Bitboard::rank1to8();
-    bef |= (bsilver >> 8) & Bitboard::rank2to9();
-    bef |= (bsilver >> 1) & Bitboard::rank1to8();
-    bef |= (bsilver << 8) & Bitboard::rank1to8();
-    bef |= (bsilver << 10) & Bitboard::rank2to9();
+    bef |= bsilver.leftUp();
+    bef |= bsilver.leftDown();
+    bef |= bsilver.up();
+    bef |= bsilver.rightUp();
+    bef |= bsilver.rightDown();
     BB_EACH(square, bsilver) {
       sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Silver,
@@ -945,11 +945,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto wsilver = position.getWSilverBitboard();
-    wef |= (wsilver >> 10) & Bitboard::rank1to8();
-    wef |= (wsilver >> 8) & Bitboard::rank2to9();
-    wef |= (wsilver << 1) & Bitboard::rank2to9();
-    wef |= (wsilver << 8) & Bitboard::rank1to8();
-    wef |= (wsilver << 10) & Bitboard::rank2to9();
+    wef |= wsilver.leftUp();
+    wef |= wsilver.leftDown();
+    wef |= wsilver.down();
+    wef |= wsilver.rightUp();
+    wef |= wsilver.rightDown();
     BB_EACH(square, wsilver) {
       sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Silver,
@@ -963,12 +963,12 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // gold, tokin, promoted-lance, promoted-knight, promoted-siver
   {
     auto bgold = position.getBGoldBitboard();
-    bef |= (bgold >> 10) & Bitboard::rank1to8();
-    bef |= bgold >> 9;
-    bef |= (bgold >> 1) & Bitboard::rank1to8();
-    bef |= (bgold << 1) & Bitboard::rank2to9();
-    bef |= (bgold << 8) & Bitboard::rank1to8();
-    bef |= bgold << 9;
+    bef |= bgold.leftUp();
+    bef |= bgold.left();
+    bef |= bgold.up();
+    bef |= bgold.down();
+    bef |= bgold.rightUp();
+    bef |= bgold.right();
     BB_EACH(square, bgold) {
       sum += operatePiece<type, OFV, T, Turn::Black>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Gold,
@@ -981,12 +981,12 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto wgold = position.getWGoldBitboard();
-    wef |= wgold >> 9;
-    wef |= (wgold >> 8) & Bitboard::rank2to9();
-    wef |= (wgold >> 1) & Bitboard::rank1to8();
-    wef |= (wgold << 1) & Bitboard::rank2to9();
-    wef |= wgold << 9;
-    wef |= (wgold << 10) & Bitboard::rank2to9();
+    wef |= wgold.left();
+    wef |= wgold.leftDown();
+    wef |= wgold.up();
+    wef |= wgold.down();
+    wef |= wgold.right();
+    wef |= wgold.rightDown();
     BB_EACH(square, wgold) {
       sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
                                                      EvalPieceTypeIndex::Gold,
@@ -1086,10 +1086,10 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // horse
   {
     auto bhorse = position.getBHorseBitboard();
-    bef |= bhorse >> 9;
-    bef |= (bhorse >> 1) & Bitboard::rank1to8();
-    bef |= (bhorse << 1) & Bitboard::rank2to9();
-    bef |= bhorse << 9;
+    bef |= bhorse.left();
+    bef |= bhorse.up();
+    bef |= bhorse.down();
+    bef |= bhorse.right();
     BB_EACH(square, bhorse) {
       int bs = square.raw();
       int ws = square.psym().raw();
@@ -1131,10 +1131,10 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto whorse = position.getWHorseBitboard();
-    wef |= whorse >> 9;
-    wef |= (whorse >> 1) & Bitboard::rank1to8();
-    wef |= (whorse << 1) & Bitboard::rank2to9();
-    wef |= whorse << 9;
+    wef |= whorse.left();
+    wef |= whorse.up();
+    wef |= whorse.down();
+    wef |= whorse.right();
     BB_EACH(square, whorse) {
       int bs = square.raw();
       int ws = square.psym().raw();
@@ -1259,10 +1259,10 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // dragon
   {
     auto bdragon = position.getBDragonBitboard();
-    bef |= (bdragon >> 10) & Bitboard::rank1to8();
-    bef |= (bdragon >> 8) & Bitboard::rank2to9();
-    bef |= (bdragon << 8) & Bitboard::rank1to8();
-    bef |= (bdragon << 10) & Bitboard::rank2to9();
+    bef |= bdragon.leftUp();
+    bef |= bdragon.leftDown();
+    bef |= bdragon.rightUp();
+    bef |= bdragon.rightDown();
     BB_EACH(square, bdragon) {
       int bs = square.raw();
       int ws = square.psym().raw();
@@ -1302,10 +1302,10 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto wdragon = position.getWDragonBitboard();
-    wef |= (wdragon >> 10) & Bitboard::rank1to8();
-    wef |= (wdragon >> 8) & Bitboard::rank2to9();
-    wef |= (wdragon << 8) & Bitboard::rank1to8();
-    wef |= (wdragon << 10) & Bitboard::rank2to9();
+    wef |= wdragon.leftUp();
+    wef |= wdragon.leftDown();
+    wef |= wdragon.rightUp();
+    wef |= wdragon.rightDown();
     BB_EACH(square, wdragon) {
       int bs = square.raw();
       int ws = square.psym().raw();
@@ -1399,8 +1399,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
   // knight
   {
     auto bknight = position.getBKnightBitboard();
-    bef |= bknight >> 11;
-    bef |= bknight << 7;
+    bef |= bknight.leftUpKnight();
+    bef |= bknight.rightUpKnight();
     BB_EACH(square, bknight) {
       int bs = square.raw();
       int ws = square.psym().raw();
@@ -1414,8 +1414,8 @@ T operate(OFV& ofv, const Position& position, T delta) {
 
   {
     auto wknight = position.getWKnightBitboard();
-    wef |= wknight >> 7;
-    wef |= wknight << 11;
+    wef |= wknight.leftDownKnight();
+    wef |= wknight.rightDownKnight();
     BB_EACH(square, wknight) {
       int bs = square.raw();
       int ws = square.psym().raw();

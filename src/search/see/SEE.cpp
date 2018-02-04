@@ -64,8 +64,8 @@ Bitboard SEE::extractAggressors(const Position& position,
   }
 
   Bitboard bb = Bitboard::zero();
-  bb |= (Bitboard::mask(to) << 1) & position.getBPawnBitboard();
-  bb |= (Bitboard::mask(to) >> 1) & position.getWPawnBitboard();
+  bb |= (Bitboard::mask(to).down()) & position.getBPawnBitboard();
+  bb |= (Bitboard::mask(to).up()) & position.getWPawnBitboard();
   bb |= MoveTables::whiteLance(occ, to) & position.getBLanceBitboard();
   bb |= MoveTables::blackLance(occ, to) & position.getWLanceBitboard();
   bb |= MoveTables::whiteKnight(to) & position.getBKnightBitboard();

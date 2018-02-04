@@ -158,9 +158,9 @@ bool Mate::mate1Ply(const Position& position) {
       bb &= turn == Turn::Black ? AggressableTables::blackPawn(king)
                                 : AggressableTables::whitePawn(king);
       if (turn == Turn::Black) {
-        bb.rightShift64(1);
+        bb = bb.up();
       } else {
-        bb.leftShift64(1);
+        bb = bb.down();
       }
       bb &= Bitboard::mask(to) | (turn == Turn::Black ? Bitboard::blackPromotable()
                                                       : Bitboard::whitePromotable());

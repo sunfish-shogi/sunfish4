@@ -50,6 +50,54 @@ public:
     }
   }
 
+  Bitboard up() const {
+    return rightShift64(1) & Bitboard::rank1to8();
+  }
+
+  Bitboard down() const {
+    return leftShift64(1) & Bitboard::rank2to9();
+  }
+
+  Bitboard left() const {
+    return rightShift(9);
+  }
+
+  Bitboard right() const {
+    return leftShift(9);
+  }
+
+  Bitboard leftUp() const {
+    return rightShift(10) & Bitboard::rank1to8();
+  }
+
+  Bitboard leftDown() const {
+    return rightShift(8) & Bitboard::rank2to9();
+  }
+
+  Bitboard rightUp() const {
+    return leftShift(8) & Bitboard::rank1to8();
+  }
+
+  Bitboard rightDown() const {
+    return leftShift(10) & Bitboard::rank2to9();
+  }
+
+  Bitboard leftUpKnight() const {
+    return rightShift(11) & Bitboard::rank1to8();
+  }
+
+  Bitboard leftDownKnight() const {
+    return rightShift(7) & Bitboard::rank2to9();
+  }
+
+  Bitboard rightUpKnight() const {
+    return leftShift(7) & Bitboard::rank1to8();
+  }
+
+  Bitboard rightDownKnight() const {
+    return leftShift(11) & Bitboard::rank2to9();
+  }
+
   static const Bitboard& mask(const Square& square) {
     return Mask[square.raw()];
   }
