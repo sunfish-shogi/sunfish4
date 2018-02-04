@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2017.05.23.0"
+#define SUNFISH_FV_VERSION "2018.02.06.0"
 
 namespace sunfish {
 
@@ -119,6 +119,22 @@ struct FeatureVector {
   using KingPieceXR = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End];
   using KingPieceYR = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End];
   using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingPieceRNeighborX = Type[RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceXRNeighborX = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceYRNeighborX = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborX = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceRNeighborY = Type[RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceXRNeighborY = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceYRNeighborY = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborY = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceRNeighborXY = Type[RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceXRNeighborXY = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceYRNeighborXY = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborXY = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceRNeighborXY2 = Type[RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceXRNeighborXY2 = Type[SQUARE_FILES][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceYRNeighborXY2 = Type[SQUARE_RANKS][RelativeSquare::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborXY2 = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
   using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
   using KingNeighborPieceR = Type[Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
   using KingNeighborPieceXR = Type[SQUARE_FILES][Neighbor3x3::NN][EvalPieceTypeIndex::End][RelativeSquare::N][EvalPieceIndex::End];
@@ -140,6 +156,26 @@ struct FeatureVector {
   KingPieceXR kingPieceXR;
   KingPieceYR kingPieceYR;
   KingPiece kingPiece;
+
+  KingPieceRNeighborX kingPieceRNeighborX;
+  KingPieceXRNeighborX kingPieceXRNeighborX;
+  KingPieceYRNeighborX kingPieceYRNeighborX;
+  KingPieceNeighborX kingPieceNeighborX;
+
+  KingPieceRNeighborY kingPieceRNeighborY;
+  KingPieceXRNeighborY kingPieceXRNeighborY;
+  KingPieceYRNeighborY kingPieceYRNeighborY;
+  KingPieceNeighborY kingPieceNeighborY;
+
+  KingPieceRNeighborXY kingPieceRNeighborXY;
+  KingPieceXRNeighborXY kingPieceXRNeighborXY;
+  KingPieceYRNeighborXY kingPieceYRNeighborXY;
+  KingPieceNeighborXY kingPieceNeighborXY;
+
+  KingPieceRNeighborXY2 kingPieceRNeighborXY2;
+  KingPieceXRNeighborXY2 kingPieceXRNeighborXY2;
+  KingPieceYRNeighborXY2 kingPieceYRNeighborXY2;
+  KingPieceNeighborXY2 kingPieceNeighborXY2;
 
   KingNeighborHand kingNeighborHand;
 
@@ -222,6 +258,10 @@ struct OptimizedFeatureVector {
   using Type = T;
   using KingHand = Type[Square::N][EvalHandIndex::End];
   using KingPiece = Type[Square::N][Square::N][EvalPieceIndex::End];
+  using KingPieceNeighborX = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborY = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborXY = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
+  using KingPieceNeighborXY2 = Type[Square::N][Square::N][EvalPieceIndex::End][EvalPieceIndex::End];
   using KingNeighborHand = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][EvalHandIndex::End];
   using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
   using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
@@ -233,6 +273,14 @@ struct OptimizedFeatureVector {
   KingHand kingHand;
 
   KingPiece kingPiece;
+
+  KingPieceNeighborX kingPieceNeighborX;
+
+  KingPieceNeighborY kingPieceNeighborY;
+
+  KingPieceNeighborXY kingPieceNeighborXY;
+
+  KingPieceNeighborXY2 kingPieceNeighborXY2;
 
   KingNeighborHand kingNeighborHand;
 

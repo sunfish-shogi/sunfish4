@@ -784,6 +784,22 @@ public:
     return RelativeSquare((H - (SquareRawType)1 - number_ / H) * H + number_ % H);
   }
 
+  CONSTEXPR RelativeSquare up() const {
+    return RelativeSquare(number_ - 1);
+  }
+
+  CONSTEXPR RelativeSquare down() const {
+    return RelativeSquare(number_ + 1);
+  }
+
+  CONSTEXPR RelativeSquare left() const {
+    return RelativeSquare(number_ - H);
+  }
+
+  CONSTEXPR RelativeSquare right() const {
+    return RelativeSquare(number_ + H);
+  }
+
   CONSTEXPR bool operator==(const RelativeSquare& rhs) const {
     return number_ == rhs.number_;
   }
