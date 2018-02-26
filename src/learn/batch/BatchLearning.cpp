@@ -282,7 +282,6 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
   int depth = Searcher::Depth1Ply * config_.depth + Searcher::Depth1Ply / 2;
   Score alpha;
   Score beta;
-  Score bestScore;
   struct Data {
     Move move;
     PV pv;
@@ -311,7 +310,6 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
     }
     alpha = -result.score - SearchWindow;
     beta = -result.score + SearchWindow;
-    bestScore = -result.score;
     results.push_back({ bestMove, result.pv });
   }
 
@@ -329,38 +327,30 @@ void BatchLearning::generateTrainingData(GenTrDataThread& th,
       continue;
     }
 
-    const int step = Searcher::Depth1Ply * 2;
-    for (int newDepth = depth % step; newDepth <= depth; newDepth += step) {
-      Piece captured;
-      if (!pos.doMove(move, captured)) {
-        break;
-      }
-      th.searcher->search(pos,
-                          newDepth,
-                          -beta,
-                          -alpha);
-      pos.undoMove(move, captured);
-
-      auto& result = th.searcher->getResult();
-
-      // fail-low
-      if (-result.score <= alpha) {
-        break;
-      }
-
-      if (-result.score > bestScore && newDepth + Searcher::Depth1Ply <= depth) {
-        continue;
-      }
-
-      // fail-high
-      if (-result.score >= beta) {
-        th.failLoss++;
-        break;
-      }
-
-      results.push_back({ move, result.pv });
-      break;
+    Piece captured;
+    if (!pos.doMove(move, captured)) {
+      continue;
     }
+    th.searcher->search(pos,
+                        depth,
+                        -beta,
+                        -alpha);
+    pos.undoMove(move, captured);
+
+    auto& result = th.searcher->getResult();
+
+    // fail-low
+    if (-result.score <= alpha) {
+      continue;
+    }
+
+    // fail-high
+    if (-result.score >= beta) {
+      th.failLoss++;
+      continue;
+    }
+
+    results.push_back({ move, result.pv });
   }
 
   th.numberOfData++;
