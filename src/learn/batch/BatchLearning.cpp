@@ -258,21 +258,23 @@ bool BatchLearning::generateTrainingData() {
 
 void BatchLearning::generateTrainingData(GenTrDataThread& th) {
   for (;;) {
-    TrainingDataElement td;
+    Record record;
     {
       std::lock_guard<std::mutex> lock(readerMutex_);
-      if (!reader_->read(td)) {
+      if (!reader_->read(record)) {
         break;
       }
     }
 
-    Position pos;
-    if (!SfenParser::parsePosition(td.sfen, pos)) {
-      LOG(error) << "invalid SFEN: " << td.sfen;
-      continue;
+    Position pos = record.initialPosition;
+    Piece captured;
+    for (const auto& move : record.moveList) {
+      generateTrainingData(th, pos, move);
+      if (!pos.doMove(move, captured)) {
+        LOG(error) << "invalid move: " << pos.toString() << move.toString();
+        break;
+      }
     }
-
-    generateTrainingData(th, pos, td.move);
   }
 }
 

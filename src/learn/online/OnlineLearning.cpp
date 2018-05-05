@@ -9,7 +9,7 @@
 #include "search/eval/Evaluator.hpp"
 #include "search/Searcher.hpp"
 #include "core/move/MoveGenerator.hpp"
-#include "core/record/CsaReader.hpp"
+#include "core/record/Record.hpp"
 #include "core/record/SfenParser.hpp"
 #include "common/resource/Resource.hpp"
 #include "common/string/StringUtil.hpp"
@@ -138,19 +138,34 @@ bool OnlineLearning::iterateMiniBatch() {
     return false;
   }
 
+  Record record;
+  std::vector<TrainingDataElement> trainingDataList;
+  while (reader.read(record)) {
+    Position pos = record.initialPosition;
+    Piece captured;
+    for (const auto& move : record.moveList) {
+      TrainingDataElement td;
+      td.sfen = pos.toStringSFEN();
+      td.move = move;
+      if (!pos.doMove(move, captured)) {
+        LOG(error) << "invalid move: " << pos.toString() << move.toString();
+        break;
+      }
+      trainingDataList.push_back(std::move(td));
+    }
+  }
+  random_.shuffle(trainingDataList.begin(), trainingDataList.end());
+
+  unsigned tdi = 0;
   for (int mbi = 1; ; mbi++) {
+    if (tdi >= trainingDataList.size()) {
+      break;
+    }
+
     MSG(info) << "Mini Batch - " << mbi;
 
     for (int i = 0; i < config_.miniBatchSize; i++) {
-      TrainingDataElement td;
-      if (!reader.read(td)) {
-        if (i == 0) {
-          goto label_end;
-        } else {
-          break;
-        }
-      }
-      queue_.push(std::move(td));
+      queue_.push(std::move(trainingDataList[tdi++]));
     }
 
     for (auto& th : threads) {
@@ -210,8 +225,6 @@ bool OnlineLearning::iterateMiniBatch() {
     MSG(info) << "Loss: " << (loss / numberOfData);
     MSG(info) << "";
   }
-
-label_end:
 
 #if !MATERIAL_LEARNING_ONLY
   LearningUtil::printFVSummary(fv_.get());

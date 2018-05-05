@@ -12,25 +12,69 @@
 namespace sunfish {
 
 bool TrainingDataGenerator::writeToFile(const char* path) const {
-  std::ofstream file(path, std::ios::out | std::ios::binary);
-  if (!file) {
+  std::ofstream datFile(path, std::ios::out | std::ios::binary);
+  if (!datFile) {
     LOG(error) << "could not open a file: " << path;
     return false;
   }
 
-  for (auto ite = trainingData_.begin(); ite != trainingData_.end(); ite++) {
-    char sfenSize = static_cast<char>(ite->sfen.size());
-    file.write(&sfenSize, sizeof(sfenSize));
-    file.write(ite->sfen.c_str(), ite->sfen.size());
-    uint16_t move = ite->move.serialize16();
-    file.write(reinterpret_cast<char*>(&move), sizeof(move));
+  int skipped = 0;
+  int error = 0;
+  for (auto ite = csaFiles_.begin(); ite != csaFiles_.end(); ite++) {
+    std::ifstream csaFile(*ite);
+    if (!csaFile) {
+      LOG(error) << "could not open a file: " << *ite;
+      error++;
+      continue;
+    }
+    Record record;
+    CsaReader::read(csaFile, record);
+    csaFile.close();
+
+    /*
+    if (record.specialMove != "%TORYO") {
+      skipped++;
+      continue;
+    }
+    */
+
+    if (!record.initialPosition.isInitial(Position::Handicap::Even)) {
+      skipped++;
+      continue;
+    }
+
+    Position pos = record.initialPosition;
+    for (const auto& move : record.moveList) {
+      Piece captured;
+      if (!pos.doMove(move, captured)) {
+        LOG(error) << "an illegal move is detected: " << move.toString(pos) << "\n"
+                   << pos.toString();
+        break;
+      }
+
+      // write move
+      uint16_t m16 = move.serialize16();
+      datFile.write(reinterpret_cast<char*>(&m16), sizeof(m16));
+    }
+
+    // write end-of-moves marker
+    uint16_t n16 = Move::none().serialize16();
+    datFile.write(reinterpret_cast<char*>(&n16), sizeof(n16));
   }
-  file.close();
+  datFile.close();
+
+  if (error != 0) {
+    LOG(warning) << "errors are occured from " << error << " files";
+  }
+
+  if (skipped != 0) {
+    LOG(warning) << skipped << " files are skipped";
+  }
 
   return true;
 }
 
-bool TrainingDataGenerator::loadCsaFiles(const char* dir) {
+bool TrainingDataGenerator::appendCsaFiles(const char* dir) {
   Directory directory(dir);
   auto files = directory.files("*.csa");
 
@@ -40,34 +84,9 @@ bool TrainingDataGenerator::loadCsaFiles(const char* dir) {
   }
 
   for (auto ite = files.begin(); ite != files.end(); ite++) {
-    std::ifstream file(*ite);
-    if (!file) {
-      LOG(error) << "could not open a file: " << *ite;
-      continue;
-    }
-    Record record;
-    CsaReader::read(file, record);
-    file.close();
-
-    Position pos = record.initialPosition;
-    for (const auto& move : record.moveList) {
-      auto sfen = pos.toStringSFEN();
-      trainingData_.push_back({ std::move(sfen), move });
-
-      Piece captured;
-      if (!pos.doMove(move, captured)) {
-        LOG(error) << "an illegal move is detected: " << move.toString(pos) << "\n"
-                   << pos.toString();
-        break;
-      }
-    }
+    csaFiles_.push_back(*ite);
   }
-
   return true;
-}
-
-void TrainingDataGenerator::shuffle(Random& random) {
-  random.shuffle(trainingData_.begin(), trainingData_.end());
 }
 
 TrainingDataReader::~TrainingDataReader() {
@@ -82,22 +101,25 @@ bool TrainingDataReader::open(const char* path) {
 }
 
 
-bool TrainingDataReader::read(TrainingDataElement& elem) {
-  char sfenSize;
-  file_.read(&sfenSize, sizeof(sfenSize));
-  if (file_.eof()) {
-    return false;
+bool TrainingDataReader::read(Record& record) {
+  record.initialPosition.initialize(Position::Handicap::Even);
+  record.moveList.clear();
+  for (;;) {
+    // read move
+    uint16_t m16;
+    file_.read(reinterpret_cast<char*>(&m16), sizeof(m16));
+    if (file_.eof()) {
+      return false;
+    } else if (!file_) {
+      LOG(error) << "failed to read training data file";
+      return false;
+    }
+    Move move = Move::deserialize(m16);
+    if (move.isNone()) {
+      break;
+    }
+    record.moveList.push_back(move);
   }
-
-  char sfen[sfenSize+1];
-  memset(sfen, 0, sizeof(sfen));
-  file_.read(sfen, sfenSize);
-
-  uint16_t move;
-  file_.read(reinterpret_cast<char*>(&move), sizeof(move));
-
-  elem.sfen = sfen;
-  elem.move = Move::deserialize(move);
 
   return true;
 }

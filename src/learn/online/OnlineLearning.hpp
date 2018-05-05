@@ -37,6 +37,11 @@ public:
 
 private:
 
+  struct TrainingDataElement {
+    std::string sfen;
+    Move move;
+  };
+
   using TrainingDataQueue = std::queue<TrainingDataElement>;
 
   struct Thread {

@@ -91,13 +91,10 @@ int main(int argc, char** argv, char**) {
     }
 
     TrainingDataGenerator td;
-    if (!td.loadCsaFiles(args[0])) {
-      MSG(error) << "failed to load CSA files";
+    if (!td.appendCsaFiles(args[0])) {
+      MSG(error) << "failed to find CSA files";
       return 1;
     }
-
-    Random random;
-    td.shuffle(random);
 
     if (!td.writeToFile(args[1])) {
       MSG(error) << "failed to write training data";

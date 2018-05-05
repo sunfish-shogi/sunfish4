@@ -7,17 +7,13 @@
 #define SUNFISH_LEARN_TRAININGDATA_TRAININGDATA_HPP__
 
 #include "core/move/Move.hpp"
-#include "common/math/Random.hpp"
 #include <vector>
 #include <string>
 #include <fstream>
 
 namespace sunfish {
 
-struct TrainingDataElement {
-  std::string sfen;
-  sunfish::Move move;
-};
+class Record;
 
 class TrainingDataGenerator {
 public:
@@ -28,21 +24,15 @@ public:
     return writeToFile(path.c_str());
   }
 
-  bool loadCsaFiles(const char* dir);
+  bool appendCsaFiles(const char* dir);
 
-  bool loadCsaFiles(const std::string& dir) {
-    return loadCsaFiles(dir.c_str());
-  }
-
-  void shuffle(Random&);
-
-  size_t size() const {
-    return trainingData_.size();
+  bool appendCsaFiles(const std::string& dir) {
+    return appendCsaFiles(dir.c_str());
   }
 
 private:
 
-  std::vector<TrainingDataElement> trainingData_;
+  std::vector<std::string> csaFiles_;
 
 };
 
@@ -57,7 +47,7 @@ public:
     return open(path.c_str());
   }
 
-  bool read(TrainingDataElement& elem);
+  bool read(Record& record);
 
 private:
 

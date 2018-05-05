@@ -133,6 +133,8 @@ public:
     initialize(mp.board, mp.blackHand, mp.whiteHand, mp.turn);
   }
 
+  bool isInitial(Handicap handicap);
+
   /**
    * Get MutablePosition
    */

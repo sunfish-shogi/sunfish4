@@ -350,6 +350,34 @@ void Position::initialize(Handicap handicap) {
   onChanged();
 }
 
+bool Position::isInitial(Handicap handicap) {
+  if (handicap != Handicap::Even) {
+    LOG(error) << "FATAL!!: Position::isInitial supports only Handicap::Even";
+    abort();
+  }
+
+  SQUARE_EACH(square) {
+    if (board_[square.raw()] != EvenBoardArray[square.raw()]) {
+      return false;
+    }
+  }
+
+  HAND_EACH(pieceType) {
+    if (blackHand_.get(pieceType) != 0) {
+      return false;
+    }
+    if (whiteHand_.get(pieceType) != 0) {
+      return false;
+    }
+  }
+
+  if (turn_ != Turn::Black) {
+    return false;
+  }
+
+  return true;
+}
+
 void Position::onChanged() {
 
   // initialize
