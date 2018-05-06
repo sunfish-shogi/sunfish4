@@ -58,7 +58,7 @@ inline Score promotionScore(const Piece& piece) {
   return promotionScores[piece.raw()];
 }
 
-#if LEARNING
+#if LEARNING && MATERIAL_LEARNING
 inline Score pawn()      { return scores[PieceNumber::Pawn]; }
 inline Score lance()     { return scores[PieceNumber::Lance]; }
 inline Score knight()    { return scores[PieceNumber::Knight]; }
@@ -86,7 +86,7 @@ inline Score proKnightEx() { return exchangeScores[PieceNumber::ProKnight]; }
 inline Score proSilverEx() { return exchangeScores[PieceNumber::ProSilver]; }
 inline Score horseEx()     { return exchangeScores[PieceNumber::Horse]; }
 inline Score dragonEx()    { return exchangeScores[PieceNumber::Dragon]; }
-#else // LEARNING
+#else // LEARNING && MATERIAL_LEARNING
 inline Score pawn()      { return MATERIAL_SCORE_PAWN; }
 inline Score lance()     { return MATERIAL_SCORE_LANCE; }
 inline Score knight()    { return MATERIAL_SCORE_KNIGHT; }
@@ -114,7 +114,7 @@ inline Score proKnightEx() { return MATERIAL_SCORE_PRO_KNIGHT_EX; }
 inline Score proSilverEx() { return MATERIAL_SCORE_PRO_SILVER_EX; }
 inline Score horseEx()     { return MATERIAL_SCORE_HORSE_EX; }
 inline Score dragonEx()    { return MATERIAL_SCORE_DRAGON_EX; }
-#endif // LEARNING
+#endif // LEARNING && MATERIAL_LEARNING
 
 } // namespace material
 

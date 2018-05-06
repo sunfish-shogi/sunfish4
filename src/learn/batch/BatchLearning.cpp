@@ -199,10 +199,10 @@ bool BatchLearning::iterate() {
       MSG(info) << "";
       LearningUtil::printFVSummary(fv_.get());
 #endif // !MATERIAL_LEARNING_ONLY
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
       MSG(info) << "";
       LearningUtil::printMaterial();
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
     }
 
     updateCount = std::max(updateCount * 2 / 3, MinimumUpdateCount);
@@ -396,9 +396,9 @@ bool BatchLearning::generateGradient() {
 #if !MATERIAL_LEARNING_ONLY
     memset(reinterpret_cast<void*>(&th.og), 0, sizeof(th.og));
 #endif // !MATERIAL_LEARNING_ONLY
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
     memset(reinterpret_cast<void*>(&th.mg), 0, sizeof(th.mg));
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
     th.loss = 0.0f;
   }
 
@@ -417,17 +417,17 @@ bool BatchLearning::generateGradient() {
   loss_ = failLoss_;
   auto og = std::unique_ptr<OptimizedGradient>(new OptimizedGradient);
   memset(reinterpret_cast<void*>(og.get()), 0, sizeof(OptimizedGradient));
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
   memset(reinterpret_cast<void*>(mgradient_), 0, sizeof(MaterialGradient));
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
   for (auto& th : threads) {
     loss_ += th.loss;
 #if !MATERIAL_LEARNING_ONLY
     add(*og, th.og);
 #endif // !MATERIAL_LEARNING_ONLY
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
     madd(mgradient_, th.mg);
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
   }
 #if !MATERIAL_LEARNING_ONLY
   expand(*gradient_, *og);
@@ -534,17 +534,17 @@ void BatchLearning::generateGradient(GenGradThread& th,
 #if !MATERIAL_LEARNING_ONLY
     operate<FeatureOperationType::Extract>(th.og, pos, -d);
 #endif // !MATERIAL_LEARNING_ONLY
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
     extractMaterial(th.mg, pos, -d);
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
     d0 += d;
   }
 #if !MATERIAL_LEARNING_ONLY
   operate<FeatureOperationType::Extract>(th.og, pos0, d0);
 #endif // !MATERIAL_LEARNING_ONLY
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
   extractMaterial(th.mg, pos0, d0);
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
 }
 
 void BatchLearning::updateParameters() {
@@ -564,7 +564,7 @@ void BatchLearning::updateParameters() {
   optimize(*fv_, evaluator_->ofv());
 #endif // !MATERIAL_LEARNING_ONLY
 
-#if !NO_MATERIAL_LEARNING
+#if MATERIAL_LEARNING
   std::array<float*, 13> m = {
     &mgradient_[PieceNumber::Pawn],
     &mgradient_[PieceNumber::Lance],
@@ -611,7 +611,7 @@ void BatchLearning::updateParameters() {
     material::promotionScores[piece.raw()]
       = material::scores[piece.promote().raw()] - material::scores[piece.unpromote().raw()];
   }
-#endif // !NO_MATERIAL_LEARNING
+#endif // MATERIAL_LEARNING
 
 #if DEBUG_PRINT
   TablePrinter tp;

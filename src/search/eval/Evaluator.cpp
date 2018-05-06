@@ -14,7 +14,8 @@
 
 namespace {
 
-const char* const EvalBin = "eval.bin";
+const char* const EvalBin = "eval.bin"; // optimized
+const char* const EvalExBin = "eval-ex.bin"; // expanded
 
 CONSTEXPR_CONST Score EnteringKing = 1000;
 
@@ -223,16 +224,47 @@ bool load(const char* path, Evaluator::FVType& fv) {
 }
 
 bool load(Evaluator::FVType& fv) {
-  return load(EvalBin, fv);
+  return load(EvalExBin, fv);
+}
+
+bool load(const char* path, Evaluator::OFVType& ofv) {
+  std::ifstream file(path, std::ios::in | std::ios::binary);
+  if (!file) {
+    LOG(warning) << "failed to open: " << path;
+    return false;
+  }
+
+  char ver[32] = { 0 };
+  uint8_t len;
+  file.read(reinterpret_cast<char*>(&len), sizeof(len));
+  if (len >= sizeof(ver)) {
+    LOG(warning) << "invalid feature vector version";
+    return false;
+  }
+  file.read(reinterpret_cast<char*>(ver), len);
+  if (strcmp(SUNFISH_FV_VERSION, ver) != 0) {
+    LOG(warning) << "invalid feature vector version: " << ver;
+    return false;
+  }
+
+  memset(reinterpret_cast<void*>(&ofv), 0, sizeof(Evaluator::OFVType));
+
+  file.read(reinterpret_cast<char*>(&ofv), sizeof(Evaluator::OFVType));
+
+  file.close();
+
+  return true;
+}
+
+bool load(Evaluator::OFVType& ofv) {
+  return load(EvalBin, ofv);
 }
 
 bool load(const char* path, Evaluator& eval) {
 #if !MATERIAL_LEARNING_ONLY
-  auto fv = std::unique_ptr<Evaluator::FVType>(new Evaluator::FVType);
-  if (!load(path, *fv.get())) {
+  if (!load(path, eval.ofv())) {
     return false;
   }
-  optimize(*fv, eval.ofv());
 #endif // !MATERIAL_LEARNING_ONLY
   eval.onChanged(Evaluator::DataSourceType::EvalBin);
   return true;
@@ -262,7 +294,30 @@ bool save(const char* path, const Evaluator::FVType& fv) {
 }
 
 bool save(const Evaluator::FVType& fv) {
-  return save(EvalBin, fv);
+  return save(EvalExBin, fv);
+}
+
+bool save(const char* path, const Evaluator::OFVType& ofv) {
+  std::ofstream file(path, std::ios::out | std::ios::binary);
+  if (!file) {
+    LOG(warning) << "failed to open: " << path;
+    return false;
+  }
+
+  const char* ver = SUNFISH_FV_VERSION;
+  uint8_t len = strlen(ver);
+  file.write(reinterpret_cast<const char*>(&len), sizeof(len));
+  file.write(reinterpret_cast<const char*>(ver), len);
+
+  file.write(reinterpret_cast<const char*>(&ofv), sizeof(Evaluator::OFVType));
+
+  file.close();
+
+  return true;
+}
+
+bool save(const Evaluator::OFVType& ofv) {
+  return save(EvalBin, ofv);
 }
 
 } // namespace sunfish

@@ -89,6 +89,10 @@ bool load(const char* path, Evaluator::FVType& fv);
 
 bool load(Evaluator::FVType& fv);
 
+bool load(const char* path, Evaluator::OFVType& ofv);
+
+bool load(Evaluator::OFVType& ofv);
+
 bool load(const char* path, Evaluator& eval);
 
 bool load(Evaluator& eval);
@@ -96,6 +100,10 @@ bool load(Evaluator& eval);
 bool save(const char* path, const Evaluator::FVType& fv);
 
 bool save(const Evaluator::FVType& fv);
+
+bool save(const char* path, const Evaluator::OFVType& ofv);
+
+bool save(const Evaluator::OFVType& ofv);
 
 inline std::ostream& operator<<(std::ostream& os, const Evaluator::DataSourceType dataSourceType) {
   switch (dataSourceType) {

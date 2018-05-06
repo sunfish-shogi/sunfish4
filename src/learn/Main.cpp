@@ -7,6 +7,8 @@
 #include "common/program_options/ProgramOptions.hpp"
 #include "common/resource/Resource.hpp"
 #include "core/util/CoreUtil.hpp"
+#include "search/eval/Evaluator.hpp"
+#include "search/eval/FeatureTemplates.hpp"
 #include "search/util/SearchUtil.hpp"
 #include "learn/batch/BatchLearning.hpp"
 #include "learn/online/OnlineLearning.hpp"
@@ -33,10 +35,11 @@ int main(int argc, char** argv, char**) {
 
   // program options
   ProgramOptions po;
-  po.addOption("summary", "m", "print summary of eval.bin");
-  po.addOption("gen-td-csa", "csa", "generate training data file from CSA files");
-  po.addOption("silent", "s", "silent mode");
   po.addOption("type", "t", "batch(default)|online", true);
+  po.addOption("silent", "s", "silent mode");
+  po.addOption("summary", "m", "print value summary of eval-ex.bin");
+  po.addOption("gen-td-csa", "csa", "generate training data file from CSA files");
+  po.addOption("optimize", "o", "convert from expanded FV(eval-ex.bin) to optimized FV(eval.bin)");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -76,7 +79,7 @@ int main(int argc, char** argv, char**) {
   if (po.has("summary")) {
     std::unique_ptr<Evaluator::FVType> fv(new Evaluator::FVType());
     if (!load(*fv)) {
-      MSG(error) << "failed to load eval.bin";
+      MSG(error) << "failed to load eval-ex.bin";
       return 1;
     }
     LearningUtil::printFVSummary(fv.get());
@@ -101,6 +104,21 @@ int main(int argc, char** argv, char**) {
       return 1;
     }
 
+    return 0;
+  }
+
+  if (po.has("optimize")) {
+    std::unique_ptr<Evaluator::FVType> fv(new Evaluator::FVType());
+    std::unique_ptr<Evaluator::OFVType> ofv(new Evaluator::OFVType());
+    if (!load(*fv)) {
+      MSG(error) << "failed to load eval-ex.bin";
+      return 1;
+    }
+    optimize(*fv, *ofv);
+    if (!save(*ofv)) {
+      MSG(error) << "failed to save eval.bin";
+      return 1;
+    }
     return 0;
   }
 
