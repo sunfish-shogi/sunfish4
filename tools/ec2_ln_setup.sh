@@ -27,8 +27,8 @@ REVISION_FILE=revision
 DATE=`date "+%Y-%m-%d"`
 DATE_FILE=date
 
-EVAL_BIN_GZ=eval.bin.gz
-EVAL_BIN=eval.bin
+EVAL_EX_BIN_GZ="eval-ex.bin.gz"
+EVAL_EX_BIN="eval-ex.bin"
 
 LOCAL_BACKUP_DIR=${BACKUP_DIR}/${DATE}_${NAME}_${EC2_HOST}
 
@@ -43,8 +43,8 @@ cp ${CONF_FILE_PATH} ${LOCAL_BACKUP_DIR}/
 scp -i ${EC2_SSH_KEY} ${REMOTE_BACKUP_KEY} ec2-user@${EC2_HOST}:~/.ssh/id_rsa
 scp -i ${EC2_SSH_KEY} ${TRAINING_DATA_GZ} ec2-user@${EC2_HOST}:~/
 scp -i ${EC2_SSH_KEY} ${CONF_FILE_PATH} ec2-user@${EC2_HOST}:~/
-if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then
-	scp -i ${EC2_SSH_KEY} ${SRC_EVAL_BIN_GZ} ec2-user@${EC2_HOST}:~/${EVAL_BIN_GZ}
+if [ "x${SRC_EVAL_EX_BIN_GZ}" != "x" ]; then
+	scp -i ${EC2_SSH_KEY} ${SRC_EVAL_EX_BIN_GZ} ec2-user@${EC2_HOST}:~/${EVAL_EX_BIN_GZ}
 fi
 
 ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
@@ -57,8 +57,8 @@ ssh -i ${EC2_SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 	make ${BUILD_TARGET} -j
 	mv ~/${TRAINING_DATA_GZ_NAME} ${TRAINING_DATA_GZ_NAME}
 	gzip -d ${TRAINING_DATA_GZ_NAME}
-	if [ "x${SRC_EVAL_BIN_GZ}" != "x" ]; then
-		gzip -dc ~/${EVAL_BIN_GZ} > ${EVAL_BIN}
+	if [ "x${SRC_EVAL_EX_BIN_GZ}" != "x" ]; then
+		gzip -dc ~/${EVAL_EX_BIN_GZ} > ${EVAL_EX_BIN}
 	fi
 	cp ~/${CONF_FILE_NAME} ./${CONF_FILE_PATH}
 	nohup ./sunfish_ln --type ${LNTYPE} --silent > out/stdout.log 2> out/stderr.log < /dev/null &

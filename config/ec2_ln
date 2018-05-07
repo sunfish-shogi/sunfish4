@@ -11,7 +11,7 @@ EC2_SSH_KEY=
 TRAINING_DATA_GZ=
 
 # specify this option if you want to restart
-SRC_EVAL_BIN_GZ=
+SRC_EVAL_EX_BIN_GZ=
 
 SUNFISH_REPO="https://github.com/sunfish-shogi/sunfish4.git"
 
