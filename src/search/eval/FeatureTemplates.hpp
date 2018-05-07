@@ -58,6 +58,34 @@ void optimizeOpen(Open open,
   }
 }
 
+template <class PieceRNeighbor,
+          class PieceXRNeighbor,
+          class PieceYRNeighbor,
+          class PieceNeighbor,
+          class OPieceNeighbor>
+inline
+void optimizePieceNeighbor(PieceRNeighbor  pieceRNeighbor,
+                           PieceXRNeighbor pieceXRNeighbor,
+                           PieceYRNeighbor pieceYRNeighbor,
+                           PieceNeighbor   pieceNeighbor,
+                           OPieceNeighbor  oPieceNeighbor) {
+  // pieceRNeighbor, pieceXRNeighbor, pieceYRNeighbor, pieceNeighbor
+  //   => pieceNeighbor
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        for (int j = 0; j < EvalPieceIndex::End; j++) {
+          oPieceNeighbor[king.raw()][square.raw()][i][j]
+            = pieceNeighbor[king.raw()][square.raw()][i][j]
+            + pieceRNeighbor[RelativeSquare(king, square).raw()][i][j]
+            + pieceXRNeighbor[king.getFile()-1][RelativeSquare(king, square).raw()][i][j]
+            + pieceYRNeighbor[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
+        }
+      }
+    }
+  }
+}
+
 template <class FV, class OFV>
 inline
 void optimize(FV& fv, OFV& ofv) {
@@ -77,69 +105,29 @@ void optimize(FV& fv, OFV& ofv) {
     }
   }
 
-  // kingPieceRNeighborX, kingPieceXRNeighborX, kingPieceYRNeighborX, kingPieceNeighborX
-  //   => kingPieceNeighborX
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          ofv.kingPieceNeighborX[king.raw()][square.raw()][i][j]
-            = fv.kingPieceNeighborX[king.raw()][square.raw()][i][j]
-            + fv.kingPieceRNeighborX[RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceXRNeighborX[king.getFile()-1][RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceYRNeighborX[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
-        }
-      }
-    }
-  }
+  optimizePieceNeighbor(fv.kingPieceRNeighborX,
+                        fv.kingPieceXRNeighborX,
+                        fv.kingPieceYRNeighborX,
+                        fv.kingPieceNeighborX,
+                        ofv.kingPieceNeighborX);
 
-  // kingPieceRNeighborY, kingPieceXRNeighborY, kingPieceYRNeighborY, kingPieceNeighborY
-  //   => kingPieceNeighborY
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          ofv.kingPieceNeighborY[king.raw()][square.raw()][i][j]
-            = fv.kingPieceNeighborY[king.raw()][square.raw()][i][j]
-            + fv.kingPieceRNeighborY[RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceXRNeighborY[king.getFile()-1][RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceYRNeighborY[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
-        }
-      }
-    }
-  }
+  optimizePieceNeighbor(fv.kingPieceRNeighborY,
+                        fv.kingPieceXRNeighborY,
+                        fv.kingPieceYRNeighborY,
+                        fv.kingPieceNeighborY,
+                        ofv.kingPieceNeighborY);
 
-  // kingPieceRNeighborXY, kingPieceXRNeighborXY, kingPieceYRNeighborXY, kingPieceNeighborXY
-  //   => kingPieceNeighborXY
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          ofv.kingPieceNeighborXY[king.raw()][square.raw()][i][j]
-            = fv.kingPieceNeighborXY[king.raw()][square.raw()][i][j]
-            + fv.kingPieceRNeighborXY[RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceXRNeighborXY[king.getFile()-1][RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceYRNeighborXY[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
-        }
-      }
-    }
-  }
+  optimizePieceNeighbor(fv.kingPieceRNeighborXY,
+                        fv.kingPieceXRNeighborXY,
+                        fv.kingPieceYRNeighborXY,
+                        fv.kingPieceNeighborXY,
+                        ofv.kingPieceNeighborXY);
 
-  // kingPieceRNeighborXY2, kingPieceXRNeighborXY2, kingPieceYRNeighborXY2, kingPieceNeighborXY2
-  //   => kingPieceNeighborXY2
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          ofv.kingPieceNeighborXY2[king.raw()][square.raw()][i][j]
-            = fv.kingPieceNeighborXY2[king.raw()][square.raw()][i][j]
-            + fv.kingPieceRNeighborXY2[RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceXRNeighborXY2[king.getFile()-1][RelativeSquare(king, square).raw()][i][j]
-            + fv.kingPieceYRNeighborXY2[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
-        }
-      }
-    }
-  }
+  optimizePieceNeighbor(fv.kingPieceRNeighborXY2,
+                        fv.kingPieceXRNeighborXY2,
+                        fv.kingPieceYRNeighborXY2,
+                        fv.kingPieceNeighborXY2,
+                        ofv.kingPieceNeighborXY2);
 
   FV_PART_COPY(ofv, fv, kingNeighborHand);
 
@@ -238,12 +226,12 @@ template <class Open,
           class KingOpen,
           class OKingOpen>
 inline
-void expandOpen(Open open,
-                KingOpenR kingOpenR,
-                KingOpenXR kingOpenXR,
-                KingOpenYR kingOpenYR,
-                KingOpen kingOpen,
-                OKingOpen oKingOpen) {
+void expandOpen(Open& open,
+                KingOpenR& kingOpenR,
+                KingOpenXR& kingOpenXR,
+                KingOpenYR& kingOpenYR,
+                KingOpen& kingOpen,
+                OKingOpen& oKingOpen) {
   // kingOpen
   //   => open, kingOpenR, kingOpenXR, kingOpenYR, kingOpen
   memset(reinterpret_cast<char*>(open), 0, sizeof(Open));
@@ -259,6 +247,37 @@ void expandOpen(Open open,
         kingOpenXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
         kingOpenYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
         kingOpen[king.raw()][square.raw()][i] = val;
+      }
+    }
+  }
+}
+
+template <class PieceRNeighbor,
+          class PieceXRNeighbor,
+          class PieceYRNeighbor,
+          class PieceNeighbor,
+          class OPieceNeighbor>
+inline
+void expandPieceNeighbor(OPieceNeighbor&  oPieceNeighbor,
+                         PieceRNeighbor&  pieceRNeighbor,
+                         PieceXRNeighbor& pieceXRNeighbor,
+                         PieceYRNeighbor& pieceYRNeighbor,
+                         PieceNeighbor&   pieceNeighbor) {
+  // kingPieceNeighbor
+  //   => kingPieceRNeighbor, kingPieceXRNeighbor, kingPieceYRNeighbor, kingPieceNeighbor,
+  memset(reinterpret_cast<char*>(pieceRNeighbor), 0, sizeof(PieceRNeighbor));
+  memset(reinterpret_cast<char*>(pieceXRNeighbor), 0, sizeof(PieceXRNeighbor));;
+  memset(reinterpret_cast<char*>(pieceYRNeighbor), 0, sizeof(PieceYRNeighbor));;
+  SQUARE_EACH(king) {
+    SQUARE_EACH(square) {
+      for (int i = 0; i < EvalPieceIndex::End; i++) {
+        for (int j = 0; j < EvalPieceIndex::End; j++) {
+          auto val = oPieceNeighbor[king.raw()][square.raw()][i][j];
+          pieceRNeighbor[RelativeSquare(king, square).raw()][i][j] += val;
+          pieceXRNeighbor[king.getFile()-1][RelativeSquare(king, square).raw()][i][j] += val;
+          pieceYRNeighbor[king.getRank()-1][RelativeSquare(king, square).raw()][i][j] += val;
+          pieceNeighbor[king.raw()][square.raw()][i][j] = val;
+        }
       }
     }
   }
@@ -286,81 +305,29 @@ void expand(FV& fv, OFV& ofv) {
     }
   }
 
-  // kingPieceNeighborX
-  //   => kingPieceRNeighborX, kingPieceXRNeighborX, kingPieceYRNeighborX, kingPieceNeighborX,
-  FV_PART_ZERO(fv, kingPieceRNeighborX);
-  FV_PART_ZERO(fv, kingPieceXRNeighborX);
-  FV_PART_ZERO(fv, kingPieceYRNeighborX);
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          auto val = ofv.kingPieceNeighborX[king.raw()][square.raw()][i][j];
-          fv.kingPieceRNeighborX[RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceXRNeighborX[king.getFile()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceYRNeighborX[king.getRank()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceNeighborX[king.raw()][square.raw()][i][j] = val;
-        }
-      }
-    }
-  }
+  expandPieceNeighbor(ofv.kingPieceNeighborX,
+                      fv.kingPieceRNeighborX,
+                      fv.kingPieceXRNeighborX,
+                      fv.kingPieceYRNeighborX,
+                      fv.kingPieceNeighborX);
 
-  // kingPieceNeighborY
-  //   => kingPieceRNeighborY, kingPieceXRNeighborY, kingPieceYRNeighborY, kingPieceNeighborY,
-  FV_PART_ZERO(fv, kingPieceRNeighborY);
-  FV_PART_ZERO(fv, kingPieceXRNeighborY);
-  FV_PART_ZERO(fv, kingPieceYRNeighborY);
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          auto val = ofv.kingPieceNeighborY[king.raw()][square.raw()][i][j];
-          fv.kingPieceRNeighborY[RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceXRNeighborY[king.getFile()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceYRNeighborY[king.getRank()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceNeighborY[king.raw()][square.raw()][i][j] = val;
-        }
-      }
-    }
-  }
+  expandPieceNeighbor(ofv.kingPieceNeighborY,
+                      fv.kingPieceRNeighborY,
+                      fv.kingPieceXRNeighborY,
+                      fv.kingPieceYRNeighborY,
+                      fv.kingPieceNeighborY);
 
-  // kingPieceNeighborXY
-  //   => kingPieceRNeighborXY, kingPieceXRNeighborXY, kingPieceYRNeighborXY, kingPieceNeighborXY,
-  FV_PART_ZERO(fv, kingPieceRNeighborXY);
-  FV_PART_ZERO(fv, kingPieceXRNeighborXY);
-  FV_PART_ZERO(fv, kingPieceYRNeighborXY);
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          auto val = ofv.kingPieceNeighborXY[king.raw()][square.raw()][i][j];
-          fv.kingPieceRNeighborXY[RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceXRNeighborXY[king.getFile()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceYRNeighborXY[king.getRank()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceNeighborXY[king.raw()][square.raw()][i][j] = val;
-        }
-      }
-    }
-  }
+  expandPieceNeighbor(ofv.kingPieceNeighborXY,
+                      fv.kingPieceRNeighborXY,
+                      fv.kingPieceXRNeighborXY,
+                      fv.kingPieceYRNeighborXY,
+                      fv.kingPieceNeighborXY);
 
-  // kingPieceNeighborXY2
-  //   => kingPieceRNeighborXY2, kingPieceXRNeighborXY2, kingPieceYRNeighborXY2, kingPieceNeighborXY2,
-  FV_PART_ZERO(fv, kingPieceRNeighborXY2);
-  FV_PART_ZERO(fv, kingPieceXRNeighborXY2);
-  FV_PART_ZERO(fv, kingPieceYRNeighborXY2);
-  SQUARE_EACH(king) {
-    SQUARE_EACH(square) {
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          auto val = ofv.kingPieceNeighborXY2[king.raw()][square.raw()][i][j];
-          fv.kingPieceRNeighborXY2[RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceXRNeighborXY2[king.getFile()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceYRNeighborXY2[king.getRank()-1][RelativeSquare(king, square).raw()][i][j] += val;
-          fv.kingPieceNeighborXY2[king.raw()][square.raw()][i][j] = val;
-        }
-      }
-    }
-  }
+  expandPieceNeighbor(ofv.kingPieceNeighborXY2,
+                      fv.kingPieceRNeighborXY2,
+                      fv.kingPieceXRNeighborXY2,
+                      fv.kingPieceYRNeighborXY2,
+                      fv.kingPieceNeighborXY2);
 
   FV_PART_COPY(fv, ofv, kingNeighborHand);
 
@@ -389,65 +356,65 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingKingPiece);
 
   expandOpen(fv.bRookVer,
-               fv.kingBRookVerR,
-               fv.kingBRookVerXR,
-               fv.kingBRookVerYR,
-               fv.kingBRookVer,
-               ofv.kingBRookVer);
+             fv.kingBRookVerR,
+             fv.kingBRookVerXR,
+             fv.kingBRookVerYR,
+             fv.kingBRookVer,
+             ofv.kingBRookVer);
   expandOpen(fv.wRookVer,
-               fv.kingWRookVerR,
-               fv.kingWRookVerXR,
-               fv.kingWRookVerYR,
-               fv.kingWRookVer,
-               ofv.kingWRookVer);
+             fv.kingWRookVerR,
+             fv.kingWRookVerXR,
+             fv.kingWRookVerYR,
+             fv.kingWRookVer,
+             ofv.kingWRookVer);
   expandOpen(fv.bRookHor,
-               fv.kingBRookHorR,
-               fv.kingBRookHorXR,
-               fv.kingBRookHorYR,
-               fv.kingBRookHor,
-               ofv.kingBRookHor);
+             fv.kingBRookHorR,
+             fv.kingBRookHorXR,
+             fv.kingBRookHorYR,
+             fv.kingBRookHor,
+             ofv.kingBRookHor);
   expandOpen(fv.wRookHor,
-               fv.kingWRookHorR,
-               fv.kingWRookHorXR,
-               fv.kingWRookHorYR,
-               fv.kingWRookHor,
-               ofv.kingWRookHor);
+             fv.kingWRookHorR,
+             fv.kingWRookHorXR,
+             fv.kingWRookHorYR,
+             fv.kingWRookHor,
+             ofv.kingWRookHor);
   expandOpen(fv.bBishopDiagL45,
-               fv.kingBBishopDiagL45R,
-               fv.kingBBishopDiagL45XR,
-               fv.kingBBishopDiagL45YR,
-               fv.kingBBishopDiagL45,
-               ofv.kingBBishopDiagL45);
+             fv.kingBBishopDiagL45R,
+             fv.kingBBishopDiagL45XR,
+             fv.kingBBishopDiagL45YR,
+             fv.kingBBishopDiagL45,
+             ofv.kingBBishopDiagL45);
   expandOpen(fv.wBishopDiagL45,
-               fv.kingWBishopDiagL45R,
-               fv.kingWBishopDiagL45XR,
-               fv.kingWBishopDiagL45YR,
-               fv.kingWBishopDiagL45,
-               ofv.kingWBishopDiagL45);
+             fv.kingWBishopDiagL45R,
+             fv.kingWBishopDiagL45XR,
+             fv.kingWBishopDiagL45YR,
+             fv.kingWBishopDiagL45,
+             ofv.kingWBishopDiagL45);
   expandOpen(fv.bBishopDiagR45,
-               fv.kingBBishopDiagR45R,
-               fv.kingBBishopDiagR45XR,
-               fv.kingBBishopDiagR45YR,
-               fv.kingBBishopDiagR45,
-               ofv.kingBBishopDiagR45);
+             fv.kingBBishopDiagR45R,
+             fv.kingBBishopDiagR45XR,
+             fv.kingBBishopDiagR45YR,
+             fv.kingBBishopDiagR45,
+             ofv.kingBBishopDiagR45);
   expandOpen(fv.wBishopDiagR45,
-               fv.kingWBishopDiagR45R,
-               fv.kingWBishopDiagR45XR,
-               fv.kingWBishopDiagR45YR,
-               fv.kingWBishopDiagR45,
-               ofv.kingWBishopDiagR45);
+             fv.kingWBishopDiagR45R,
+             fv.kingWBishopDiagR45XR,
+             fv.kingWBishopDiagR45YR,
+             fv.kingWBishopDiagR45,
+             ofv.kingWBishopDiagR45);
   expandOpen(fv.bLance,
-               fv.kingBLanceR,
-               fv.kingBLanceXR,
-               fv.kingBLanceYR,
-               fv.kingBLance,
-               ofv.kingBLance);
+             fv.kingBLanceR,
+             fv.kingBLanceXR,
+             fv.kingBLanceYR,
+             fv.kingBLance,
+             ofv.kingBLance);
   expandOpen(fv.wLance,
-               fv.kingWLanceR,
-               fv.kingWLanceXR,
-               fv.kingWLanceYR,
-               fv.kingWLance,
-               ofv.kingWLance);
+             fv.kingWLanceR,
+             fv.kingWLanceXR,
+             fv.kingWLanceYR,
+             fv.kingWLance,
+             ofv.kingWLance);
 
   FV_PART_COPY(fv, ofv, kingAllyEffect9);
   FV_PART_COPY(fv, ofv, kingEnemyEffect9);
