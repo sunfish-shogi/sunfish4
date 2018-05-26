@@ -24,7 +24,7 @@ void initializeShekTable(ShekTable& shekTable,
 
   Position pos = record->initialPosition;
   for (auto& move : record->moveList) {
-    shekTable.retain(pos);
+    shekTable.retain(pos, false);
 
     Piece captured;
     if (!pos.doMove(move, captured)) {
@@ -130,13 +130,18 @@ void addKiller(Tree& tree, Move move) {
   }
 }
 
+template <bool shek>
 bool doMove(Tree& tree, Move& move, Evaluator& eval, TT& tt) {
   auto& node = tree.nodes[tree.ply];
   node.hash = tree.position.getHash();
-  tree.shekTable.retain(tree.position);
+  if (shek) {
+    tree.shekTable.retain(tree.position, true);
+  }
 
   if (!tree.position.doMove(move, node.captured)) {
-    tree.shekTable.release(tree.position);
+    if (shek) {
+      tree.shekTable.release(tree.position);
+    }
     return false;
   }
 
@@ -155,14 +160,21 @@ bool doMove(Tree& tree, Move& move, Evaluator& eval, TT& tt) {
   return true;
 
 }
+template bool doMove<true>(Tree& tree, Move& move, Evaluator& eval, TT& tt);
+template bool doMove<false>(Tree& tree, Move& move, Evaluator& eval, TT& tt);
 
+template <bool shek>
 void undoMove(Tree& tree) {
   ASSERT(tree.ply > 0);
   tree.ply--;
   auto& node = tree.nodes[tree.ply];
   tree.position.undoMove(node.move, node.captured);
-  tree.shekTable.release(tree.position);
+  if (shek) {
+    tree.shekTable.release(tree.position);
+  }
 }
+template void undoMove<true>(Tree& tree);
+template void undoMove<false>(Tree& tree);
 
 void doNullMove(Tree& tree, TT& tt) {
   auto& node = tree.nodes[tree.ply];

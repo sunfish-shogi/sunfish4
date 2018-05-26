@@ -246,13 +246,13 @@ TEST(TreeTest, testDoMove) {
   tree.nodes[0].score = Score::zero();
 
   auto move = Move(Square::s77(), Square::s76(), false);
-  doMove(tree, move, g_eval, tt);
+  doMove<true>(tree, move, g_eval, tt);
   ASSERT_EQ(1, tree.ply);
   ASSERT_EQ(move, tree.nodes[0].move);
   ASSERT_EQ(Score::invalid(), tree.nodes[1].score);
   ASSERT_EQ(pos2.toString(), tree.position.toString());
 
-  undoMove(tree);
+  undoMove<true>(tree);
   ASSERT_EQ(0, tree.ply);
   ASSERT_EQ(pos1.toString(), tree.position.toString());
 

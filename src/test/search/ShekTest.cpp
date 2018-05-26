@@ -133,7 +133,7 @@ TEST(ShekTest, testBlack) {
 
   ASSERT_EQ(ShekState::None, table.check(pos));
 
-  table.retain(pos); // 0 => 1
+  table.retain(pos, false); // 0 => 1
   ASSERT_EQ(ShekState::Equal   , table.check(pos));
   ASSERT_EQ(ShekState::Superior, table.check(supPos1));
   ASSERT_EQ(ShekState::Superior, table.check(supPos2));
@@ -143,9 +143,30 @@ TEST(ShekTest, testBlack) {
   ASSERT_EQ(ShekState::None    , table.check(nonPos1));
   ASSERT_EQ(ShekState::None    , table.check(nonPos2));
 
-  table.retain(pos); // 1 => 2
+  table.retain(pos, true); // 1 => 2
+  ASSERT_EQ(ShekState::EqualS, table.check(pos));
+
+  table.release(pos); // 2 => 1
   ASSERT_EQ(ShekState::Equal, table.check(pos));
-  table.retain(pos); // 2 => 3
+
+  table.release(pos); // 1 => 0
+  ASSERT_EQ(ShekState::None, table.check(pos));
+
+  table.clear();
+
+  table.retain(pos, false); // 0 => 1
+  ASSERT_EQ(ShekState::Equal   , table.check(pos));
+  ASSERT_EQ(ShekState::Superior, table.check(supPos1));
+  ASSERT_EQ(ShekState::Superior, table.check(supPos2));
+  ASSERT_EQ(ShekState::Superior, table.check(supPos3));
+  ASSERT_EQ(ShekState::Inferior, table.check(infPos1));
+  ASSERT_EQ(ShekState::Inferior, table.check(infPos2));
+  ASSERT_EQ(ShekState::None    , table.check(nonPos1));
+  ASSERT_EQ(ShekState::None    , table.check(nonPos2));
+
+  table.retain(pos, false); // 1 => 2
+  ASSERT_EQ(ShekState::Equal, table.check(pos));
+  table.retain(pos, true); // 2 => 3
   ASSERT_EQ(ShekState::Equal4, table.check(pos));
 
   table.release(pos); // 3 => 2
@@ -281,8 +302,8 @@ TEST(ShekTest, testWhite) {
 
   ASSERT_EQ(ShekState::None, table.check(pos));
 
-  table.retain(pos); // 0 => 1
-  ASSERT_EQ(ShekState::Equal   , table.check(pos));
+  table.retain(pos, true); // 0 => 1
+  ASSERT_EQ(ShekState::EqualS  , table.check(pos));
   ASSERT_EQ(ShekState::Superior, table.check(supPos1));
   ASSERT_EQ(ShekState::Superior, table.check(supPos2));
   ASSERT_EQ(ShekState::Superior, table.check(supPos3));
@@ -323,17 +344,17 @@ TEST(ShekTest, testSlot) {
     "P-00FU00KA\n"
     "-\n");
 
-  table.retain(pos1);
+  table.retain(pos1, false);
   ASSERT_EQ(ShekState::Equal   , table.check(pos1));
   ASSERT_EQ(ShekState::Superior, table.check(pos2));
 
-  table.retain(pos2);
+  table.retain(pos2, true);
   ASSERT_EQ(ShekState::Equal   , table.check(pos1));
   ASSERT_EQ(ShekState::Superior, table.check(pos2));
 
   table.release(pos1);
   ASSERT_EQ(ShekState::Inferior, table.check(pos1));
-  ASSERT_EQ(ShekState::Equal   , table.check(pos2));
+  ASSERT_EQ(ShekState::EqualS  , table.check(pos2));
 
   table.release(pos2);
   ASSERT_EQ(ShekState::None    , table.check(pos1));

@@ -148,7 +148,7 @@ private:
 
   void sortRootMoves(Tree& tree);
 
-  void storePV(Tree& tree,
+  void storePV(Position& position,
                const PV& pv,
                unsigned ply,
                Score alpha,

@@ -36,14 +36,14 @@ public:
                           position.getTurn());
   }
 
-  void retain(const Position& position) {
+  void retain(const Position& position, bool inSearchNode) {
     auto hash = position.getBoardHash();
     auto& slots = getElement(hash);
     HandSet handSet(position.getBlackHand());
 
     auto element = slots.findSlot(hash, handSet);
     if (element != nullptr) {
-      element->retain();
+      element->retain(inSearchNode);
       return;
     }
 
@@ -51,7 +51,8 @@ public:
     if (element != nullptr) {
       element->setAndRetain(hash,
                             handSet,
-                            position.getTurn());
+                            position.getTurn(),
+                            inSearchNode);
     }
   }
 

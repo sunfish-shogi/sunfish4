@@ -427,7 +427,7 @@ void Searcher::aspsearch(Tree& tree,
         handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
       }
       if (score != -Score::infinity()) {
-        storePV(tree,
+        storePV(tree.position,
                 node.pv,
                 0,
                 alpha,
@@ -471,14 +471,20 @@ Score Searcher::search(Tree& tree,
   if (!nodeStat.isRoot()) {
     // SHEK(strong horizontal effect killer)
     switch (tree.shekTable.check(tree.position)) {
-    case ShekState::Equal4:
+    case ShekState::EqualS:
       node.isHistorical = true;
+      return Score::zero();
+
+    case ShekState::Equal4:
       switch (tree.scr.detect(tree)) {
       case SCRState::Draw:
+        node.isHistorical = true;
         return Score::zero();
       case SCRState::Win:
+        node.isHistorical = true;
         return Score::infinity() - tree.ply;
       case SCRState::Lose:
+        node.isHistorical = true;
         return -Score::infinity() + tree.ply;
       case SCRState::None:
         break;
@@ -674,7 +680,7 @@ Score Searcher::search(Tree& tree,
         break;
       }
 
-      bool moveOk = doMove(tree, move, *evaluator_, tt_);
+      bool moveOk = doMove<true>(tree, move, *evaluator_, tt_);
       if (!moveOk) {
         continue;
       }
@@ -685,7 +691,7 @@ Score Searcher::search(Tree& tree,
                             -pbeta+1,
                             NodeStat::normal());
 
-      undoMove(tree);
+      undoMove<true>(tree);
 
       if (isInterrupted()) {
         return Score::zero();
@@ -841,7 +847,7 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_, tt_);
+    bool moveOk = doMove<true>(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       node.moveIterator = node.moves.remove(node.moveIterator-1);
       moveCount--;
@@ -875,7 +881,7 @@ Score Searcher::search(Tree& tree,
       }
     }
 
-    undoMove(tree);
+    undoMove<true>(tree);
 
     if (isInterrupted()) {
       return Score::zero();
@@ -1058,7 +1064,7 @@ Score Searcher::quies(Tree& tree,
       }
     }
 
-    bool moveOk = doMove(tree, move, *evaluator_, tt_);
+    bool moveOk = doMove<false>(tree, move, *evaluator_, tt_);
     if (!moveOk) {
       continue;
     }
@@ -1068,7 +1074,7 @@ Score Searcher::quies(Tree& tree,
                          -beta,
                          -bestScore);
 
-    undoMove(tree);
+    undoMove<false>(tree);
 
     if (isInterrupted()) {
       return Score::zero();
@@ -1358,12 +1364,13 @@ void Searcher::sortRootMoves(Tree& tree) {
   for (Moves::size_type moveCount = 0; moveCount < node.moves.size();) {
     Move move = node.moves[moveCount];
 
-    bool moveOk = doMove(tree, move, *evaluator_, tt_);
+    Piece captured;
+    bool moveOk = tree.position.doMove(move, captured);
     if (!moveOk) {
       node.moves.remove(moveCount);
       continue;
     }
-    undoMove(tree);
+    tree.position.undoMove(move, captured);
 
     if (move == ttMove) {
       setScoreToMove(node.moves[moveCount], Score::infinity());
@@ -1386,7 +1393,7 @@ void Searcher::sortRootMoves(Tree& tree) {
   });
 }
 
-void Searcher::storePV(Tree& tree,
+void Searcher::storePV(Position& position,
                        const PV& pv,
                        unsigned ply,
                        Score alpha,
@@ -1407,15 +1414,16 @@ void Searcher::storePV(Tree& tree,
     return;
   }
 
-  if (doMove(tree, move, *evaluator_, tt_)) {
-    storePV(tree,
+  Piece captured;
+  if (position.doMove(move, captured)) {
+    storePV(position,
             pv,
             ply + 1,
             -beta,
             -alpha,
             -score);
-    undoMove(tree);
-    tt_.store(tree.position.getHash(),
+    position.undoMove(move, captured);
+    tt_.store(position.getHash(),
               alpha,
               beta,
               score,

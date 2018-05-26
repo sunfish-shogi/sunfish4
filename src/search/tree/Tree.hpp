@@ -150,8 +150,10 @@ bool isPriorMove(const Tree& tree,
 
 void addKiller(Tree& tree, Move move);
 
+template <bool shek>
 bool doMove(Tree& tree, Move& move, Evaluator& eval, TT& tt);
 
+template <bool shek>
 void undoMove(Tree& tree);
 
 void doNullMove(Tree& tree, TT& tt);

@@ -13,6 +13,7 @@ namespace sunfish {
 enum class ShekState : int {
   None,
   Equal,
+  EqualS,
   Equal4,
   Superior,
   Inferior
@@ -27,6 +28,9 @@ inline std::ostream& operator<<(std::ostream& os, sunfish::ShekState shekState) 
     break;
   case sunfish::ShekState::Equal:
     os << "Equal";
+    break;
+  case sunfish::ShekState::EqualS:
+    os << "EqualS";
     break;
   case sunfish::ShekState::Equal4:
     os << "Equal4";
