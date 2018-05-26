@@ -472,8 +472,19 @@ Score Searcher::search(Tree& tree,
     // SHEK(strong horizontal effect killer)
     switch (tree.shekTable.check(tree.position)) {
     case ShekState::EqualS:
-      node.isHistorical = true;
-      return Score::zero();
+      switch (tree.scr.detectShort(tree)) {
+      case SCRState::Draw:
+        node.isHistorical = true;
+        return Score::zero();
+      case SCRState::Win:
+        node.isHistorical = true;
+        return Score::infinity() - tree.ply;
+      case SCRState::Lose:
+        node.isHistorical = true;
+        return -Score::infinity() + tree.ply;
+      case SCRState::None:
+        break;
+      }
 
     case ShekState::Equal4:
       switch (tree.scr.detect(tree)) {

@@ -38,6 +38,36 @@ void SCRDetector::registerRecord(const Record& record) {
   length_ = std::min(recordLength, static_cast<size_t>(MaxLength));
 }
 
+SCRState SCRDetector::detectShort(const Tree& tree) const {
+  bool isCurrentPlayerTurn = false;
+  bool currentPlayerChecking = true;
+  bool enemyPlayerChecking = true;
+
+  for (int ply = tree.ply - 1; ply >= 0; ply--) {
+    auto& node = tree.nodes[ply];
+    bool check = isCheck(node.checkState);
+    if (isCurrentPlayerTurn) {
+      enemyPlayerChecking = enemyPlayerChecking && check;
+      isCurrentPlayerTurn = false;
+    } else {
+      currentPlayerChecking = currentPlayerChecking && check;
+      isCurrentPlayerTurn = true;
+    }
+
+    if (node.hash == tree.position.getHash()) {
+      return currentPlayerChecking ? SCRState::Lose :
+             enemyPlayerChecking   ? SCRState::Win  :
+                                     SCRState::Draw;
+    }
+
+    if (!currentPlayerChecking && !enemyPlayerChecking) {
+      return SCRState::Draw;
+    }
+  }
+
+  return SCRState::None;
+}
+
 SCRState SCRDetector::detect(const Tree& tree) const {
   int repetitionCount = 0;
   bool isCurrentPlayerTurn = false;

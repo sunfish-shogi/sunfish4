@@ -43,6 +43,8 @@ public:
 
   void registerRecord(const Record& record);
 
+  SCRState detectShort(const Tree& tree) const;
+
   SCRState detect(const Tree& tree) const;
 
 private:

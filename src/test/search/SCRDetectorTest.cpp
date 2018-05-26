@@ -98,7 +98,20 @@ const char* PosStrWhiteCheck2 =
 
 };
 
-TEST(SCRDetectorTest, testBlack) {
+TEST(SCRDetectorTest, testBlackShort) {
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrBlackNoCheck);
+    tree.ply = 1;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::None, scr.detectShort(tree));
+  }
+
   {
     SCRDetector scr;
     scr.clear();
@@ -106,6 +119,113 @@ TEST(SCRDetectorTest, testBlack) {
     Tree tree;
     tree.position = PositionUtil::createPositionFromCsaString(PosStrBlackNoCheck);
     tree.ply = 2;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Draw, scr.detectShort(tree));
+  }
+
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrBlackCheck);
+    tree.ply = 2;
+    tree.nodes[0].checkState = { Square::s73(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Win, scr.detectShort(tree));
+  }
+
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrBlackNoCheck);
+    tree.ply = 2;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::s73(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Lose, scr.detectShort(tree));
+  }
+}
+
+TEST(SCRDetectorTest, testWhiteShort) {
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrWhiteNoCheck);
+    tree.ply = 1;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::None, scr.detectShort(tree));
+  }
+
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrWhiteNoCheck);
+    tree.ply = 2;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Draw, scr.detectShort(tree));
+  }
+
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrWhiteCheck);
+    tree.ply = 2;
+    tree.nodes[0].checkState = { Square::s73(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Win, scr.detectShort(tree));
+  }
+
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrWhiteNoCheck);
+    tree.ply = 2;
+    tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
+    tree.nodes[0].hash = tree.position.getHash();
+    tree.nodes[1].checkState = { Square::s73(), Square::invalid() };
+    tree.nodes[1].hash = 0LLU;
+
+    ASSERT_EQ(SCRState::Lose, scr.detectShort(tree));
+  }
+}
+
+TEST(SCRDetectorTest, testBlack) {
+  {
+    SCRDetector scr;
+    scr.clear();
+
+    Tree tree;
+    tree.position = PositionUtil::createPositionFromCsaString(PosStrBlackNoCheck);
+    tree.ply = 1;
     tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[0].hash = 0LLU;
 
@@ -294,7 +414,7 @@ TEST(SCRDetectorTest, testWhite) {
 
     Tree tree;
     tree.position = PositionUtil::createPositionFromCsaString(PosStrWhiteNoCheck);
-    tree.ply = 2;
+    tree.ply = 1;
     tree.nodes[0].checkState = { Square::invalid(), Square::invalid() };
     tree.nodes[0].hash = 0LLU;
 
