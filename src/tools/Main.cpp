@@ -58,7 +58,7 @@ int main(int argc, char** argv, char**) {
   if (po.has("gen-book")) {
     auto path = po.getValue("gen-book");
     BookGenerator bg(path);
-    bg.setLimit(20);
+    bg.setLimit(10);
     if (!bg.generate()) {
       return 1;
     }
