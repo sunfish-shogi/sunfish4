@@ -206,17 +206,23 @@ bool load(const char* path, Evaluator::FVType& fv) {
   file.read(reinterpret_cast<char*>(&len), sizeof(len));
   if (len >= sizeof(ver)) {
     LOG(warning) << "invalid feature vector version";
+    file.close();
     return false;
   }
   file.read(reinterpret_cast<char*>(ver), len);
   if (strcmp(SUNFISH_FV_VERSION, ver) != 0) {
     LOG(warning) << "invalid feature vector version: " << ver;
+    file.close();
     return false;
   }
 
-  memset(reinterpret_cast<void*>(&fv), 0, sizeof(Evaluator::FVType));
-
   file.read(reinterpret_cast<char*>(&fv), sizeof(Evaluator::FVType));
+
+  if (!file) {
+    LOG(warning) << "failed to read a file: " << path;
+    file.close();
+    return false;
+  }
 
   file.close();
 
@@ -239,17 +245,25 @@ bool load(const char* path, Evaluator::OFVType& ofv) {
   file.read(reinterpret_cast<char*>(&len), sizeof(len));
   if (len >= sizeof(ver)) {
     LOG(warning) << "invalid feature vector version";
+    file.close();
     return false;
   }
   file.read(reinterpret_cast<char*>(ver), len);
   if (strcmp(SUNFISH_FV_VERSION, ver) != 0) {
     LOG(warning) << "invalid feature vector version: " << ver;
+    file.close();
     return false;
   }
 
   memset(reinterpret_cast<void*>(&ofv), 0, sizeof(Evaluator::OFVType));
 
   file.read(reinterpret_cast<char*>(&ofv), sizeof(Evaluator::OFVType));
+
+  if (!file) {
+    LOG(warning) << "failed to read a file: " << path;
+    file.close();
+    return false;
+  }
 
   file.close();
 
@@ -310,6 +324,12 @@ bool save(const char* path, const Evaluator::OFVType& ofv) {
   file.write(reinterpret_cast<const char*>(ver), len);
 
   file.write(reinterpret_cast<const char*>(&ofv), sizeof(Evaluator::OFVType));
+
+  if (!file) {
+    LOG(warning) << "failed to write a file: " << path;
+    file.close();
+    return false;
+  }
 
   file.close();
 
