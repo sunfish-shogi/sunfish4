@@ -20,36 +20,28 @@
     reinterpret_cast<const typename FV::Type*>(in.part), \
     sizeof(fv.part))
 
-#define FV_PART_ZERO(fv, part) memset( \
-    reinterpret_cast<typename FV::Type*>(fv.part), \
-    0, \
-    sizeof(fv.part))
-
 namespace {
 
 using namespace sunfish;
 
-template <class Open,
-          class KingOpenR,
+template <class KingOpenR,
           class KingOpenXR,
           class KingOpenYR,
           class KingOpen,
           class OKingOpen>
 inline
-void optimizeOpen(Open open,
-                  KingOpenR kingOpenR,
+void optimizeOpen(KingOpenR kingOpenR,
                   KingOpenXR kingOpenXR,
                   KingOpenYR kingOpenYR,
                   KingOpen kingOpen,
                   OKingOpen oKingOpen) {
-  // open, kingOpenR, kingOpenXR, kingOpenYR, kingOpen
+  // kingOpenR, kingOpenXR, kingOpenYR, kingOpen
   //   => kingOpen
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < 8; i++) {
         oKingOpen[king.raw()][square.raw()][i]
-          = open[square.raw()][i]
-          + kingOpenR[RelativeSquare(king, square).raw()][i]
+          = kingOpenR[RelativeSquare(king, square).raw()][i]
           + kingOpenXR[king.getFile()-1][RelativeSquare(king, square).raw()][i]
           + kingOpenYR[king.getRank()-1][RelativeSquare(king, square).raw()][i]
           + kingOpen[king.raw()][square.raw()][i];
@@ -82,6 +74,26 @@ void optimizePieceNeighbor(PieceRNeighbor  pieceRNeighbor,
             + pieceYRNeighbor[king.getRank()-1][RelativeSquare(king, square).raw()][i][j];
         }
       }
+    }
+  }
+}
+
+template <class KingEffect,
+          class KingEffectX,
+          class KingEffectY,
+          class OKingEffect>
+inline
+void optimizeEffect(KingEffect kingEffect,
+                    KingEffectX kingEffectX,
+                    KingEffectY kingEffectY,
+                    OKingEffect oKingEffect,
+                    int lastIdx) {
+  SQUARE_EACH(king) {
+    for (int i = 0; i <= lastIdx; i++) {
+      oKingEffect[king.raw()][i]
+        = kingEffectX[king.getFile()-1][i]
+        + kingEffectY[king.getRank()-1][i]
+        + kingEffect[king.raw()][i];
     }
   }
 }
@@ -152,97 +164,140 @@ void optimize(FV& fv, OFV& ofv) {
   FV_PART_COPY(ofv, fv, kingKingHand);
   FV_PART_COPY(ofv, fv, kingKingPiece);
 
-  optimizeOpen(fv.bRookVer,
-               fv.kingBRookVerR,
-               fv.kingBRookVerXR,
-               fv.kingBRookVerYR,
-               fv.kingBRookVer,
-               ofv.kingBRookVer);
-  optimizeOpen(fv.wRookVer,
-               fv.kingWRookVerR,
-               fv.kingWRookVerXR,
-               fv.kingWRookVerYR,
-               fv.kingWRookVer,
-               ofv.kingWRookVer);
-  optimizeOpen(fv.bRookHor,
-               fv.kingBRookHorR,
-               fv.kingBRookHorXR,
-               fv.kingBRookHorYR,
-               fv.kingBRookHor,
-               ofv.kingBRookHor);
-  optimizeOpen(fv.wRookHor,
-               fv.kingWRookHorR,
-               fv.kingWRookHorXR,
-               fv.kingWRookHorYR,
-               fv.kingWRookHor,
-               ofv.kingWRookHor);
-  optimizeOpen(fv.bBishopDiagL45,
-               fv.kingBBishopDiagL45R,
-               fv.kingBBishopDiagL45XR,
-               fv.kingBBishopDiagL45YR,
-               fv.kingBBishopDiagL45,
-               ofv.kingBBishopDiagL45);
-  optimizeOpen(fv.wBishopDiagL45,
-               fv.kingWBishopDiagL45R,
-               fv.kingWBishopDiagL45XR,
-               fv.kingWBishopDiagL45YR,
-               fv.kingWBishopDiagL45,
-               ofv.kingWBishopDiagL45);
-  optimizeOpen(fv.bBishopDiagR45,
-               fv.kingBBishopDiagR45R,
-               fv.kingBBishopDiagR45XR,
-               fv.kingBBishopDiagR45YR,
-               fv.kingBBishopDiagR45,
-               ofv.kingBBishopDiagR45);
-  optimizeOpen(fv.wBishopDiagR45,
-               fv.kingWBishopDiagR45R,
-               fv.kingWBishopDiagR45XR,
-               fv.kingWBishopDiagR45YR,
-               fv.kingWBishopDiagR45,
-               ofv.kingWBishopDiagR45);
-  optimizeOpen(fv.bLance,
-               fv.kingBLanceR,
+  optimizeOpen(fv.kingBRookUpR,
+               fv.kingBRookUpXR,
+               fv.kingBRookUpYR,
+               fv.kingBRookUp,
+               ofv.kingBRookUp);
+  optimizeOpen(fv.kingWRookUpR,
+               fv.kingWRookUpXR,
+               fv.kingWRookUpYR,
+               fv.kingWRookUp,
+               ofv.kingWRookUp);
+  optimizeOpen(fv.kingBRookDownR,
+               fv.kingBRookDownXR,
+               fv.kingBRookDownYR,
+               fv.kingBRookDown,
+               ofv.kingBRookDown);
+  optimizeOpen(fv.kingWRookDownR,
+               fv.kingWRookDownXR,
+               fv.kingWRookDownYR,
+               fv.kingWRookDown,
+               ofv.kingWRookDown);
+  optimizeOpen(fv.kingBRookLeftR,
+               fv.kingBRookLeftXR,
+               fv.kingBRookLeftYR,
+               fv.kingBRookLeft,
+               ofv.kingBRookLeft);
+  optimizeOpen(fv.kingWRookLeftR,
+               fv.kingWRookLeftXR,
+               fv.kingWRookLeftYR,
+               fv.kingWRookLeft,
+               ofv.kingWRookLeft);
+  optimizeOpen(fv.kingBRookRightR,
+               fv.kingBRookRightXR,
+               fv.kingBRookRightYR,
+               fv.kingBRookRight,
+               ofv.kingBRookRight);
+  optimizeOpen(fv.kingWRookRightR,
+               fv.kingWRookRightXR,
+               fv.kingWRookRightYR,
+               fv.kingWRookRight,
+               ofv.kingWRookRight);
+  optimizeOpen(fv.kingBBishopLeftUp45R,
+               fv.kingBBishopLeftUp45XR,
+               fv.kingBBishopLeftUp45YR,
+               fv.kingBBishopLeftUp45,
+               ofv.kingBBishopLeftUp45);
+  optimizeOpen(fv.kingWBishopLeftUp45R,
+               fv.kingWBishopLeftUp45XR,
+               fv.kingWBishopLeftUp45YR,
+               fv.kingWBishopLeftUp45,
+               ofv.kingWBishopLeftUp45);
+  optimizeOpen(fv.kingBBishopRightDown45R,
+               fv.kingBBishopRightDown45XR,
+               fv.kingBBishopRightDown45YR,
+               fv.kingBBishopRightDown45,
+               ofv.kingBBishopRightDown45);
+  optimizeOpen(fv.kingWBishopRightDown45R,
+               fv.kingWBishopRightDown45XR,
+               fv.kingWBishopRightDown45YR,
+               fv.kingWBishopRightDown45,
+               ofv.kingWBishopRightDown45);
+  optimizeOpen(fv.kingBBishopRightUp45R,
+               fv.kingBBishopRightUp45XR,
+               fv.kingBBishopRightUp45YR,
+               fv.kingBBishopRightUp45,
+               ofv.kingBBishopRightUp45);
+  optimizeOpen(fv.kingWBishopRightUp45R,
+               fv.kingWBishopRightUp45XR,
+               fv.kingWBishopRightUp45YR,
+               fv.kingWBishopRightUp45,
+               ofv.kingWBishopRightUp45);
+  optimizeOpen(fv.kingBBishopLeftDown45R,
+               fv.kingBBishopLeftDown45XR,
+               fv.kingBBishopLeftDown45YR,
+               fv.kingBBishopLeftDown45,
+               ofv.kingBBishopLeftDown45);
+  optimizeOpen(fv.kingWBishopLeftDown45R,
+               fv.kingWBishopLeftDown45XR,
+               fv.kingWBishopLeftDown45YR,
+               fv.kingWBishopLeftDown45,
+               ofv.kingWBishopLeftDown45);
+  optimizeOpen(fv.kingBLanceR,
                fv.kingBLanceXR,
                fv.kingBLanceYR,
                fv.kingBLance,
                ofv.kingBLance);
-  optimizeOpen(fv.wLance,
-               fv.kingWLanceR,
+  optimizeOpen(fv.kingWLanceR,
                fv.kingWLanceXR,
                fv.kingWLanceYR,
                fv.kingWLance,
                ofv.kingWLance);
 
-  FV_PART_COPY(ofv, fv, kingAllyEffect9);
-  FV_PART_COPY(ofv, fv, kingEnemyEffect9);
-  FV_PART_COPY(ofv, fv, kingAllyEffect25);
-  FV_PART_COPY(ofv, fv, kingEnemyEffect25);
+  optimizeEffect(fv.kingAllyEffect9,
+                 fv.kingAllyEffect9X,
+                 fv.kingAllyEffect9Y,
+                 ofv.kingAllyEffect9, 9);
+  optimizeEffect(fv.kingEnemyEffect9,
+                 fv.kingEnemyEffect9X,
+                 fv.kingEnemyEffect9Y,
+                 ofv.kingEnemyEffect9, 9);
+  optimizeEffect(fv.kingAllyEffect25,
+                 fv.kingAllyEffect25X,
+                 fv.kingAllyEffect25Y,
+                 ofv.kingAllyEffect25, 25);
+  optimizeEffect(fv.kingEnemyEffect25,
+                 fv.kingEnemyEffect25X,
+                 fv.kingEnemyEffect25Y,
+                 ofv.kingEnemyEffect25, 25);
+  optimizeEffect(fv.kingEffect9Diff,
+                 fv.kingEffect9DiffX,
+                 fv.kingEffect9DiffY,
+                 ofv.kingEffect9Diff, 18);
+  optimizeEffect(fv.kingEffect25Diff,
+                 fv.kingEffect25DiffX,
+                 fv.kingEffect25DiffY,
+                 ofv.kingEffect25Diff, 50);
 }
 
-template <class Open,
-          class KingOpenR,
+template <class KingOpenR,
           class KingOpenXR,
           class KingOpenYR,
           class KingOpen,
           class OKingOpen>
 inline
-void expandOpen(Open& open,
-                KingOpenR& kingOpenR,
+void expandOpen(KingOpenR& kingOpenR,
                 KingOpenXR& kingOpenXR,
                 KingOpenYR& kingOpenYR,
                 KingOpen& kingOpen,
                 OKingOpen& oKingOpen) {
   // kingOpen
-  //   => open, kingOpenR, kingOpenXR, kingOpenYR, kingOpen
-  memset(reinterpret_cast<char*>(open), 0, sizeof(Open));
-  memset(reinterpret_cast<char*>(kingOpenXR), 0, sizeof(KingOpenXR));
-  memset(reinterpret_cast<char*>(kingOpenYR), 0, sizeof(KingOpenYR));
-  memset(reinterpret_cast<char*>(kingOpenR), 0, sizeof(KingOpenR));
+  //   => kingOpenR, kingOpenXR, kingOpenYR, kingOpen
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < 8; i++) {
         auto val = oKingOpen[king.raw()][square.raw()][i];
-        open[square.raw()][i] += val;
         kingOpenR[RelativeSquare(king, square).raw()][i] += val;
         kingOpenXR[king.getFile()-1][RelativeSquare(king, square).raw()][i] += val;
         kingOpenYR[king.getRank()-1][RelativeSquare(king, square).raw()][i] += val;
@@ -265,9 +320,6 @@ void expandPieceNeighbor(OPieceNeighbor&  oPieceNeighbor,
                          PieceNeighbor&   pieceNeighbor) {
   // kingPieceNeighbor
   //   => kingPieceRNeighbor, kingPieceXRNeighbor, kingPieceYRNeighbor, kingPieceNeighbor,
-  memset(reinterpret_cast<char*>(pieceRNeighbor), 0, sizeof(PieceRNeighbor));
-  memset(reinterpret_cast<char*>(pieceXRNeighbor), 0, sizeof(PieceXRNeighbor));;
-  memset(reinterpret_cast<char*>(pieceYRNeighbor), 0, sizeof(PieceYRNeighbor));;
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
@@ -283,16 +335,35 @@ void expandPieceNeighbor(OPieceNeighbor&  oPieceNeighbor,
   }
 }
 
+template <class KingEffect,
+          class KingEffectX,
+          class KingEffectY,
+          class OKingEffect>
+inline
+void expandEffect(KingEffect& kingEffect,
+                  KingEffectX& kingEffectX,
+                  KingEffectY& kingEffectY,
+                  OKingEffect& oKingEffect,
+                  int lastIdx) {
+  SQUARE_EACH(king) {
+    for (int i = 0; i <= lastIdx; i++) {
+      auto val = oKingEffect[king.raw()][i];
+      kingEffectX[king.getFile()-1][i] += val;
+      kingEffectY[king.getRank()-1][i] += val;
+      kingEffect[king.raw()][i] = val;
+    }
+  }
+}
+
 template <class FV, class OFV>
 inline
 void expand(FV& fv, OFV& ofv) {
+  memset(reinterpret_cast<void*>(&fv), 0, sizeof(FV));
+
   FV_PART_COPY(fv, ofv, kingHand);
 
   // kingPiece
   //   => kingPieceR, kingPieceXR, kingPieceYR, kingPiece,
-  FV_PART_ZERO(fv, kingPieceR);
-  FV_PART_ZERO(fv, kingPieceXR);
-  FV_PART_ZERO(fv, kingPieceYR);
   SQUARE_EACH(king) {
     SQUARE_EACH(square) {
       for (int i = 0; i < EvalPieceIndex::End; i++) {
@@ -333,9 +404,6 @@ void expand(FV& fv, OFV& ofv) {
 
   // kingNeighborPiece
   //   => kingNeighborPieceR, kingNeighborPieceXR, kingNeighborPieceYR, kingNeighborPiece
-  FV_PART_ZERO(fv, kingNeighborPieceR);
-  FV_PART_ZERO(fv, kingNeighborPieceXR);
-  FV_PART_ZERO(fv, kingNeighborPieceYR);
   SQUARE_EACH(king) {
     for (int n = 0; n < Neighbor3x3::NN; n++) {
       for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
@@ -355,71 +423,121 @@ void expand(FV& fv, OFV& ofv) {
   FV_PART_COPY(fv, ofv, kingKingHand);
   FV_PART_COPY(fv, ofv, kingKingPiece);
 
-  expandOpen(fv.bRookVer,
-             fv.kingBRookVerR,
-             fv.kingBRookVerXR,
-             fv.kingBRookVerYR,
-             fv.kingBRookVer,
-             ofv.kingBRookVer);
-  expandOpen(fv.wRookVer,
-             fv.kingWRookVerR,
-             fv.kingWRookVerXR,
-             fv.kingWRookVerYR,
-             fv.kingWRookVer,
-             ofv.kingWRookVer);
-  expandOpen(fv.bRookHor,
-             fv.kingBRookHorR,
-             fv.kingBRookHorXR,
-             fv.kingBRookHorYR,
-             fv.kingBRookHor,
-             ofv.kingBRookHor);
-  expandOpen(fv.wRookHor,
-             fv.kingWRookHorR,
-             fv.kingWRookHorXR,
-             fv.kingWRookHorYR,
-             fv.kingWRookHor,
-             ofv.kingWRookHor);
-  expandOpen(fv.bBishopDiagL45,
-             fv.kingBBishopDiagL45R,
-             fv.kingBBishopDiagL45XR,
-             fv.kingBBishopDiagL45YR,
-             fv.kingBBishopDiagL45,
-             ofv.kingBBishopDiagL45);
-  expandOpen(fv.wBishopDiagL45,
-             fv.kingWBishopDiagL45R,
-             fv.kingWBishopDiagL45XR,
-             fv.kingWBishopDiagL45YR,
-             fv.kingWBishopDiagL45,
-             ofv.kingWBishopDiagL45);
-  expandOpen(fv.bBishopDiagR45,
-             fv.kingBBishopDiagR45R,
-             fv.kingBBishopDiagR45XR,
-             fv.kingBBishopDiagR45YR,
-             fv.kingBBishopDiagR45,
-             ofv.kingBBishopDiagR45);
-  expandOpen(fv.wBishopDiagR45,
-             fv.kingWBishopDiagR45R,
-             fv.kingWBishopDiagR45XR,
-             fv.kingWBishopDiagR45YR,
-             fv.kingWBishopDiagR45,
-             ofv.kingWBishopDiagR45);
-  expandOpen(fv.bLance,
-             fv.kingBLanceR,
+  expandOpen(fv.kingBRookUpR,
+             fv.kingBRookUpXR,
+             fv.kingBRookUpYR,
+             fv.kingBRookUp,
+             ofv.kingBRookUp);
+  expandOpen(fv.kingWRookUpR,
+             fv.kingWRookUpXR,
+             fv.kingWRookUpYR,
+             fv.kingWRookUp,
+             ofv.kingWRookUp);
+  expandOpen(fv.kingBRookDownR,
+             fv.kingBRookDownXR,
+             fv.kingBRookDownYR,
+             fv.kingBRookDown,
+             ofv.kingBRookDown);
+  expandOpen(fv.kingWRookDownR,
+             fv.kingWRookDownXR,
+             fv.kingWRookDownYR,
+             fv.kingWRookDown,
+             ofv.kingWRookDown);
+  expandOpen(fv.kingBRookLeftR,
+             fv.kingBRookLeftXR,
+             fv.kingBRookLeftYR,
+             fv.kingBRookLeft,
+             ofv.kingBRookLeft);
+  expandOpen(fv.kingWRookLeftR,
+             fv.kingWRookLeftXR,
+             fv.kingWRookLeftYR,
+             fv.kingWRookLeft,
+             ofv.kingWRookLeft);
+  expandOpen(fv.kingBRookRightR,
+             fv.kingBRookRightXR,
+             fv.kingBRookRightYR,
+             fv.kingBRookRight,
+             ofv.kingBRookRight);
+  expandOpen(fv.kingWRookRightR,
+             fv.kingWRookRightXR,
+             fv.kingWRookRightYR,
+             fv.kingWRookRight,
+             ofv.kingWRookRight);
+  expandOpen(fv.kingBBishopLeftUp45R,
+             fv.kingBBishopLeftUp45XR,
+             fv.kingBBishopLeftUp45YR,
+             fv.kingBBishopLeftUp45,
+             ofv.kingBBishopLeftUp45);
+  expandOpen(fv.kingWBishopLeftUp45R,
+             fv.kingWBishopLeftUp45XR,
+             fv.kingWBishopLeftUp45YR,
+             fv.kingWBishopLeftUp45,
+             ofv.kingWBishopLeftUp45);
+  expandOpen(fv.kingBBishopRightDown45R,
+             fv.kingBBishopRightDown45XR,
+             fv.kingBBishopRightDown45YR,
+             fv.kingBBishopRightDown45,
+             ofv.kingBBishopRightDown45);
+  expandOpen(fv.kingWBishopRightDown45R,
+             fv.kingWBishopRightDown45XR,
+             fv.kingWBishopRightDown45YR,
+             fv.kingWBishopRightDown45,
+             ofv.kingWBishopRightDown45);
+  expandOpen(fv.kingBBishopRightUp45R,
+             fv.kingBBishopRightUp45XR,
+             fv.kingBBishopRightUp45YR,
+             fv.kingBBishopRightUp45,
+             ofv.kingBBishopRightUp45);
+  expandOpen(fv.kingWBishopRightUp45R,
+             fv.kingWBishopRightUp45XR,
+             fv.kingWBishopRightUp45YR,
+             fv.kingWBishopRightUp45,
+             ofv.kingWBishopRightUp45);
+  expandOpen(fv.kingBBishopLeftDown45R,
+             fv.kingBBishopLeftDown45XR,
+             fv.kingBBishopLeftDown45YR,
+             fv.kingBBishopLeftDown45,
+             ofv.kingBBishopLeftDown45);
+  expandOpen(fv.kingWBishopLeftDown45R,
+             fv.kingWBishopLeftDown45XR,
+             fv.kingWBishopLeftDown45YR,
+             fv.kingWBishopLeftDown45,
+             ofv.kingWBishopLeftDown45);
+  expandOpen(fv.kingBLanceR,
              fv.kingBLanceXR,
              fv.kingBLanceYR,
              fv.kingBLance,
              ofv.kingBLance);
-  expandOpen(fv.wLance,
-             fv.kingWLanceR,
+  expandOpen(fv.kingWLanceR,
              fv.kingWLanceXR,
              fv.kingWLanceYR,
              fv.kingWLance,
              ofv.kingWLance);
 
-  FV_PART_COPY(fv, ofv, kingAllyEffect9);
-  FV_PART_COPY(fv, ofv, kingEnemyEffect9);
-  FV_PART_COPY(fv, ofv, kingAllyEffect25);
-  FV_PART_COPY(fv, ofv, kingEnemyEffect25);
+  expandEffect(fv.kingAllyEffect9,
+               fv.kingAllyEffect9X,
+               fv.kingAllyEffect9Y,
+               ofv.kingAllyEffect9, 9);
+  expandEffect(fv.kingEnemyEffect9,
+               fv.kingEnemyEffect9X,
+               fv.kingEnemyEffect9Y,
+               ofv.kingEnemyEffect9, 9);
+  expandEffect(fv.kingAllyEffect25,
+               fv.kingAllyEffect25X,
+               fv.kingAllyEffect25Y,
+               ofv.kingAllyEffect25, 25);
+  expandEffect(fv.kingEnemyEffect25,
+               fv.kingEnemyEffect25X,
+               fv.kingEnemyEffect25Y,
+               ofv.kingEnemyEffect25, 25);
+  expandEffect(fv.kingEffect9Diff,
+               fv.kingEffect9DiffX,
+               fv.kingEffect9DiffY,
+               ofv.kingEffect9Diff, 18);
+  expandEffect(fv.kingEffect25Diff,
+               fv.kingEffect25DiffX,
+               fv.kingEffect25DiffY,
+               ofv.kingEffect25Diff, 50);
 }
 
 template <class FV>
@@ -481,29 +599,17 @@ void each(FV1& fv1, FV2& fv2, FV3& fv3, FV4& fv4, FV5& fv5, T&& func) {
   }
 }
 
-template <class Open,
-          class KingOpenR,
+template <class KingOpenR,
           class KingOpenXR,
           class KingOpenYR,
           class KingOpen,
           class T>
 inline
-void symmetrizeOpen(Open open,
-                    KingOpenR kingOpenR,
+void symmetrizeOpen(KingOpenR kingOpenR,
                     KingOpenXR kingOpenXR,
                     KingOpenYR kingOpenYR,
                     KingOpen kingOpen,
                     T&& func) {
-  SQUARE_EACH(square) {
-    auto rsquare = square.hsym();
-    if (rsquare.raw() > square.raw()) {
-      for (int i = 0; i < 8; i++) {
-        func(open[square.raw()][i],
-             open[rsquare.raw()][i]);
-      }
-    }
-  }
-
   SQUARE_EACH(king) {
     auto rking = king.hsym();
     if (rking.raw() < king.raw()) {
@@ -550,6 +656,56 @@ void symmetrizeOpen(Open open,
           func(kingOpenYR[r][rs][i],
                kingOpenYR[r][rrs][i]);
         }
+      }
+    }
+  }
+}
+
+template <class KingOpenR,
+          class KingOpenXR,
+          class KingOpenYR,
+          class KingOpen,
+          class T>
+inline
+void symmetrizeOpenLR(KingOpenR kingOpenR,
+                      KingOpenXR kingOpenXR,
+                      KingOpenYR kingOpenYR,
+                      KingOpen kingOpen,
+                      KingOpenR kingOpenR2,
+                      KingOpenXR kingOpenXR2,
+                      KingOpenYR kingOpenYR2,
+                      KingOpen kingOpen2,
+                      T&& func) {
+  SQUARE_EACH(king) {
+    auto rking = king.hsym();
+    SQUARE_EACH(square) {
+      auto rsquare = square.hsym();
+      for (int i = 0; i < 8; i++) {
+        func(kingOpen[king.raw()][square.raw()][i],
+             kingOpen2[rking.raw()][rsquare.raw()][i]);
+      }
+    }
+  }
+
+  for (int rs = 0; rs < RelativeSquare::N; rs++) {
+    int rrs = RelativeSquare(rs).hsym().raw();
+    for (int i = 0; i < 8; i++) {
+      func(kingOpenR[rs][i],
+           kingOpenR2[rrs][i]);
+    }
+
+    for (int f = 0; f < 9; f++) {
+      int rf = 8 - f;
+      for (int i = 0; i < 8; i++) {
+        func(kingOpenXR[f][rs][i],
+             kingOpenXR2[rf][rrs][i]);
+      }
+    }
+
+    for (int r = 0; r < 9; r++) {
+      for (int i = 0; i < 8; i++) {
+        func(kingOpenYR[r][rs][i],
+             kingOpenYR2[r][rrs][i]);
       }
     }
   }
@@ -807,62 +963,86 @@ void symmetrize(FV& fv, T&& func) {
   }
 
   // open
-  symmetrizeOpen(fv.bRookVer,
-                 fv.kingBRookVerR,
-                 fv.kingBRookVerXR,
-                 fv.kingBRookVerYR,
-                 fv.kingBRookVer,
+  symmetrizeOpen(fv.kingBRookUpR,
+                 fv.kingBRookUpXR,
+                 fv.kingBRookUpYR,
+                 fv.kingBRookUp,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.wRookVer,
-                 fv.kingWRookVerR,
-                 fv.kingWRookVerXR,
-                 fv.kingWRookVerYR,
-                 fv.kingWRookVer,
+  symmetrizeOpen(fv.kingWRookUpR,
+                 fv.kingWRookUpXR,
+                 fv.kingWRookUpYR,
+                 fv.kingWRookUp,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.bRookHor,
-                 fv.kingBRookHorR,
-                 fv.kingBRookHorXR,
-                 fv.kingBRookHorYR,
-                 fv.kingBRookHor,
+  symmetrizeOpen(fv.kingBRookDownR,
+                 fv.kingBRookDownXR,
+                 fv.kingBRookDownYR,
+                 fv.kingBRookDown,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.wRookHor,
-                 fv.kingWRookHorR,
-                 fv.kingWRookHorXR,
-                 fv.kingWRookHorYR,
-                 fv.kingWRookHor,
+  symmetrizeOpen(fv.kingWRookDownR,
+                 fv.kingWRookDownXR,
+                 fv.kingWRookDownYR,
+                 fv.kingWRookDown,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.bBishopDiagL45,
-                 fv.kingBBishopDiagL45R,
-                 fv.kingBBishopDiagL45XR,
-                 fv.kingBBishopDiagL45YR,
-                 fv.kingBBishopDiagL45,
-                 std::forward<T>(func));
-  symmetrizeOpen(fv.wBishopDiagL45,
-                 fv.kingWBishopDiagL45R,
-                 fv.kingWBishopDiagL45XR,
-                 fv.kingWBishopDiagL45YR,
-                 fv.kingWBishopDiagL45,
-                 std::forward<T>(func));
-  symmetrizeOpen(fv.bBishopDiagR45,
-                 fv.kingBBishopDiagR45R,
-                 fv.kingBBishopDiagR45XR,
-                 fv.kingBBishopDiagR45YR,
-                 fv.kingBBishopDiagR45,
-                 std::forward<T>(func));
-  symmetrizeOpen(fv.wBishopDiagR45,
-                 fv.kingWBishopDiagR45R,
-                 fv.kingWBishopDiagR45XR,
-                 fv.kingWBishopDiagR45YR,
-                 fv.kingWBishopDiagR45,
-                 std::forward<T>(func));
-  symmetrizeOpen(fv.bLance,
-                 fv.kingBLanceR,
+  symmetrizeOpenLR(fv.kingBRookLeftR,
+                   fv.kingBRookLeftXR,
+                   fv.kingBRookLeftYR,
+                   fv.kingBRookLeft,
+                   fv.kingBRookRightR,
+                   fv.kingBRookRightXR,
+                   fv.kingBRookRightYR,
+                   fv.kingBRookRight,
+                   std::forward<T>(func));
+  symmetrizeOpenLR(fv.kingWRookLeftR,
+                   fv.kingWRookLeftXR,
+                   fv.kingWRookLeftYR,
+                   fv.kingWRookLeft,
+                   fv.kingWRookRightR,
+                   fv.kingWRookRightXR,
+                   fv.kingWRookRightYR,
+                   fv.kingWRookRight,
+                   std::forward<T>(func));
+  symmetrizeOpenLR(fv.kingBBishopLeftUp45R,
+                   fv.kingBBishopLeftUp45XR,
+                   fv.kingBBishopLeftUp45YR,
+                   fv.kingBBishopLeftUp45,
+                   fv.kingBBishopRightUp45R,
+                   fv.kingBBishopRightUp45XR,
+                   fv.kingBBishopRightUp45YR,
+                   fv.kingBBishopRightUp45,
+                   std::forward<T>(func));
+  symmetrizeOpenLR(fv.kingWBishopLeftUp45R,
+                   fv.kingWBishopLeftUp45XR,
+                   fv.kingWBishopLeftUp45YR,
+                   fv.kingWBishopLeftUp45,
+                   fv.kingWBishopRightUp45R,
+                   fv.kingWBishopRightUp45XR,
+                   fv.kingWBishopRightUp45YR,
+                   fv.kingWBishopRightUp45,
+                   std::forward<T>(func));
+  symmetrizeOpenLR(fv.kingBBishopRightDown45R,
+                   fv.kingBBishopRightDown45XR,
+                   fv.kingBBishopRightDown45YR,
+                   fv.kingBBishopRightDown45,
+                   fv.kingBBishopLeftDown45R,
+                   fv.kingBBishopLeftDown45XR,
+                   fv.kingBBishopLeftDown45YR,
+                   fv.kingBBishopLeftDown45,
+                   std::forward<T>(func));
+  symmetrizeOpenLR(fv.kingWBishopRightDown45R,
+                   fv.kingWBishopRightDown45XR,
+                   fv.kingWBishopRightDown45YR,
+                   fv.kingWBishopRightDown45,
+                   fv.kingWBishopLeftDown45R,
+                   fv.kingWBishopLeftDown45XR,
+                   fv.kingWBishopLeftDown45YR,
+                   fv.kingWBishopLeftDown45,
+                   std::forward<T>(func));
+  symmetrizeOpen(fv.kingBLanceR,
                  fv.kingBLanceXR,
                  fv.kingBLanceYR,
                  fv.kingBLance,
                  std::forward<T>(func));
-  symmetrizeOpen(fv.wLance,
-                 fv.kingWLanceR,
+  symmetrizeOpen(fv.kingWLanceR,
                  fv.kingWLanceXR,
                  fv.kingWLanceYR,
                  fv.kingWLance,
@@ -886,6 +1066,38 @@ void symmetrize(FV& fv, T&& func) {
            fv.kingAllyEffect25[rking.raw()][c]);
       func(fv.kingEnemyEffect25[king.raw()][c],
            fv.kingEnemyEffect25[rking.raw()][c]);
+    }
+    for (unsigned c = 0; c <= 18; c++) {
+      func(fv.kingEffect9Diff[king.raw()][c],
+           fv.kingEffect9Diff[rking.raw()][c]);
+    }
+    for (unsigned c = 0; c <= 50; c++) {
+      func(fv.kingEffect25Diff[king.raw()][c],
+           fv.kingEffect25Diff[rking.raw()][c]);
+    }
+  }
+
+  for (int f = 0; f <= 3; f++) {
+    int rf = 8 - f;
+    for (unsigned c = 0; c <= 9; c++) {
+      func(fv.kingAllyEffect9X[f][c],
+           fv.kingAllyEffect9X[rf][c]);
+      func(fv.kingEnemyEffect9X[f][c],
+           fv.kingEnemyEffect9X[rf][c]);
+    }
+    for (unsigned c = 0; c <= 25; c++) {
+      func(fv.kingAllyEffect25X[f][c],
+           fv.kingAllyEffect25X[rf][c]);
+      func(fv.kingEnemyEffect25X[f][c],
+           fv.kingEnemyEffect25X[rf][c]);
+    }
+    for (unsigned c = 0; c <= 18; c++) {
+      func(fv.kingEffect9DiffX[f][c],
+           fv.kingEffect9DiffX[rf][c]);
+    }
+    for (unsigned c = 0; c <= 50; c++) {
+      func(fv.kingEffect25DiffX[f][c],
+           fv.kingEffect25DiffX[rf][c]);
     }
   }
 }
@@ -1178,32 +1390,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WBishop,
                                                      bs, ws);
 
-      auto eff = MoveTables::diagR45(occR45, square);
+      auto eff = MoveTables::rightUp45(occR45, square);
       bef |= eff;
 
       int count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
-        sum -= ofv.kingWBishopDiagR45[m.wking][ws][count];
+        sum += ofv.kingBBishopRightUp45[m.bking][bs][count];
+        sum -= ofv.kingWBishopRightUp45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagR45[m.bking][bs][count] += delta;
-        ofv.kingWBishopDiagR45[m.wking][ws][count] -= delta;
+        ofv.kingBBishopRightUp45[m.bking][bs][count] += delta;
+        ofv.kingWBishopRightUp45[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::diagL45(occL45, square);
+      eff = MoveTables::leftDown45(occR45, square);
       bef |= eff;
 
       count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
-        sum -= ofv.kingWBishopDiagL45[m.wking][ws][count];
+        sum += ofv.kingBBishopLeftDown45[m.bking][bs][count];
+        sum -= ofv.kingWBishopLeftDown45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagL45[m.bking][bs][count] += delta;
-        ofv.kingWBishopDiagL45[m.wking][ws][count] -= delta;
+        ofv.kingBBishopLeftDown45[m.bking][bs][count] += delta;
+        ofv.kingWBishopLeftDown45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::leftUp45(occL45, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopLeftUp45[m.bking][bs][count];
+        sum -= ofv.kingWBishopLeftUp45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopLeftUp45[m.bking][bs][count] += delta;
+        ofv.kingWBishopLeftUp45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::rightDown45(occL45, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopRightDown45[m.bking][bs][count];
+        sum -= ofv.kingWBishopRightDown45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopRightDown45[m.bking][bs][count] += delta;
+        ofv.kingWBishopRightDown45[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1219,32 +1459,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BBishop,
                                                      bs, ws);
 
-      auto eff = MoveTables::diagR45(occR45, square);
+      auto eff = MoveTables::leftDown45(occR45, square);
       wef |= eff;
 
       int count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
-        sum -= ofv.kingBBishopDiagR45[m.wking][ws][count];
+        sum += ofv.kingWBishopRightUp45[m.bking][bs][count];
+        sum -= ofv.kingBBishopRightUp45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagR45[m.bking][bs][count] += delta;
-        ofv.kingBBishopDiagR45[m.wking][ws][count] -= delta;
+        ofv.kingWBishopRightUp45[m.bking][bs][count] += delta;
+        ofv.kingBBishopRightUp45[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::diagL45(occL45, square);
+      eff = MoveTables::rightUp45(occR45, square);
       wef |= eff;
 
       count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
-        sum -= ofv.kingBBishopDiagL45[m.wking][ws][count];
+        sum += ofv.kingWBishopLeftDown45[m.bking][bs][count];
+        sum -= ofv.kingBBishopLeftDown45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagL45[m.bking][bs][count] += delta;
-        ofv.kingBBishopDiagL45[m.wking][ws][count] -= delta;
+        ofv.kingWBishopLeftDown45[m.bking][bs][count] += delta;
+        ofv.kingBBishopLeftDown45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::rightDown45(occL45, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopLeftUp45[m.bking][bs][count];
+        sum -= ofv.kingBBishopLeftUp45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopLeftUp45[m.bking][bs][count] += delta;
+        ofv.kingBBishopLeftUp45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::leftUp45(occL45, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopRightDown45[m.bking][bs][count];
+        sum -= ofv.kingBBishopRightDown45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopRightDown45[m.bking][bs][count] += delta;
+        ofv.kingBBishopRightDown45[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1265,32 +1533,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WHorse,
                                                      bs, ws);
 
-      auto eff = MoveTables::diagR45(occR45, square);
+      auto eff = MoveTables::rightUp45(occR45, square);
       bef |= eff;
 
       int count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagR45[m.bking][bs][count];
-        sum -= ofv.kingWBishopDiagR45[m.wking][ws][count];
+        sum += ofv.kingBBishopRightUp45[m.bking][bs][count];
+        sum -= ofv.kingWBishopRightUp45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagR45[m.bking][bs][count] += delta;
-        ofv.kingWBishopDiagR45[m.wking][ws][count] -= delta;
+        ofv.kingBBishopRightUp45[m.bking][bs][count] += delta;
+        ofv.kingWBishopRightUp45[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::diagL45(occL45, square);
+      eff = MoveTables::leftDown45(occR45, square);
       bef |= eff;
 
       count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopDiagL45[m.bking][bs][count];
-        sum -= ofv.kingWBishopDiagL45[m.wking][ws][count];
+        sum += ofv.kingBBishopLeftDown45[m.bking][bs][count];
+        sum -= ofv.kingWBishopLeftDown45[m.wking][ws][count];
       } else {
-        ofv.kingBBishopDiagL45[m.bking][bs][count] += delta;
-        ofv.kingWBishopDiagL45[m.wking][ws][count] -= delta;
+        ofv.kingBBishopLeftDown45[m.bking][bs][count] += delta;
+        ofv.kingWBishopLeftDown45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::leftUp45(occL45, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopLeftUp45[m.bking][bs][count];
+        sum -= ofv.kingWBishopLeftUp45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopLeftUp45[m.bking][bs][count] += delta;
+        ofv.kingWBishopLeftUp45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::rightDown45(occL45, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBBishopRightDown45[m.bking][bs][count];
+        sum -= ofv.kingWBishopRightDown45[m.wking][ws][count];
+      } else {
+        ofv.kingBBishopRightDown45[m.bking][bs][count] += delta;
+        ofv.kingWBishopRightDown45[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1310,32 +1606,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BHorse,
                                                      bs, ws);
 
-      auto eff = MoveTables::diagR45(occR45, square);
+      auto eff = MoveTables::leftDown45(occR45, square);
       wef |= eff;
 
       int count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagR45[m.bking][bs][count];
-        sum -= ofv.kingBBishopDiagR45[m.wking][ws][count];
+        sum += ofv.kingWBishopRightUp45[m.bking][bs][count];
+        sum -= ofv.kingBBishopRightUp45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagR45[m.bking][bs][count] += delta;
-        ofv.kingBBishopDiagR45[m.wking][ws][count] -= delta;
+        ofv.kingWBishopRightUp45[m.bking][bs][count] += delta;
+        ofv.kingBBishopRightUp45[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::diagL45(occL45, square);
+      eff = MoveTables::rightUp45(occR45, square);
       wef |= eff;
 
       count = eff.count();
       if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopDiagL45[m.bking][bs][count];
-        sum -= ofv.kingBBishopDiagL45[m.wking][ws][count];
+        sum += ofv.kingWBishopLeftDown45[m.bking][bs][count];
+        sum -= ofv.kingBBishopLeftDown45[m.wking][ws][count];
       } else {
-        ofv.kingWBishopDiagL45[m.bking][bs][count] += delta;
-        ofv.kingBBishopDiagL45[m.wking][ws][count] -= delta;
+        ofv.kingWBishopLeftDown45[m.bking][bs][count] += delta;
+        ofv.kingBBishopLeftDown45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::rightDown45(occL45, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopLeftUp45[m.bking][bs][count];
+        sum -= ofv.kingBBishopLeftUp45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopLeftUp45[m.bking][bs][count] += delta;
+        ofv.kingBBishopLeftUp45[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::leftUp45(occL45, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWBishopRightDown45[m.bking][bs][count];
+        sum -= ofv.kingBBishopRightDown45[m.wking][ws][count];
+      } else {
+        ofv.kingWBishopRightDown45[m.bking][bs][count] += delta;
+        ofv.kingBBishopRightDown45[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1355,30 +1679,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WRook,
                                                      bs, ws);
 
-      auto eff = MoveTables::ver(occ, square);
+      auto eff = MoveTables::up(occ, square);
       bef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookVer[m.bking][bs][count];
-        sum -= ofv.kingWRookVer[m.wking][ws][count];
+        sum += ofv.kingBRookUp[m.bking][bs][count];
+        sum -= ofv.kingWRookUp[m.wking][ws][count];
       } else {
-        ofv.kingBRookVer[m.bking][bs][count] += delta;
-        ofv.kingWRookVer[m.wking][ws][count] -= delta;
+        ofv.kingBRookUp[m.bking][bs][count] += delta;
+        ofv.kingWRookUp[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::hor(occ90, square);
+      eff = MoveTables::down(occ, square);
       bef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookHor[m.bking][bs][count];
-        sum -= ofv.kingWRookHor[m.wking][ws][count];
+        sum += ofv.kingBRookDown[m.bking][bs][count];
+        sum -= ofv.kingWRookDown[m.wking][ws][count];
       } else {
-        ofv.kingBRookHor[m.bking][bs][count] += delta;
-        ofv.kingWRookHor[m.wking][ws][count] -= delta;
+        ofv.kingBRookDown[m.bking][bs][count] += delta;
+        ofv.kingWRookDown[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::left(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookLeft[m.bking][bs][count];
+        sum -= ofv.kingWRookLeft[m.wking][ws][count];
+      } else {
+        ofv.kingBRookLeft[m.bking][bs][count] += delta;
+        ofv.kingWRookLeft[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::right(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookRight[m.bking][bs][count];
+        sum -= ofv.kingWRookRight[m.wking][ws][count];
+      } else {
+        ofv.kingBRookRight[m.bking][bs][count] += delta;
+        ofv.kingWRookRight[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1394,34 +1748,65 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BRook,
                                                      bs, ws);
 
-      auto eff = MoveTables::ver(occ, square);
+      auto eff = MoveTables::down(occ, square);
       wef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookVer[m.bking][bs][count];
-        sum -= ofv.kingBRookVer[m.wking][ws][count];
+        sum += ofv.kingWRookUp[m.bking][bs][count];
+        sum -= ofv.kingBRookUp[m.wking][ws][count];
       } else {
-        ofv.kingWRookVer[m.bking][bs][count] += delta;
-        ofv.kingBRookVer[m.wking][ws][count] -= delta;
+        ofv.kingWRookUp[m.bking][bs][count] += delta;
+        ofv.kingBRookUp[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::hor(occ90, square);
+      eff = MoveTables::up(occ, square);
       wef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookHor[m.bking][bs][count];
-        sum -= ofv.kingBRookHor[m.wking][ws][count];
+        sum += ofv.kingWRookDown[m.bking][bs][count];
+        sum -= ofv.kingBRookDown[m.wking][ws][count];
       } else {
-        ofv.kingWRookHor[m.bking][bs][count] += delta;
-        ofv.kingBRookHor[m.wking][ws][count] -= delta;
+        ofv.kingWRookDown[m.bking][bs][count] += delta;
+        ofv.kingBRookDown[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::right(occ90, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookLeft[m.bking][bs][count];
+        sum -= ofv.kingBRookLeft[m.wking][ws][count];
+      } else {
+        ofv.kingWRookLeft[m.bking][bs][count] += delta;
+        ofv.kingBRookLeft[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::left(occ90, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookRight[m.bking][bs][count];
+        sum -= ofv.kingBRookRight[m.wking][ws][count];
+      } else {
+        ofv.kingWRookRight[m.bking][bs][count] += delta;
+        ofv.kingBRookRight[m.wking][ws][count] -= delta;
       }
     }
   }
 
+#if 0
   // dragon
   {
     auto bdragon = position.getBDragonBitboard();
@@ -1438,30 +1823,60 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WDragon,
                                                      bs, ws);
 
-      auto eff = MoveTables::ver(occ, square);
+      auto eff = MoveTables::up(occ, square);
       bef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookVer[m.bking][bs][count];
-        sum -= ofv.kingWRookVer[m.wking][ws][count];
+        sum += ofv.kingBRookUp[m.bking][bs][count];
+        sum -= ofv.kingWRookUp[m.wking][ws][count];
       } else {
-        ofv.kingBRookVer[m.bking][bs][count] += delta;
-        ofv.kingWRookVer[m.wking][ws][count] -= delta;
+        ofv.kingBRookUp[m.bking][bs][count] += delta;
+        ofv.kingWRookUp[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::hor(occ90, square);
+      eff = MoveTables::down(occ, square);
       bef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookHor[m.bking][bs][count];
-        sum -= ofv.kingWRookHor[m.wking][ws][count];
+        sum += ofv.kingBRookDown[m.bking][bs][count];
+        sum -= ofv.kingWRookDown[m.wking][ws][count];
       } else {
-        ofv.kingBRookHor[m.bking][bs][count] += delta;
-        ofv.kingWRookHor[m.wking][ws][count] -= delta;
+        ofv.kingBRookDown[m.bking][bs][count] += delta;
+        ofv.kingWRookDown[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::left(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookLeft[m.bking][bs][count];
+        sum -= ofv.kingWRookLeft[m.wking][ws][count];
+      } else {
+        ofv.kingBRookLeft[m.bking][bs][count] += delta;
+        ofv.kingWRookLeft[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::right(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookRight[m.bking][bs][count];
+        sum -= ofv.kingWRookRight[m.wking][ws][count];
+      } else {
+        ofv.kingBRookRight[m.bking][bs][count] += delta;
+        ofv.kingWRookRight[m.wking][ws][count] -= delta;
       }
     }
   }
@@ -1481,33 +1896,64 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BDragon,
                                                      bs, ws);
 
-      auto eff = MoveTables::ver(occ, square);
+      auto eff = MoveTables::down(occ, square);
       wef |= eff;
 
-      int count = eff.count() - 1;
+      int count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookVer[m.bking][bs][count];
-        sum -= ofv.kingBRookVer[m.wking][ws][count];
+        sum += ofv.kingWRookUp[m.bking][bs][count];
+        sum -= ofv.kingBRookUp[m.wking][ws][count];
       } else {
-        ofv.kingWRookVer[m.bking][bs][count] += delta;
-        ofv.kingBRookVer[m.wking][ws][count] -= delta;
+        ofv.kingWRookUp[m.bking][bs][count] += delta;
+        ofv.kingBRookUp[m.wking][ws][count] -= delta;
       }
 
-      eff = MoveTables::hor(occ90, square);
+      eff = MoveTables::up(occ, square);
       wef |= eff;
 
-      count = eff.count() - 1;
+      count = eff.count();
+      if (count != 0) { count--; }
       ASSERT(count >= 0 && count < 8);
       if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookHor[m.bking][bs][count];
-        sum -= ofv.kingBRookHor[m.wking][ws][count];
+        sum += ofv.kingWRookDown[m.bking][bs][count];
+        sum -= ofv.kingBRookDown[m.wking][ws][count];
       } else {
-        ofv.kingWRookHor[m.bking][bs][count] += delta;
-        ofv.kingBRookHor[m.wking][ws][count] -= delta;
+        ofv.kingWRookDown[m.bking][bs][count] += delta;
+        ofv.kingBRookDown[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::right(occ90, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookLeft[m.bking][bs][count];
+        sum -= ofv.kingBRookLeft[m.wking][ws][count];
+      } else {
+        ofv.kingWRookLeft[m.bking][bs][count] += delta;
+        ofv.kingBRookLeft[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::left(occ90, square);
+      wef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingWRookRight[m.bking][bs][count];
+        sum -= ofv.kingBRookRight[m.wking][ws][count];
+      } else {
+        ofv.kingWRookRight[m.bking][bs][count] += delta;
+        ofv.kingBRookRight[m.wking][ws][count] -= delta;
       }
     }
   }
+#endif
 
   // lance
   {
@@ -1697,9 +2143,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
     if (type == FeatureOperationType::Evaluate) {
       sum += ofv.kingAllyEffect9[m.bking][bc];
       sum += ofv.kingEnemyEffect9[m.bking][wc];
+      sum += ofv.kingEffect9Diff[m.bking][9+bc-wc];
     } else {
       ofv.kingAllyEffect9[m.bking][bc] += delta;
       ofv.kingEnemyEffect9[m.bking][wc] += delta;
+      ofv.kingEffect9Diff[m.bking][9+bc-wc] += delta;
     }
   }
 
@@ -1711,9 +2159,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
     if (type == FeatureOperationType::Evaluate) {
       sum += ofv.kingAllyEffect25[m.bking][bc];
       sum += ofv.kingEnemyEffect25[m.bking][wc];
+      sum += ofv.kingEffect25Diff[m.bking][25+bc-wc];
     } else {
       ofv.kingAllyEffect25[m.bking][bc] += delta;
       ofv.kingEnemyEffect25[m.bking][wc] += delta;
+      ofv.kingEffect25Diff[m.bking][25+bc-wc] += delta;
     }
   }
 
@@ -1725,9 +2175,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
     if (type == FeatureOperationType::Evaluate) {
       sum -= ofv.kingAllyEffect9[m.wking][wc];
       sum -= ofv.kingEnemyEffect9[m.wking][bc];
+      sum -= ofv.kingEffect9Diff[m.wking][9+wc-bc];
     } else {
       ofv.kingAllyEffect9[m.wking][wc] -= delta;
       ofv.kingEnemyEffect9[m.wking][bc] -= delta;
+      ofv.kingEffect9Diff[m.wking][9+wc-bc] -= delta;
     }
   }
 
@@ -1739,9 +2191,11 @@ T operate(OFV& ofv, const Position& position, T delta) {
     if (type == FeatureOperationType::Evaluate) {
       sum -= ofv.kingAllyEffect25[m.wking][wc];
       sum -= ofv.kingEnemyEffect25[m.wking][bc];
+      sum -= ofv.kingEffect25Diff[m.wking][25+wc-bc];
     } else {
       ofv.kingAllyEffect25[m.wking][wc] -= delta;
       ofv.kingEnemyEffect25[m.wking][bc] -= delta;
+      ofv.kingEffect25Diff[m.wking][25+wc-bc] -= delta;
     }
   }
 
@@ -1826,60 +2280,96 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingNeighborPiece),
     FV_SUMMARIZE(kingKingHand),
     FV_SUMMARIZE(kingKingPiece),
-    FV_SUMMARIZE(bRookVer),
-    FV_SUMMARIZE(kingBRookVerR),
-    FV_SUMMARIZE(kingBRookVerXR),
-    FV_SUMMARIZE(kingBRookVerYR),
-    FV_SUMMARIZE(kingBRookVer),
-    FV_SUMMARIZE(wRookVer),
-    FV_SUMMARIZE(kingWRookVerR),
-    FV_SUMMARIZE(kingWRookVerXR),
-    FV_SUMMARIZE(kingWRookVerYR),
-    FV_SUMMARIZE(kingWRookVer),
-    FV_SUMMARIZE(bRookHor),
-    FV_SUMMARIZE(kingBRookHorR),
-    FV_SUMMARIZE(kingBRookHorXR),
-    FV_SUMMARIZE(kingBRookHorYR),
-    FV_SUMMARIZE(kingBRookHor),
-    FV_SUMMARIZE(wRookHor),
-    FV_SUMMARIZE(kingWRookHorR),
-    FV_SUMMARIZE(kingWRookHorXR),
-    FV_SUMMARIZE(kingWRookHorYR),
-    FV_SUMMARIZE(kingWRookHor),
-    FV_SUMMARIZE(bBishopDiagL45),
-    FV_SUMMARIZE(kingBBishopDiagL45R),
-    FV_SUMMARIZE(kingBBishopDiagL45XR),
-    FV_SUMMARIZE(kingBBishopDiagL45YR),
-    FV_SUMMARIZE(kingBBishopDiagL45),
-    FV_SUMMARIZE(wBishopDiagL45),
-    FV_SUMMARIZE(kingWBishopDiagL45R),
-    FV_SUMMARIZE(kingWBishopDiagL45XR),
-    FV_SUMMARIZE(kingWBishopDiagL45YR),
-    FV_SUMMARIZE(kingWBishopDiagL45),
-    FV_SUMMARIZE(bBishopDiagR45),
-    FV_SUMMARIZE(kingBBishopDiagR45R),
-    FV_SUMMARIZE(kingBBishopDiagR45XR),
-    FV_SUMMARIZE(kingBBishopDiagR45YR),
-    FV_SUMMARIZE(kingBBishopDiagR45),
-    FV_SUMMARIZE(wBishopDiagR45),
-    FV_SUMMARIZE(kingWBishopDiagR45R),
-    FV_SUMMARIZE(kingWBishopDiagR45XR),
-    FV_SUMMARIZE(kingWBishopDiagR45YR),
-    FV_SUMMARIZE(kingWBishopDiagR45),
-    FV_SUMMARIZE(bLance),
+    FV_SUMMARIZE(kingBRookUpR),
+    FV_SUMMARIZE(kingBRookUpXR),
+    FV_SUMMARIZE(kingBRookUpYR),
+    FV_SUMMARIZE(kingBRookUp),
+    FV_SUMMARIZE(kingWRookUpR),
+    FV_SUMMARIZE(kingWRookUpXR),
+    FV_SUMMARIZE(kingWRookUpYR),
+    FV_SUMMARIZE(kingWRookUp),
+    FV_SUMMARIZE(kingBRookDownR),
+    FV_SUMMARIZE(kingBRookDownXR),
+    FV_SUMMARIZE(kingBRookDownYR),
+    FV_SUMMARIZE(kingBRookDown),
+    FV_SUMMARIZE(kingWRookDownR),
+    FV_SUMMARIZE(kingWRookDownXR),
+    FV_SUMMARIZE(kingWRookDownYR),
+    FV_SUMMARIZE(kingWRookDown),
+    FV_SUMMARIZE(kingBRookLeftR),
+    FV_SUMMARIZE(kingBRookLeftXR),
+    FV_SUMMARIZE(kingBRookLeftYR),
+    FV_SUMMARIZE(kingBRookLeft),
+    FV_SUMMARIZE(kingWRookLeftR),
+    FV_SUMMARIZE(kingWRookLeftXR),
+    FV_SUMMARIZE(kingWRookLeftYR),
+    FV_SUMMARIZE(kingWRookLeft),
+    FV_SUMMARIZE(kingBRookRightR),
+    FV_SUMMARIZE(kingBRookRightXR),
+    FV_SUMMARIZE(kingBRookRightYR),
+    FV_SUMMARIZE(kingBRookRight),
+    FV_SUMMARIZE(kingWRookRightR),
+    FV_SUMMARIZE(kingWRookRightXR),
+    FV_SUMMARIZE(kingWRookRightYR),
+    FV_SUMMARIZE(kingWRookRight),
+    FV_SUMMARIZE(kingBBishopLeftUp45R),
+    FV_SUMMARIZE(kingBBishopLeftUp45XR),
+    FV_SUMMARIZE(kingBBishopLeftUp45YR),
+    FV_SUMMARIZE(kingBBishopLeftUp45),
+    FV_SUMMARIZE(kingWBishopLeftUp45R),
+    FV_SUMMARIZE(kingWBishopLeftUp45XR),
+    FV_SUMMARIZE(kingWBishopLeftUp45YR),
+    FV_SUMMARIZE(kingWBishopLeftUp45),
+    FV_SUMMARIZE(kingBBishopRightDown45R),
+    FV_SUMMARIZE(kingBBishopRightDown45XR),
+    FV_SUMMARIZE(kingBBishopRightDown45YR),
+    FV_SUMMARIZE(kingBBishopRightDown45),
+    FV_SUMMARIZE(kingWBishopRightDown45R),
+    FV_SUMMARIZE(kingWBishopRightDown45XR),
+    FV_SUMMARIZE(kingWBishopRightDown45YR),
+    FV_SUMMARIZE(kingWBishopRightDown45),
+    FV_SUMMARIZE(kingBBishopRightUp45R),
+    FV_SUMMARIZE(kingBBishopRightUp45XR),
+    FV_SUMMARIZE(kingBBishopRightUp45YR),
+    FV_SUMMARIZE(kingBBishopRightUp45),
+    FV_SUMMARIZE(kingWBishopRightUp45R),
+    FV_SUMMARIZE(kingWBishopRightUp45XR),
+    FV_SUMMARIZE(kingWBishopRightUp45YR),
+    FV_SUMMARIZE(kingWBishopRightUp45),
+    FV_SUMMARIZE(kingBBishopLeftDown45R),
+    FV_SUMMARIZE(kingBBishopLeftDown45XR),
+    FV_SUMMARIZE(kingBBishopLeftDown45YR),
+    FV_SUMMARIZE(kingBBishopLeftDown45),
+    FV_SUMMARIZE(kingWBishopLeftDown45R),
+    FV_SUMMARIZE(kingWBishopLeftDown45XR),
+    FV_SUMMARIZE(kingWBishopLeftDown45YR),
+    FV_SUMMARIZE(kingWBishopLeftDown45),
     FV_SUMMARIZE(kingBLanceR),
     FV_SUMMARIZE(kingBLanceXR),
     FV_SUMMARIZE(kingBLanceYR),
     FV_SUMMARIZE(kingBLance),
-    FV_SUMMARIZE(wLance),
     FV_SUMMARIZE(kingWLanceR),
     FV_SUMMARIZE(kingWLanceXR),
     FV_SUMMARIZE(kingWLanceYR),
     FV_SUMMARIZE(kingWLance),
+    FV_SUMMARIZE(kingAllyEffect9X),
+    FV_SUMMARIZE(kingAllyEffect9Y),
     FV_SUMMARIZE(kingAllyEffect9),
+    FV_SUMMARIZE(kingEnemyEffect9X),
+    FV_SUMMARIZE(kingEnemyEffect9Y),
     FV_SUMMARIZE(kingEnemyEffect9),
+    FV_SUMMARIZE(kingAllyEffect25X),
+    FV_SUMMARIZE(kingAllyEffect25Y),
     FV_SUMMARIZE(kingAllyEffect25),
+    FV_SUMMARIZE(kingEnemyEffect25X),
+    FV_SUMMARIZE(kingEnemyEffect25Y),
     FV_SUMMARIZE(kingEnemyEffect25),
+    FV_SUMMARIZE(kingEffect9DiffX),
+    FV_SUMMARIZE(kingEffect9DiffY),
+    FV_SUMMARIZE(kingEffect9Diff),
+    FV_SUMMARIZE(kingEffect25DiffX),
+    FV_SUMMARIZE(kingEffect25DiffY),
+    FV_SUMMARIZE(kingEffect25Diff),
     summarizePart<SummaryType>("total",
                                reinterpret_cast<const typename FV::Type*>(&fv),
                                sizeof(fv) / sizeof(typename FV::Type)),

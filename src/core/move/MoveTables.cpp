@@ -88,6 +88,12 @@ MoveTables::VerTableType MoveTables::Ver;
 MoveTables::HorTableType MoveTables::Hor;
 MoveTables::DiagTableType MoveTables::DiagRight45;
 MoveTables::DiagTableType  MoveTables::DiagLeft45;
+MoveTables::VerTableType MoveTables::Left;
+MoveTables::VerTableType MoveTables::Right;
+MoveTables::DiagTableType MoveTables::RightUp45;
+MoveTables::DiagTableType MoveTables::LeftDown45;
+MoveTables::DiagTableType MoveTables::LeftUp45;
+MoveTables::DiagTableType MoveTables::RightDown45;
 
 void MoveTables::initialize() {
   initializeDirectionTable();
@@ -404,9 +410,12 @@ void MoveTables::initializeBitboards() {
       auto offset = HorLineOffset[s];
 
       Hor[s][pattern] = Bitboard::zero();
+      Left[s][pattern] = Bitboard::zero();
+      Right[s][pattern] = Bitboard::zero();
 
       for (Square to = square.safetyLeft(); to.isValid(); to = to.safetyLeft()) {
         Hor[s][pattern].set(to);
+        Left[s][pattern].set(to);
         if (to.safetyLeft().isValid() && (pattern & (0x01 << (to.rotate90().raw() - offset)))) {
           break;
         }
@@ -414,6 +423,7 @@ void MoveTables::initializeBitboards() {
 
       for (Square to = square.safetyRight(); to.isValid(); to = to.safetyRight()) {
         Hor[s][pattern].set(to);
+        Right[s][pattern].set(to);
         if (to.safetyRight().isValid() && (pattern & (0x01 << (to.rotate90().raw() - offset)))) {
           break;
         }
@@ -425,9 +435,12 @@ void MoveTables::initializeBitboards() {
       auto offset = DiagRightLineOffset[s];
 
       DiagRight45[s][pattern] = Bitboard::zero();
+      RightUp45[s][pattern] = Bitboard::zero();
+      LeftDown45[s][pattern] = Bitboard::zero();
 
       for (Square to = square.safetyRightUp(); to.isValid(); to = to.safetyRightUp()) {
         DiagRight45[s][pattern].set(to);
+        RightUp45[s][pattern].set(to);
         if (to.safetyRightUp().isValid() && (pattern & (0x01 << (to.rotateRight45().raw() - offset)))) {
           break;
         }
@@ -435,6 +448,7 @@ void MoveTables::initializeBitboards() {
 
       for (Square to = square.safetyLeftDown(); to.isValid(); to = to.safetyLeftDown()) {
         DiagRight45[s][pattern].set(to);
+        LeftDown45[s][pattern].set(to);
         if (to.safetyLeftDown().isValid() && (pattern & (0x01 << (to.rotateRight45().raw() - offset)))) {
           break;
         }
@@ -446,9 +460,12 @@ void MoveTables::initializeBitboards() {
       auto offset = DiagLeftLineOffset[s];
 
       DiagLeft45[s][pattern] = Bitboard::zero();
+      LeftUp45[s][pattern] = Bitboard::zero();
+      RightDown45[s][pattern] = Bitboard::zero();
 
       for (Square to = square.safetyRightDown(); to.isValid(); to = to.safetyRightDown()) {
         DiagLeft45[s][pattern].set(to);
+        RightDown45[s][pattern].set(to);
         if (to.safetyRightDown().isValid() && (pattern & (0x01 << (to.rotateLeft45().raw() - offset)))) {
           break;
         }
@@ -456,6 +473,7 @@ void MoveTables::initializeBitboards() {
 
       for (Square to = square.safetyLeftUp(); to.isValid(); to = to.safetyLeftUp()) {
         DiagLeft45[s][pattern].set(to);
+        LeftUp45[s][pattern].set(to);
         if (to.safetyLeftUp().isValid() && (pattern & (0x01 << (to.rotateLeft45().raw() - offset)))) {
           break;
         }
@@ -516,6 +534,42 @@ const Bitboard& MoveTables::diagL45(const RotatedBitboard& occ, const Square& sq
   auto offset = DiagLeftLineOffset[square.raw()];
   auto pattern = (occ.raw() >> offset) & 0x7f;
   return DiagLeft45[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::left(const RotatedBitboard& occ, const Square& square) {
+  auto offset = HorLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return Left[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::right(const RotatedBitboard& occ, const Square& square) {
+  auto offset = HorLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return Right[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::rightUp45(const RotatedBitboard& occ, const Square& square) {
+  auto offset = DiagRightLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return RightUp45[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::leftDown45(const RotatedBitboard& occ, const Square& square) {
+  auto offset = DiagRightLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return LeftDown45[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::leftUp45(const RotatedBitboard& occ, const Square& square) {
+  auto offset = DiagLeftLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return LeftUp45[square.raw()][pattern];
+}
+
+const Bitboard& MoveTables::rightDown45(const RotatedBitboard& occ, const Square& square) {
+  auto offset = DiagLeftLineOffset[square.raw()];
+  auto pattern = (occ.raw() >> offset) & 0x7f;
+  return RightDown45[square.raw()][pattern];
 }
 
 AggressableTables::TableType AggressableTables::BlackPawn;

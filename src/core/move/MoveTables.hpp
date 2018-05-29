@@ -75,6 +75,18 @@ public:
   static const Bitboard& hor(const RotatedBitboard& occ, const Square& square);
   static const Bitboard& diagR45(const RotatedBitboard& occ, const Square& square);
   static const Bitboard& diagL45(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& up(const Bitboard& occ, const Square& square) {
+    return blackLance(occ, square);
+  }
+  static const Bitboard& down(const Bitboard& occ, const Square& square) {
+    return whiteLance(occ, square);
+  }
+  static const Bitboard& left(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& right(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& rightUp45(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& leftDown45(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& leftUp45(const RotatedBitboard& occ, const Square& square);
+  static const Bitboard& rightDown45(const RotatedBitboard& occ, const Square& square);
 
 private:
 
@@ -100,6 +112,12 @@ private:
   static HorTableType Hor;
   static DiagTableType DiagRight45;
   static DiagTableType DiagLeft45;
+  static VerTableType Left;
+  static VerTableType Right;
+  static DiagTableType RightUp45;
+  static DiagTableType LeftDown45;
+  static DiagTableType LeftUp45;
+  static DiagTableType RightDown45;
 
 };
 

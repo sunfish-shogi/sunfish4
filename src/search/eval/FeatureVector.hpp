@@ -10,7 +10,7 @@
 #include "core/base/Piece.hpp"
 #include "core/position/Hand.hpp"
 
-#define SUNFISH_FV_VERSION "2018.02.06.0"
+#define SUNFISH_FV_VERSION "2018.05.29.0"
 
 namespace sunfish {
 
@@ -142,13 +142,22 @@ struct FeatureVector {
   using KingNeighborPiece = Type[Square::N][Neighbor3x3::NN][EvalPieceTypeIndex::End][Square::N][EvalPieceIndex::End];
   using KingKingHand = Type[Square::N][Square::N][EvalHandTypeIndex::End];
   using KingKingPiece = Type[Square::N][Square::N][Square::N][EvalPieceTypeIndex::End];
-  using Open = Type[Square::N][8];
   using KingOpenR = Type[RelativeSquare::N][8];
   using KingOpenXR = Type[SQUARE_FILES][RelativeSquare::N][8];
   using KingOpenYR = Type[SQUARE_RANKS][RelativeSquare::N][8];
   using KingOpen = Type[Square::N][Square::N][8];
+  using KingEffect9X = Type[SQUARE_FILES][10];
+  using KingEffect9Y = Type[SQUARE_RANKS][10];
   using KingEffect9 = Type[Square::N][10];
+  using KingEffect25X = Type[SQUARE_FILES][26];
+  using KingEffect25Y = Type[SQUARE_RANKS][26];
   using KingEffect25 = Type[Square::N][26];
+  using KingEffect9DiffX = Type[SQUARE_FILES][19];
+  using KingEffect9DiffY = Type[SQUARE_RANKS][19];
+  using KingEffect9Diff = Type[Square::N][19];
+  using KingEffect25DiffX = Type[SQUARE_FILES][51];
+  using KingEffect25DiffY = Type[SQUARE_RANKS][51];
+  using KingEffect25Diff = Type[Square::N][51];
 
   KingHand kingHand;
 
@@ -187,70 +196,119 @@ struct FeatureVector {
   KingKingHand kingKingHand;
   KingKingPiece kingKingPiece;
 
-  Open bRookVer;
-  KingOpenR kingBRookVerR;
-  KingOpenXR kingBRookVerXR;
-  KingOpenYR kingBRookVerYR;
-  KingOpen kingBRookVer;
+  KingOpenR kingBRookUpR;
+  KingOpenXR kingBRookUpXR;
+  KingOpenYR kingBRookUpYR;
+  KingOpen kingBRookUp;
 
-  Open wRookVer;
-  KingOpenR kingWRookVerR;
-  KingOpenXR kingWRookVerXR;
-  KingOpenYR kingWRookVerYR;
-  KingOpen kingWRookVer;
+  KingOpenR kingWRookUpR;
+  KingOpenXR kingWRookUpXR;
+  KingOpenYR kingWRookUpYR;
+  KingOpen kingWRookUp;
 
-  Open bRookHor;
-  KingOpenR kingBRookHorR;
-  KingOpenXR kingBRookHorXR;
-  KingOpenYR kingBRookHorYR;
-  KingOpen kingBRookHor;
+  KingOpenR kingBRookDownR;
+  KingOpenXR kingBRookDownXR;
+  KingOpenYR kingBRookDownYR;
+  KingOpen kingBRookDown;
 
-  Open wRookHor;
-  KingOpenR kingWRookHorR;
-  KingOpenXR kingWRookHorXR;
-  KingOpenYR kingWRookHorYR;
-  KingOpen kingWRookHor;
+  KingOpenR kingWRookDownR;
+  KingOpenXR kingWRookDownXR;
+  KingOpenYR kingWRookDownYR;
+  KingOpen kingWRookDown;
 
-  Open bBishopDiagL45;
-  KingOpenR kingBBishopDiagL45R;
-  KingOpenXR kingBBishopDiagL45XR;
-  KingOpenYR kingBBishopDiagL45YR;
-  KingOpen kingBBishopDiagL45;
+  KingOpenR kingBRookLeftR;
+  KingOpenXR kingBRookLeftXR;
+  KingOpenYR kingBRookLeftYR;
+  KingOpen kingBRookLeft;
 
-  Open wBishopDiagL45;
-  KingOpenR kingWBishopDiagL45R;
-  KingOpenXR kingWBishopDiagL45XR;
-  KingOpenYR kingWBishopDiagL45YR;
-  KingOpen kingWBishopDiagL45;
+  KingOpenR kingWRookLeftR;
+  KingOpenXR kingWRookLeftXR;
+  KingOpenYR kingWRookLeftYR;
+  KingOpen kingWRookLeft;
 
-  Open bBishopDiagR45;
-  KingOpenR kingBBishopDiagR45R;
-  KingOpenXR kingBBishopDiagR45XR;
-  KingOpenYR kingBBishopDiagR45YR;
-  KingOpen kingBBishopDiagR45;
+  KingOpenR kingBRookRightR;
+  KingOpenXR kingBRookRightXR;
+  KingOpenYR kingBRookRightYR;
+  KingOpen kingBRookRight;
 
-  Open wBishopDiagR45;
-  KingOpenR kingWBishopDiagR45R;
-  KingOpenXR kingWBishopDiagR45XR;
-  KingOpenYR kingWBishopDiagR45YR;
-  KingOpen kingWBishopDiagR45;
+  KingOpenR kingWRookRightR;
+  KingOpenXR kingWRookRightXR;
+  KingOpenYR kingWRookRightYR;
+  KingOpen kingWRookRight;
 
-  Open bLance;
+  KingOpenR kingBBishopLeftUp45R;
+  KingOpenXR kingBBishopLeftUp45XR;
+  KingOpenYR kingBBishopLeftUp45YR;
+  KingOpen kingBBishopLeftUp45;
+
+  KingOpenR kingWBishopLeftUp45R;
+  KingOpenXR kingWBishopLeftUp45XR;
+  KingOpenYR kingWBishopLeftUp45YR;
+  KingOpen kingWBishopLeftUp45;
+
+  KingOpenR kingBBishopRightDown45R;
+  KingOpenXR kingBBishopRightDown45XR;
+  KingOpenYR kingBBishopRightDown45YR;
+  KingOpen kingBBishopRightDown45;
+
+  KingOpenR kingWBishopRightDown45R;
+  KingOpenXR kingWBishopRightDown45XR;
+  KingOpenYR kingWBishopRightDown45YR;
+  KingOpen kingWBishopRightDown45;
+
+  KingOpenR kingBBishopRightUp45R;
+  KingOpenXR kingBBishopRightUp45XR;
+  KingOpenYR kingBBishopRightUp45YR;
+  KingOpen kingBBishopRightUp45;
+
+  KingOpenR kingWBishopRightUp45R;
+  KingOpenXR kingWBishopRightUp45XR;
+  KingOpenYR kingWBishopRightUp45YR;
+  KingOpen kingWBishopRightUp45;
+
+  KingOpenR kingBBishopLeftDown45R;
+  KingOpenXR kingBBishopLeftDown45XR;
+  KingOpenYR kingBBishopLeftDown45YR;
+  KingOpen kingBBishopLeftDown45;
+
+  KingOpenR kingWBishopLeftDown45R;
+  KingOpenXR kingWBishopLeftDown45XR;
+  KingOpenYR kingWBishopLeftDown45YR;
+  KingOpen kingWBishopLeftDown45;
+
   KingOpenR kingBLanceR;
   KingOpenXR kingBLanceXR;
   KingOpenYR kingBLanceYR;
   KingOpen kingBLance;
 
-  Open wLance;
   KingOpenR kingWLanceR;
   KingOpenXR kingWLanceXR;
   KingOpenYR kingWLanceYR;
   KingOpen kingWLance;
 
+  KingEffect9X kingAllyEffect9X;
+  KingEffect9Y kingAllyEffect9Y;
   KingEffect9 kingAllyEffect9;
+
+  KingEffect9X kingEnemyEffect9X;
+  KingEffect9Y kingEnemyEffect9Y;
   KingEffect9 kingEnemyEffect9;
+
+  KingEffect25X kingAllyEffect25X;
+  KingEffect25Y kingAllyEffect25Y;
   KingEffect25 kingAllyEffect25;
+
+  KingEffect25X kingEnemyEffect25X;
+  KingEffect25Y kingEnemyEffect25Y;
   KingEffect25 kingEnemyEffect25;
+
+  KingEffect9DiffX kingEffect9DiffX;
+  KingEffect9DiffY kingEffect9DiffY;
+  KingEffect9Diff kingEffect9Diff;
+
+  KingEffect25DiffX kingEffect25DiffX;
+  KingEffect25DiffY kingEffect25DiffY;
+  KingEffect25Diff kingEffect25Diff;
 };
 
 template <class T>
@@ -269,6 +327,8 @@ struct OptimizedFeatureVector {
   using KingOpen = Type[Square::N][Square::N][8];
   using KingEffect9 = Type[Square::N][10];
   using KingEffect25 = Type[Square::N][26];
+  using KingEffect9Diff = Type[Square::N][19];
+  using KingEffect25Diff = Type[Square::N][51];
 
   KingHand kingHand;
 
@@ -289,14 +349,22 @@ struct OptimizedFeatureVector {
   KingKingHand kingKingHand;
   KingKingPiece kingKingPiece;
 
-  KingOpen kingBRookVer;
-  KingOpen kingWRookVer;
-  KingOpen kingBRookHor;
-  KingOpen kingWRookHor;
-  KingOpen kingBBishopDiagL45;
-  KingOpen kingWBishopDiagL45;
-  KingOpen kingBBishopDiagR45;
-  KingOpen kingWBishopDiagR45;
+  KingOpen kingBRookUp;
+  KingOpen kingWRookUp;
+  KingOpen kingBRookDown;
+  KingOpen kingWRookDown;
+  KingOpen kingBRookLeft;
+  KingOpen kingWRookLeft;
+  KingOpen kingBRookRight;
+  KingOpen kingWRookRight;
+  KingOpen kingBBishopLeftUp45;
+  KingOpen kingWBishopLeftUp45;
+  KingOpen kingBBishopRightDown45;
+  KingOpen kingWBishopRightDown45;
+  KingOpen kingBBishopRightUp45;
+  KingOpen kingWBishopRightUp45;
+  KingOpen kingBBishopLeftDown45;
+  KingOpen kingWBishopLeftDown45;
   KingOpen kingBLance;
   KingOpen kingWLance;
 
@@ -304,6 +372,8 @@ struct OptimizedFeatureVector {
   KingEffect9 kingEnemyEffect9;
   KingEffect25 kingAllyEffect25;
   KingEffect25 kingEnemyEffect25;
+  KingEffect9Diff kingEffect9Diff;
+  KingEffect25Diff kingEffect25Diff;
 };
 
 } // namespace sunfish
