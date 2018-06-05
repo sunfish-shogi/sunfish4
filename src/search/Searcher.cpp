@@ -751,7 +751,8 @@ Score Searcher::search(Tree& tree,
 
   // singular extension
   bool doSingularExtension = false;
-  if (!node.ttMove.isNone() &&
+  if (!nodeStat.isRoot() &&
+      !node.ttMove.isNone() &&
       node.excludedMove.isNone() &&
       depth >= 8 * Depth1Ply &&
       !isCheck(node.checkState) &&
