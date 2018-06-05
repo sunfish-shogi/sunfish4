@@ -403,6 +403,9 @@ void Searcher::aspsearch(Tree& tree,
     }
 
     if (isInterrupted()) {
+      if (score > alpha && isMainThread && handler_ != nullptr) {
+        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
+      }
       break;
     }
 
@@ -705,7 +708,7 @@ Score Searcher::search(Tree& tree,
       undoMove<true>(tree);
 
       if (isInterrupted()) {
-        return Score::zero();
+        return -Score::infinity();
       }
 
       if (score >= pbeta) {
@@ -732,7 +735,7 @@ Score Searcher::search(Tree& tree,
            newNodeStat);
 
     if (isInterrupted()) {
-      return Score::zero();
+      return -Score::infinity();
     }
 
     revisit(tree, nodeStat);
@@ -896,7 +899,7 @@ Score Searcher::search(Tree& tree,
     undoMove<true>(tree);
 
     if (isInterrupted()) {
-      return Score::zero();
+      return bestScore;
     }
 
     if (nodeStat.isRoot()) {
@@ -1089,7 +1092,7 @@ Score Searcher::quies(Tree& tree,
     undoMove<false>(tree);
 
     if (isInterrupted()) {
-      return Score::zero();
+      return -Score::infinity();
     }
 
     if (score > bestScore) {
