@@ -57,19 +57,6 @@ int main(int argc, char** argv, char**) {
     Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
     Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
   }
- 
-  // log file
-  std::ofstream fout;
-  auto logPath = Resource::string(resources::LearnLogPath, "");
-  if (!logPath.empty()) {
-    fout.open(logPath, std::ios::out | std::ios::app);
-
-    Loggers::error.addStream(fout, true, true);
-    Loggers::warning.addStream(fout, true, true);
-    Loggers::info.addStream(fout, true, true);
-    Loggers::send.addStream(fout, true, true);
-    Loggers::receive.addStream(fout, true, true);
-  }
 
   // invalid arguments
   for (const auto& invalidArgument: po.getInvalidArguments()) {
@@ -120,6 +107,19 @@ int main(int argc, char** argv, char**) {
       return 1;
     }
     return 0;
+  }
+
+  // log file
+  std::ofstream fout;
+  auto logPath = Resource::string(resources::LearnLogPath, "");
+  if (!logPath.empty()) {
+    fout.open(logPath, std::ios::out | std::ios::app);
+
+    Loggers::error.addStream(fout, true, true);
+    Loggers::warning.addStream(fout, true, true);
+    Loggers::info.addStream(fout, true, true);
+    Loggers::send.addStream(fout, true, true);
+    Loggers::receive.addStream(fout, true, true);
   }
 
   if (po.getValue("type") == std::string("online")) {
