@@ -15,9 +15,9 @@
 #define FUT_PRUN_MARGIN_RATE  62
 #define FUT_PRUN_MARGIN       85
 #define PROBCUT_MARGIN        219
-#define PROBCUT_REDUCTION     4
+#define PROBCUT_REDUCTION     16
 #define ASP_MIN_DEPTH         7
 #define ASP_1ST_DELTA         82
 #define ASP_DELTA_RATE        23
-#define SINGULAR_DEPTH        7
-#define SINGULAR_MARGIN       22
+#define SINGULAR_DEPTH        32
+#define SINGULAR_MARGIN       3

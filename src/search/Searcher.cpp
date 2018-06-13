@@ -685,7 +685,7 @@ Score Searcher::search(Tree& tree,
       depth >= Depth1Ply * 5 &&
       !isCheck(node.checkState)) {
     Score pbeta = beta + PROBCUT_MARGIN;
-    int newDepth = depth - 4 * Depth1Ply;
+    int newDepth = depth - PROBCUT_REDUCTION;
     generateMovesOnProbCut(tree, pbeta - standPat);
 
     for (;;) {
@@ -757,7 +757,7 @@ Score Searcher::search(Tree& tree,
   if (!nodeStat.isRoot() &&
       !node.ttMove.isNone() &&
       node.excludedMove.isNone() &&
-      depth >= 8 * Depth1Ply &&
+      depth >= SINGULAR_DEPTH &&
       !isCheck(node.checkState) &&
       !(nodeStat.isRecaptureExtension() && isRecapture(tree, node.ttMove)) &&
       tree.position.validateMove(node.ttMove, node.checkState) &&
@@ -766,7 +766,7 @@ Score Searcher::search(Tree& tree,
       ttDepth >= depth - 3 * Depth1Ply &&
       ttScore > -Score::mate() && ttScore < Score::mate()) {
     Move ttMove = node.ttMove;
-    Score sbeta = ttScore - 3 * depth / Depth1Ply;
+    Score sbeta = ttScore - SINGULAR_MARGIN * depth / Depth1Ply;
     NodeStat newNodeStat = NodeStat(nodeStat).unsetNullMoveSearch()
                                              .unsetHashCut()
                                              .unsetMateDetection();
