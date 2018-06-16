@@ -131,6 +131,12 @@ const int HalfDensity[][9] = {
 
 CONSTEXPR_CONST int HalfDensitySize = std::extent<decltype(HalfDensity)>::value;
 
+inline
+Zobrist::Type excludeHash(const Move& move) {
+  // lowest bit must be 0
+  return Zobrist::Type(0xc7ebffd8801628a6llu) ^ (move.serialize16() << 1);
+}
+
 #if 0
 void printMoves(const Position& pos,
                 const Moves& moves) {
@@ -545,13 +551,18 @@ Score Searcher::search(Tree& tree,
 
   node.checkState = tree.position.getCheckState();
 
+  auto hash = tree.position.getHash();
+  if (node.excludedMove != Move::none()) {
+    hash ^= excludeHash(node.excludedMove);
+  }
+
   // transposition table
   Score ttScore;
   uint16_t ttScoreType;
   int ttDepth;
   {
     TTElement tte;
-    if (tt_.get(tree.position.getHash(), tte)) {
+    if (tt_.get(hash, tte)) {
       ttScoreType = tte.scoreType();
       ttScore = tte.score(tree.ply);
       ttDepth = tte.depth();
@@ -662,7 +673,7 @@ Score Searcher::search(Tree& tree,
       auto& childNode = tree.nodes[tree.ply+1];
       node.isHistorical = childNode.isHistorical;
       tree.info.nullMovePruning++;
-      tt_.store(tree.position.getHash(),
+      tt_.store(hash,
                 alpha,
                 beta,
                 score,
@@ -692,6 +703,10 @@ Score Searcher::search(Tree& tree,
       Move move = nextMove(tree);
       if (move.isNone()) {
         break;
+      }
+
+      if (move == node.excludedMove) {
+        continue;
       }
 
       bool moveOk = doMove<true>(tree, move, *evaluator_, tt_);
@@ -741,7 +756,7 @@ Score Searcher::search(Tree& tree,
     revisit(tree, nodeStat);
 
     TTElement tte;
-    if (tt_.get(tree.position.getHash(), tte)) {
+    if (tt_.get(hash, tte)) {
       Move ttMove = tte.move();
       if (!ttMove.isNone() && tree.position.validateMove(ttMove, node.checkState)) {
         node.ttMove = ttMove;
@@ -799,6 +814,10 @@ Score Searcher::search(Tree& tree,
     Move move = nextMove(tree);
     if (move.isNone()) {
       break;
+    }
+
+    if (move == node.excludedMove) {
+      continue;
     }
 
     bool currentMoveIsCheck = tree.position.isCheck(move);
@@ -948,7 +967,7 @@ Score Searcher::search(Tree& tree,
   }
 
   if (!node.isHistorical) {
-    tt_.store(tree.position.getHash(),
+    tt_.store(hash,
               alpha,
               beta,
               bestScore,

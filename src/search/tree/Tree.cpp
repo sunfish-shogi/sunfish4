@@ -51,6 +51,7 @@ void initializeTree(Tree& tree,
   tree.nodes[0].score = Score::invalid();
   tree.nodes[0].killerMove1 = Move::none();
   tree.nodes[0].killerMove2 = Move::none();
+  tree.nodes[0].excludedMove = Move::none();
 
   // SHEK
   initializeShekTable(tree.shekTable, record);
