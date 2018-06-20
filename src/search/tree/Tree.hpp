@@ -17,6 +17,7 @@
 #include "core/position/Position.hpp"
 #include <string>
 #include <thread>
+#include <list>
 #include <cstdint>
 
 namespace sunfish {
@@ -76,6 +77,13 @@ struct Node {
   PV pv;
 };
 
+struct RootPV {
+  PV pv;
+  Score score;
+};
+
+void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv, Score score, int capacity);
+
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
@@ -88,6 +96,7 @@ struct Tree {
   int ply;
   Node nodes[StackSize];
   SCRDetector scr;
+  std::list<RootPV> rootPVs;
 };
 
 void initializeTree(Tree& tree,
@@ -95,9 +104,11 @@ void initializeTree(Tree& tree,
                     Evaluator& eval,
                     const Record* record);
 
-void visit(Tree& tree, NodeStat nodeStat);
+template <bool root>
+void visit(Tree& tree);
 
-void revisit(Tree& tree, NodeStat nodeStat);
+template <bool root>
+void revisit(Tree& tree);
 
 inline
 bool hasKiller1(const Tree& tree) {

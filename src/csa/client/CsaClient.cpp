@@ -34,6 +34,7 @@ CONSTEXPR_CONST int DefaultPonder    = 1;
 CONSTEXPR_CONST int DefaultUseBook   = 1;
 CONSTEXPR_CONST int DefaultHashMem   = 64;
 CONSTEXPR_CONST int DefaultMarginMs  = 1000;
+CONSTEXPR_CONST int DefaultMultiPV   = 1;
 
 CONSTEXPR_CONST int DefaultKeepAlive = 0;
 CONSTEXPR_CONST int DefaultKeepIdle  = 120;
@@ -114,6 +115,7 @@ void CsaClient::readConfigFromIniFile() {
   config_.useBook     = StringUtil::toInt(getValue(ini, "Search", "UseBook"), DefaultUseBook);
   config_.hashMem  = StringUtil::toInt(getValue(ini, "Search", "HashMem"), DefaultHashMem);
   config_.marginMs = StringUtil::toInt(getValue(ini, "Search", "MarginMs"), DefaultMarginMs);
+  config_.multiPV  = StringUtil::toInt(getValue(ini, "Search", "MultiPV"), DefaultMultiPV);
 
   config_.keepalive = StringUtil::toInt(getValue(ini, "KeepAlive", "KeepAlive"), DefaultKeepAlive);
   config_.keepidle  = StringUtil::toInt(getValue(ini, "KeepIdle", "KeepIdle"), DefaultKeepIdle);
@@ -138,6 +140,7 @@ void CsaClient::readConfigFromIniFile() {
   MSG(info) << "    UseBook : " << config_.useBook;
   MSG(info) << "    HashMem : " << config_.hashMem;
   MSG(info) << "    MarginMs: " << config_.marginMs;
+  MSG(info) << "    MultiPV : " << config_.multiPV;
   MSG(info) << "  KeepAlive";
   MSG(info) << "    Keepalive: " << config_.keepalive;
   MSG(info) << "    Keepidle : " << config_.keepidle ;
@@ -643,6 +646,7 @@ void CsaClient::search() {
   }
 
   config.numberOfThreads = config_.worker;
+  config.multiPV = config_.multiPV;
 
   searcher_->setConfig(config);
 

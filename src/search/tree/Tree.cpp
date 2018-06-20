@@ -38,6 +38,21 @@ void initializeShekTable(ShekTable& shekTable,
 
 namespace sunfish {
 
+void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv, Score score, int capacity) {
+  auto ite = rootPVs.begin();
+  for (; ite != rootPVs.end(); ite++) {
+    if (score <= ite->score) {
+      break;
+    }
+  }
+  ite = rootPVs.insert(ite, RootPV{});
+  ite->pv.set(move, depth, pv);
+  ite->score = score;
+  if (rootPVs.size() > capacity) {
+    rootPVs.pop_front();
+  }
+}
+
 void initializeTree(Tree& tree,
                     const Position& position,
                     Evaluator& eval,
@@ -64,14 +79,15 @@ void initializeTree(Tree& tree,
   }
 }
 
-void visit(Tree& tree, NodeStat nodeStat) {
+template <bool root>
+void visit(Tree& tree) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
   node.ttMove = Move::none();
   node.quietsSearched.clear();
-  if (!nodeStat.isRoot()) {
+  if (!root) {
     node.pv.clear();
   }
 
@@ -80,14 +96,17 @@ void visit(Tree& tree, NodeStat nodeStat) {
   childNode.killerMove2 = Move::none();
   childNode.excludedMove = Move::none();
 }
+template void visit<true>(Tree& tree);
+template void visit<false>(Tree& tree);
 
-void revisit(Tree& tree, NodeStat nodeStat) {
+template <bool root>
+void revisit(Tree& tree) {
   ASSERT(tree.ply <= Tree::StackSize - 2);
 
   Node& node = tree.nodes[tree.ply];
   node.isHistorical = false;
   node.quietsSearched.clear();
-  if (!nodeStat.isRoot()) {
+  if (!root) {
     node.pv.clear();
   }
 
@@ -96,6 +115,8 @@ void revisit(Tree& tree, NodeStat nodeStat) {
   childNode.killerMove2 = Move::none();
   childNode.excludedMove = Move::none();
 }
+template void revisit<true>(Tree& tree);
+template void revisit<false>(Tree& tree);
 
 void sortKiller(Node& node) {
   if (node.killerCount2 > node.killerCount1) {

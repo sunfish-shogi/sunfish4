@@ -95,6 +95,7 @@ bool UsiClient::acceptUsi() {
   send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
   send("option", "name", "Threads", "type", "spin", "default", "1", "min", "1", "max", "32");
   send("option", "name", "MaxDepth", "type", "spin", "default", "64", "min", "1", "max", "64");
+  send("option", "name", "MultiPV", "type", "spin", "default", "1", "min", "1", "max", "10");
 
   send("usiok");
 
@@ -167,6 +168,8 @@ void UsiClient::setOption(const CommandArguments& args) {
     options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
   } else if (name == "MaxDepth") {
     options_.maxDepth = StringUtil::toInt(value, options_.maxDepth);
+  } else if (name == "MultiPV") {
+    options_.multiPV = StringUtil::toInt(value, options_.multiPV);
   } else {
     LOG(warning) << "unknown option: " << name;
   }
@@ -370,6 +373,7 @@ void UsiClient::search() {
   }
 
   config.numberOfThreads = options_.numberOfThreads;
+  config.multiPV = options_.multiPV;
 
   searcher_->setConfig(config);
 
@@ -454,6 +458,7 @@ void UsiClient::ponder() {
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
   config.numberOfThreads = options_.numberOfThreads;
+  config.multiPV = options_.multiPV;
 
   searcher_->setConfig(config);
 

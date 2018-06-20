@@ -234,11 +234,11 @@ void Searcher::search(const Position& pos,
   onSearchStarted(pos, record);
 
   auto& tree = trees_[0];
-  Score score = search(tree,
-                       depth,
-                       alpha,
-                       beta,
-                       NodeStat::normal());
+  Score score = search<false>(tree,
+                              depth,
+                              alpha,
+                              beta,
+                              NodeStat::normal());
 
   auto& node = tree.nodes[tree.ply];
 
@@ -390,15 +390,16 @@ void Searcher::aspsearch(Tree& tree,
       setScoreToMove(node.moves[i], -Score::infinity());
     }
 
-    Score score = search(tree,
-                         depth,
-                         alpha,
-                         beta,
-                         NodeStat::normal().setRoot()
-                                           .unsetMateDetection()
-                                           .unsetHashCut()
-                                           .unsetRecursiveIDSearch()
-                                           .unsetRecaptureExtension());
+    tree.rootPVs.clear();
+
+    Score score = search<true>(tree,
+                               depth,
+                               alpha,
+                               beta,
+                               NodeStat::normal().unsetMateDetection()
+                                                 .unsetHashCut()
+                                                 .unsetRecursiveIDSearch()
+                                                 .unsetRecaptureExtension());
 
     mergeInfo(tree);
 
@@ -415,25 +416,43 @@ void Searcher::aspsearch(Tree& tree,
       break;
     }
 
+    Score minScore = score;
+    if (!tree.rootPVs.empty()) {
+      minScore = tree.rootPVs.begin()->score;
+    }
+
+    auto elapsed = timer_.elapsed();
     if (score <= alpha && alpha > -Score::infinity()) {
       // fail-low
       alpha = score > -Score::infinity() + delta
             ? score - delta
             : -Score::infinity();
       if (isMainThread && handler_ != nullptr) {
-        handler_->onFailLow(*this, node.pv, timer_.elapsed(), depth, score);
+        handler_->onFailLow(*this, node.pv, elapsed, depth, score);
       }
     } else if (score >= beta && beta < Score::infinity()) {
       // fail-high
       beta = score < Score::infinity() - delta
-           ? score + delta
-           : Score::infinity();
+        ? score + delta
+        : Score::infinity();
       if (isMainThread && handler_ != nullptr) {
-        handler_->onFailHigh(*this, node.pv, timer_.elapsed(), depth, score);
+        handler_->onFailHigh(*this, node.pv, elapsed, depth, score);
       }
+    } else if (minScore <= alpha && alpha > -Score::infinity()) {
+      // fail-low (multi-PV)
+      alpha = minScore > -Score::infinity() + delta
+            ? minScore - delta
+            : -Score::infinity();
     } else {
+      // completed
       if (isMainThread && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
+        if (config_.multiPV == 0) {
+          handler_->onUpdatePV(*this, node.pv, elapsed, depth, score);
+        } else {
+          for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++) {
+            handler_->onUpdatePV(*this, ite->pv, elapsed, depth, ite->score);
+          }
+        }
       }
       if (score != -Score::infinity()) {
         storePV(tree.position,
@@ -457,6 +476,7 @@ void Searcher::aspsearch(Tree& tree,
 /**
  * search of internal nodes
  */
+template <bool root>
 Score Searcher::search(Tree& tree,
                        int depth,
                        Score alpha,
@@ -473,11 +493,11 @@ Score Searcher::search(Tree& tree,
   }
 #endif
 
-  visit(tree, nodeStat);
+  visit<root>(tree);
 
   auto& node = tree.nodes[tree.ply];
 
-  if (!nodeStat.isRoot()) {
+  if (!root) {
     // SHEK(strong horizontal effect killer)
     switch (tree.shekTable.check(tree.position)) {
     case ShekState::EqualS:
@@ -618,7 +638,7 @@ Score Searcher::search(Tree& tree,
   Score standPat = calculateStandPat(tree, *evaluator_);
 
   // futility pruning
-  if (!nodeStat.isRoot() &&
+  if (!root &&
       !isCheck(node.checkState) &&
       depth < FutilityPruningMaxDepth &&
       standPat - futilityPruningMargin(depth) >= beta) {
@@ -642,7 +662,7 @@ Score Searcher::search(Tree& tree,
       return score;
     }
 
-    revisit(tree, nodeStat);
+    revisit<root>(tree);
   }
 
   // null move pruning
@@ -661,11 +681,11 @@ Score Searcher::search(Tree& tree,
                  0,
                  -beta,
                  -beta+1)
-        : -search(tree,
-                  newDepth,
-                  -beta,
-                  -beta+1,
-                  newNodeStat);
+        : -search<false>(tree,
+                         newDepth,
+                         -beta,
+                         -beta+1,
+                         newNodeStat);
 
     undoNullMove(tree);
 
@@ -714,11 +734,11 @@ Score Searcher::search(Tree& tree,
         continue;
       }
 
-      Score score = -search(tree,
-                            newDepth,
-                            -pbeta,
-                            -pbeta+1,
-                            NodeStat::normal());
+      Score score = -search<false>(tree,
+                                   newDepth,
+                                   -pbeta,
+                                   -pbeta+1,
+                                   NodeStat::normal());
 
       undoMove<true>(tree);
 
@@ -743,17 +763,17 @@ Score Searcher::search(Tree& tree,
                                              .unsetHashCut()
                                              .unsetMateDetection();
 
-    search(tree,
-           newDepth,
-           alpha,
-           beta,
-           newNodeStat);
+    search<false>(tree,
+                  newDepth,
+                  alpha,
+                  beta,
+                  newNodeStat);
 
     if (isInterrupted()) {
       return -Score::infinity();
     }
 
-    revisit(tree, nodeStat);
+    revisit<root>(tree);
 
     TTElement tte;
     if (tt_.get(hash, tte)) {
@@ -769,7 +789,7 @@ Score Searcher::search(Tree& tree,
 
   // singular extension
   bool doSingularExtension = false;
-  if (!nodeStat.isRoot() &&
+  if (!root &&
       !node.ttMove.isNone() &&
       node.excludedMove.isNone() &&
       depth >= SINGULAR_DEPTH &&
@@ -787,14 +807,14 @@ Score Searcher::search(Tree& tree,
                                              .unsetMateDetection();
 
     node.excludedMove = node.ttMove;
-    Score score = search(tree, depth / 2, sbeta - 1, sbeta, newNodeStat);
+    Score score = search<false>(tree, depth / 2, sbeta - 1, sbeta, newNodeStat);
     node.excludedMove = Move::none();
 
     if (score < sbeta) {
       doSingularExtension = true;
     }
 
-    revisit(tree, nodeStat);
+    revisit<root>(tree);
     node.ttMove = ttMove;
   }
 
@@ -802,7 +822,7 @@ Score Searcher::search(Tree& tree,
   Score bestScore = lowerScore;
   Move bestMove = Move::none();
 
-  if (nodeStat.isRoot()) {
+  if (root) {
     node.moveIterator = node.moves.begin();
     node.genPhase = GenPhase::InitRoot;
   } else {
@@ -861,8 +881,17 @@ Score Searcher::search(Tree& tree,
 
     Score newAlpha = std::max(alpha, bestScore);
 
+    if (root) {
+      // multi-PV
+      if (tree.rootPVs.size() < config_.multiPV) {
+        newAlpha = alpha;
+      } else if (!tree.rootPVs.empty()) {
+        newAlpha = std::max(alpha, tree.rootPVs.begin()->score);
+      }
+    }
+
     // futility pruning
-    if (!nodeStat.isRoot() &&
+    if (!root &&
         !currentMoveIsCheck &&
         !isCheck(node.checkState) &&
         newDepth < FutilityPruningMaxDepth &&
@@ -890,28 +919,28 @@ Score Searcher::search(Tree& tree,
 
     Score score;
     if (isFirst) {
-      score = -search(tree,
-                      newDepth,
-                      -beta,
-                      -newAlpha,
-                      newNodeStat);
+      score = -search<false>(tree,
+                             newDepth,
+                             -beta,
+                             -newAlpha,
+                             newNodeStat);
     } else {
       // nega-scout
-      score = -search(tree,
-                      newDepth,
-                      -(newAlpha + 1),
-                      -newAlpha,
-                      newNodeStat);
+      score = -search<false>(tree,
+                             newDepth,
+                             -(newAlpha + 1),
+                             -newAlpha,
+                             newNodeStat);
 
       if (!isInterrupted() &&
           score > newAlpha &&
           (reduced != 0 || score < beta)) {
         newDepth = newDepth + reduced;
-        score = -search(tree,
-                        newDepth,
-                        -beta,
-                        -newAlpha,
-                        newNodeStat);
+        score = -search<false>(tree,
+                               newDepth,
+                               -beta,
+                               -newAlpha,
+                               newNodeStat);
       }
     }
 
@@ -921,11 +950,12 @@ Score Searcher::search(Tree& tree,
       return bestScore;
     }
 
-    if (nodeStat.isRoot()) {
-      setScoreToMove(*(node.moveIterator-1), score);
-    }
-
     auto& childNode = tree.nodes[tree.ply+1];
+
+    if (root) {
+      setScoreToMove(*(node.moveIterator-1), score); // ordering for iterative deepening
+      insertRootPV(tree.rootPVs, move, depth, childNode.pv, score, config_.multiPV); // multi-PV
+    }
 
     if (score > bestScore) {
       bestScore = score;
@@ -1019,7 +1049,7 @@ Score Searcher::quies(Tree& tree,
                       int depth,
                       Score alpha,
                       Score beta) {
-  visit(tree, NodeStat::normal());
+  visit<false>(tree);
 
   auto& node = tree.nodes[tree.ply];
 

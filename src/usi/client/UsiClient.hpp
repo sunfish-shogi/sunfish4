@@ -37,6 +37,7 @@ private:
     int marginMs;
     int numberOfThreads;
     int maxDepth;
+    int multiPV;
   };
 
   enum class CommandState : uint8_t {

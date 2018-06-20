@@ -58,7 +58,7 @@ TEST(TreeTest, testVisit) {
   tree.nodes[1].killerMove1 = Move(Square::s77(), Square::s76(), false);
   tree.nodes[1].killerMove2 = Move(Square::s77(), Square::s76(), false);
   tree.nodes[1].excludedMove = Move(Square::s77(), Square::s76(), false);
-  visit(tree, NodeStat::normal().unsetRoot());
+  visit<false>(tree);
   ASSERT_FALSE(tree.nodes[0].isHistorical);
   ASSERT_EQ(Move::none(), tree.nodes[0].ttMove);
   ASSERT_EQ(0, tree.nodes[0].quietsSearched.size());
@@ -68,7 +68,7 @@ TEST(TreeTest, testVisit) {
   ASSERT_EQ(Move::none(), tree.nodes[1].excludedMove);
 
   tree.nodes[0].pv.set(Move(Square::s77(), Square::s76(), false), 0, PV());
-  visit(tree, NodeStat::normal().setRoot());
+  visit<true>(tree);
   ASSERT_EQ(1, tree.nodes[0].pv.size());
 }
 
@@ -82,7 +82,7 @@ TEST(TreeTest, testRevisit) {
   tree.nodes[1].killerMove1 = Move(Square::s77(), Square::s76(), false);
   tree.nodes[1].killerMove2 = Move(Square::s77(), Square::s76(), false);
   tree.nodes[1].excludedMove = Move(Square::s77(), Square::s76(), false);
-  revisit(tree, NodeStat::normal().unsetRoot());
+  revisit<false>(tree);
   ASSERT_FALSE(tree.nodes[0].isHistorical);
   ASSERT_EQ(Move(Square::s77(), Square::s76(), false), tree.nodes[0].ttMove);
   ASSERT_EQ(0, tree.nodes[0].quietsSearched.size());
@@ -92,7 +92,7 @@ TEST(TreeTest, testRevisit) {
   ASSERT_EQ(Move::none(), tree.nodes[1].excludedMove);
 
   tree.nodes[0].pv.set(Move(Square::s77(), Square::s76(), false), 0, PV());
-  revisit(tree, NodeStat::normal().setRoot());
+  revisit<true>(tree);
   ASSERT_EQ(1, tree.nodes[0].pv.size());
 }
 
@@ -178,7 +178,7 @@ TEST(TreeTest, testAddKiller) {
 
   Tree tree;
   tree.ply = 4;
-  visit(tree, NodeStat::normal());
+  visit<false>(tree);
   tree.ply = 5;
 
   addKiller(tree, move1);

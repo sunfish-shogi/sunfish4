@@ -116,6 +116,7 @@ private:
   void aspsearch(Tree& tree,
                  int depth);
 
+  template <bool root>
   Score search(Tree& tree,
                int depth,
                Score alpha,

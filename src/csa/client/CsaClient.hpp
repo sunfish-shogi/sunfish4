@@ -40,6 +40,7 @@ public:
     int useBook;
     int hashMem;
     int marginMs;
+    int multiPV;
 
     int keepalive;
     int keepidle;
