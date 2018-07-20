@@ -1014,7 +1014,7 @@ void Searcher::updateHistory(Tree& tree,
                              Move bestMove,
                              int depth) {
   int d = depth / Depth1Ply;
-  int16_t value = (d + 1) * (d + 1) - 3;
+  HistoryValue value = (d + 1) * (d + 1) - 3;
   updateHistoryWithValue(tree, bestMove, value);
 
   auto& node = tree.nodes[tree.ply];
@@ -1027,7 +1027,7 @@ void Searcher::updateHistory(Tree& tree,
 
 void Searcher::updateHistoryWithValue(Tree& tree,
                                       Move move,
-                                      int16_t value) {
+                                      HistoryValue value) {
   Turn turn = tree.position.getTurn();
   if (move.isDrop()) {
     auto pieceType = move.droppingPieceType();
@@ -1392,7 +1392,7 @@ void Searcher::sortMoves(Tree& tree) {
                   + HistoryMax * 2;
       move.setExtData(static_cast<Move::RawType16>(score.raw()));
     } else {
-      int16_t value;
+      HistoryValue value;
       if (move.isDrop()) {
         auto pieceType = move.droppingPieceType();
         value = pieceToHistory_.get(turn, pieceType, move.to());
