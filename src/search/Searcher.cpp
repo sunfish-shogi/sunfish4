@@ -1013,8 +1013,7 @@ Score Searcher::search(Tree& tree,
 void Searcher::updateHistory(Tree& tree,
                              Move bestMove,
                              int depth) {
-  int d = depth / Depth1Ply;
-  HistoryValue value = (d + 1) * (d + 1) - 3;
+  HistoryValue value = depth / Depth1Ply;
   updateHistoryWithValue(tree, bestMove, value);
 
   auto& node = tree.nodes[tree.ply];
