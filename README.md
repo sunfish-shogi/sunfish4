@@ -57,7 +57,7 @@ Usage
 ### CSA Client
 
 This is a client program of CSA network protocol.
-See ["CSA network Protocol"](http://www.computer-shogi.org/protocol/).
+See ["CSA network Protocol"](http://www2.computer-shogi.org/protocol/).
 
 ```
 make csa
