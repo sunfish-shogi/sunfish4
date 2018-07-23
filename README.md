@@ -9,14 +9,14 @@ Sunfish is computer Shogi(Jpanese Chess) program. This is 4th version of Sunfish
 
 - [Sunfish](https://github.com/sunfish-shogi/sunfish)
   + 2008 ~ 2012
-  + Participated in [WCSC(World Computer Shogi Championship)2011](http://www.computer-shogi.org/wcsc21/) and [WCSC2012](http://www.computer-shogi.org/wcsc22/).
+  + Participated in [WCSC(World Computer Shogi Championship)2011](http://www2.computer-shogi.org/wcsc21/) and [WCSC2012](http://www2.computer-shogi.org/wcsc22/).
   + Rookie Award in WCSC2012
 - [Sunfish2](https://github.com/sunfish-shogi/sunfish2)
   + 2012 ~ 2013
-  + Participated in [WCSC2013](http://www.computer-shogi.org/wcsc23/)
+  + Participated in [WCSC2013](http://www2.computer-shogi.org/wcsc23/)
 - [Sunfish3](https://github.com/sunfish-shogi/sunfish3)
   + 2014 ~ 2015
-  + Participated in [WCSC2015](http://www.computer-shogi.org/wcsc25/)
+  + Participated in [WCSC2015](http://www2.computer-shogi.org/wcsc25/)
 
 Requirement
 -----------
