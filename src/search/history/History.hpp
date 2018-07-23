@@ -41,10 +41,6 @@ public:
 protected:
 
   void updateByIndex(int index, HistoryValue value) {
-    if (std::abs(value) >= HistoryLimit) {
-      return;
-    }
-
     hist_[index] -= hist_[index] * std::abs(int(value)) / HistoryLimit;
     hist_[index] += HistoryScale * value;
   }

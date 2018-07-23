@@ -13,14 +13,14 @@ TEST(HistoryTest, testFromToHistory) {
 
   fromToHistory.update(Turn::Black, Square::s68(), Square::s46(), 1);
   fromToHistory.update(Turn::White, Square::s52(), Square::s58(), 2);
-  fromToHistory.update(Turn::Black, Square::s15(), Square::s16(), 323);
-  fromToHistory.update(Turn::White, Square::s15(), Square::s16(), 324);
+  fromToHistory.update(Turn::Black, Square::s15(), Square::s16(), 100);
+  fromToHistory.update(Turn::White, Square::s15(), Square::s16(), 200);
 
-  ASSERT_EQ(   32, fromToHistory.get(Turn::Black, Square::s68(), Square::s46()));
-  ASSERT_EQ(   64, fromToHistory.get(Turn::White, Square::s52(), Square::s58()));
-  ASSERT_EQ(    0, fromToHistory.get(Turn::Black, Square::s52(), Square::s58()));
-  ASSERT_EQ(10336, fromToHistory.get(Turn::Black, Square::s15(), Square::s16()));
-  ASSERT_EQ(    0, fromToHistory.get(Turn::White, Square::s15(), Square::s16()));
+  ASSERT_EQ(  32, fromToHistory.get(Turn::Black, Square::s68(), Square::s46()));
+  ASSERT_EQ(  64, fromToHistory.get(Turn::White, Square::s52(), Square::s58()));
+  ASSERT_EQ(   0, fromToHistory.get(Turn::Black, Square::s52(), Square::s58()));
+  ASSERT_EQ(3200, fromToHistory.get(Turn::Black, Square::s15(), Square::s16()));
+  ASSERT_EQ(6400, fromToHistory.get(Turn::White, Square::s15(), Square::s16()));
 
   fromToHistory.reduce();
 
