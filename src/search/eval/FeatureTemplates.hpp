@@ -117,52 +117,52 @@ void optimize(FV& fv, OFV& ofv) {
     }
   }
 
-  optimizePieceNeighbor(fv.kingPieceRNeighborX,
-                        fv.kingPieceXRNeighborX,
-                        fv.kingPieceYRNeighborX,
-                        fv.kingPieceNeighborX,
-                        ofv.kingPieceNeighborX);
+  //optimizePieceNeighbor(fv.kingPieceRNeighborX,
+  //                      fv.kingPieceXRNeighborX,
+  //                      fv.kingPieceYRNeighborX,
+  //                      fv.kingPieceNeighborX,
+  //                      ofv.kingPieceNeighborX);
 
-  optimizePieceNeighbor(fv.kingPieceRNeighborY,
-                        fv.kingPieceXRNeighborY,
-                        fv.kingPieceYRNeighborY,
-                        fv.kingPieceNeighborY,
-                        ofv.kingPieceNeighborY);
+  //optimizePieceNeighbor(fv.kingPieceRNeighborY,
+  //                      fv.kingPieceXRNeighborY,
+  //                      fv.kingPieceYRNeighborY,
+  //                      fv.kingPieceNeighborY,
+  //                      ofv.kingPieceNeighborY);
 
-  optimizePieceNeighbor(fv.kingPieceRNeighborXY,
-                        fv.kingPieceXRNeighborXY,
-                        fv.kingPieceYRNeighborXY,
-                        fv.kingPieceNeighborXY,
-                        ofv.kingPieceNeighborXY);
+  //optimizePieceNeighbor(fv.kingPieceRNeighborXY,
+  //                      fv.kingPieceXRNeighborXY,
+  //                      fv.kingPieceYRNeighborXY,
+  //                      fv.kingPieceNeighborXY,
+  //                      ofv.kingPieceNeighborXY);
 
-  optimizePieceNeighbor(fv.kingPieceRNeighborXY2,
-                        fv.kingPieceXRNeighborXY2,
-                        fv.kingPieceYRNeighborXY2,
-                        fv.kingPieceNeighborXY2,
-                        ofv.kingPieceNeighborXY2);
+  //optimizePieceNeighbor(fv.kingPieceRNeighborXY2,
+  //                      fv.kingPieceXRNeighborXY2,
+  //                      fv.kingPieceYRNeighborXY2,
+  //                      fv.kingPieceNeighborXY2,
+  //                      ofv.kingPieceNeighborXY2);
 
   FV_PART_COPY(ofv, fv, kingNeighborHand);
 
   // kingNeighborPieceR, kingNeighborPieceXR, kingNeighborPieceYR, kingNeighborPiece
   //   => kingNeighborPiece
-  SQUARE_EACH(king) {
-    for (int n = 0; n < Neighbor3x3::NN; n++) {
-      for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-        SQUARE_EACH(square) {
-          for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-            ofv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2]
-              = fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2]
-              + fv.kingNeighborPieceR[n][i1][RelativeSquare(king, square).raw()][i2]
-              + fv.kingNeighborPieceXR[king.getFile()-1][n][i1][RelativeSquare(king, square).raw()][i2]
-              + fv.kingNeighborPieceYR[king.getRank()-1][n][i1][RelativeSquare(king, square).raw()][i2];
-          }
-        }
-      }
-    }
-  }
+  //SQUARE_EACH(king) {
+  //  for (int n = 0; n < Neighbor3x3::NN; n++) {
+  //    for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+  //      SQUARE_EACH(square) {
+  //        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+  //          ofv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2]
+  //            = fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2]
+  //            + fv.kingNeighborPieceR[n][i1][RelativeSquare(king, square).raw()][i2]
+  //            + fv.kingNeighborPieceXR[king.getFile()-1][n][i1][RelativeSquare(king, square).raw()][i2]
+  //            + fv.kingNeighborPieceYR[king.getRank()-1][n][i1][RelativeSquare(king, square).raw()][i2];
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 
   FV_PART_COPY(ofv, fv, kingKingHand);
-  FV_PART_COPY(ofv, fv, kingKingPiece);
+  //FV_PART_COPY(ofv, fv, kingKingPiece);
 
   optimizeOpen(fv.kingBRookUpR,
                fv.kingBRookUpXR,
@@ -376,52 +376,52 @@ void expand(FV& fv, OFV& ofv) {
     }
   }
 
-  expandPieceNeighbor(ofv.kingPieceNeighborX,
-                      fv.kingPieceRNeighborX,
-                      fv.kingPieceXRNeighborX,
-                      fv.kingPieceYRNeighborX,
-                      fv.kingPieceNeighborX);
+  //expandPieceNeighbor(ofv.kingPieceNeighborX,
+  //                    fv.kingPieceRNeighborX,
+  //                    fv.kingPieceXRNeighborX,
+  //                    fv.kingPieceYRNeighborX,
+  //                    fv.kingPieceNeighborX);
 
-  expandPieceNeighbor(ofv.kingPieceNeighborY,
-                      fv.kingPieceRNeighborY,
-                      fv.kingPieceXRNeighborY,
-                      fv.kingPieceYRNeighborY,
-                      fv.kingPieceNeighborY);
+  //expandPieceNeighbor(ofv.kingPieceNeighborY,
+  //                    fv.kingPieceRNeighborY,
+  //                    fv.kingPieceXRNeighborY,
+  //                    fv.kingPieceYRNeighborY,
+  //                    fv.kingPieceNeighborY);
 
-  expandPieceNeighbor(ofv.kingPieceNeighborXY,
-                      fv.kingPieceRNeighborXY,
-                      fv.kingPieceXRNeighborXY,
-                      fv.kingPieceYRNeighborXY,
-                      fv.kingPieceNeighborXY);
+  //expandPieceNeighbor(ofv.kingPieceNeighborXY,
+  //                    fv.kingPieceRNeighborXY,
+  //                    fv.kingPieceXRNeighborXY,
+  //                    fv.kingPieceYRNeighborXY,
+  //                    fv.kingPieceNeighborXY);
 
-  expandPieceNeighbor(ofv.kingPieceNeighborXY2,
-                      fv.kingPieceRNeighborXY2,
-                      fv.kingPieceXRNeighborXY2,
-                      fv.kingPieceYRNeighborXY2,
-                      fv.kingPieceNeighborXY2);
+  //expandPieceNeighbor(ofv.kingPieceNeighborXY2,
+  //                    fv.kingPieceRNeighborXY2,
+  //                    fv.kingPieceXRNeighborXY2,
+  //                    fv.kingPieceYRNeighborXY2,
+  //                    fv.kingPieceNeighborXY2);
 
   FV_PART_COPY(fv, ofv, kingNeighborHand);
 
   // kingNeighborPiece
   //   => kingNeighborPieceR, kingNeighborPieceXR, kingNeighborPieceYR, kingNeighborPiece
-  SQUARE_EACH(king) {
-    for (int n = 0; n < Neighbor3x3::NN; n++) {
-      for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-        SQUARE_EACH(square) {
-          for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-            auto val = ofv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2];
-            fv.kingNeighborPieceR[n][i1][RelativeSquare(king, square).raw()][i2] += val;
-            fv.kingNeighborPieceXR[king.getFile()-1][n][i1][RelativeSquare(king, square).raw()][i2] += val;
-            fv.kingNeighborPieceYR[king.getRank()-1][n][i1][RelativeSquare(king, square).raw()][i2] += val;
-            fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2] = val;
-          }
-        }
-      }
-    }
-  }
+  //SQUARE_EACH(king) {
+  //  for (int n = 0; n < Neighbor3x3::NN; n++) {
+  //    for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+  //      SQUARE_EACH(square) {
+  //        for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+  //          auto val = ofv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2];
+  //          fv.kingNeighborPieceR[n][i1][RelativeSquare(king, square).raw()][i2] += val;
+  //          fv.kingNeighborPieceXR[king.getFile()-1][n][i1][RelativeSquare(king, square).raw()][i2] += val;
+  //          fv.kingNeighborPieceYR[king.getRank()-1][n][i1][RelativeSquare(king, square).raw()][i2] += val;
+  //          fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2] = val;
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 
   FV_PART_COPY(fv, ofv, kingKingHand);
-  FV_PART_COPY(fv, ofv, kingKingPiece);
+  //FV_PART_COPY(fv, ofv, kingKingPiece);
 
   expandOpen(fv.kingBRookUpR,
              fv.kingBRookUpXR,
@@ -738,20 +738,20 @@ void symmetrize(FV& fv, T&& func) {
         }
       }
 
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          if (rking.raw() > king.raw() || (rking == king && rsquare.raw() > square.raw())) {
-            if (rsquare.safetyLeft().isValid()) {
-              func(fv.kingPieceNeighborX[king.raw()][square.raw()][i][j],
-                   fv.kingPieceNeighborX[rking.raw()][rsquare.left().raw()][j][i]);
-            }
-            func(fv.kingPieceNeighborY[king.raw()][square.raw()][i][j],
-                 fv.kingPieceNeighborY[rking.raw()][rsquare.raw()][i][j]);
-          }
-          func(fv.kingPieceNeighborXY[king.raw()][square.raw()][i][j],
-               fv.kingPieceNeighborXY2[rking.raw()][rsquare.raw()][i][j]);
-        }
-      }
+      //for (int i = 0; i < EvalPieceIndex::End; i++) {
+      //  for (int j = 0; j < EvalPieceIndex::End; j++) {
+      //    if (rking.raw() > king.raw() || (rking == king && rsquare.raw() > square.raw())) {
+      //      if (rsquare.safetyLeft().isValid()) {
+      //        func(fv.kingPieceNeighborX[king.raw()][square.raw()][i][j],
+      //             fv.kingPieceNeighborX[rking.raw()][rsquare.left().raw()][j][i]);
+      //      }
+      //      func(fv.kingPieceNeighborY[king.raw()][square.raw()][i][j],
+      //           fv.kingPieceNeighborY[rking.raw()][rsquare.raw()][i][j]);
+      //    }
+      //    func(fv.kingPieceNeighborXY[king.raw()][square.raw()][i][j],
+      //         fv.kingPieceNeighborXY2[rking.raw()][rsquare.raw()][i][j]);
+      //  }
+      //}
     }
   }
 
@@ -765,21 +765,21 @@ void symmetrize(FV& fv, T&& func) {
       }
     }
 
-    for (int i = 0; i < EvalPieceIndex::End; i++) {
-      for (int j = 0; j < EvalPieceIndex::End; j++) {
-        if (rrs > rs) {
-          if (RelativeSquare(rrs).getFile() > 0) {
-            int rrsx = RelativeSquare(rrs).left().raw();
-            func(fv.kingPieceRNeighborX[rs][i][j],
-                 fv.kingPieceRNeighborX[rrsx][j][i]);
-          }
-          func(fv.kingPieceRNeighborY[rs][i][j],
-               fv.kingPieceRNeighborY[rrs][i][j]);
-        }
-        func(fv.kingPieceRNeighborXY[rs][i][j],
-             fv.kingPieceRNeighborXY2[rrs][i][j]);
-      }
-    }
+    //for (int i = 0; i < EvalPieceIndex::End; i++) {
+    //  for (int j = 0; j < EvalPieceIndex::End; j++) {
+    //    if (rrs > rs) {
+    //      if (RelativeSquare(rrs).getFile() > 0) {
+    //        int rrsx = RelativeSquare(rrs).left().raw();
+    //        func(fv.kingPieceRNeighborX[rs][i][j],
+    //             fv.kingPieceRNeighborX[rrsx][j][i]);
+    //      }
+    //      func(fv.kingPieceRNeighborY[rs][i][j],
+    //           fv.kingPieceRNeighborY[rrs][i][j]);
+    //    }
+    //    func(fv.kingPieceRNeighborXY[rs][i][j],
+    //         fv.kingPieceRNeighborXY2[rrs][i][j]);
+    //  }
+    //}
 
     for (int f = 0; f < 9; f++) {
       int rf = 8 - f;
@@ -790,23 +790,23 @@ void symmetrize(FV& fv, T&& func) {
         }
       }
 
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          if (rrs > rs) {
-            if (RelativeSquare(rrs).getFile() > 0) {
-              int rrsx = RelativeSquare(rrs).left().raw();
-              func(fv.kingPieceXRNeighborX[f][rs][i][j],
-                   fv.kingPieceXRNeighborX[rf][rrsx][j][i]);
-            }
-          }
-          if (rrs > rs || (rrs == rs && rf > f)) {
-            func(fv.kingPieceXRNeighborY[f][rs][i][j],
-                 fv.kingPieceXRNeighborY[rf][rrs][i][j]);
-          }
-          func(fv.kingPieceXRNeighborXY[f][rs][i][j],
-               fv.kingPieceXRNeighborXY2[rf][rrs][i][j]);
-        }
-      }
+      //for (int i = 0; i < EvalPieceIndex::End; i++) {
+      //  for (int j = 0; j < EvalPieceIndex::End; j++) {
+      //    if (rrs > rs) {
+      //      if (RelativeSquare(rrs).getFile() > 0) {
+      //        int rrsx = RelativeSquare(rrs).left().raw();
+      //        func(fv.kingPieceXRNeighborX[f][rs][i][j],
+      //             fv.kingPieceXRNeighborX[rf][rrsx][j][i]);
+      //      }
+      //    }
+      //    if (rrs > rs || (rrs == rs && rf > f)) {
+      //      func(fv.kingPieceXRNeighborY[f][rs][i][j],
+      //           fv.kingPieceXRNeighborY[rf][rrs][i][j]);
+      //    }
+      //    func(fv.kingPieceXRNeighborXY[f][rs][i][j],
+      //         fv.kingPieceXRNeighborXY2[rf][rrs][i][j]);
+      //  }
+      //}
     }
 
     for (int r = 0; r < 9; r++) {
@@ -817,21 +817,21 @@ void symmetrize(FV& fv, T&& func) {
         }
       }
 
-      for (int i = 0; i < EvalPieceIndex::End; i++) {
-        for (int j = 0; j < EvalPieceIndex::End; j++) {
-          if (rrs > rs) {
-            if (RelativeSquare(rrs).getFile() > 0) {
-              int rrsx = RelativeSquare(rrs).left().raw();
-              func(fv.kingPieceYRNeighborX[r][rs][i][j],
-                   fv.kingPieceYRNeighborX[r][rrsx][j][i]);
-            }
-            func(fv.kingPieceYRNeighborY[r][rs][i][j],
-                 fv.kingPieceYRNeighborY[r][rrs][i][j]);
-          }
-          func(fv.kingPieceYRNeighborXY[r][rs][i][j],
-               fv.kingPieceYRNeighborXY2[r][rrs][i][j]);
-        }
-      }
+      //for (int i = 0; i < EvalPieceIndex::End; i++) {
+      //  for (int j = 0; j < EvalPieceIndex::End; j++) {
+      //    if (rrs > rs) {
+      //      if (RelativeSquare(rrs).getFile() > 0) {
+      //        int rrsx = RelativeSquare(rrs).left().raw();
+      //        func(fv.kingPieceYRNeighborX[r][rs][i][j],
+      //             fv.kingPieceYRNeighborX[r][rrsx][j][i]);
+      //      }
+      //      func(fv.kingPieceYRNeighborY[r][rs][i][j],
+      //           fv.kingPieceYRNeighborY[r][rrs][i][j]);
+      //    }
+      //    func(fv.kingPieceYRNeighborXY[r][rs][i][j],
+      //         fv.kingPieceYRNeighborXY2[r][rrs][i][j]);
+      //  }
+      //}
     }
   }
 
@@ -867,17 +867,17 @@ void symmetrize(FV& fv, T&& func) {
         continue;
       }
 
-      SQUARE_EACH(king) {
-        auto rking = king.hsym();
-        if (rsquare != square || rn != n || rking.raw() > king.raw()) {
-          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-              func(fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2],
-                   fv.kingNeighborPiece[rking.raw()][rn][i1][rsquare.raw()][i2]);
-            }
-          }
-        }
-      }
+      //SQUARE_EACH(king) {
+      //  auto rking = king.hsym();
+      //  if (rsquare != square || rn != n || rking.raw() > king.raw()) {
+      //    for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+      //      for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+      //        func(fv.kingNeighborPiece[king.raw()][n][i1][square.raw()][i2],
+      //             fv.kingNeighborPiece[rking.raw()][rn][i1][rsquare.raw()][i2]);
+      //      }
+      //    }
+      //  }
+      //}
     }
   }
 
@@ -893,38 +893,38 @@ void symmetrize(FV& fv, T&& func) {
         continue;
       }
 
-      if (rn != n || rrs > rs) {
-        for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-          for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-            func(fv.kingNeighborPieceR[n][i1][rs][i2],
-                 fv.kingNeighborPieceR[rn][i1][rrs][i2]);
-          }
-        }
-      }
+      //if (rn != n || rrs > rs) {
+      //  for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+      //    for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+      //      func(fv.kingNeighborPieceR[n][i1][rs][i2],
+      //           fv.kingNeighborPieceR[rn][i1][rrs][i2]);
+      //    }
+      //  }
+      //}
 
 
-      for (int f = 0; f < 9; f++) {
-        int rf = 8 - f;
-        if (rn != n || rrs != rs || rf > f) {
-          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-              func(fv.kingNeighborPieceXR[f][n][i1][rs][i2],
-                   fv.kingNeighborPieceXR[rf][rn][i1][rrs][i2]);
-            }
-          }
-        }
-      }
+      //for (int f = 0; f < 9; f++) {
+      //  int rf = 8 - f;
+      //  if (rn != n || rrs != rs || rf > f) {
+      //    for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+      //      for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+      //        func(fv.kingNeighborPieceXR[f][n][i1][rs][i2],
+      //             fv.kingNeighborPieceXR[rf][rn][i1][rrs][i2]);
+      //      }
+      //    }
+      //  }
+      //}
 
-      if (rn != n || rrs > rs) {
-        for (int r = 0; r < 9; r++) {
-          for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
-            for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
-              func(fv.kingNeighborPieceYR[r][n][i1][rs][i2],
-                   fv.kingNeighborPieceYR[r][rn][i1][rrs][i2]);
-            }
-          }
-        }
-      }
+      //if (rn != n || rrs > rs) {
+      //  for (int r = 0; r < 9; r++) {
+      //    for (int i1 = 0; i1 < EvalPieceTypeIndex::End; i1++) {
+      //      for (int i2 = 0; i2 < EvalPieceIndex::End; i2++) {
+      //        func(fv.kingNeighborPieceYR[r][n][i1][rs][i2],
+      //             fv.kingNeighborPieceYR[r][rn][i1][rrs][i2]);
+      //      }
+      //    }
+      //  }
+      //}
     }
   }
 
@@ -954,10 +954,10 @@ void symmetrize(FV& fv, T&& func) {
           continue;
         }
 
-        for (int i = 0; i < EvalPieceTypeIndex::End; i++) {
-          func(fv.kingKingPiece[king1.raw()][king2.raw()][square.raw()][i],
-               fv.kingKingPiece[rking1.raw()][rking2.raw()][rsquare.raw()][i]);
-        }
+        //for (int i = 0; i < EvalPieceTypeIndex::End; i++) {
+        //  func(fv.kingKingPiece[king1.raw()][king2.raw()][square.raw()][i],
+        //       fv.kingKingPiece[rking1.raw()][rking2.raw()][rsquare.raw()][i]);
+        //}
       }
     }
   }
@@ -1131,31 +1131,31 @@ T operatePiece(OFV& ofv, T delta, FeatureMeta& m, int typeIndex, int bIndex, int
   if (type == FeatureOperationType::Evaluate) {
     sum += ofv.kingPiece[m.bking][bs][bIndex];
     sum -= ofv.kingPiece[m.wking][ws][wIndex];
-    for (int i = 0; i < m.bnn; i++) {
-      sum += ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex];
-    }
-    for (int i = 0; i < m.wnn; i++) {
-      sum -= ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex];
-    }
-    if (turn == Turn::Black) {
-      sum += ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex];
-    } else {
-      sum -= ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex];
-    }
+    //for (int i = 0; i < m.bnn; i++) {
+    //  sum += ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex];
+    //}
+    //for (int i = 0; i < m.wnn; i++) {
+    //  sum -= ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex];
+    //}
+    //if (turn == Turn::Black) {
+    //  sum += ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex];
+    //} else {
+    //  sum -= ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex];
+    //}
   } else {
     ofv.kingPiece[m.bking][bs][bIndex] += delta;
     ofv.kingPiece[m.wking][ws][wIndex] -= delta;
-    for (int i = 0; i < m.bnn; i++) {
-      ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex] += delta;
-    }
-    for (int i = 0; i < m.wnn; i++) {
-      ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex] -= delta;
-    }
-    if (turn == Turn::Black) {
-      ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex] += delta;
-    } else {
-      ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex] -= delta;
-    }
+    //for (int i = 0; i < m.bnn; i++) {
+    //  ofv.kingNeighborPiece[m.bking][m.bns[i].n][m.bns[i].idx][bs][bIndex] += delta;
+    //}
+    //for (int i = 0; i < m.wnn; i++) {
+    //  ofv.kingNeighborPiece[m.wking][m.wns[i].n][m.wns[i].idx][ws][wIndex] -= delta;
+    //}
+    //if (turn == Turn::Black) {
+    //  ofv.kingKingPiece[m.bking][m.wking][bs][typeIndex] += delta;
+    //} else {
+    //  ofv.kingKingPiece[m.wking][m.bking][ws][typeIndex] -= delta;
+    //}
   }
   return sum;
 }
@@ -2040,100 +2040,100 @@ T operate(OFV& ofv, const Position& position, T delta) {
   }
 
   // neighbor-x
-  {
-    auto bb = m.noking & m.noking.left();
-    BB_EACH(square, bb) {
-      int bs = square.raw();
-      int ws = square.right().psym().raw();
-      Piece piece1 = position.getPieceOnBoard(square);
-      Piece piece2 = position.getPieceOnBoard(square.right());
-      ASSERT(!piece1.isEmpty());
-      ASSERT(!piece2.isEmpty());
-      int bIndex1 = getEvalPieceIndex(piece1);
-      int bIndex2 = getEvalPieceIndex(piece2);
-      int wIndex1 = getEvalPieceIndex(piece2.enemy());
-      int wIndex2 = getEvalPieceIndex(piece1.enemy());
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPieceNeighborX[m.bking][bs][bIndex1][bIndex2];
-        sum -= ofv.kingPieceNeighborX[m.wking][ws][wIndex1][wIndex2];
-      } else {
-        ofv.kingPieceNeighborX[m.bking][bs][bIndex1][bIndex2] += delta;
-        ofv.kingPieceNeighborX[m.wking][ws][wIndex1][wIndex2] -= delta;
-      }
-    }
-  }
+  //{
+  //  auto bb = m.noking & m.noking.left();
+  //  BB_EACH(square, bb) {
+  //    int bs = square.raw();
+  //    int ws = square.right().psym().raw();
+  //    Piece piece1 = position.getPieceOnBoard(square);
+  //    Piece piece2 = position.getPieceOnBoard(square.right());
+  //    ASSERT(!piece1.isEmpty());
+  //    ASSERT(!piece2.isEmpty());
+  //    int bIndex1 = getEvalPieceIndex(piece1);
+  //    int bIndex2 = getEvalPieceIndex(piece2);
+  //    int wIndex1 = getEvalPieceIndex(piece2.enemy());
+  //    int wIndex2 = getEvalPieceIndex(piece1.enemy());
+  //    if (type == FeatureOperationType::Evaluate) {
+  //      sum += ofv.kingPieceNeighborX[m.bking][bs][bIndex1][bIndex2];
+  //      sum -= ofv.kingPieceNeighborX[m.wking][ws][wIndex1][wIndex2];
+  //    } else {
+  //      ofv.kingPieceNeighborX[m.bking][bs][bIndex1][bIndex2] += delta;
+  //      ofv.kingPieceNeighborX[m.wking][ws][wIndex1][wIndex2] -= delta;
+  //    }
+  //  }
+  //}
 
   // neighbor-y
-  {
-    auto bb = m.noking & m.noking.down();
-    BB_EACH(square, bb) {
-      int bs = square.raw();
-      int ws = square.up().psym().raw();
-      Piece piece1 = position.getPieceOnBoard(square);
-      Piece piece2 = position.getPieceOnBoard(square.up());
-      ASSERT(!piece1.isEmpty());
-      ASSERT(!piece2.isEmpty());
-      int bIndex1 = getEvalPieceIndex(piece1);
-      int bIndex2 = getEvalPieceIndex(piece2);
-      int wIndex1 = getEvalPieceIndex(piece2.enemy());
-      int wIndex2 = getEvalPieceIndex(piece1.enemy());
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPieceNeighborY[m.bking][bs][bIndex1][bIndex2];
-        sum -= ofv.kingPieceNeighborY[m.wking][ws][wIndex1][wIndex2];
-      } else {
-        ofv.kingPieceNeighborY[m.bking][bs][bIndex1][bIndex2] += delta;
-        ofv.kingPieceNeighborY[m.wking][ws][wIndex1][wIndex2] -= delta;
-      }
-    }
-  }
+  //{
+  //  auto bb = m.noking & m.noking.down();
+  //  BB_EACH(square, bb) {
+  //    int bs = square.raw();
+  //    int ws = square.up().psym().raw();
+  //    Piece piece1 = position.getPieceOnBoard(square);
+  //    Piece piece2 = position.getPieceOnBoard(square.up());
+  //    ASSERT(!piece1.isEmpty());
+  //    ASSERT(!piece2.isEmpty());
+  //    int bIndex1 = getEvalPieceIndex(piece1);
+  //    int bIndex2 = getEvalPieceIndex(piece2);
+  //    int wIndex1 = getEvalPieceIndex(piece2.enemy());
+  //    int wIndex2 = getEvalPieceIndex(piece1.enemy());
+  //    if (type == FeatureOperationType::Evaluate) {
+  //      sum += ofv.kingPieceNeighborY[m.bking][bs][bIndex1][bIndex2];
+  //      sum -= ofv.kingPieceNeighborY[m.wking][ws][wIndex1][wIndex2];
+  //    } else {
+  //      ofv.kingPieceNeighborY[m.bking][bs][bIndex1][bIndex2] += delta;
+  //      ofv.kingPieceNeighborY[m.wking][ws][wIndex1][wIndex2] -= delta;
+  //    }
+  //  }
+  //}
 
   // neighbor-xy
-  {
-    auto bb = m.noking & m.noking.leftDown();
-    BB_EACH(square, bb) {
-      int bs = square.raw();
-      int ws = square.rightUp().psym().raw();
-      Piece piece1 = position.getPieceOnBoard(square);
-      Piece piece2 = position.getPieceOnBoard(square.rightUp());
-      ASSERT(!piece1.isEmpty());
-      ASSERT(!piece2.isEmpty());
-      int bIndex1 = getEvalPieceIndex(piece1);
-      int bIndex2 = getEvalPieceIndex(piece2);
-      int wIndex1 = getEvalPieceIndex(piece2.enemy());
-      int wIndex2 = getEvalPieceIndex(piece1.enemy());
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPieceNeighborXY[m.bking][bs][bIndex1][bIndex2];
-        sum -= ofv.kingPieceNeighborXY[m.wking][ws][wIndex1][wIndex2];
-      } else {
-        ofv.kingPieceNeighborXY[m.bking][bs][bIndex1][bIndex2] += delta;
-        ofv.kingPieceNeighborXY[m.wking][ws][wIndex1][wIndex2] -= delta;
-      }
-    }
-  }
+  //{
+  //  auto bb = m.noking & m.noking.leftDown();
+  //  BB_EACH(square, bb) {
+  //    int bs = square.raw();
+  //    int ws = square.rightUp().psym().raw();
+  //    Piece piece1 = position.getPieceOnBoard(square);
+  //    Piece piece2 = position.getPieceOnBoard(square.rightUp());
+  //    ASSERT(!piece1.isEmpty());
+  //    ASSERT(!piece2.isEmpty());
+  //    int bIndex1 = getEvalPieceIndex(piece1);
+  //    int bIndex2 = getEvalPieceIndex(piece2);
+  //    int wIndex1 = getEvalPieceIndex(piece2.enemy());
+  //    int wIndex2 = getEvalPieceIndex(piece1.enemy());
+  //    if (type == FeatureOperationType::Evaluate) {
+  //      sum += ofv.kingPieceNeighborXY[m.bking][bs][bIndex1][bIndex2];
+  //      sum -= ofv.kingPieceNeighborXY[m.wking][ws][wIndex1][wIndex2];
+  //    } else {
+  //      ofv.kingPieceNeighborXY[m.bking][bs][bIndex1][bIndex2] += delta;
+  //      ofv.kingPieceNeighborXY[m.wking][ws][wIndex1][wIndex2] -= delta;
+  //    }
+  //  }
+  //}
 
   // neighbor-xy2
-  {
-    auto bb = m.noking & m.noking.rightDown();
-    BB_EACH(square, bb) {
-      int bs = square.raw();
-      int ws = square.leftUp().psym().raw();
-      Piece piece1 = position.getPieceOnBoard(square);
-      Piece piece2 = position.getPieceOnBoard(square.leftUp());
-      ASSERT(!piece1.isEmpty());
-      ASSERT(!piece2.isEmpty());
-      int bIndex1 = getEvalPieceIndex(piece1);
-      int bIndex2 = getEvalPieceIndex(piece2);
-      int wIndex1 = getEvalPieceIndex(piece2.enemy());
-      int wIndex2 = getEvalPieceIndex(piece1.enemy());
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingPieceNeighborXY2[m.bking][bs][bIndex1][bIndex2];
-        sum -= ofv.kingPieceNeighborXY2[m.wking][ws][wIndex1][wIndex2];
-      } else {
-        ofv.kingPieceNeighborXY2[m.bking][bs][bIndex1][bIndex2] += delta;
-        ofv.kingPieceNeighborXY2[m.wking][ws][wIndex1][wIndex2] -= delta;
-      }
-    }
-  }
+  //{
+  //  auto bb = m.noking & m.noking.rightDown();
+  //  BB_EACH(square, bb) {
+  //    int bs = square.raw();
+  //    int ws = square.leftUp().psym().raw();
+  //    Piece piece1 = position.getPieceOnBoard(square);
+  //    Piece piece2 = position.getPieceOnBoard(square.leftUp());
+  //    ASSERT(!piece1.isEmpty());
+  //    ASSERT(!piece2.isEmpty());
+  //    int bIndex1 = getEvalPieceIndex(piece1);
+  //    int bIndex2 = getEvalPieceIndex(piece2);
+  //    int wIndex1 = getEvalPieceIndex(piece2.enemy());
+  //    int wIndex2 = getEvalPieceIndex(piece1.enemy());
+  //    if (type == FeatureOperationType::Evaluate) {
+  //      sum += ofv.kingPieceNeighborXY2[m.bking][bs][bIndex1][bIndex2];
+  //      sum -= ofv.kingPieceNeighborXY2[m.wking][ws][wIndex1][wIndex2];
+  //    } else {
+  //      ofv.kingPieceNeighborXY2[m.bking][bs][bIndex1][bIndex2] += delta;
+  //      ofv.kingPieceNeighborXY2[m.wking][ws][wIndex1][wIndex2] -= delta;
+  //    }
+  //  }
+  //}
 
   {
     auto& mask = MoveTables::neighbor3x3(position.getBlackKingSquare());
@@ -2257,29 +2257,29 @@ SummaryListType summarize(const FV& fv) {
     FV_SUMMARIZE(kingPieceXR),
     FV_SUMMARIZE(kingPieceYR),
     FV_SUMMARIZE(kingPiece),
-    FV_SUMMARIZE(kingPieceRNeighborX),
-    FV_SUMMARIZE(kingPieceXRNeighborX),
-    FV_SUMMARIZE(kingPieceYRNeighborX),
-    FV_SUMMARIZE(kingPieceNeighborX),
-    FV_SUMMARIZE(kingPieceRNeighborY),
-    FV_SUMMARIZE(kingPieceXRNeighborY),
-    FV_SUMMARIZE(kingPieceYRNeighborY),
-    FV_SUMMARIZE(kingPieceNeighborY),
-    FV_SUMMARIZE(kingPieceRNeighborXY),
-    FV_SUMMARIZE(kingPieceXRNeighborXY),
-    FV_SUMMARIZE(kingPieceYRNeighborXY),
-    FV_SUMMARIZE(kingPieceNeighborXY),
-    FV_SUMMARIZE(kingPieceRNeighborXY2),
-    FV_SUMMARIZE(kingPieceXRNeighborXY2),
-    FV_SUMMARIZE(kingPieceYRNeighborXY2),
-    FV_SUMMARIZE(kingPieceNeighborXY2),
+    //FV_SUMMARIZE(kingPieceRNeighborX),
+    //FV_SUMMARIZE(kingPieceXRNeighborX),
+    //FV_SUMMARIZE(kingPieceYRNeighborX),
+    //FV_SUMMARIZE(kingPieceNeighborX),
+    //FV_SUMMARIZE(kingPieceRNeighborY),
+    //FV_SUMMARIZE(kingPieceXRNeighborY),
+    //FV_SUMMARIZE(kingPieceYRNeighborY),
+    //FV_SUMMARIZE(kingPieceNeighborY),
+    //FV_SUMMARIZE(kingPieceRNeighborXY),
+    //FV_SUMMARIZE(kingPieceXRNeighborXY),
+    //FV_SUMMARIZE(kingPieceYRNeighborXY),
+    //FV_SUMMARIZE(kingPieceNeighborXY),
+    //FV_SUMMARIZE(kingPieceRNeighborXY2),
+    //FV_SUMMARIZE(kingPieceXRNeighborXY2),
+    //FV_SUMMARIZE(kingPieceYRNeighborXY2),
+    //FV_SUMMARIZE(kingPieceNeighborXY2),
     FV_SUMMARIZE(kingNeighborHand),
-    FV_SUMMARIZE(kingNeighborPieceR),
-    FV_SUMMARIZE(kingNeighborPieceXR),
-    FV_SUMMARIZE(kingNeighborPieceYR),
-    FV_SUMMARIZE(kingNeighborPiece),
+    //FV_SUMMARIZE(kingNeighborPieceR),
+    //FV_SUMMARIZE(kingNeighborPieceXR),
+    //FV_SUMMARIZE(kingNeighborPieceYR),
+    //FV_SUMMARIZE(kingNeighborPiece),
     FV_SUMMARIZE(kingKingHand),
-    FV_SUMMARIZE(kingKingPiece),
+    //FV_SUMMARIZE(kingKingPiece),
     FV_SUMMARIZE(kingBRookUpR),
     FV_SUMMARIZE(kingBRookUpXR),
     FV_SUMMARIZE(kingBRookUpYR),
