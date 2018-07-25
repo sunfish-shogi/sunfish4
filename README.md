@@ -77,7 +77,7 @@ If you use `make`, execute with `usi` target as follows:
 make usi
 
 # debugging mode
-make usi-debug
+#make usi-debug
 ```
 
 Register `sunfish_usi.exe` or `sunfish_usi` into the GUI application.
