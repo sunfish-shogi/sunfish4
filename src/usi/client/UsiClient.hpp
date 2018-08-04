@@ -130,6 +130,8 @@ private:
   TimeType whiteIncMs_;
   bool isInfinite_;
   bool inPonder_;
+  bool failLow_;
+  bool failHigh_;
 
   std::unique_ptr<Searcher> searcher_;
   std::atomic<bool> searcherIsStarted_;
