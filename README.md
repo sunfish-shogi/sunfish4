@@ -1,11 +1,12 @@
 Sunfish
-========
+=======
 
 [![Circle CI](https://circleci.com/gh/sunfish-shogi/sunfish4.svg?style=svg)](https://circleci.com/gh/sunfish-shogi/sunfish4)
 
 Sunfish is computer Shogi(Jpanese Chess) program. This is 4th version of Sunfish.
 
-##### Older Versions
+Older Versions
+--------------
 
 - [Sunfish](https://github.com/sunfish-shogi/sunfish)
   + 2008 ~ 2012
@@ -18,14 +19,25 @@ Sunfish is computer Shogi(Jpanese Chess) program. This is 4th version of Sunfish
   + 2014 ~ 2015
   + Participated in [WCSC2015](http://www2.computer-shogi.org/wcsc25/)
 
-Requirement
------------
+Releases
+--------
 
-- CMake
-- C++ Compiler(GCC4.9/Clang/MSVC2013)
+https://github.com/sunfish-shogi/sunfish4/releases
+
+Usage
+-----
+
+Download latest version from [Releases](https://github.com/sunfish-shogi/sunfish4/releases).
+
+And register `sunfish_usi.exe` to GUI Shogi application (e.g. [Shogidokoro](http://www.geocities.jp/shogidokoro/index.html), [Shogi GUI](http://shogigui.siganus.com/), [ShogiBrowserQ](http://park.geocities.jp/sbrowser_q/)).
 
 Build
 -----
+
+### Requirements
+
+- CMake
+- C++ Compiler(GCC4.9/Clang/MSVC2013)
 
 ### GNU Make
 
@@ -51,8 +63,8 @@ Set parameters into CMake as follows.
 | Where is the source code    | path/to/sunfish4/src/target |
 | Where to build the binaries | path/to/sunfish4/vs/target  |
 
-Usage
------
+Build Targets
+-------------
 
 ### CSA Client
 
