@@ -820,6 +820,7 @@ Score Searcher::search(Tree& tree,
 
   bool isFirst = true;
   Score bestScore = lowerScore;
+  Score firstScore = Score::invalid();
   Move bestMove = Move::none();
 
   if (root) {
@@ -953,7 +954,14 @@ Score Searcher::search(Tree& tree,
     auto& childNode = tree.nodes[tree.ply+1];
 
     if (root) {
-      setScoreToMove(*(node.moveIterator-1), score); // ordering for iterative deepening
+      Score order = score;
+      if (score > newAlpha) {
+        firstScore = firstScore == Score::invalid() ? score : std::min(firstScore, score);
+      } else if (firstScore != Score::invalid() && score <= newAlpha) {
+        Score wind = beta - firstScore;
+        order = order >= wind - Score::infinity() ? order - wind : -Score::infinity();
+      }
+      setScoreToMove(*(node.moveIterator-1), order); // ordering for iterative deepening
       insertRootPV(tree.rootPVs, move, depth, childNode.pv, score, config_.multiPV); // multi-PV
     }
 
