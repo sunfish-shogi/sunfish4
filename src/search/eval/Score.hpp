@@ -19,7 +19,7 @@ public:
   using RawType = int16_t;
 
   static CONSTEXPR_CONST RawType Zero = 0;
-  static CONSTEXPR_CONST RawType Infinity = 20000;
+  static CONSTEXPR_CONST RawType Infinity = 16000;
   static CONSTEXPR_CONST RawType Mate = 15000;
   static CONSTEXPR_CONST RawType MaterialInfinity = 5000;
   static CONSTEXPR_CONST RawType Invalid = 30000;
