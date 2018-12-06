@@ -11,7 +11,7 @@ using namespace sunfish;
 
 TEST(ScoreTest, testConstants) {
   ASSERT_EQ(Score(0), Score::zero());
-  ASSERT_EQ(Score(20000), Score::infinity());
+  ASSERT_EQ(Score(16000), Score::infinity());
   ASSERT_EQ(Score(15000), Score::mate());
   ASSERT_EQ(Score(5000), Score::materialInfinity());
 }
