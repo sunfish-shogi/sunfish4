@@ -1,14 +1,16 @@
 V2.2
-P1-KY-KE * -KI *  *  *  *  * 
-P2 * -OU-GI-GI *  *  *  *  * 
-P3 * -FU-FU-FU * -FU-KE *  * 
-P4-FU *  *  * +GI *  *  * -FU
-P5 *  * +GI *  *  * -FU *  * 
-P6+FU+HI *  * +UM *  *  *  * 
-P7 * +FU+KE+FU+OU * +FU * +KE
-P8 *  * +KI *  *  *  *  *  * 
-P9+KY *  * -RY *  *  *  * +KY
-P+00FU00FU00FU00KI00KI
-P-00FU00FU00FU00FU00KY00KA
--
--0039KA
+N+
+N-
+P1-KY-HI *  *  *  *  *  * -KY
+P2 *  *  * -KI-OU * -KI *  * 
+P3 *  * -KE-GI * -FU * -FU * 
+P4 *  * -FU-FU-FU-KA-FU *  * 
+P5-FU *  *  *  * +KE *  * +FU
+P6+FU+FU+FU * +FU+FU+FU *  * 
+P7 * +GI+KE+FU * +KI *  *  * 
+P8 * +KI+OU *  *  *  * +HI * 
+P9+KY *  *  *  *  *  *  * +KY
+P+00KA00GI00FU00FU
+P-00GI00KE00FU
++
++5655FU,T0
