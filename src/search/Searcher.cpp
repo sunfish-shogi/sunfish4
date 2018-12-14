@@ -1424,7 +1424,9 @@ void Searcher::sortMoves(Tree& tree) {
 void Searcher::sortRootMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
+#ifndef NO_ROOT_MOVES_SHUFFLE
   random_.shuffle(node.moves.begin(), node.moves.end());
+#endif
 
   Move ttMove = Move::none();
   TTElement tte;
