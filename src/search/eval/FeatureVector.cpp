@@ -8,59 +8,74 @@
 #include "core/move/MoveTables.hpp"
 #include <cstdint>
 
+namespace {
+
+using namespace sunfish;
+
+const int EvalPieceIndexTable[] = {
+  /*  0 PieceNumber::BPawn      */ EvalPieceIndex::BPawn,
+  /*  1 PieceNumber::BLance     */ EvalPieceIndex::BLance,
+  /*  2 PieceNumber::BKnight    */ EvalPieceIndex::BKnight,
+  /*  3 PieceNumber::BSilver    */ EvalPieceIndex::BSilver,
+  /*  4 PieceNumber::BGold      */ EvalPieceIndex::BGold,
+  /*  5 PieceNumber::BBishop    */ EvalPieceIndex::BBishop,
+  /*  6 PieceNumber::BRook      */ EvalPieceIndex::BRook,
+  /*  7                         */ 0,
+  /*  8 PieceNumber::BTokin     */ EvalPieceIndex::BGold,
+  /*  9 PieceNumber::BProLance  */ EvalPieceIndex::BGold,
+  /* 10 PieceNumber::BProKnight */ EvalPieceIndex::BGold,
+  /* 11 PieceNumber::BProSilver */ EvalPieceIndex::BGold,
+  /* 12                         */ 0,
+  /* 13 PieceNumber::BHorse     */ EvalPieceIndex::BHorse,
+  /* 14 PieceNumber::BDragon    */ EvalPieceIndex::BDragon,
+  /* 15                         */ 0,
+  /* 16 PieceNumber::WPawn      */ EvalPieceIndex::WPawn,
+  /* 17 PieceNumber::WLance     */ EvalPieceIndex::WLance,
+  /* 18 PieceNumber::WKnight    */ EvalPieceIndex::WKnight,
+  /* 19 PieceNumber::WSilver    */ EvalPieceIndex::WSilver,
+  /* 20 PieceNumber::WGold      */ EvalPieceIndex::WGold,
+  /* 21 PieceNumber::WBishop    */ EvalPieceIndex::WBishop,
+  /* 22 PieceNumber::WRook      */ EvalPieceIndex::WRook,
+  /* 23                         */ 0,
+  /* 24 PieceNumber::WTokin     */ EvalPieceIndex::WGold,
+  /* 25 PieceNumber::WProLance  */ EvalPieceIndex::WGold,
+  /* 26 PieceNumber::WProKnight */ EvalPieceIndex::WGold,
+  /* 27 PieceNumber::WProSilver */ EvalPieceIndex::WGold,
+  /* 28                         */ 0,
+  /* 29 PieceNumber::WHorse     */ EvalPieceIndex::WHorse,
+  /* 30 PieceNumber::WDragon    */ EvalPieceIndex::WDragon,
+  /* 31                         */ 0,
+};
+
+const int EvalPieceTypeIndexTable[] = {
+  /*  0 PieceNumber::Pawn      */ EvalPieceTypeIndex::Pawn,
+  /*  1 PieceNumber::Lance     */ EvalPieceTypeIndex::Lance,
+  /*  2 PieceNumber::Knight    */ EvalPieceTypeIndex::Knight,
+  /*  3 PieceNumber::Silver    */ EvalPieceTypeIndex::Silver,
+  /*  4 PieceNumber::Gold      */ EvalPieceTypeIndex::Gold,
+  /*  5 PieceNumber::Bishop    */ EvalPieceTypeIndex::Bishop,
+  /*  6 PieceNumber::Rook      */ EvalPieceTypeIndex::Rook,
+  /*  7                        */ 0,
+  /*  8 PieceNumber::Tokin     */ EvalPieceTypeIndex::Gold,
+  /*  9 PieceNumber::ProLance  */ EvalPieceTypeIndex::Gold,
+  /* 10 PieceNumber::ProKnight */ EvalPieceTypeIndex::Gold,
+  /* 11 PieceNumber::ProSilver */ EvalPieceTypeIndex::Gold,
+  /* 12                        */ 0,
+  /* 13 PieceNumber::Horse     */ EvalPieceTypeIndex::Horse,
+  /* 14 PieceNumber::Dragon    */ EvalPieceTypeIndex::Dragon,
+  /* 15                        */ 0,
+};
+
+} // namespace
+
 namespace sunfish {
 
 int getEvalPieceIndex(Piece piece) {
-  switch (piece.raw()) {
-  case PieceNumber::BPawn     : return EvalPieceIndex::BPawn;
-  case PieceNumber::WPawn     : return EvalPieceIndex::WPawn;
-  case PieceNumber::BLance    : return EvalPieceIndex::BLance;
-  case PieceNumber::WLance    : return EvalPieceIndex::WLance;
-  case PieceNumber::BKnight   : return EvalPieceIndex::BKnight;
-  case PieceNumber::WKnight   : return EvalPieceIndex::WKnight;
-  case PieceNumber::BSilver   : return EvalPieceIndex::BSilver;
-  case PieceNumber::WSilver   : return EvalPieceIndex::WSilver;
-  case PieceNumber::BGold     : // fall through
-  case PieceNumber::BTokin    : // fall through
-  case PieceNumber::BProLance : // fall through
-  case PieceNumber::BProKnight: // fall through
-  case PieceNumber::BProSilver: return EvalPieceIndex::BGold;
-  case PieceNumber::WGold     : // fall through
-  case PieceNumber::WTokin    : // fall through
-  case PieceNumber::WProLance : // fall through
-  case PieceNumber::WProKnight: // fall through
-  case PieceNumber::WProSilver: return EvalPieceIndex::WGold;
-  case PieceNumber::BBishop   : return EvalPieceIndex::BBishop;
-  case PieceNumber::WBishop   : return EvalPieceIndex::WBishop;
-  case PieceNumber::BHorse    : return EvalPieceIndex::BHorse;
-  case PieceNumber::WHorse    : return EvalPieceIndex::WHorse;
-  case PieceNumber::BRook     : return EvalPieceIndex::BRook;
-  case PieceNumber::WRook     : return EvalPieceIndex::WRook;
-  case PieceNumber::BDragon   : return EvalPieceIndex::BDragon;
-  case PieceNumber::WDragon   : return EvalPieceIndex::WDragon;
-  }
-  ASSERT(false);
-  return 0; // unreachable
+  return EvalPieceIndexTable[piece.raw()];
 }
 
 int getEvalPieceTypeIndex(PieceType pieceType) {
-  switch (pieceType.raw()) {
-  case PieceNumber::Pawn     : return EvalPieceTypeIndex::Pawn;
-  case PieceNumber::Lance    : return EvalPieceTypeIndex::Lance;
-  case PieceNumber::Knight   : return EvalPieceTypeIndex::Knight;
-  case PieceNumber::Silver   : return EvalPieceTypeIndex::Silver;
-  case PieceNumber::Gold     : // fall through
-  case PieceNumber::Tokin    : // fall through
-  case PieceNumber::ProLance : // fall through
-  case PieceNumber::ProKnight: // fall through
-  case PieceNumber::ProSilver: return EvalPieceTypeIndex::Gold;
-  case PieceNumber::Bishop   : return EvalPieceTypeIndex::Bishop;
-  case PieceNumber::Horse    : return EvalPieceTypeIndex::Horse;
-  case PieceNumber::Rook     : return EvalPieceTypeIndex::Rook;
-  case PieceNumber::Dragon   : return EvalPieceTypeIndex::Dragon;
-  }
-  ASSERT(false);
-  return 0; // unreachable
+  return EvalPieceTypeIndexTable[pieceType.raw()];
 }
 
 #define N3x3 Neighbor3x3
