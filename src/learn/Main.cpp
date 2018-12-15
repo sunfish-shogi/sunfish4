@@ -40,6 +40,7 @@ int main(int argc, char** argv, char**) {
   po.addOption("summary", "m", "print value summary of eval-ex.bin");
   po.addOption("gen-td-csa", "csa", "generate training data file from CSA files");
   po.addOption("optimize", "o", "convert from expanded FV(eval-ex.bin) to optimized FV(eval.bin)");
+  po.addOption("merge", "g", "merge expanded FV files");
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
 
@@ -106,6 +107,43 @@ int main(int argc, char** argv, char**) {
       MSG(error) << "failed to save eval.bin";
       return 1;
     }
+    return 0;
+  }
+
+  if (po.has("merge")) {
+    auto& args = po.getStdArguments();
+    if (args.size() < 2) {
+      MSG(error) << "Usage: sunfish_ln --merge FILE1 FILE2 [FILE3 ...]";
+      return 1;
+    }
+
+    std::unique_ptr<FeatureVector<float>> mfvf(new FeatureVector<float>());
+    memset(reinterpret_cast<void*>(mfvf.get()), 0, sizeof(Evaluator::FVType));
+
+    std::unique_ptr<Evaluator::FVType> fv(new Evaluator::FVType());
+    for (auto& arg : args) {
+      if (arg == "eval-ex.bin") { // TODO: magic number
+        MSG(error) << "you can not specify eval-ex.bin as a source file name";
+        return 1;
+      }
+      if (!load(arg.c_str(), *fv)) {
+        MSG(error) << "failed to load " << arg;
+        return 1;
+      }
+      each(*mfvf, *fv, [](float& m, int16_t& f) {
+        m += f;
+      });
+    }
+
+    std::unique_ptr<Evaluator::FVType> mfv(new Evaluator::FVType());
+    each(*mfv, *mfvf, [&args](int16_t& f, float& m) {
+      f = int16_t(m / float(args.size()) + 0.5f);
+    });
+    if (!save(*mfv)) {
+      MSG(error) << "failed to save eval-ex.bin";
+      return 1;
+    }
+
     return 0;
   }
 
