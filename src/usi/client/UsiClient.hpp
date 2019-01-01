@@ -85,13 +85,15 @@ private:
 
   void onStart(const Searcher&) override;
 
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh);
+
   void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
   void onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
   void onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
-  void onIterateEnd(const Searcher&, float, int) override {}
+  void onIterateEnd(const Searcher& searcher, float elapsed, int depth) override;
 
   Command receive();
 
@@ -130,8 +132,6 @@ private:
   TimeType whiteIncMs_;
   bool isInfinite_;
   bool inPonder_;
-  bool failLow_;
-  bool failHigh_;
 
   std::unique_ptr<Searcher> searcher_;
   std::atomic<bool> searcherIsStarted_;

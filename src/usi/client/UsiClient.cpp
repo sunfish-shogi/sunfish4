@@ -312,8 +312,6 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   searcherIsStarted_ = false;
   stopCommandReceived_ = false;
   inPonder_ = false;
-  failHigh_ = false;
-  failLow_ = false;
 
   ScopedThread searchThread;
   searchThread.start([this]() {
@@ -412,8 +410,6 @@ void UsiClient::search() {
 bool UsiClient::runPonder(const CommandArguments&) {
   searcherIsStarted_ = false;
   inPonder_ = true;
-  failHigh_ = false;
-  failLow_ = false;
 
   ScopedThread searchThread;
   searchThread.start([this]() {
@@ -489,7 +485,7 @@ void UsiClient::onStart(const Searcher&) {
   searcherIsStarted_ = true;
 }
 
-void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh) {
   auto& info = searcher.getInfo();
 
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
@@ -519,12 +515,8 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
             << score;
 
   if (!inPonder_) {
-    if (failLow_) {
-      send("info", "string", "fail-low");
-    }
-    if (failHigh_) {
-      send("info", "string", "fail-high");
-    }
+    if (failLow) { send("info", "string", "fail-low"); }
+    if (failHigh) { send("info", "string", "fail-high"); }
     send("info",
          "time", timeMs,
          "depth", realDepth,
@@ -535,20 +527,26 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
          "pv", pv.toStringSFEN(),
          "hashfull", hashfull);
   }
-  failLow_ = false;
-  failHigh_ = false;
+  if (failLow) { MSG(info) << "fail-low"; }
+  if (failHigh) { MSG(info) << "fail-high"; }
+}
+
+void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+  onUpdatePV(searcher, pv, elapsed, depth, score, false, false);
 }
 
 void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score);
-  MSG(info) << "fail-low";
-  failLow_ = true;
+  onUpdatePV(searcher, pv, elapsed, depth, score, true, false);
 }
 
 void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score);
-  MSG(info) << "fail-high";
-  failHigh_ = true;
+  onUpdatePV(searcher, pv, elapsed, depth, score, false, true);
+}
+
+void UsiClient::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
+  if (options_.multiPV >= 2) {
+    send("info", "string", "----------");
+  }
 }
 
 UsiClient::Command UsiClient::receive() {

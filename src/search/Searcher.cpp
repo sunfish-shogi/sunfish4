@@ -424,29 +424,26 @@ void Searcher::aspsearch(Tree& tree,
     auto elapsed = timer_.elapsed();
     if (score <= alpha && alpha > -Score::infinity()) {
       // fail-low
-      alpha = score > -Score::infinity() + delta
-            ? score - delta
-            : -Score::infinity();
-      if (isMainThread && handler_ != nullptr) {
+      alpha = score > -Score::infinity() + delta ? score - delta : -Score::infinity();
+      if (isMainThread && handler_ != nullptr && config_.multiPV <= 1) {
         handler_->onFailLow(*this, node.pv, elapsed, depth, score);
       }
+
     } else if (score >= beta && beta < Score::infinity()) {
       // fail-high
-      beta = score < Score::infinity() - delta
-        ? score + delta
-        : Score::infinity();
-      if (isMainThread && handler_ != nullptr) {
+      beta = score < Score::infinity() - delta ? score + delta : Score::infinity();
+      if (isMainThread && handler_ != nullptr && config_.multiPV <= 1) {
         handler_->onFailHigh(*this, node.pv, elapsed, depth, score);
       }
+
     } else if (minScore <= alpha && alpha > -Score::infinity()) {
       // fail-low (multi-PV)
-      alpha = minScore > -Score::infinity() + delta
-            ? minScore - delta
-            : -Score::infinity();
+      alpha = minScore > -Score::infinity() + delta ? minScore - delta : -Score::infinity();
+
     } else {
       // completed
       if (isMainThread && handler_ != nullptr) {
-        if (config_.multiPV == 0) {
+        if (config_.multiPV <= 1) {
           handler_->onUpdatePV(*this, node.pv, elapsed, depth, score);
         } else {
           for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++) {
@@ -454,6 +451,7 @@ void Searcher::aspsearch(Tree& tree,
           }
         }
       }
+
       if (score != -Score::infinity()) {
         storePV(tree.position,
                 node.pv,
