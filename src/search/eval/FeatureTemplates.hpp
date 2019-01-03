@@ -1389,62 +1389,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BBishop,
                                                      EvalPieceIndex::WBishop,
                                                      bs, ws);
-
-      auto eff = MoveTables::rightUp45(occR45, square);
-      bef |= eff;
-
-      int count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopRightUp45[m.bking][bs][count];
-        sum -= ofv.kingWBishopRightUp45[m.wking][ws][count];
-      } else {
-        ofv.kingBBishopRightUp45[m.bking][bs][count] += delta;
-        ofv.kingWBishopRightUp45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::leftDown45(occR45, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopLeftDown45[m.bking][bs][count];
-        sum -= ofv.kingWBishopLeftDown45[m.wking][ws][count];
-      } else {
-        ofv.kingBBishopLeftDown45[m.bking][bs][count] += delta;
-        ofv.kingWBishopLeftDown45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::leftUp45(occL45, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopLeftUp45[m.bking][bs][count];
-        sum -= ofv.kingWBishopLeftUp45[m.wking][ws][count];
-      } else {
-        ofv.kingBBishopLeftUp45[m.bking][bs][count] += delta;
-        ofv.kingWBishopLeftUp45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::rightDown45(occL45, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBBishopRightDown45[m.bking][bs][count];
-        sum -= ofv.kingWBishopRightDown45[m.wking][ws][count];
-      } else {
-        ofv.kingBBishopRightDown45[m.bking][bs][count] += delta;
-        ofv.kingWBishopRightDown45[m.wking][ws][count] -= delta;
-      }
     }
   }
 
@@ -1458,62 +1402,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WBishop,
                                                      EvalPieceIndex::BBishop,
                                                      bs, ws);
-
-      auto eff = MoveTables::leftDown45(occR45, square);
-      wef |= eff;
-
-      int count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopRightUp45[m.bking][bs][count];
-        sum -= ofv.kingBBishopRightUp45[m.wking][ws][count];
-      } else {
-        ofv.kingWBishopRightUp45[m.bking][bs][count] += delta;
-        ofv.kingBBishopRightUp45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::rightUp45(occR45, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopLeftDown45[m.bking][bs][count];
-        sum -= ofv.kingBBishopLeftDown45[m.wking][ws][count];
-      } else {
-        ofv.kingWBishopLeftDown45[m.bking][bs][count] += delta;
-        ofv.kingBBishopLeftDown45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::rightDown45(occL45, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopLeftUp45[m.bking][bs][count];
-        sum -= ofv.kingBBishopLeftUp45[m.wking][ws][count];
-      } else {
-        ofv.kingWBishopLeftUp45[m.bking][bs][count] += delta;
-        ofv.kingBBishopLeftUp45[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::leftUp45(occL45, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWBishopRightDown45[m.bking][bs][count];
-        sum -= ofv.kingBBishopRightDown45[m.wking][ws][count];
-      } else {
-        ofv.kingWBishopRightDown45[m.bking][bs][count] += delta;
-        ofv.kingBBishopRightDown45[m.wking][ws][count] -= delta;
-      }
     }
   }
 
@@ -1532,6 +1420,32 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BHorse,
                                                      EvalPieceIndex::WHorse,
                                                      bs, ws);
+    }
+  }
+
+  {
+    auto whorse = position.getWHorseBitboard();
+    wef |= whorse.left();
+    wef |= whorse.up();
+    wef |= whorse.down();
+    wef |= whorse.right();
+    BB_EACH(square, whorse) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
+                                                     EvalPieceTypeIndex::Horse,
+                                                     EvalPieceIndex::WHorse,
+                                                     EvalPieceIndex::BHorse,
+                                                     bs, ws);
+    }
+  }
+
+  // bishop and horse effect
+  {
+    auto bbishop = position.getBBishopBitboard() | position.getBHorseBitboard();
+    BB_EACH(square, bbishop) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
 
       auto eff = MoveTables::rightUp45(occR45, square);
       bef |= eff;
@@ -1592,19 +1506,10 @@ T operate(OFV& ofv, const Position& position, T delta) {
   }
 
   {
-    auto whorse = position.getWHorseBitboard();
-    wef |= whorse.left();
-    wef |= whorse.up();
-    wef |= whorse.down();
-    wef |= whorse.right();
-    BB_EACH(square, whorse) {
+    auto wbishop = position.getWBishopBitboard() | position.getWHorseBitboard();
+    BB_EACH(square, wbishop) {
       int bs = square.raw();
       int ws = square.psym().raw();
-      sum += operatePiece<type, OFV, T, Turn::White>(ofv, delta, m,
-                                                     EvalPieceTypeIndex::Horse,
-                                                     EvalPieceIndex::WHorse,
-                                                     EvalPieceIndex::BHorse,
-                                                     bs, ws);
 
       auto eff = MoveTables::leftDown45(occR45, square);
       wef |= eff;
@@ -1678,62 +1583,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BRook,
                                                      EvalPieceIndex::WRook,
                                                      bs, ws);
-
-      auto eff = MoveTables::up(occ, square);
-      bef |= eff;
-
-      int count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookUp[m.bking][bs][count];
-        sum -= ofv.kingWRookUp[m.wking][ws][count];
-      } else {
-        ofv.kingBRookUp[m.bking][bs][count] += delta;
-        ofv.kingWRookUp[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::down(occ, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookDown[m.bking][bs][count];
-        sum -= ofv.kingWRookDown[m.wking][ws][count];
-      } else {
-        ofv.kingBRookDown[m.bking][bs][count] += delta;
-        ofv.kingWRookDown[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::left(occ90, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookLeft[m.bking][bs][count];
-        sum -= ofv.kingWRookLeft[m.wking][ws][count];
-      } else {
-        ofv.kingBRookLeft[m.bking][bs][count] += delta;
-        ofv.kingWRookLeft[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::right(occ90, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookRight[m.bking][bs][count];
-        sum -= ofv.kingWRookRight[m.wking][ws][count];
-      } else {
-        ofv.kingBRookRight[m.bking][bs][count] += delta;
-        ofv.kingWRookRight[m.wking][ws][count] -= delta;
-      }
     }
   }
 
@@ -1747,66 +1596,9 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WRook,
                                                      EvalPieceIndex::BRook,
                                                      bs, ws);
-
-      auto eff = MoveTables::down(occ, square);
-      wef |= eff;
-
-      int count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookUp[m.bking][bs][count];
-        sum -= ofv.kingBRookUp[m.wking][ws][count];
-      } else {
-        ofv.kingWRookUp[m.bking][bs][count] += delta;
-        ofv.kingBRookUp[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::up(occ, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookDown[m.bking][bs][count];
-        sum -= ofv.kingBRookDown[m.wking][ws][count];
-      } else {
-        ofv.kingWRookDown[m.bking][bs][count] += delta;
-        ofv.kingBRookDown[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::right(occ90, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookLeft[m.bking][bs][count];
-        sum -= ofv.kingBRookLeft[m.wking][ws][count];
-      } else {
-        ofv.kingWRookLeft[m.bking][bs][count] += delta;
-        ofv.kingBRookLeft[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::left(occ90, square);
-      wef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingWRookRight[m.bking][bs][count];
-        sum -= ofv.kingBRookRight[m.wking][ws][count];
-      } else {
-        ofv.kingWRookRight[m.bking][bs][count] += delta;
-        ofv.kingBRookRight[m.wking][ws][count] -= delta;
-      }
     }
   }
 
-#if 0
   // dragon
   {
     auto bdragon = position.getBDragonBitboard();
@@ -1822,62 +1614,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::BDragon,
                                                      EvalPieceIndex::WDragon,
                                                      bs, ws);
-
-      auto eff = MoveTables::up(occ, square);
-      bef |= eff;
-
-      int count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookUp[m.bking][bs][count];
-        sum -= ofv.kingWRookUp[m.wking][ws][count];
-      } else {
-        ofv.kingBRookUp[m.bking][bs][count] += delta;
-        ofv.kingWRookUp[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::down(occ, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookDown[m.bking][bs][count];
-        sum -= ofv.kingWRookDown[m.wking][ws][count];
-      } else {
-        ofv.kingBRookDown[m.bking][bs][count] += delta;
-        ofv.kingWRookDown[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::left(occ90, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookLeft[m.bking][bs][count];
-        sum -= ofv.kingWRookLeft[m.wking][ws][count];
-      } else {
-        ofv.kingBRookLeft[m.bking][bs][count] += delta;
-        ofv.kingWRookLeft[m.wking][ws][count] -= delta;
-      }
-
-      eff = MoveTables::right(occ90, square);
-      bef |= eff;
-
-      count = eff.count();
-      if (count != 0) { count--; }
-      ASSERT(count >= 0 && count < 8);
-      if (type == FeatureOperationType::Evaluate) {
-        sum += ofv.kingBRookRight[m.bking][bs][count];
-        sum -= ofv.kingWRookRight[m.wking][ws][count];
-      } else {
-        ofv.kingBRookRight[m.bking][bs][count] += delta;
-        ofv.kingWRookRight[m.wking][ws][count] -= delta;
-      }
     }
   }
 
@@ -1895,6 +1631,79 @@ T operate(OFV& ofv, const Position& position, T delta) {
                                                      EvalPieceIndex::WDragon,
                                                      EvalPieceIndex::BDragon,
                                                      bs, ws);
+    }
+  }
+
+  // rook and dragon effect
+  {
+    auto brook = position.getBRookBitboard() | position.getBDragonBitboard();
+    BB_EACH(square, brook) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
+
+      auto eff = MoveTables::up(occ, square);
+      bef |= eff;
+
+      int count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookUp[m.bking][bs][count];
+        sum -= ofv.kingWRookUp[m.wking][ws][count];
+      } else {
+        ofv.kingBRookUp[m.bking][bs][count] += delta;
+        ofv.kingWRookUp[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::down(occ, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookDown[m.bking][bs][count];
+        sum -= ofv.kingWRookDown[m.wking][ws][count];
+      } else {
+        ofv.kingBRookDown[m.bking][bs][count] += delta;
+        ofv.kingWRookDown[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::left(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookLeft[m.bking][bs][count];
+        sum -= ofv.kingWRookLeft[m.wking][ws][count];
+      } else {
+        ofv.kingBRookLeft[m.bking][bs][count] += delta;
+        ofv.kingWRookLeft[m.wking][ws][count] -= delta;
+      }
+
+      eff = MoveTables::right(occ90, square);
+      bef |= eff;
+
+      count = eff.count();
+      if (count != 0) { count--; }
+      ASSERT(count >= 0 && count < 8);
+      if (type == FeatureOperationType::Evaluate) {
+        sum += ofv.kingBRookRight[m.bking][bs][count];
+        sum -= ofv.kingWRookRight[m.wking][ws][count];
+      } else {
+        ofv.kingBRookRight[m.bking][bs][count] += delta;
+        ofv.kingWRookRight[m.wking][ws][count] -= delta;
+      }
+    }
+  }
+
+  {
+    auto wrook = position.getWRookBitboard() | position.getWDragonBitboard();
+    BB_EACH(square, wrook) {
+      int bs = square.raw();
+      int ws = square.psym().raw();
 
       auto eff = MoveTables::down(occ, square);
       wef |= eff;
@@ -1953,7 +1762,6 @@ T operate(OFV& ofv, const Position& position, T delta) {
       }
     }
   }
-#endif
 
   // lance
   {
