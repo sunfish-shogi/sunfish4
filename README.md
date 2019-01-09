@@ -29,7 +29,7 @@ Usage
 
 Download latest version from [Releases](https://github.com/sunfish-shogi/sunfish4/releases).
 
-And register `sunfish_usi.exe` to GUI Shogi application (e.g. [Shogidokoro](http://www.geocities.jp/shogidokoro/index.html), [Shogi GUI](http://shogigui.siganus.com/), [ShogiBrowserQ](http://park.geocities.jp/sbrowser_q/)).
+And register `sunfish_usi.exe` to GUI Shogi application (e.g. [Shogidokoro](http://shogidokoro.starfree.jp/), [Shogi GUI](http://shogigui.siganus.com/), [ShogiBrowserQ](https://www.sbrowser-q.com/)).
 
 Build
 -----
