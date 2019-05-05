@@ -10,6 +10,7 @@
 #include "book/BookGenerator.hpp"
 #include "logger/Logger.hpp"
 #include "tools/sfen2csa/Sfen2Csa.hpp"
+#include "tools/csa2kifu/Csa2Kifu.hpp"
 
 using namespace sunfish;
 
@@ -20,6 +21,7 @@ int main(int argc, char** argv, char**) {
   // program options
   ProgramOptions po;
   po.addOption("sfen2csa", "SFEN-CSA converter");
+  po.addOption("csa2kifu", "CSA-KIFU converter");
   po.addOption("gen-book", "generate opening book", true);
   po.addOption("help", "h", "show this help");
   po.parse(argc, argv);
@@ -51,6 +53,13 @@ int main(int argc, char** argv, char**) {
   if (po.has("sfen2csa")) {
     Sfen2Csa s2c;
     bool ok = s2c.run();
+    return ok ? 0 : 1;
+  }
+
+  // csa2kifu
+  if (po.has("csa2kifu")) {
+    Csa2Kifu c2k;
+    bool ok = c2k.run();
     return ok ? 0 : 1;
   }
 

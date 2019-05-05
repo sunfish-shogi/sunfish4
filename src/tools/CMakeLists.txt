@@ -15,6 +15,8 @@ add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 
 add_executable(sunfish_tools
     Main.cpp
+    csa2kifu/Csa2Kifu.cpp
+    csa2kifu/Csa2Kifu.hpp
     sfen2csa/Sfen2Csa.cpp
     sfen2csa/Sfen2Csa.hpp
 )

@@ -23,6 +23,14 @@ struct RecordInfo {
   /** the title of the record */
   std::string title;
 
+  std::string site;
+
+  std::string opening;
+
+  std::string startTime;
+
+  std::string endTime;
+
   /** the name of black player */
   std::string blackName;
 
@@ -42,6 +50,10 @@ struct RecordInfo {
 inline
 void initializeRecordInfo(RecordInfo& info) {
   info.title = "";
+  info.site = "";
+  info.opening = "";
+  info.startTime = "";
+  info.endTime = "";
   info.blackName = "";
   info.whiteName = "";
   info.timeLimitHours = RecordInfo::InvalidTimeValue;

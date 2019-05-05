@@ -122,7 +122,7 @@ bool CsaReader::readPosition(std::istream& is,
       return InputStatus::Error;
     }
 
-    if (line[0] == '+' || line[0] == '-') {
+    if (line[0] == '+' || line[0] == '-' || (line[0] == 'P' && line[1] == 'I')) {
       return InputStatus::Break;
     }
 
@@ -139,6 +139,8 @@ bool CsaReader::readPosition(const char* line,
   case 'P':
     if (line[1] >= '1' && line[1] <= '9') {
       return readPositionPieces(line, mp);
+    } else if (line[1] == 'I') {
+      return readPositionI(line, mp);
     } else if (line[1] == '+') {
       return readHand(line, mp, Turn::Black);
     } else if (line[1] == '-') {
@@ -181,18 +183,58 @@ bool CsaReader::readPositionPieces(const char* line,
   return true;
 }
 
+bool CsaReader::readPositionI(const char* line,
+                              MutablePosition& mp) {
+  mp = Position(Position::Handicap::Even).getMutablePosition();
+
+  unsigned length = (unsigned)strlen(line);
+  for (unsigned i = 2; i + 4 <= length; i += 4) {
+    unsigned file = line[i+0] - '0';
+    unsigned rank = line[i+1] - '0';
+
+    if (!Square::isValidFile(file) || !Square::isValidRank(rank)) {
+      LOG(error) << "invalid format: " << line;
+      return false;
+    }
+
+    mp.board[Square(file, rank).raw()] = Piece::empty();
+  }
+
+  return true;
+}
+
 bool CsaReader::readInfo(const char* line,
                          RecordInfo& info) {
   if (strncmp(line, "$EVENT:", 7) == 0) {
     info.title = &line[7];
     return true;
   }
-  
+
+  if (strncmp(line, "$SITE:", 6) == 0) {
+    info.site = &line[6];
+    return true;
+  }
+
+  if (strncmp(line, "$OPENING:", 9) == 0) {
+    info.opening = &line[9];
+    return true;
+  }
+
+  if (strncmp(line, "$START_TIME:", 12) == 0) {
+    info.startTime = &line[12];
+    return true;
+  }
+
+  if (strncmp(line, "$END_TIME:", 10) == 0) {
+    info.endTime = &line[10];
+    return true;
+  }
+
   if (strncmp(line, "N+", 2) == 0) {
     info.blackName = &line[2];
     return true;
   }
-  
+
   if (strncmp(line, "N-", 2) == 0) {
     info.whiteName = &line[2];
     return true;
