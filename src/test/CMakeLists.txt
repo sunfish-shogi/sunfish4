@@ -23,6 +23,7 @@ add_executable(sunfish_test
     core/BitboardTest.cpp
     core/CsaReaderTest.cpp
     core/CsaWriterTest.cpp
+    core/KifuWriterTest.cpp
     core/MoveGeneratorTest.cpp
     core/MovesTest.cpp
     core/MoveTablesTest.cpp

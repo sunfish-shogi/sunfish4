@@ -5,7 +5,6 @@
 
 #include "test/Test.hpp"
 #include "core/record/CsaWriter.hpp"
-#include "core/util/PositionUtil.hpp"
 #include <sstream>
 
 using namespace sunfish;
@@ -13,19 +12,7 @@ using namespace sunfish;
 TEST(CsaWriterTest, testWrite) {
   {
     Record record = {
-      PositionUtil::createPositionFromCsaString(
-        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-        "P2 * -HI *  *  *  *  * -KA * \n"
-        "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
-        "P4 *  *  *  *  *  *  *  *  * \n"
-        "P5 *  *  *  *  *  *  *  *  * \n"
-        "P6 *  *  *  *  *  *  *  *  * \n"
-        "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
-        "P8 * +KA *  *  *  *  * +HI * \n"
-        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-        "P+\n"
-        "P-\n"
-        "+\n"),
+      Position(Position::Handicap::Even),
       {
         Move(Square::s77(), Square::s76(), false),
         Move(Square::s33(), Square::s34(), false),
@@ -38,6 +25,10 @@ TEST(CsaWriterTest, testWrite) {
     };
     RecordInfo ri;
     ri.title = "WCSC2016";
+    ri.site = "Waseda";
+    ri.opening = "Kakugawari";
+    ri.startTime = "2019/01/02";
+    ri.endTime = "2019/01/03";
     ri.blackName = "Sunfish";
     ri.whiteName = "Firefly";
     ri.timeLimitHours= 9;
@@ -46,6 +37,10 @@ TEST(CsaWriterTest, testWrite) {
 
     const char* expect =
       "$EVENT:WCSC2016\n"
+      "$SITE:Waseda\n"
+      "$OPENING:Kakugawari\n"
+      "$START_TIME:2019/01/02\n"
+      "$END_TIME:2019/01/03\n"
       "N+Sunfish\n"
       "N-Firefly\n"
       "$TIME_LIMIT:09:30+60\n"
@@ -79,19 +74,7 @@ TEST(CsaWriterTest, testWrite) {
 
   {
     Record record = {
-      PositionUtil::createPositionFromCsaString(
-        "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
-        "P2 * -HI *  *  *  *  * -KA * \n"
-        "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
-        "P4 *  *  *  *  *  *  *  *  * \n"
-        "P5 *  *  *  *  *  *  *  *  * \n"
-        "P6 *  *  *  *  *  *  *  *  * \n"
-        "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
-        "P8 * +KA *  *  *  *  * +HI * \n"
-        "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
-        "P+\n"
-        "P-\n"
-        "+\n"),
+      Position(Position::Handicap::Even),
       {
         Move(Square::s77(), Square::s76(), false),
         Move(Square::s33(), Square::s34(), false),
@@ -104,6 +87,10 @@ TEST(CsaWriterTest, testWrite) {
     };
     RecordInfo ri;
     ri.title = "WCSC2016";
+    ri.site = "Waseda";
+    ri.opening = "Kakugawari";
+    ri.startTime = "2019/01/02";
+    ri.endTime = "2019/01/03";
     ri.blackName = "Sunfish";
     ri.whiteName = "Firefly";
     ri.timeLimitHours= 9;
@@ -112,6 +99,10 @@ TEST(CsaWriterTest, testWrite) {
 
     const char* expect =
       "$EVENT:WCSC2016\n"
+      "$SITE:Waseda\n"
+      "$OPENING:Kakugawari\n"
+      "$START_TIME:2019/01/02\n"
+      "$END_TIME:2019/01/03\n"
       "N+Sunfish\n"
       "N-Firefly\n"
       "$TIME_LIMIT:09:30+60\n"

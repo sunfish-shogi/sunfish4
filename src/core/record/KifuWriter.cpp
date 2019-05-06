@@ -131,17 +131,17 @@ bool KifuWriter::write(std::ostream& os,
   }
 
   if (record.specialMove == "%TORYO") {
-    os << "投了\n";
+    os << idx << " 投了\n";
   } else if (record.specialMove == "%CHUDAN") {
-    os << "中断\n";
+    os << idx << " 中断\n";
   } else if (record.specialMove == "%SENNICHITE") {
-    os << "千日手\n";
+    os << idx << " 千日手\n";
   } else if (record.specialMove == "%TIME_UP") {
-    os << "切れ負け\n";
+    os << idx << " 切れ負け\n";
   } else if (record.specialMove == "%ILLEGAL_MOVE") {
-    os << "反則負け\n";
+    os << idx << " 反則負け\n";
   } else if (record.specialMove == "%JISHOGI") {
-    os << "持将棋\n";
+    os << idx << " 持将棋\n";
   }
 
   return true;
