@@ -122,7 +122,7 @@ bool CsaReader::readPosition(std::istream& is,
       return InputStatus::Error;
     }
 
-    if (line[0] == '+' || line[0] == '-' || (line[0] == 'P' && line[1] == 'I')) {
+    if (line[0] == '+' || line[0] == '-') {
       return InputStatus::Break;
     }
 

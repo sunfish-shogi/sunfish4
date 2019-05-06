@@ -13,6 +13,10 @@ TEST(CsaReaderTest, testRead) {
     std::string src =
       "V2.2\n"
       "$EVENT:WCSC2016\n"
+      "$SITE:Waseda\n"
+      "$OPENING:Kakugawari\n"
+      "$START_TIME:2019/01/02\n"
+      "$END_TIME:2019/01/03\n"
       "N+Sunfish\n"
       "N-Firefly\n"
       "$TIME_LIMIT:01:25+30\n"
@@ -51,6 +55,10 @@ TEST(CsaReaderTest, testRead) {
       "P-\n"
       "+\n", record.initialPosition.toString());
     ASSERT_EQ("WCSC2016", ri.title);
+    ASSERT_EQ("Waseda", ri.site);
+    ASSERT_EQ("Kakugawari", ri.opening);
+    ASSERT_EQ("2019/01/02", ri.startTime);
+    ASSERT_EQ("2019/01/03", ri.endTime);
     ASSERT_EQ("Sunfish", ri.blackName);
     ASSERT_EQ("Firefly", ri.whiteName);
     ASSERT_EQ(1, ri.timeLimitHours);
@@ -278,5 +286,73 @@ TEST(CsaReaderTest, testReadPosition) {
       "P+00FU00FU00FU00KI00KI\n"
       "P-00FU00FU00FU00FU00KY00KA\n"
       "-\n", Position(mp).toString());
+  }
+
+  {
+    std::string src =
+      "$EVENT:WCSC2016\n"
+      "N+Sunfish\n"
+      "N-Firefly\n"
+      "$TIME_LIMIT:01:25+30\n"
+      "PI\n"
+      "+\n";
+    std::istringstream iss(src);
+    Position pos;
+    RecordInfo ri;
+    CsaReader::readPosition(iss, pos, &ri);
+
+    ASSERT_EQ(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 * -HI *  *  *  *  * -KA * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "+\n", pos.toString());
+    ASSERT_EQ("WCSC2016", ri.title);
+    ASSERT_EQ("Sunfish", ri.blackName);
+    ASSERT_EQ("Firefly", ri.whiteName);
+    ASSERT_EQ(1, ri.timeLimitHours);
+    ASSERT_EQ(25, ri.timeLimitMinutes);
+    ASSERT_EQ(30, ri.timeLimitReadoff);
+  }
+
+  {
+    std::string src =
+      "$EVENT:WCSC2016\n"
+      "N+Sunfish\n"
+      "N-Firefly\n"
+      "$TIME_LIMIT:01:25+30\n"
+      "PI82HI22KA\n"
+      "-\n";
+    std::istringstream iss(src);
+    Position pos;
+    RecordInfo ri;
+    CsaReader::readPosition(iss, pos, &ri);
+
+    ASSERT_EQ(
+      "P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n"
+      "P2 *  *  *  *  *  *  *  *  * \n"
+      "P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n"
+      "P4 *  *  *  *  *  *  *  *  * \n"
+      "P5 *  *  *  *  *  *  *  *  * \n"
+      "P6 *  *  *  *  *  *  *  *  * \n"
+      "P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n"
+      "P8 * +KA *  *  *  *  * +HI * \n"
+      "P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+      "P+\n"
+      "P-\n"
+      "-\n", pos.toString());
+    ASSERT_EQ("WCSC2016", ri.title);
+    ASSERT_EQ("Sunfish", ri.blackName);
+    ASSERT_EQ("Firefly", ri.whiteName);
+    ASSERT_EQ(1, ri.timeLimitHours);
+    ASSERT_EQ(25, ri.timeLimitMinutes);
+    ASSERT_EQ(30, ri.timeLimitReadoff);
   }
 }
