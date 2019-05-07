@@ -85,9 +85,9 @@ private:
 
   void onStart(const Searcher&) override;
 
-  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh);
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh, int multiPV);
 
-  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) override;
 
   void onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 

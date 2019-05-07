@@ -14,7 +14,7 @@ namespace sunfish {
 void LoggingSearchHandler::onStart(const Searcher&) {
 }
 
-void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
+void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) {
   auto& info = searcher.getInfo();
 
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
@@ -28,12 +28,12 @@ void LoggingSearchHandler::onUpdatePV(const Searcher& searcher, const PV& pv, fl
 }
 
 void LoggingSearchHandler::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score);
+  onUpdatePV(searcher, pv, elapsed, depth, score, 1);
   MSG(info) << "fail-low";
 }
 
 void LoggingSearchHandler::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score);
+  onUpdatePV(searcher, pv, elapsed, depth, score, 1);
   MSG(info) << "fail-high";
 }
  

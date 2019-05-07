@@ -485,7 +485,7 @@ void UsiClient::onStart(const Searcher&) {
   searcherIsStarted_ = true;
 }
 
-void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh) {
+void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh, int multiPV) {
   auto& info = searcher.getInfo();
 
   auto timeMs = static_cast<uint32_t>(elapsed * 1e3);
@@ -520,33 +520,32 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
     send("info",
          "time", timeMs,
          "depth", realDepth,
+         "seldepth", pv.size(),
          "nodes", totalNodes,
          "nps", nps,
          "currmove", pv.getMove(0).toStringSFEN(),
          "score", scoreKey, scoreValue,
          "pv", pv.toStringSFEN(),
+         "multipv", multiPV,
          "hashfull", hashfull);
   }
   if (failLow) { MSG(info) << "fail-low"; }
   if (failHigh) { MSG(info) << "fail-high"; }
 }
 
-void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score, false, false);
+void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) {
+  onUpdatePV(searcher, pv, elapsed, depth, score, false, false, multiPV);
 }
 
 void UsiClient::onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score, true, false);
+  onUpdatePV(searcher, pv, elapsed, depth, score, true, false, 1);
 }
 
 void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  onUpdatePV(searcher, pv, elapsed, depth, score, false, true);
+  onUpdatePV(searcher, pv, elapsed, depth, score, false, true, 1);
 }
 
 void UsiClient::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
-  if (options_.multiPV >= 2) {
-    send("info", "string", "----------");
-  }
 }
 
 UsiClient::Command UsiClient::receive() {

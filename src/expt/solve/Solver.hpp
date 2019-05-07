@@ -56,9 +56,9 @@ public:
     config_ = config;
   }
 
-  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
   void onIterateEnd(const Searcher& searcher, float elapsed, int depth) override;
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) override;
 
 private:
 

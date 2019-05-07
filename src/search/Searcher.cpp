@@ -294,7 +294,7 @@ void Searcher::idsearch(const Position& pos,
       result_.depth = tree.completedDepth;
       result_.elapsed = timer_.elapsed();
       if (ti != 0 && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, result_.pv, result_.elapsed, result_.depth, result_.score);
+        handler_->onUpdatePV(*this, result_.pv, result_.elapsed, result_.depth, result_.score, 1);
       }
     }
   }
@@ -411,7 +411,7 @@ void Searcher::aspsearch(Tree& tree,
 
     if (isInterrupted()) {
       if (score > alpha && isMainThread && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
+        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score, 1);
       }
       break;
     }
@@ -444,10 +444,11 @@ void Searcher::aspsearch(Tree& tree,
       // completed
       if (isMainThread && handler_ != nullptr) {
         if (config_.multiPV <= 1) {
-          handler_->onUpdatePV(*this, node.pv, elapsed, depth, score);
+          handler_->onUpdatePV(*this, node.pv, elapsed, depth, score, 1);
         } else {
-          for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++) {
-            handler_->onUpdatePV(*this, ite->pv, elapsed, depth, ite->score);
+          int multiPVIdx = 1;
+          for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++, multiPVIdx++) {
+            handler_->onUpdatePV(*this, ite->pv, elapsed, depth, ite->score, multiPVIdx);
           }
         }
       }
@@ -464,6 +465,10 @@ void Searcher::aspsearch(Tree& tree,
     }
 
     delta += delta * ASP_DELTA_RATE / 100;
+  }
+
+  if (isMainThread) {
+    handler_->onIterateEnd(*this, timer_.elapsed(), depth);
   }
 
   if (isMainThread) {

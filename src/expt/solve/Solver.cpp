@@ -151,9 +151,10 @@ bool Solver::solve(const Position& position, Move correct) {
   return true;
 }
 
-void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
+void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) {
+  LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score, multiPV);
   if (!config_.noInterrupt &&
+      multiPV == 1 &&
       depth >= 5 &&
       pv.size() >= 1 &&
       pv.getMove(0) == correct_) {
