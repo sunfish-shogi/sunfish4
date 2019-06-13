@@ -88,6 +88,14 @@ public:
     interrupted_ = true;
   }
 
+  const std::shared_ptr<Evaluator> getEvaluator() const {
+    return evaluator_;
+  }
+
+  std::shared_ptr<Evaluator> getEvaluator() {
+    return evaluator_;
+  }
+
   void setHandler(SearchHandler* handler) {
     handler_ = handler;
   }

@@ -95,7 +95,9 @@ bool Solver::solveCsaFile(const char* path) {
   Position position = record.initialPosition;
 
   for (const auto& move : record.moveList) {
-    solve(position, move);
+    if (!solve(position, move)) {
+      return false;
+    }
 
     Piece captured;
     if (!position.doMove(move, captured)) {
@@ -110,6 +112,11 @@ bool Solver::solveCsaFile(const char* path) {
 }
 
 bool Solver::solve(const Position& position, Move correct) {
+  if (searcher_.getEvaluator()->dataSourceType() != Evaluator::DataSourceType::EvalBin) {
+    LOG(error) << "eval.bin is required";
+    return false;
+  }
+
   MSG(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
