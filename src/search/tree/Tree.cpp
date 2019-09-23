@@ -41,7 +41,7 @@ namespace sunfish {
 void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv, Score score, int capacity) {
   auto ite = rootPVs.begin();
   for (; ite != rootPVs.end(); ite++) {
-    if (score <= ite->score) {
+    if (ite->score < score) {
       break;
     }
   }
@@ -49,7 +49,7 @@ void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv
   ite->pv.set(move, depth, pv);
   ite->score = score;
   if (rootPVs.size() > capacity) {
-    rootPVs.pop_front();
+    rootPVs.pop_back();
   }
 }
 

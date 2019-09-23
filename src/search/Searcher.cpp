@@ -418,7 +418,7 @@ void Searcher::aspsearch(Tree& tree,
 
     Score minScore = score;
     if (!tree.rootPVs.empty()) {
-      minScore = tree.rootPVs.begin()->score;
+      minScore = (--tree.rootPVs.end())->score;
     }
 
     auto elapsed = timer_.elapsed();
@@ -890,7 +890,7 @@ Score Searcher::search(Tree& tree,
       if (tree.rootPVs.size() < config_.multiPV) {
         newAlpha = alpha;
       } else if (!tree.rootPVs.empty()) {
-        newAlpha = std::max(alpha, tree.rootPVs.begin()->score);
+        newAlpha = std::max(alpha, (--tree.rootPVs.end())->score);
       }
     }
 
