@@ -11,6 +11,7 @@
 #include "core/record/Record.hpp"
 #include "book/Book.hpp"
 #include "search/Searcher.hpp"
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,6 +19,7 @@
 #include <mutex>
 #include <thread>
 #include <queue>
+#include <utility>
 #include <cstdint>
 
 namespace sunfish {
@@ -30,76 +32,57 @@ private:
   using TimeType = SearchConfig::TimeType;
 
   struct Options {
-    bool ponder;
-    unsigned hash;
-    bool useBook;
-    bool snappy;
-    int marginMs;
-    int numberOfThreads;
-    int maxDepth;
-    int multiPV;
+    std::atomic_bool ponder;
+    std::atomic_uint hash;
+    std::atomic_bool useBook;
+    std::atomic_bool snappy;
+    std::atomic_int marginMs;
+    std::atomic_int numberOfThreads;
+    std::atomic_int maxDepth;
+    std::atomic_int multiPV;
   };
 
   enum class CommandState : uint8_t {
     Ok,
-    Error,
     Broken,
-  };
-
-  struct Command {
-    CommandState state;
-    std::string value;
   };
 
 public:
 
   UsiClient();
 
-  bool start();
+  void start();
 
 private:
 
-  bool acceptUsi();
+  void ready();
+  void receiveNewGame();
+  void game();
+  void receiveGo();
 
-  bool ready();
-
-  void setOption(const CommandArguments&);
-
-  bool receiveNewGame();
-
-  bool game();
-
-  bool receiveGo();
-
-  bool runSearch(const CommandArguments& args);
-
+  void runSearch(const CommandArguments& args);
   void search();
 
-  bool runPonder(const CommandArguments& args);
-
+  void runPonder(const CommandArguments& args);
   void ponder();
 
   void waitForSearcherIsStarted();
-
   void waitForStopCommand();
 
   void onStart(const Searcher&) override;
-
   void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, bool failLow, bool failHigh, int multiPV);
-
   void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) override;
-
   void onFailLow(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
-
   void onFailHigh(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
-
   void onIterateEnd(const Searcher& searcher, float elapsed, int depth) override;
 
-  Command receive();
+  std::string receive();
 
-  Command receiveWithBreak();
+  std::pair<CommandState, std::string> receiveWithBreak();
 
   void receiver();
+  void acceptUsi();
+  void setOption(const CommandArguments&);
 
   void breakReceive();
 
@@ -118,7 +101,7 @@ private:
   Options options_;
 
   std::queue<std::string> deferredCommands_;
-  std::queue<Command> commandQueue_;
+  std::queue<std::string> commandQueue_;
 
   std::string lastPositionCommand_;
   std::string lastGoCommand_;

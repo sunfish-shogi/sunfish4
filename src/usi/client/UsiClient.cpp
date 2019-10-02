@@ -50,66 +50,24 @@ UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   options_.maxDepth = Searcher::DepthInfinity;
 }
 
-bool UsiClient::start() {
-  // >usi
-  // <usiok
-  bool usiAccepted = acceptUsi();
-  if (!usiAccepted) {
-    return false;
-  }
-
+void UsiClient::start() {
   for (;;) {
     // >isready
     // <readyok
+    ready();
+
     // >usinewgame
-    bool readyOk = ready() && receiveNewGame();
-    if (!readyOk) {
-      return false;
-    }
+    receiveNewGame();
 
-    bool gameOk = game();
-    if (!gameOk) {
-      return false;
-    }
+    game();
   }
 }
 
-bool UsiClient::acceptUsi() {
-  auto command = receive();
-  if (command.state != CommandState::Ok) {
-    return false;
-  }
-
-  if (command.value != "usi") {
-    LOG(error) << "invalid command: " << command.value;
-    return false;
-  }
-
-  auto name = Resource::string(resources::ProgramName, "Sunfish4");
-  auto author = Resource::string(resources::Author, "Kubo Ryosuke");
-  send("id", "name", name);
-  send("id", "author", author);
-
-  send("option", "name", "UseBook", "type", "check", "default", "true");
-  send("option", "name", "Snappy", "type", "check", "default", "true");
-  send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
-  send("option", "name", "Threads", "type", "spin", "default", "1", "min", "1", "max", "32");
-  send("option", "name", "MaxDepth", "type", "spin", "default", "64", "min", "1", "max", "64");
-  send("option", "name", "MultiPV", "type", "spin", "default", "1", "min", "1", "max", "10");
-
-  send("usiok");
-
-  return true;
-}
-
-bool UsiClient::ready() {
+void UsiClient::ready() {
   for (;;) {
     auto command = receive();
-    if (command.state != CommandState::Ok) {
-      return false;
-    }
 
-    if (command.value == "isready") {
+    if (command == "isready") {
       if (!searcher_) {
         auto dataSourceType = Evaluator::sharedEvaluator()->dataSourceType();
         if (dataSourceType != Evaluator::DataSourceType::EvalBin) {
@@ -133,70 +91,34 @@ bool UsiClient::ready() {
       }
 
       send("readyok");
-      return true;
+      return;
     }
 
-    auto args = StringUtil::split(command.value, [](char c) {
+    auto args = StringUtil::split(command, [](char c) {
       return isspace(c);
     });
 
-    if (args[0] == "setoption") {
-      setOption(args);
-      continue;
-    }
-
-    LOG(error) << "unknown command: " << command.value;
-    return false;
+    LOG(error) << "unknown command: " << command;
+    exit(0);
   }
 }
 
-void UsiClient::setOption(const CommandArguments& args) {
-  const auto& name = args[2];
-  const auto& value = args[4];
-
-  if (name == "USI_Ponder") {
-    options_.ponder = value == "true";
-  } else if (name == "USI_Hash") {
-    options_.hash = std::stoi(value);
-  } else if (name == "UseBook") {
-    options_.useBook = value == "true";
-  } else if (name == "Snappy") {
-    options_.snappy = value == "true";
-  } else if (name == "MarginMs") {
-    options_.marginMs = StringUtil::toInt(value, options_.marginMs);
-  } else if (name == "Threads") {
-    options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
-  } else if (name == "MaxDepth") {
-    options_.maxDepth = StringUtil::toInt(value, options_.maxDepth);
-  } else if (name == "MultiPV") {
-    options_.multiPV = StringUtil::toInt(value, options_.multiPV);
-  } else {
-    LOG(warning) << "unknown option: " << name;
-  }
-}
-
-bool UsiClient::receiveNewGame() {
+void UsiClient::receiveNewGame() {
   auto command = receive();
-  if (command.state != CommandState::Ok) {
-    return false;
+
+  if (command == "usinewgame") {
+    return;
   }
 
-  if (command.value == "usinewgame") {
-    return true;
-  }
-
-  LOG(error) << "unknown command: " << command.value;
-  return false;
+  LOG(error) << "unknown command: " << command;
+  exit(0);
 }
 
-bool UsiClient::game() {
+void UsiClient::game() {
   for (;;) {
     auto command = receive();
-    if (command.state != CommandState::Ok) {
-      return false;
-    }
 
-    auto args = StringUtil::split(command.value, [](char c) {
+    auto args = StringUtil::split(command, [](char c) {
       return isspace(c);
     });
 
@@ -207,60 +129,55 @@ bool UsiClient::game() {
                                        args.end(),
                                        record_)) {
         LOG(error) << "an error is occured in SfenParser";
-        return false;
+        exit(0);
       }
-      lastPositionCommand_ = command.value;
+      lastPositionCommand_ = command;
 
-
-      if (!receiveGo()) {
-        return false;
-      }
+      receiveGo();
 
       continue;
     }
 
     // >gameover
     if (args[0] == "gameover") {
-      return true;
+      return;
     }
 
-    LOG(error) << "unknown command: " << command.value;
-    return false;
+    LOG(error) << "unknown command: " << command;
+    exit(0);
   }
 }
 
-bool UsiClient::receiveGo() {
+void UsiClient::receiveGo() {
   auto command = receive();
-  if (command.state != CommandState::Ok) {
-    return false;
-  }
 
-  auto args = StringUtil::split(command.value, [](char c) {
+  auto args = StringUtil::split(command, [](char c) {
     return isspace(c);
   });
 
   if (args[0] != "go") {
-    LOG(error) << "invalid command: " << command.value;
-    return false;
+    LOG(error) << "invalid command: " << command;
+    exit(0);
   }
-  lastGoCommand_ = command.value;
+  lastGoCommand_ = command;
 
   // > go ponder
   if (args[1] == "ponder") {
-    return runPonder(args);
+    runPonder(args);
+    return;
   }
  
   // > go mate
   if (args[1] == "mate") {
     LOG(warning) << "mate option is not supported";
     send("checkmate" "nomate");
-    return true;
+    return;
   }
 
-  return runSearch(args);
+  runSearch(args);
 }
 
-bool UsiClient::runSearch(const CommandArguments& args) {
+void UsiClient::runSearch(const CommandArguments& args) {
   blackTimeMs_ = 0;
   whiteTimeMs_ = 0;
   byoyomiMs_ = 0;
@@ -305,7 +222,7 @@ bool UsiClient::runSearch(const CommandArguments& args) {
       auto bookMoves = book_.get(pos);
       send("info", "string", BookUtil::stringify(pos, *bookMoves));
       send("bestmove", bookMove.toStringSFEN());
-      return true;
+      return;
     }
   }
 
@@ -323,25 +240,17 @@ bool UsiClient::runSearch(const CommandArguments& args) {
   waitForSearcherIsStarted();
 
   auto command = receiveWithBreak();
-  if (command.state == CommandState::Broken) {
-    return true;
+  if (command.first == CommandState::Broken) {
+    return;
   }
 
-  if (command.state != CommandState::Ok) {
-    return false;
-  }
-
-  auto args2 = StringUtil::split(command.value, [](char c) {
+  auto args2 = StringUtil::split(command.second, [](char c) {
     return isspace(c);
   });
 
-  if (args2[0] == "stop") {
-    return true;
+  if (args2[0] != "stop") {
+    deferredCommands_.push(command.second);
   }
-
-  deferredCommands_.push(command.value);
- 
-  return true;
 }
 
 void UsiClient::search() {
@@ -407,7 +316,7 @@ void UsiClient::search() {
   MSG(info) << "search thread is stopped. tid=" << std::this_thread::get_id();
 }
 
-bool UsiClient::runPonder(const CommandArguments&) {
+void UsiClient::runPonder(const CommandArguments&) {
   searcherIsStarted_ = false;
   inPonder_ = true;
 
@@ -420,17 +329,14 @@ bool UsiClient::runPonder(const CommandArguments&) {
   waitForSearcherIsStarted();
 
   auto command = receive();
-  if (command.state != CommandState::Ok) {
-    return false;
-  }
 
-  auto args = StringUtil::split(command.value, [](char c) {
+  auto args = StringUtil::split(command, [](char c) {
     return isspace(c);
   });
 
   if (args[0] == "stop") {
     send("bestmove", "resign");
-    return true;
+    return;
   }
 
   if (args[0] == "ponderhit") {
@@ -440,12 +346,10 @@ bool UsiClient::runPonder(const CommandArguments&) {
                            "");
     deferredCommands_.push(lastPositionCommand_);
     deferredCommands_.push(lastGoCommand_);
-    return true;
+    return;
   }
 
-  deferredCommands_.push(command.value);
- 
-  return true;
+  deferredCommands_.push(command);
 }
 
 void UsiClient::ponder() {
@@ -548,16 +452,16 @@ void UsiClient::onFailHigh(const Searcher& searcher, const PV& pv, float elapsed
 void UsiClient::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
 }
 
-UsiClient::Command UsiClient::receive() {
+std::string UsiClient::receive() {
   for (;;) {
-    auto commandState = receiveWithBreak();
-    if (commandState.state != CommandState::Broken) {
-      return commandState;
+    auto command = receiveWithBreak();
+    if (command.first != CommandState::Broken) {
+      return command.second;
     }
   }
 }
 
-UsiClient::Command UsiClient::receiveWithBreak() {
+std::pair<UsiClient::CommandState, std::string> UsiClient::receiveWithBreak() {
   if (!deferredCommands_.empty()) {
     auto command = deferredCommands_.front();
     deferredCommands_.pop();
@@ -571,7 +475,7 @@ UsiClient::Command UsiClient::receiveWithBreak() {
       if (!commandQueue_.empty()) {
         auto cs = commandQueue_.front();
         commandQueue_.pop();
-        return cs;
+        return { CommandState::Ok, cs };
       }
     }
   }
@@ -581,39 +485,100 @@ UsiClient::Command UsiClient::receiveWithBreak() {
 }
 
 void UsiClient::receiver() {
+  bool usi = false;
+
   for (;;) {
-    CommandState state;
     std::string command;
     std::getline(std::cin, command);
 
     if (std::cin.eof()) {
       LOG(warning) << "reached to EOF.";
       exit(0);
-
     } else if (!std::cin.good()) {
-      state = CommandState::Error;
       LOG(error) << "an error is occured in STDIN.";
-
+      exit(0);
     } else if (command.empty()) {
-      state = CommandState::Error;
       LOG(error) << "received an empty string.";
+      exit(0);
+    }
 
-    } else if (command == "quit") {
+    MSG(receive) << command;
+
+    // > usi
+    // < usiok
+    if (!usi) {
+      if (command == "usi") {
+        acceptUsi();
+        usi = true;
+        continue;
+      } else {
+        LOG(error) << "invalid command: " << command;
+        exit(0);
+      }
+    }
+
+    // > quit
+    if (command == "quit") {
       MSG(info) << "quit";
       exit(0);
+    }
 
-    } else {
-      state = CommandState::Ok;
-      MSG(receive) << command;
+    auto args = StringUtil::split(command, [](char c) {
+      return isspace(c);
+    });
+
+    if (args[0] == "setoption") {
+      setOption(args);
+      continue;
     }
 
     {
       std::lock_guard<std::mutex> lock(receiveMutex_);
       commandQueue_.push({
-        state,
         command
       });
     }
+  }
+}
+
+void UsiClient::acceptUsi() {
+  auto name = Resource::string(resources::ProgramName, "Sunfish4");
+  auto author = Resource::string(resources::Author, "Kubo Ryosuke");
+  send("id", "name", name);
+  send("id", "author", author);
+
+  send("option", "name", "UseBook", "type", "check", "default", "true");
+  send("option", "name", "Snappy", "type", "check", "default", "true");
+  send("option", "name", "MarginMs", "type", "spin", "default", "500", "min", "0", "max", "2000");
+  send("option", "name", "Threads", "type", "spin", "default", "1", "min", "1", "max", "32");
+  send("option", "name", "MaxDepth", "type", "spin", "default", "64", "min", "1", "max", "64");
+  send("option", "name", "MultiPV", "type", "spin", "default", "1", "min", "1", "max", "10");
+
+  send("usiok");
+}
+
+void UsiClient::setOption(const CommandArguments& args) {
+  const auto& name = args[2];
+  const auto& value = args[4];
+
+  if (name == "USI_Ponder") {
+    options_.ponder = value == "true";
+  } else if (name == "USI_Hash") {
+    options_.hash = std::stoi(value);
+  } else if (name == "UseBook") {
+    options_.useBook = value == "true";
+  } else if (name == "Snappy") {
+    options_.snappy = value == "true";
+  } else if (name == "MarginMs") {
+    options_.marginMs = StringUtil::toInt(value, options_.marginMs);
+  } else if (name == "Threads") {
+    options_.numberOfThreads = StringUtil::toInt(value, options_.numberOfThreads);
+  } else if (name == "MaxDepth") {
+    options_.maxDepth = StringUtil::toInt(value, options_.maxDepth);
+  } else if (name == "MultiPV") {
+    options_.multiPV = StringUtil::toInt(value, options_.multiPV);
+  } else {
+    LOG(warning) << "unknown option: " << name;
   }
 }
 
