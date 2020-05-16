@@ -5,6 +5,8 @@ jobs:
     parallelism: 1
     docker:
       - image: ubuntu
+    environment:
+      - DEBIAN_FRONTEND: noninteractive
     steps:
       - checkout
       - run: apt-get update
