@@ -29,7 +29,7 @@ public:
     uint64_t sample;
   };
 
-  static CONSTEXPR_CONST int MaxDepthOfNodeCount = 10;
+  static CONSTEXPR_CONST int MaxDepthOfNodeCount = 20;
 
   struct Result {
     unsigned corrected;
