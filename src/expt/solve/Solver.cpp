@@ -173,11 +173,10 @@ void Solver::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
   LoggingSearchHandler::onIterateEnd(searcher, elapsed, depth);
   auto& info = searcher.getInfo();
   auto realDepth = depth / Searcher::Depth1Ply;
-  for (int i = 0; i < MaxDepthOfNodeCount; i++) {
-    if (realDepth == i + 1) {
-      result_.nodesEachDepth[i].nodes += info.nodes + info.quiesNodes;
-      result_.nodesEachDepth[i].sample++;
-    }
+  if (realDepth >= 1 && realDepth <= MaxDepthOfNodeCount) {
+    auto i = realDepth - 1;
+    result_.nodesEachDepth[i].nodes += info.nodes + info.quiesNodes;
+    result_.nodesEachDepth[i].sample++;
   }
 }
 
