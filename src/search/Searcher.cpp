@@ -470,10 +470,6 @@ void Searcher::aspsearch(Tree& tree,
   if (isMainThread) {
     handler_->onIterateEnd(*this, timer_.elapsed(), depth);
   }
-
-  if (isMainThread) {
-    handler_->onIterateEnd(*this, timer_.elapsed(), depth);
-  }
 }
 
 /**
