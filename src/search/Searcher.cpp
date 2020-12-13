@@ -1402,14 +1402,13 @@ void Searcher::sortMoves(Tree& tree) {
       if (move.isDrop()) {
         auto pieceType = move.droppingPieceType();
         value = pieceToHistory_.get(turn, pieceType, move.to());
-        value *= 2;
       } else {
         auto pieceType = tree.position.getPieceOnBoard(move.from()).type();
         if (move.isPromotion()) {
           pieceType = pieceType.promote();
         }
-        value = fromToHistory_.get(turn, move.from(), move.to())
-              + pieceToHistory_.get(turn, pieceType, move.to());
+        value = std::max(fromToHistory_.get(turn, move.from(), move.to()),
+                         pieceToHistory_.get(turn, pieceType, move.to()));
       }
       move.setExtData(static_cast<Move::RawType16>(value));
     }
