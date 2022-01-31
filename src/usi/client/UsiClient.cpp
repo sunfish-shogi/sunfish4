@@ -42,12 +42,13 @@ UsiClient::UsiClient() : breakReceiver_(false), isBookLoaded(false) {
   });
 
   options_.ponder = true;
-  options_.hash = 0;
+  options_.hash = 32;
   options_.useBook = true;
   options_.snappy = true;
   options_.marginMs = 500;
   options_.numberOfThreads = 1;
-  options_.maxDepth = Searcher::DepthInfinity;
+  options_.maxDepth = 64;
+  options_.multiPV = 1;
 }
 
 void UsiClient::start() {
