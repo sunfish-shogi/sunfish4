@@ -1,7 +1,7 @@
 Sunfish
 =======
 
-[![Circle CI](https://circleci.com/gh/sunfish-shogi/sunfish4.svg?style=svg)](https://circleci.com/gh/sunfish-shogi/sunfish4)
+[![Test](https://github.com/sunfish-shogi/sunfish4/actions/workflows/test.yaml/badge.svg)](https://github.com/sunfish-shogi/sunfish4/actions/workflows/test.yaml)
 
 [English](README.en.md)
 
