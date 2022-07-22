@@ -430,9 +430,9 @@ void UsiClient::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed
          "nps", nps,
          "currmove", pv.getMove(0).toStringSFEN(),
          "score", scoreKey, scoreValue,
-         "pv", pv.toStringSFEN(),
          "multipv", multiPV,
-         "hashfull", hashfull);
+         "hashfull", hashfull,
+         "pv", pv.toStringSFEN());
   }
   if (failLow) { MSG(info) << "fail-low"; }
   if (failHigh) { MSG(info) << "fail-high"; }
