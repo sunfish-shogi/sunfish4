@@ -55,13 +55,8 @@ cmake -G Xcode ../../src/test
 
 ### Visual Studio
 
-Set parameters into CMake as follows.
-( target is `usi`, `csa`, etc.)
-
-| Name                        | Value                       |
-|:----------------------------|----------------------------:|
-| Where is the source code    | path/to/sunfish4/src/target |
-| Where to build the binaries | path/to/sunfish4/vs/target  |
+See [CMake projects in Visual Studio](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170) and setup CMake into Visual Studio, and open a folder containing CMakeSettings.txt.
+For example, if you want to build USI, open `src/usi` .
 
 Build Targets
 -------------

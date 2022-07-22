@@ -59,13 +59,8 @@ cmake -G Xcode ../../src/test # CMake を実行
 
 ### Visual Studio の場合
 
-CMake へ以下のように値を設定して実行します。
-(target は `usi`, `csa`, など)
-
-| Name                        | Value                       |
-|:----------------------------|----------------------------:|
-| Where is the source code    | path/to/sunfish4/src/target |
-| Where to build the binaries | path/to/sunfish4/vs/target  |
+[Visual Studio の CMake プロジェクト](https://docs.microsoft.com/ja-jp/cpp/build/cmake-projects-in-visual-studio) を参考にして CMake をセットアップし、 CMakeSettings.txt があるフォルダを選択してください。
+例えば USI のビルドをする場合は `src/usi` を開きます。
 
 Makefile の Build Targets (開発者向け)
 --------------------------------------
