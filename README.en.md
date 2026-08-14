@@ -36,7 +36,7 @@ Build
 
 ### Requirements
 
-- CMake
+- CMake 3.16 or later
 - C++ Compiler(GCC4.9/Clang/MSVC2013)
 
 ### GNU Make

@@ -38,7 +38,7 @@ https://github.com/sunfish-shogi/sunfish4/releases
 
 ### 必要なもの
 
-- CMake
+- CMake 3.16 以降
 - C++ Compiler(GCC4.9/Clang/MSVC2013)
 
 ### GNU Make の場合
