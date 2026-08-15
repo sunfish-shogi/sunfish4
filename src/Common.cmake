@@ -16,7 +16,15 @@ else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_ROOT_MOVES_SHUFFLE=1")
         set(CMAKE_CXX_FLAGS_RELEASE "-O -DNDEBUG")
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -msse2 -fno-rtti -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -fno-rtti -pthread")
+
+    # -msse2 is only valid for x86 targets.
+    # Apple clang (and GCC) treat it as an error on arm64, so enable it only when supported.
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-msse2" SUNFISH_HAS_SSE2_FLAG)
+    if(SUNFISH_HAS_SSE2_FLAG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+    endif()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-exceptions")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-exceptions")
 endif()
