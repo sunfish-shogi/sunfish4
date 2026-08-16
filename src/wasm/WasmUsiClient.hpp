@@ -6,6 +6,8 @@
 #ifndef SUNFISH_WASM_WASMUSICLIENT_HPP__
 #define SUNFISH_WASM_WASMUSICLIENT_HPP__
 
+#include "book/Book.hpp"
+#include "common/math/Random.hpp"
 #include "core/record/Record.hpp"
 #include "search/SearchHandler.hpp"
 #include "search/Searcher.hpp"
@@ -42,11 +44,15 @@ private:
   void onIterateEnd(const Searcher&, float, int) override;
 
   std::unique_ptr<Searcher> searcher_;
+  Book book_;
+  Random random_;
   Record record_;
   bool initialized_;
   bool ready_;
   bool terminated_;
   bool searching_;
+  bool bookLoaded_;
+  bool useBook_;
   unsigned hashMB_;
   bool snappy_;
   int marginMs_;

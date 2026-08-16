@@ -108,9 +108,10 @@ make test
 make wasm
 ```
 
-成果物は `out/wasm/sunfish4/` に生成されます。このディレクトリを ShogiHome の
-`public/engines/sunfish4/` へコピーしてください。wasm 版は pthread および `Threads`
-オプションを使用しません。
+成果物は `out/wasm/sunfish4/` に生成されます。このディレクトリの内容と、別途用意した
+`eval.bin` および `book.bin` を ShogiHome の `public/engines/sunfish4/` に配置して
+ください。データファイルはビルド成果物へコピーされません。wasm 版は pthread および
+`Threads` オプションを使用しません。
 
 ### 実験
 

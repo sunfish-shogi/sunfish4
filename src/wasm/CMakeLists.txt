@@ -10,12 +10,13 @@ include(../Common.cmake)
 include_directories("..")
 
 add_subdirectory(../search "${CMAKE_CURRENT_BINARY_DIR}/search")
+add_subdirectory(../book "${CMAKE_CURRENT_BINARY_DIR}/book")
 add_subdirectory(../core "${CMAKE_CURRENT_BINARY_DIR}/core")
 add_subdirectory(../common "${CMAKE_CURRENT_BINARY_DIR}/common")
 add_subdirectory(../logger "${CMAKE_CURRENT_BINARY_DIR}/logger")
 
 add_executable(sunfish4 Exports.cpp WasmUsiClient.cpp WasmUsiClient.hpp)
-target_link_libraries(sunfish4 search core common logger)
+target_link_libraries(sunfish4 search book core common logger)
 set_target_properties(sunfish4 PROPERTIES SUFFIX ".js")
 
 target_link_options(sunfish4 PRIVATE

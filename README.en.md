@@ -104,9 +104,10 @@ target in Docker with `emscripten/emsdk:6.0.6`.
 make wasm
 ```
 
-The package is written to `out/wasm/sunfish4/`. Copy that directory to
-ShogiHome's `public/engines/sunfish4/`. The wasm build uses neither pthreads nor
-the `Threads` option.
+The package is written to `out/wasm/sunfish4/`. Place its contents together with
+separately supplied `eval.bin` and `book.bin` files in ShogiHome's
+`public/engines/sunfish4/`. The data files are not copied into the build output.
+The wasm build uses neither pthreads nor the `Threads` option.
 
 ### Experiments
 

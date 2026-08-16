@@ -1,6 +1,7 @@
 /* WasmUsiClient.cpp */
 
 #include "wasm/WasmUsiClient.hpp"
+#include "book/BookUtil.hpp"
 #include "common/string/StringUtil.hpp"
 #include "core/record/SfenParser.hpp"
 #include "core/util/CoreUtil.hpp"
@@ -49,6 +50,8 @@ WasmUsiClient::WasmUsiClient() :
   ready_(false),
   terminated_(false),
   searching_(false),
+  bookLoaded_(false),
+  useBook_(true),
   hashMB_(32),
   snappy_(true),
   marginMs_(500),
@@ -95,6 +98,7 @@ void WasmUsiClient::command(const std::string& line) {
 void WasmUsiClient::acceptUsi() {
   output("id name Sunfish4");
   output("id author Kubo, Ryosuke");
+  output("option name UseBook type check default true");
   output("option name Snappy type check default true");
   output("option name MarginMs type spin default 500 min 0 max 2000");
   output("option name MaxDepth type spin default 64 min 1 max 64");
@@ -109,6 +113,8 @@ void WasmUsiClient::setOption(const Arguments& args) {
   long value = 0;
   if (args[2] == "USI_Hash" && parseInteger(args[4], 1, 256, value)) {
     hashMB_ = static_cast<unsigned>(value);
+  } else if (args[2] == "UseBook") {
+    useBook_ = args[4] == "true";
   } else if (args[2] == "Snappy") {
     snappy_ = args[4] == "true";
   } else if (args[2] == "MarginMs" && parseInteger(args[4], 0, 2000, value)) {
@@ -133,6 +139,10 @@ void WasmUsiClient::ready() {
     searcher_->clean();
   }
   searcher_->ttResizeMB(hashMB_);
+  if (!bookLoaded_) {
+    book_.load();
+    bookLoaded_ = true;
+  }
   ready_ = true;
   output("readyok");
 }
@@ -193,6 +203,16 @@ void WasmUsiClient::go(const Arguments& args) {
   }
 
   auto position = generatePosition(record_, -1);
+  if (useBook_) {
+    Move bookMove = BookUtil::select(book_, position, random_);
+    if (!bookMove.isNone()) {
+      const auto* bookMoves = book_.get(position);
+      output(std::string("info string ") +
+          BookUtil::stringify(position, *bookMoves));
+      output(std::string("bestmove ") + bookMove.toStringSFEN());
+      return;
+    }
+  }
   if (!infinite && config.maximumTimeMs == SearchConfig::InfinityTime) {
     bool black = position.getTurn() == Turn::Black;
     long remaining = black ? blackTime : whiteTime;
