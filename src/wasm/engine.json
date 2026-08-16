@@ -11,9 +11,9 @@
   "options": [
     { "name": "UseBook", "type": "check", "default": "true" },
     { "name": "Snappy", "type": "check", "default": "true" },
-    { "name": "MarginMs", "type": "spin", "default": "500", "min": "0", "max": "2000" },
-    { "name": "MaxDepth", "type": "spin", "default": "64", "min": "1", "max": "64" },
-    { "name": "MultiPV", "type": "spin", "default": "1", "min": "1", "max": "10" }
+    { "name": "MarginMs", "type": "spin", "default": 500, "min": 0, "max": 2000 },
+    { "name": "MaxDepth", "type": "spin", "default": 64, "min": 1, "max": 64 },
+    { "name": "MultiPV", "type": "spin", "default": 1, "min": 1, "max": 10 }
   ],
   "presets": [
     {
