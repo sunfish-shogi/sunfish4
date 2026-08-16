@@ -7,6 +7,7 @@ package_dir=out/wasm/sunfish4
 rm -rf "$build_dir" "$package_dir"
 emcmake cmake -S src/wasm -B "$build_dir" -DCMAKE_BUILD_TYPE=Release
 cmake --build "$build_dir" --parallel
+chmod a-x "$build_dir/sunfish4.wasm"
 
 mkdir -p "$package_dir"
 cp "$build_dir/sunfish4.js" "$build_dir/sunfish4.wasm" "$package_dir/"
