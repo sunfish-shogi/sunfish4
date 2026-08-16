@@ -1,6 +1,7 @@
 /sunfish_*
 /out/test_result.xml
 /out/build
+/out/wasm/
 /out/date
 
 *.html
