@@ -36,6 +36,7 @@ add_executable(sunfish_test
     search/EvaluatorTest.cpp
     search/FeatureVectorTest.cpp
     search/History.cpp
+    search/IncrementalSearcherTest.cpp
     search/MaterialTest.cpp
     search/MateTest.cpp
     search/ScoreTest.cpp

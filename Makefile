@@ -47,6 +47,7 @@ help:
 	@echo '  make csa-debug'
 	@echo '  make usi'
 	@echo '  make usi-debug'
+	@echo '  make wasm'
 	@echo '  make tools'
 	@echo '  make dev'
 	@echo '  make clean'
@@ -160,6 +161,10 @@ usi-debug:
 	cd $(BUILD_DIR)/$@ && $(CMAKE) -D CMAKE_BUILD_TYPE=RelWithDebInfo $(PROJ_ROOT)/src/usi
 	cd $(BUILD_DIR)/$@ && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH_USI) $(SUNFISH_USI)
+
+.PHONY: wasm
+wasm:
+	tools/build-wasm.sh
 
 .PHONY: tools
 tools:

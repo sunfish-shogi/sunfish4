@@ -95,6 +95,19 @@ Register `sunfish_usi.exe` or `sunfish_usi` into the GUI application.
 make test
 ```
 
+### ShogiHome WebAssembly Engine
+
+Build the single-threaded [ShogiHome wasm engine ABI](specs/shogihome/wasm-engine-abi.md)
+target in Docker with `emscripten/emsdk:6.0.6`.
+
+```sh
+make wasm
+```
+
+The package is written to `out/wasm/sunfish4/`. Copy that directory to
+ShogiHome's `public/engines/sunfish4/`. The wasm build uses neither pthreads nor
+the `Threads` option.
+
 ### Experiments
 
 ```

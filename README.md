@@ -99,6 +99,19 @@ make usi
 make test
 ```
 
+### ShogiHome WebAssembly エンジン
+
+[ShogiHome wasm engine ABI](specs/shogihome/wasm-engine-abi.md) に対応した
+シングルスレッド版を Docker 上の `emscripten/emsdk:6.0.6` でビルドします。
+
+```sh
+make wasm
+```
+
+成果物は `out/wasm/sunfish4/` に生成されます。このディレクトリを ShogiHome の
+`public/engines/sunfish4/` へコピーしてください。wasm 版は pthread および `Threads`
+オプションを使用しません。
+
 ### 実験
 
 ```
