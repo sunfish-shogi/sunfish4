@@ -51,6 +51,8 @@ private:
   bool ready_;
   bool terminated_;
   bool searching_;
+  bool infinite_;
+  bool resultPending_;
   bool bookLoaded_;
   bool useBook_;
   unsigned hashMB_;

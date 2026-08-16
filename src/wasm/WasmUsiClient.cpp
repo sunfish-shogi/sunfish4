@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 namespace {
 
@@ -50,6 +51,8 @@ WasmUsiClient::WasmUsiClient() :
   ready_(false),
   terminated_(false),
   searching_(false),
+  infinite_(false),
+  resultPending_(false),
   bookLoaded_(false),
   useBook_(true),
   hashMB_(32),
@@ -148,16 +151,28 @@ void WasmUsiClient::ready() {
 }
 
 void WasmUsiClient::setPosition(const Arguments& args) {
-  if (searching_) {
+  if (searching_ || resultPending_) {
     stop(false);
   }
-  if (!SfenParser::parseUsiCommand(args.begin(), args.end(), record_)) {
+  Record record;
+  if (!SfenParser::parseUsiCommand(args.begin(), args.end(), record)) {
     output("info string invalid position command");
+    return;
   }
+  Position position = record.initialPosition;
+  for (const auto& move : record.moveList) {
+    Piece captured;
+    if (!position.validateMove(move, position.getCheckState()) ||
+        !position.doMove(move, captured)) {
+      output("info string invalid position command");
+      return;
+    }
+  }
+  record_ = std::move(record);
 }
 
 void WasmUsiClient::go(const Arguments& args) {
-  if (!ready_ || !searcher_ || searching_) {
+  if (!ready_ || !searcher_ || searching_ || resultPending_) {
     return;
   }
   if (args.size() >= 2 && args[1] == "mate") {
@@ -177,6 +192,7 @@ void WasmUsiClient::go(const Arguments& args) {
   long blackInc = 0;
   long whiteInc = 0;
   bool infinite = false;
+  bool hasClock = false;
 
   for (size_t i = 1; i < args.size(); ++i) {
     long value = 0;
@@ -198,12 +214,13 @@ void WasmUsiClient::go(const Arguments& args) {
       else if (args[i] == "binc") blackInc = value;
       else if (args[i] == "winc") whiteInc = value;
       else continue;
+      hasClock = true;
       ++i;
     }
   }
 
   auto position = generatePosition(record_, -1);
-  if (useBook_) {
+  if (useBook_ && !infinite) {
     Move bookMove = BookUtil::select(book_, position, random_);
     if (!bookMove.isNone()) {
       const auto* bookMoves = book_.get(position);
@@ -213,7 +230,8 @@ void WasmUsiClient::go(const Arguments& args) {
       return;
     }
   }
-  if (!infinite && config.maximumTimeMs == SearchConfig::InfinityTime) {
+  if (!infinite && hasClock &&
+      config.maximumTimeMs == SearchConfig::InfinityTime) {
     bool black = position.getTurn() == Turn::Black;
     long remaining = black ? blackTime : whiteTime;
     long increment = black ? blackInc : whiteInc;
@@ -225,10 +243,16 @@ void WasmUsiClient::go(const Arguments& args) {
   }
 
   searcher_->setConfig(config);
+  infinite_ = infinite;
+  resultPending_ = false;
   searching_ = searcher_->startIDSearch(position,
       depth * Searcher::Depth1Ply, &record_);
   if (!searching_) {
-    emitBestmove();
+    if (infinite_) {
+      resultPending_ = true;
+    } else {
+      emitBestmove();
+    }
   }
 }
 
@@ -238,19 +262,27 @@ void WasmUsiClient::poll() {
   }
   searching_ = searcher_->pollIDSearch();
   if (!searching_) {
-    emitBestmove();
+    if (infinite_) {
+      resultPending_ = true;
+    } else {
+      emitBestmove();
+    }
   }
 }
 
 void WasmUsiClient::stop(bool emit) {
-  if (!searching_) {
+  if (!searching_ && !resultPending_) {
     return;
   }
-  searcher_->stopIDSearch();
+  if (searching_) {
+    searcher_->stopIDSearch();
+  }
   searching_ = false;
   if (emit) {
     emitBestmove();
   }
+  infinite_ = false;
+  resultPending_ = false;
 }
 
 void WasmUsiClient::emitBestmove() {
@@ -279,14 +311,24 @@ void WasmUsiClient::onUpdatePV(const Searcher& searcher, const PV& pv,
   uint64_t nodes = info.nodes + info.quiesNodes;
   uint32_t timeMs = static_cast<uint32_t>(elapsed * 1000);
   uint64_t nps = elapsed > 0 ? static_cast<uint64_t>(nodes / elapsed) : 0;
-  int scoreValue = score.raw() * 100 / material::pawn().raw();
+  const char* scoreType;
+  int scoreValue;
+  if (score > -Score::mate() && score < Score::mate()) {
+    scoreType = "cp";
+    scoreValue = score.raw() * 100 / material::pawn().raw();
+  } else {
+    scoreType = "mate";
+    scoreValue = score >= 0
+        ? (Score::infinity() - score).raw()
+        : -(Score::infinity() + score).raw();
+  }
   std::ostringstream line;
   line << "info time " << timeMs
        << " depth " << depth / Searcher::Depth1Ply
        << " seldepth " << pv.size()
        << " nodes " << nodes
        << " nps " << nps
-       << " score cp " << scoreValue
+       << " score " << scoreType << ' ' << scoreValue
        << " multipv " << multiPV
        << " pv " << pv.toStringSFEN();
   output(line.str());
