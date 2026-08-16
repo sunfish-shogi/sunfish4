@@ -93,7 +93,7 @@ void WasmUsiClient::command(const std::string& line) {
 }
 
 void WasmUsiClient::acceptUsi() {
-  output("id name Sunfish4 WebAssembly");
+  output("id name Sunfish4");
   output("id author Kubo, Ryosuke");
   output("option name Snappy type check default true");
   output("option name MarginMs type spin default 500 min 0 max 2000");
