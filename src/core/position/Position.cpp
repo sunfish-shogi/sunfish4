@@ -531,20 +531,13 @@ bool Position::validateMove(Move move, const CheckState& checkState) const {
       return false;
     }
 
-    ASSERT(!(turn == Turn::Black &&
-             (pieceType == PieceType::pawn() ||
-              pieceType == PieceType::lance()) &&
-             to.getRank() == 1));
-    ASSERT(!(turn == Turn::White &&
-             (pieceType == PieceType::pawn() ||
-              pieceType == PieceType::lance()) &&
-             to.getRank() == 9));
-    ASSERT(!(turn == Turn::Black &&
-             pieceType == PieceType::knight() &&
-             to.getRank() <= 2));
-    ASSERT(!(turn == Turn::White &&
-             pieceType == PieceType::knight() &&
-             to.getRank() >= 8));
+    if (((pieceType == PieceType::pawn() ||
+          pieceType == PieceType::lance()) &&
+         !to.isPawnMovable<turn>()) ||
+        (pieceType == PieceType::knight() &&
+         !to.isKnightMovable<turn>())) {
+      return false;
+    }
 
   } else {
     Square from = move.from();
@@ -591,8 +584,20 @@ bool Position::validateMove(Move move, const CheckState& checkState) const {
       }
     }
 
-    if (move.isPromotion() && !piece.isPromotable()) {
-      return false;
+    if (move.isPromotion()) {
+      if (!piece.isPromotable() ||
+          (!from.isPromotable<turn>() && !to.isPromotable<turn>())) {
+        return false;
+      }
+    } else {
+      PieceType pieceType = piece.type();
+      if (((pieceType == PieceType::pawn() ||
+            pieceType == PieceType::lance()) &&
+           !to.isPawnMovable<turn>()) ||
+          (pieceType == PieceType::knight() &&
+           !to.isKnightMovable<turn>())) {
+        return false;
+      }
     }
   }
 

@@ -79,6 +79,14 @@ TEST(WasmUsiClientTest, rejectsIllegalMoveHistory) {
   ASSERT_TRUE(output.str().find("bestmove") != std::string::npos);
 }
 
+TEST(WasmUsiClientTest, rejectsInvalidPromotions) {
+  OutputCapture output;
+  auto client = createClient();
+  client->command("position startpos moves 7g7f+");
+  ASSERT_TRUE(output.str().find("info string invalid position command") !=
+      std::string::npos);
+}
+
 TEST(WasmUsiClientTest, reportsMateScore) {
   OutputCapture output;
   auto client = createClient();
