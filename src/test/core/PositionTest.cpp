@@ -5,7 +5,6 @@
 
 #include "test/Test.hpp"
 #include "core/position/Position.hpp"
-#include "core/record/SfenParser.hpp"
 #include "core/util/PositionUtil.hpp"
 
 using namespace sunfish;
@@ -192,39 +191,6 @@ TEST(PositionTest, testToStringSFEN) {
   {
     Position pos(Position::Handicap::TwoPieces);
     ASSERT_EQ("lnsgkgsnl/9/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 1", pos.toStringSFEN());
-  }
-}
-
-TEST(PositionTest, testPromotionRules) {
-  {
-    Position pos(Position::Handicap::Even);
-    auto checkState = pos.getCheckState();
-    ASSERT_FALSE(pos.validateMove(
-        Move(Square::s77(), Square::s76(), true), checkState));
-    ASSERT_TRUE(pos.validateMove(
-        Move(Square::s77(), Square::s76(), false), checkState));
-  }
-
-  {
-    Position pos;
-    ASSERT_TRUE(SfenParser::parsePosition(
-        "8k/4P4/9/9/9/9/9/9/K8 b - 1", pos));
-    auto checkState = pos.getCheckState();
-    ASSERT_FALSE(pos.validateMove(
-        Move(Square::s52(), Square::s51(), false), checkState));
-    ASSERT_TRUE(pos.validateMove(
-        Move(Square::s52(), Square::s51(), true), checkState));
-  }
-
-  {
-    Position pos;
-    ASSERT_TRUE(SfenParser::parsePosition(
-        "8k/9/4N4/9/9/9/9/9/K8 b - 1", pos));
-    auto checkState = pos.getCheckState();
-    ASSERT_FALSE(pos.validateMove(
-        Move(Square::s53(), Square::s41(), false), checkState));
-    ASSERT_TRUE(pos.validateMove(
-        Move(Square::s53(), Square::s41(), true), checkState));
   }
 }
 

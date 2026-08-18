@@ -58,6 +58,70 @@ bool hasBothKings(const sunfish::Position& position) {
   return blackKings == 1 && whiteKings == 1;
 }
 
+template <sunfish::Turn turn>
+bool canRemainUnpromoted(const sunfish::PieceType& pieceType,
+                         const sunfish::Square& to) {
+  if ((pieceType == sunfish::PieceType::pawn() ||
+       pieceType == sunfish::PieceType::lance()) &&
+      !to.isPawnMovable<turn>()) {
+    return false;
+  }
+  return pieceType != sunfish::PieceType::knight() ||
+      to.isKnightMovable<turn>();
+}
+
+bool canRemainUnpromoted(sunfish::Turn turn,
+                         const sunfish::PieceType& pieceType,
+                         const sunfish::Square& to) {
+  return turn == sunfish::Turn::Black
+      ? canRemainUnpromoted<sunfish::Turn::Black>(pieceType, to)
+      : canRemainUnpromoted<sunfish::Turn::White>(pieceType, to);
+}
+
+bool validateMove(const sunfish::Position& position,
+                  const sunfish::Move& move) {
+  auto turn = position.getTurn();
+  auto to = move.to();
+  if (move.isDrop()) {
+    auto pieceType = move.droppingPieceType();
+    if (!canRemainUnpromoted(turn, pieceType, to)) {
+      return false;
+    }
+    if (pieceType == sunfish::PieceType::pawn()) {
+      auto enemyKing = turn == sunfish::Turn::Black
+          ? position.getWhiteKingSquare()
+          : position.getBlackKingSquare();
+      auto pawnDrop = turn == sunfish::Turn::Black
+          ? enemyKing.safetyDown()
+          : enemyKing.safetyUp();
+      if (pawnDrop.isValid() && to == pawnDrop &&
+          position.isMateWithPawnDrop()) {
+        return false;
+      }
+    }
+  } else {
+    auto from = move.from();
+    auto piece = position.getPieceOnBoard(from);
+    bool fromPromotable = turn == sunfish::Turn::Black
+        ? from.isPromotable<sunfish::Turn::Black>()
+        : from.isPromotable<sunfish::Turn::White>();
+    bool toPromotable = turn == sunfish::Turn::Black
+        ? to.isPromotable<sunfish::Turn::Black>()
+        : to.isPromotable<sunfish::Turn::White>();
+    if (move.isPromotion()) {
+      if (!piece.isPromotable() || (!fromPromotable && !toPromotable)) {
+        return false;
+      }
+    } else {
+      auto pieceType = piece.type();
+      if (!canRemainUnpromoted(turn, pieceType, to)) {
+        return false;
+      }
+    }
+  }
+  return position.validateMove(move, position.getCheckState());
+}
+
 } // namespace
 
 namespace sunfish {
@@ -182,7 +246,7 @@ void WasmUsiClient::setPosition(const Arguments& args) {
   }
   for (const auto& move : record.moveList) {
     Piece captured;
-    if (!position.validateMove(move, position.getCheckState()) ||
+    if (!validateMove(position, move) ||
         !position.doMove(move, captured)) {
       output("info string invalid position command");
       return;
