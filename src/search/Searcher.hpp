@@ -73,8 +73,8 @@ public:
                      int maxDepth,
                      Record* record = nullptr);
 
-  /** Run one iteration. Returns true while another iteration is possible. */
-  bool pollIDSearch();
+  /** Run up to one iteration, optionally yielding after timeSliceMs. */
+  bool pollIDSearch(uint32_t timeSliceMs = 0);
 
   /** Stop an incremental session, preserving the last completed result. */
   void stopIDSearch();
@@ -190,6 +190,10 @@ private:
       return true;
     }
 
+    if (timer_.elapsedMs() >= idSearchPollDeadlineMs_) {
+      return true;
+    }
+
     return false;
   }
 
@@ -220,6 +224,7 @@ private:
   bool idSearchActive_;
   int idSearchDepth_;
   int idSearchMaxDepth_;
+  SearchConfig::TimeType idSearchPollDeadlineMs_;
 
 };
 

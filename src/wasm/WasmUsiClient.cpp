@@ -17,6 +17,8 @@
 
 namespace {
 
+const uint32_t PollTimeSliceMs = 10;
+
 bool parseInteger(const std::string& value, long min, long max, long& result) {
   if (value.empty()) {
     return false;
@@ -40,6 +42,20 @@ std::vector<std::string> split(const std::string& line) {
     result.push_back(value);
   }
   return result;
+}
+
+bool hasBothKings(const sunfish::Position& position) {
+  int blackKings = 0;
+  int whiteKings = 0;
+  SQUARE_EACH(square) {
+    auto piece = position.getPieceOnBoard(square);
+    if (piece == sunfish::Piece::blackKing()) {
+      ++blackKings;
+    } else if (piece == sunfish::Piece::whiteKing()) {
+      ++whiteKings;
+    }
+  }
+  return blackKings == 1 && whiteKings == 1;
 }
 
 } // namespace
@@ -160,6 +176,10 @@ void WasmUsiClient::setPosition(const Arguments& args) {
     return;
   }
   Position position = record.initialPosition;
+  if (!hasBothKings(position)) {
+    output("info string invalid position command");
+    return;
+  }
   for (const auto& move : record.moveList) {
     Piece captured;
     if (!position.validateMove(move, position.getCheckState()) ||
@@ -260,7 +280,7 @@ void WasmUsiClient::poll() {
   if (terminated_ || !searching_) {
     return;
   }
-  searching_ = searcher_->pollIDSearch();
+  searching_ = searcher_->pollIDSearch(PollTimeSliceMs);
   if (!searching_) {
     if (infinite_) {
       resultPending_ = true;

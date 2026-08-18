@@ -2,6 +2,7 @@
 
 #include "test/Test.hpp"
 #include "wasm/WasmUsiClient.hpp"
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -51,6 +52,22 @@ TEST(WasmUsiClientTest, infiniteWaitsForStopAtMaximumDepth) {
   ASSERT_TRUE(output.str().find("bestmove") != std::string::npos);
 }
 
+TEST(WasmUsiClientTest, infinitePollIsBounded) {
+  OutputCapture output;
+  auto client = createClient();
+  client->command("position startpos");
+  client->command("go infinite");
+  for (int i = 0; i < 20; ++i) {
+    auto start = std::chrono::steady_clock::now();
+    client->poll();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+    ASSERT_TRUE(elapsed < 1000);
+  }
+  ASSERT_TRUE(output.str().find("bestmove") == std::string::npos);
+  client->command("stop");
+}
+
 TEST(WasmUsiClientTest, depthSearchIsUntimed) {
   OutputCapture output;
   auto client = createClient();
@@ -83,6 +100,23 @@ TEST(WasmUsiClientTest, rejectsInvalidPromotions) {
   OutputCapture output;
   auto client = createClient();
   client->command("position startpos moves 7g7f+");
+  ASSERT_TRUE(output.str().find("info string invalid position command") !=
+      std::string::npos);
+}
+
+TEST(WasmUsiClientTest, rejectsPawnDropMate) {
+  OutputCapture output;
+  auto client = createClient();
+  client->command(
+      "position sfen 8k/9/7+R1/9/9/9/9/9/4K4 b P 1 moves P*1b");
+  ASSERT_TRUE(output.str().find("info string invalid position command") !=
+      std::string::npos);
+}
+
+TEST(WasmUsiClientTest, rejectsPositionsWithoutKings) {
+  OutputCapture output;
+  auto client = createClient();
+  client->command("position sfen 9/9/9/9/9/9/9/9/9 b - 1");
   ASSERT_TRUE(output.str().find("info string invalid position command") !=
       std::string::npos);
 }

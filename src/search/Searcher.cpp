@@ -164,7 +164,8 @@ Searcher::Searcher() :
   handler_(nullptr),
   idSearchActive_(false),
   idSearchDepth_(0),
-  idSearchMaxDepth_(0) {
+  idSearchMaxDepth_(0),
+  idSearchPollDeadlineMs_(SearchConfig::InfinityTime) {
 }
 
 Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
@@ -174,7 +175,8 @@ Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
   handler_(nullptr),
   idSearchActive_(false),
   idSearchDepth_(0),
-  idSearchMaxDepth_(0) {
+  idSearchMaxDepth_(0),
+  idSearchPollDeadlineMs_(SearchConfig::InfinityTime) {
 }
 
 void Searcher::clean() {
@@ -322,6 +324,7 @@ bool Searcher::startIDSearch(const Position& pos,
   onSearchStarted(pos, record);
   idSearchDepth_ = Depth1Ply * 3 / 2;
   idSearchMaxDepth_ = maxDepth;
+  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
   idSearchActive_ = prepareIDSearch(trees_[0], trees_[0]);
   if (idSearchActive_) {
     updateResult(trees_[0]);
@@ -329,13 +332,29 @@ bool Searcher::startIDSearch(const Position& pos,
   return idSearchActive_;
 }
 
-bool Searcher::pollIDSearch() {
+bool Searcher::pollIDSearch(uint32_t timeSliceMs) {
   if (!idSearchActive_) {
     return false;
   }
 
+  auto elapsedMs = timer_.elapsedMs();
+  idSearchPollDeadlineMs_ = timeSliceMs == 0 ||
+      timeSliceMs >= SearchConfig::InfinityTime - elapsedMs
+      ? SearchConfig::InfinityTime
+      : elapsedMs + timeSliceMs;
+
   auto& tree = trees_[0];
   aspsearch(tree, idSearchDepth_);
+
+  bool pollDeadlineReached =
+      idSearchPollDeadlineMs_ != SearchConfig::InfinityTime &&
+      timer_.elapsedMs() >= idSearchPollDeadlineMs_;
+  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
+  if (pollDeadlineReached &&
+      !interrupted_.load(std::memory_order_relaxed) &&
+      timer_.elapsedMs() < config_.maximumTimeMs) {
+    return true;
+  }
   if (isInterrupted()) {
     idSearchActive_ = false;
     return false;
@@ -365,6 +384,7 @@ bool Searcher::pollIDSearch() {
 
 void Searcher::stopIDSearch() {
   interrupt();
+  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
   idSearchActive_ = false;
 }
 

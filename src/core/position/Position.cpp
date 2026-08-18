@@ -531,6 +531,16 @@ bool Position::validateMove(Move move, const CheckState& checkState) const {
       return false;
     }
 
+    if (pieceType == PieceType::pawn()) {
+      Square enemyKing = turn == Turn::Black ?
+          whiteKingSquare_ : blackKingSquare_;
+      Square pawnDrop = turn == Turn::Black ?
+          enemyKing.safetyDown() : enemyKing.safetyUp();
+      if (pawnDrop.isValid() && to == pawnDrop && isMateWithPawnDrop()) {
+        return false;
+      }
+    }
+
     if (((pieceType == PieceType::pawn() ||
           pieceType == PieceType::lance()) &&
          !to.isPawnMovable<turn>()) ||
