@@ -44,7 +44,14 @@ new Worker.
 `stop` sets the existing atomic search interruption flag; the search pthread
 then emits the final `bestmove`. The main Worker does not synchronously join a
 thread that may be proxying stdout back to it. `quit` and `terminate()` first
-suppress later output, interrupt the search, and then join it.
+suppress later output and interrupt the search, then detach the outer search
+pthread so its resources are reclaimed when it exits without blocking the main
+Worker. The adapter lives until the enclosing Worker is terminated.
+
+Final `bestmove` ownership is represented by an atomic state transition. A
+cancel command changes `Ready` or `Pending` to `Suppressed`; the search thread
+must change the same state to `Emitted` before writing. Only one transition can
+win, so cancellation cannot race between a standalone flag check and output.
 
 ## Native compatibility
 
