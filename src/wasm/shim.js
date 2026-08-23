@@ -11,9 +11,6 @@ Module["print"] = function(line) {
 Module["postMessage"] = function(command) {
   Module.ccall("usi_command", null, ["string"], [String(command)]);
 };
-Module["poll"] = function() {
-  Module.ccall("usi_poll", null, [], []);
-};
 Module["addMessageListener"] = function(listener) {
   sunfishMessageListeners.add(listener);
 };

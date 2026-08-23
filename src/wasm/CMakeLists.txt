@@ -26,9 +26,10 @@ target_link_options(sunfish4 PRIVATE
   "-sENVIRONMENT=worker,node"
   "-sINVOKE_RUN=0"
   "-sALLOW_MEMORY_GROWTH=1"
+  "-sPTHREAD_POOL_SIZE=4"
   "-sSTACK_SIZE=1048576"
   "--no-entry"
   "--pre-js=${CMAKE_CURRENT_SOURCE_DIR}/shim.js"
-  "-sEXPORTED_FUNCTIONS=_usi_command,_usi_poll,_malloc,_free"
+  "-sEXPORTED_FUNCTIONS=_usi_command,_malloc,_free"
   "-sEXPORTED_RUNTIME_METHODS=ccall,cwrap,FS"
 )

@@ -1,6 +1,6 @@
 /* WasmUsiClient.hpp
  *
- * Single-threaded USI adapter for the ShogiHome wasm engine ABI.
+ * Threaded USI adapter for the ShogiHome wasm engine ABI.
  */
 
 #ifndef SUNFISH_WASM_WASMUSICLIENT_HPP__
@@ -12,8 +12,11 @@
 #include "search/SearchHandler.hpp"
 #include "search/Searcher.hpp"
 #include <cstdint>
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace sunfish {
@@ -21,9 +24,9 @@ namespace sunfish {
 class WasmUsiClient : public SearchHandler {
 public:
   WasmUsiClient();
+  ~WasmUsiClient();
 
   void command(const std::string& line);
-  void poll();
 
 private:
   using Arguments = std::vector<std::string>;
@@ -34,6 +37,7 @@ private:
   void setPosition(const Arguments& args);
   void go(const Arguments& args);
   void stop(bool emitBestmove);
+  void joinSearchThread();
   void emitBestmove();
   void output(const std::string& line);
 
@@ -49,10 +53,12 @@ private:
   Record record_;
   bool initialized_;
   bool ready_;
-  bool terminated_;
-  bool searching_;
-  bool infinite_;
-  bool resultPending_;
+  std::atomic_bool terminated_;
+  std::atomic_bool searching_;
+  std::atomic_bool infinite_;
+  std::atomic_bool resultPending_;
+  std::atomic_bool stopRequested_;
+  std::atomic_bool suppressBestmove_;
   bool bookLoaded_;
   bool useBook_;
   unsigned hashMB_;
@@ -60,6 +66,9 @@ private:
   int marginMs_;
   int maxDepth_;
   int multiPV_;
+  int numberOfThreads_;
+  std::thread searchThread_;
+  std::mutex outputMutex_;
 };
 
 } // namespace sunfish

@@ -102,16 +102,18 @@ make test
 ### ShogiHome WebAssembly エンジン
 
 [ShogiHome wasm engine ABI](specs/shogihome/wasm-engine-abi.md) に対応した
-シングルスレッド版を Docker 上の `emscripten/emsdk:6.0.6` でビルドします。
+pthread 版を Docker 上の `emscripten/emsdk:6.0.6` でビルドします。
 
 ```sh
 make wasm
 ```
 
-成果物は `out/wasm/sunfish4/` に生成されます。このディレクトリの内容と、別途用意した
+成果物 (`sunfish4.js`、`sunfish4.worker.js`、`sunfish4.wasm`、`engine.json`) は
+`out/wasm/sunfish4/` に生成されます。このディレクトリの内容と、別途用意した
 `eval.bin` および `book.bin` を ShogiHome の `public/engines/sunfish4/` に配置して
-ください。データファイルはビルド成果物へコピーされません。wasm 版は pthread および
-`Threads` オプションを使用しません。
+ください。データファイルはビルド成果物へコピーされません。wasm 版は pthread を使用する
+ため、ShogiHome を cross-origin isolated な環境で実行する必要があります。`Threads` は
+1～4 の範囲で指定できます。
 
 ### 実験
 

@@ -17,8 +17,4 @@ SUNFISH_KEEPALIVE void usi_command(const char* line) {
   client.command(line == nullptr ? "" : line);
 }
 
-SUNFISH_KEEPALIVE void usi_poll() {
-  client.poll();
-}
-
 }

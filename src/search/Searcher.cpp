@@ -161,22 +161,14 @@ Searcher::Searcher() :
   config_ (getDefaultSearchConfig()),
   evaluator_(Evaluator::sharedEvaluator()),
   treeSize_(0),
-  handler_(nullptr),
-  idSearchActive_(false),
-  idSearchDepth_(0),
-  idSearchMaxDepth_(0),
-  idSearchPollDeadlineMs_(SearchConfig::InfinityTime) {
+  handler_(nullptr) {
 }
 
 Searcher::Searcher(std::shared_ptr<Evaluator> evaluator) :
   config_ (getDefaultSearchConfig()),
   evaluator_(evaluator),
   treeSize_(0),
-  handler_(nullptr),
-  idSearchActive_(false),
-  idSearchDepth_(0),
-  idSearchMaxDepth_(0),
-  idSearchPollDeadlineMs_(SearchConfig::InfinityTime) {
+  handler_(nullptr) {
 }
 
 void Searcher::clean() {
@@ -188,7 +180,6 @@ void Searcher::clean() {
 
 void Searcher::onSearchStarted(const Position& pos,
                                Record* record) {
-  idSearchActive_ = false;
   timer_.start();
 
   interrupted_ = false;
@@ -205,12 +196,8 @@ void Searcher::onSearchStarted(const Position& pos,
   timeManager_.clearPosition(config_.optimumTimeMs,
                              config_.maximumTimeMs);
 
-  int numberOfThreads = config_.numberOfThreads;
-#if SUNFISH_SINGLE_THREAD
-  numberOfThreads = 1;
-#endif
-  if (treeSize_ != numberOfThreads) {
-    treeSize_ = numberOfThreads;
+  if (treeSize_ != config_.numberOfThreads) {
+    treeSize_ = config_.numberOfThreads;
     trees_.reset(new Tree[treeSize_]);
   }
 
@@ -280,11 +267,9 @@ void Searcher::idsearch(const Position& pos,
 
   for (int ti = 1; ti < treeSize_; ti++) {
     prepareIDSearch(trees_[ti], trees_[0]);
-#if !SUNFISH_SINGLE_THREAD
     trees_[ti].thread = std::thread([this, ti, maxDepth]() {
       idsearch(trees_[ti], maxDepth);
     });
-#endif
   }
 
   idsearch(trees_[0], maxDepth);
@@ -292,11 +277,9 @@ void Searcher::idsearch(const Position& pos,
   interrupt();
 
   for (int ti = 1; ti < treeSize_; ti++) {
-#if !SUNFISH_SINGLE_THREAD
     if (trees_[ti].thread.joinable()) {
       trees_[ti].thread.join();
     }
-#endif
   }
 
   for (int ti = 0; ti < treeSize_; ti++) {
@@ -315,91 +298,6 @@ void Searcher::idsearch(const Position& pos,
       }
     }
   }
-}
-
-bool Searcher::startIDSearch(const Position& pos,
-                             int maxDepth,
-                             Record* record /*= nullptr*/) {
-  config_.numberOfThreads = 1;
-  onSearchStarted(pos, record);
-  idSearchDepth_ = Depth1Ply * 3 / 2;
-  idSearchMaxDepth_ = maxDepth;
-  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
-  idSearchActive_ = prepareIDSearch(trees_[0], trees_[0]);
-  if (idSearchActive_) {
-    updateResult(trees_[0]);
-  }
-  return idSearchActive_;
-}
-
-bool Searcher::pollIDSearch(uint32_t timeSliceMs) {
-  if (!idSearchActive_) {
-    return false;
-  }
-
-  auto elapsedMs = timer_.elapsedMs();
-  idSearchPollDeadlineMs_ = timeSliceMs == 0 ||
-      timeSliceMs >= SearchConfig::InfinityTime - elapsedMs
-      ? SearchConfig::InfinityTime
-      : elapsedMs + timeSliceMs;
-
-  auto& tree = trees_[0];
-  aspsearch(tree, idSearchDepth_);
-
-  bool pollDeadlineReached =
-      idSearchPollDeadlineMs_ != SearchConfig::InfinityTime &&
-      timer_.elapsedMs() >= idSearchPollDeadlineMs_;
-  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
-  if (pollDeadlineReached &&
-      !interrupted_.load(std::memory_order_relaxed) &&
-      timer_.elapsedMs() < config_.maximumTimeMs) {
-    return true;
-  }
-  if (isInterrupted()) {
-    idSearchActive_ = false;
-    return false;
-  }
-
-  tree.completedDepth = idSearchDepth_;
-  updateResult(tree);
-
-  auto& node = tree.nodes[tree.ply];
-  Score score = moveToScore(node.moves[0]);
-  if (score <= -Score::mate() || score >= Score::mate() ||
-      idSearchDepth_ >= idSearchMaxDepth_) {
-    idSearchActive_ = false;
-    return false;
-  }
-
-  timeManager_.update(timer_.elapsedMs(), idSearchDepth_, score, node.pv);
-  if (timeManager_.shouldInterrupt()) {
-    interrupt();
-    idSearchActive_ = false;
-    return false;
-  }
-
-  idSearchDepth_ += Depth1Ply;
-  return true;
-}
-
-void Searcher::stopIDSearch() {
-  interrupt();
-  idSearchPollDeadlineMs_ = SearchConfig::InfinityTime;
-  idSearchActive_ = false;
-}
-
-void Searcher::updateResult(Tree& tree) {
-  auto& node = tree.nodes[tree.ply];
-  if (node.moves.size() == 0) {
-    return;
-  }
-  result_.move = node.moves[0].excludeExtData();
-  result_.score = moveToScore(node.moves[0]);
-  if (node.pv.size() != 0 && node.pv.getMove(0) == result_.move) {
-    result_.pv = node.pv;
-  }
-  result_.depth = tree.completedDepth;
-  result_.elapsed = timer_.elapsed();
 }
 
 bool Searcher::prepareIDSearch(Tree& tree,
@@ -569,7 +467,7 @@ void Searcher::aspsearch(Tree& tree,
     delta += delta * ASP_DELTA_RATE / 100;
   }
 
-  if (isMainThread && handler_ != nullptr) {
+  if (isMainThread) {
     handler_->onIterateEnd(*this, timer_.elapsed(), depth);
   }
 }

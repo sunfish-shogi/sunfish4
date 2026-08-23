@@ -16,12 +16,7 @@ else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_ROOT_MOVES_SHUFFLE=1")
         set(CMAKE_CXX_FLAGS_RELEASE "-O -DNDEBUG")
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -fno-rtti")
-    if(EMSCRIPTEN)
-        add_definitions(-DSUNFISH_SINGLE_THREAD=1)
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -W -fno-rtti -pthread")
 
     # -msse2 is only valid for x86 targets.
     # Apple clang (and GCC) treat it as an error on arm64, so enable it only when supported.

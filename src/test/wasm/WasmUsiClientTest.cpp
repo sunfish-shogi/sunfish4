@@ -7,6 +7,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 
 using namespace sunfish;
 
@@ -36,6 +37,16 @@ std::unique_ptr<WasmUsiClient> createClient() {
   return client;
 }
 
+unsigned countOccurrences(const std::string& text, const std::string& pattern) {
+  unsigned count = 0;
+  std::string::size_type position = 0;
+  while ((position = text.find(pattern, position)) != std::string::npos) {
+    ++count;
+    position += pattern.size();
+  }
+  return count;
+}
+
 } // namespace
 
 TEST(WasmUsiClientTest, infiniteWaitsForStopAtMaximumDepth) {
@@ -44,28 +55,18 @@ TEST(WasmUsiClientTest, infiniteWaitsForStopAtMaximumDepth) {
   client->command("setoption name MaxDepth value 1");
   client->command("position startpos");
   client->command("go infinite");
-  client->poll();
-
-  ASSERT_TRUE(output.str().find("bestmove") == std::string::npos);
-
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   client->command("stop");
-  ASSERT_TRUE(output.str().find("bestmove") != std::string::npos);
+  ASSERT_EQ(1u, countOccurrences(output.str(), "bestmove"));
 }
 
-TEST(WasmUsiClientTest, infinitePollIsBounded) {
+TEST(WasmUsiClientTest, advertisesThreads) {
   OutputCapture output;
-  auto client = createClient();
-  client->command("position startpos");
-  client->command("go infinite");
-  for (int i = 0; i < 20; ++i) {
-    auto start = std::chrono::steady_clock::now();
-    client->poll();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start).count();
-    ASSERT_TRUE(elapsed < 1000);
-  }
-  ASSERT_TRUE(output.str().find("bestmove") == std::string::npos);
-  client->command("stop");
+  WasmUsiClient client;
+  client.command("usi");
+  ASSERT_TRUE(output.str().find(
+      "option name Threads type spin default 1 min 1 max 4") !=
+      std::string::npos);
 }
 
 TEST(WasmUsiClientTest, depthSearchIsUntimed) {
@@ -73,9 +74,8 @@ TEST(WasmUsiClientTest, depthSearchIsUntimed) {
   auto client = createClient();
   client->command("position startpos");
   client->command("go depth 3");
-  for (int i = 0; i < 4; ++i) {
-    client->poll();
-  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  client->command("stop");
 
   ASSERT_TRUE(output.str().find("info time") != std::string::npos);
   ASSERT_TRUE(output.str().find(" depth 3 ") != std::string::npos);
@@ -92,7 +92,8 @@ TEST(WasmUsiClientTest, rejectsIllegalMoveHistory) {
       std::string::npos);
 
   client->command("go depth 1");
-  client->poll();
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  client->command("stop");
   ASSERT_TRUE(output.str().find("bestmove") != std::string::npos);
 }
 
@@ -126,7 +127,8 @@ TEST(WasmUsiClientTest, reportsMateScore) {
   auto client = createClient();
   client->command("position sfen 4k4/9/4P4/9/9/9/9/9/4K4 b G 1");
   client->command("go depth 1");
-  client->poll();
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  client->command("stop");
 
   ASSERT_TRUE(output.str().find(" score mate ") != std::string::npos);
 }

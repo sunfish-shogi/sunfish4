@@ -15,14 +15,15 @@ ShogiHome 側の仕組みは [`wasm-engine.md`](./wasm-engine.md) を参照。
 非互換な変更を行う場合は版を上げる。ShogiHome は未知の版のマニフェストを読み込まず、
 そのエンジンを一覧から除外する。
 
-モジュールが公開するインターフェースは **YaneuraOu の wasm ビルドと同じ形**
+モジュールが公開するインターフェースは **YaneuraOu の wasm ビルドと同じ**
 (`postMessage` / `addMessageListener` / `removeMessageListener` / `terminate` / `FS`) に
-揃えてある。C の関数 (`usi_command` / `usi_poll`) を直接呼ぶ形ではないが、
-それらを JavaScript 側で包む定型のシムを用意してあるので
+揃えてある。C の関数 (`usi_command`) を直接呼ぶ形ではないが、
+JavaScript 側で包む定型のシムを用意してあるので
 (「3. モジュールのインターフェース」を参照)、エンジン側の C++ の作りは変わらない。
 
-ただし**形が揃うことと実際に動くことは別**である。YaneuraOu 本体を載せるには
-pthreads の扱い (「8. 制約」) を解決する必要があり、本仕様の範囲外。
+スレッド (`-pthread`) を使うエンジンも載せられるが、`SharedArrayBuffer` を
+要求するため cross-origin isolation が前提になる。マニフェストの
+`requiresCrossOriginIsolation` で宣言すること (「8. 制約」も参照)。
 
 ---
 
@@ -49,6 +50,7 @@ public/engines/<dir>/
   "moduleFormat": "esm",
   "name": "ShogiHome Basic Engine",
   "author": "Kubo, Ryosuke",
+  "requiresCrossOriginIsolation": true,
   "dataFiles": [{ "url": "eval/nn.bin", "path": "/eval/nn.bin" }],
   "options": [
     {
@@ -77,6 +79,7 @@ public/engines/<dir>/
 | `exportName`   | △    | `moduleFormat` が `umd` のとき必須。`-sEXPORT_NAME` に渡した名前 |
 | `name`         | ○    | エンジンが `id name` で返す名前                                  |
 | `author`       | ○    | エンジンが `id author` で返す名前                                |
+| `requiresCrossOriginIsolation` |      | スレッドを使う場合は `true`                                      |
 | `dataFiles`    |      | 起動時に読み込むファイル。「6. データファイル」を参照            |
 | `options`      |      | エンジンが `option` で申告する定義の写し                         |
 | `presets`      | ○    | 一覧に並べるエンジンの定義。1 つ以上                             |
@@ -93,6 +96,12 @@ public/engines/<dir>/
 
 `displayName` は一覧に表示する名前。ShogiHome 側で多言語化したい場合のみ、
 `catalog.ts` の `DISPLAY_NAME_OVERRIDES` で上書きする。
+
+### `requiresCrossOriginIsolation`
+
+`-pthread` を付けてビルドしたエンジンは `true` にする。ShogiHome はモジュールを
+生成する前に `crossOriginIsolated` を確認し、成立していなければページの再読み込みを
+促す。スレッドを使う場合は必ず宣言すること。
 
 ### `options`
 
@@ -140,19 +149,13 @@ type EngineInstance = {
   // エンジンを終了し、内部のスレッドやリソースを解放する。
   terminate(): void;
 
-  // 単一スレッドのエンジンが探索を分割実行するためのフック (任意)。
-  poll?(): void;
   // マニフェストで dataFiles を使う場合のみ必要。
   FS?: { mkdirTree(path: string): void; writeFile(path: string, data: Uint8Array): void };
 };
 ```
 
-`poll()` の有無で ShogiHome の駆動の仕方が変わる。
-
-| `poll()` | ShogiHome の動作                                                                  |
-| -------- | --------------------------------------------------------------------------------- |
-| ある     | `go` / `ponderhit` の後、`bestmove` か `checkmate` を受け取るまで 10ms 間隔で呼ぶ |
-| ない     | 何もしない。エンジンが自力で思考を進めて出力する (マルチスレッド前提)             |
+ShogiHome はコマンドを渡して出力を受け取るだけで、思考を進めるためのメソッドを
+定期的に呼ばない。エンジンは探索スレッドなどにより自力で思考を進める。
 
 ### 守るべき規約
 
@@ -166,20 +169,9 @@ type EngineInstance = {
 ### 実行モデル
 
 既存エンジンは「探索スレッドが走り、メインスレッドが `stop` を受け付ける」前提で
-書かれていることが多いが、単一スレッドの WebAssembly ではその前提が成立しない
-(「8. 制約」を参照)。次のどちらかを選ぶ。
-
-**分割実行 (推奨)**: 探索を中断可能にして `poll()` から少しずつ進める。
-多くのエンジンは探索の内側に時間切れ・停止フラグを確認するフックを持っているので、
-そこを「今回の `poll()` の持ち分を使い切ったら中断して戻る」ように変更し、
-次の `poll()` で再開できるよう状態を保持する。反復深化なら
-「1 回の `poll()` で 1 反復ぶん進める」粒度が実装しやすい。
-`stop` が効き、`go infinite` (検討モード) も扱える。
-
-**同期ブロッキング**: `postMessage("go ...")` の中で最後まで探索する。改造は最小で済むが、
-探索中は Worker のメッセージを処理できないため **`stop` が効かず**、対局中の中断が
-GUI 側から行えない。`go infinite` も終わらないので検討モードには使えない。
-適合性テストの `stop` の項目も通らない。まず動かすことを優先する場合の暫定手段。
+書かれていることが多い。マルチスレッドのエンジンは探索スレッドをそのまま走らせ、
+メインスレッドで `stop` を処理する。単一スレッドの場合だけはイベントループを塞がない
+分割実行が必要であり、その再開方法はモジュール内部の実装に委ねる。
 
 ### C++ 側との接続 (シム)
 
@@ -187,12 +179,12 @@ GUI 側から行えない。`go infinite` も終わらないので検討モー�
 ShogiHome の参照実装は [`engines/core/shim.js`](../engines/core/shim.js) をそのまま
 `--pre-js` に渡している。**このファイルはエンジンを問わず流用できる。**
 
-C 側は次の 2 つをエクスポートすればよい。
+C 側はコマンド入口をエクスポートする。分割実行を採用する単一スレッドエンジンは、
+必要に応じて内部駆動用の関数を追加する。
 
 ```cpp
 extern "C" {
 EMSCRIPTEN_KEEPALIVE void usi_command(const char* line) { handle_command(line ? line : ""); }
-EMSCRIPTEN_KEEPALIVE void usi_poll()                    { /* 探索を少し進める */ }
 }
 ```
 
@@ -249,7 +241,7 @@ Blob URL 経由で `import()` する。`exportName` はソースへ文字列と�
 
 ```
 --pre-js <path>/shim.js
--sEXPORTED_FUNCTIONS=_usi_command,_usi_poll,_malloc,_free
+-sEXPORTED_FUNCTIONS=_usi_command,_malloc,_free
 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap
 ```
 
@@ -388,29 +380,26 @@ npx vitest run src/tests/engines/conformance.spec.ts
 
 ## 8. 制約
 
-### `-pthread` を付けたビルドは受け付けない
-
-インターフェースを YaneuraOu に揃えたのは形式の話であり、
-**マルチスレッドの wasm が動くようになったわけではない。**
+### `-pthread` は cross-origin isolation を前提とする
 
 `-pthread` を付けると Emscripten は wasm のメモリを `shared` として宣言する。
 これは起動時に `SharedArrayBuffer` を要求し、ブラウザはページが
-cross-origin isolated でなければそれを拒否する。isolation には
-`Cross-Origin-Opener-Policy: same-origin` と
-`Cross-Origin-Embedder-Policy: require-corp` のレスポンスヘッダが要るが、
-ShogiHome の Web 版は GitHub Pages で配信しており、これらを設定できない。
+cross-origin isolated でなければそれを拒否する。Web 版は Service Worker が必要な
+レスポンスヘッダを付けるため isolation が成立するが、初回アクセスなど成立しない場合も
+ある。ShogiHome は `requiresCrossOriginIsolation` を見て生成前に確認する。
 
 **実行時のスレッド数を 1 にしても回避できない。** 効くのはビルドフラグの有無であって、
-実際に何本スレッドを作るかではない。既存エンジンを載せる場合は、
-`std::thread` を使う箇所を条件コンパイルで畳んで `-pthread` 無しでビルドし、
-探索を「3. 実行モデル」の分割実行に載せ替える必要がある。
+実際に何本スレッドを作るかではない。isolation に依存したくない場合だけ、
+`-pthread` 無しのビルドと分割実行が必要になる。
 
-マルチスレッド対応は配信方法の変更 (ヘッダを設定できる配信先、または
-Service Worker による cross-origin isolation) とセットで検討する必要がある。
+探索 pthread からの標準出力は Emscripten がメインスレッドへ同期で代理実行する。
+メインスレッドを塞いだまま探索スレッドを待つとデッドロックし得るため、終了処理では
+出力を抑止してから join すること。
 
 ### その他
 
-- 上記の理由から、`Threads` 相当のオプションはプリセットで 1 に固定すること。
+- スレッドを使う場合は `-sPTHREAD_POOL_SIZE` で必要な本数を起動時に確保すること。
+- `Threads` 相当のオプションを公開する場合、上限は控えめにすること。
 - `-sPROXY_TO_PTHREAD` は pthreads と同じ制約を受ける。
   `-sASYNCIFY` は制約を受けず、探索の奥で `emscripten_sleep(0)` を呼ぶだけで
   分割実行と同じことができる (コードの改造量は小さい) が、

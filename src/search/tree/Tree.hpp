@@ -16,9 +16,7 @@
 #include "core/move/Moves.hpp"
 #include "core/position/Position.hpp"
 #include <string>
-#if !SUNFISH_SINGLE_THREAD
 #include <thread>
-#endif
 #include <list>
 #include <cstdint>
 
@@ -89,9 +87,7 @@ void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv
 struct Tree {
   static CONSTEXPR_CONST int StackSize = 64;
 
-#if !SUNFISH_SINGLE_THREAD
   std::thread thread;
-#endif
   int index;
   int completedDepth;
   Position position;

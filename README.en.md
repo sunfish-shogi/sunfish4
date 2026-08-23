@@ -97,17 +97,19 @@ make test
 
 ### ShogiHome WebAssembly Engine
 
-Build the single-threaded [ShogiHome wasm engine ABI](specs/shogihome/wasm-engine-abi.md)
+Build the pthread-enabled [ShogiHome wasm engine ABI](specs/shogihome/wasm-engine-abi.md)
 target in Docker with `emscripten/emsdk:6.0.6`.
 
 ```sh
 make wasm
 ```
 
-The package is written to `out/wasm/sunfish4/`. Place its contents together with
+The package (`sunfish4.js`, `sunfish4.worker.js`, `sunfish4.wasm`, and `engine.json`)
+is written to `out/wasm/sunfish4/`. Place its contents together with
 separately supplied `eval.bin` and `book.bin` files in ShogiHome's
 `public/engines/sunfish4/`. The data files are not copied into the build output.
-The wasm build uses neither pthreads nor the `Threads` option.
+The wasm build requires a cross-origin-isolated ShogiHome environment and
+supports the `Threads` option from 1 through 4.
 
 ### Experiments
 

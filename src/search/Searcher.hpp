@@ -68,21 +68,6 @@ public:
                 int maxDepth,
                 Record* record = nullptr);
 
-  /** Start a single-threaded iterative-deepening session. */
-  bool startIDSearch(const Position& pos,
-                     int maxDepth,
-                     Record* record = nullptr);
-
-  /** Run up to one iteration, optionally yielding after timeSliceMs. */
-  bool pollIDSearch(uint32_t timeSliceMs = 0);
-
-  /** Stop an incremental session, preserving the last completed result. */
-  void stopIDSearch();
-
-  bool isIDSearchActive() const {
-    return idSearchActive_;
-  }
-
   const SearchConfig& getConfig() const {
     return config_;
   }
@@ -136,8 +121,6 @@ private:
   void idsearch(Tree& tree,
                 int maxDepth);
 
-  void updateResult(Tree& tree);
-
   void aspsearch(Tree& tree,
                  int depth);
 
@@ -190,10 +173,6 @@ private:
       return true;
     }
 
-    if (timer_.elapsedMs() >= idSearchPollDeadlineMs_) {
-      return true;
-    }
-
     return false;
   }
 
@@ -220,11 +199,6 @@ private:
   TimeManager timeManager_;
 
   SearchHandler* handler_;
-
-  bool idSearchActive_;
-  int idSearchDepth_;
-  int idSearchMaxDepth_;
-  SearchConfig::TimeType idSearchPollDeadlineMs_;
 
 };
 

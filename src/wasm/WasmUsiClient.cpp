@@ -17,8 +17,6 @@
 
 namespace {
 
-const uint32_t PollTimeSliceMs = 10;
-
 bool parseInteger(const std::string& value, long min, long max, long& result) {
   if (value.empty()) {
     return false;
@@ -133,13 +131,22 @@ WasmUsiClient::WasmUsiClient() :
   searching_(false),
   infinite_(false),
   resultPending_(false),
+  stopRequested_(false),
+  suppressBestmove_(false),
   bookLoaded_(false),
   useBook_(true),
   hashMB_(32),
   snappy_(true),
   marginMs_(500),
   maxDepth_(64),
-  multiPV_(1) {
+  multiPV_(1),
+  numberOfThreads_(1) {
+}
+
+WasmUsiClient::~WasmUsiClient() {
+  terminated_ = true;
+  stop(false);
+  joinSearchThread();
 }
 
 void WasmUsiClient::command(const std::string& line) {
@@ -153,8 +160,9 @@ void WasmUsiClient::command(const std::string& line) {
 
   const auto& name = args[0];
   if (name == "quit") {
-    stop(false);
     terminated_ = true;
+    stop(false);
+    joinSearchThread();
   } else if (name == "usi") {
     acceptUsi();
   } else if (name == "setoption") {
@@ -162,6 +170,11 @@ void WasmUsiClient::command(const std::string& line) {
   } else if (name == "isready") {
     ready();
   } else if (name == "usinewgame") {
+    if (searching_) {
+      stop(false);
+      return;
+    }
+    joinSearchThread();
     if (searcher_) {
       searcher_->clean();
     }
@@ -174,7 +187,7 @@ void WasmUsiClient::command(const std::string& line) {
   } else if (name == "gameover") {
     stop(false);
   } else if (name == "ponderhit") {
-    // Ponder is intentionally not advertised by the single-threaded build.
+    // Ponder is intentionally not advertised by the wasm build.
   }
 }
 
@@ -183,6 +196,7 @@ void WasmUsiClient::acceptUsi() {
   output("id author Kubo, Ryosuke");
   output("option name UseBook type check default true");
   output("option name Snappy type check default true");
+  output("option name Threads type spin default 1 min 1 max 4");
   output("option name MarginMs type spin default 500 min 0 max 2000");
   output("option name MaxDepth type spin default 64 min 1 max 64");
   output("option name MultiPV type spin default 1 min 1 max 10");
@@ -200,6 +214,8 @@ void WasmUsiClient::setOption(const Arguments& args) {
     useBook_ = args[4] == "true";
   } else if (args[2] == "Snappy") {
     snappy_ = args[4] == "true";
+  } else if (args[2] == "Threads" && parseInteger(args[4], 1, 4, value)) {
+    numberOfThreads_ = static_cast<int>(value);
   } else if (args[2] == "MarginMs" && parseInteger(args[4], 0, 2000, value)) {
     marginMs_ = static_cast<int>(value);
   } else if (args[2] == "MaxDepth" && parseInteger(args[4], 1, 64, value)) {
@@ -210,6 +226,10 @@ void WasmUsiClient::setOption(const Arguments& args) {
 }
 
 void WasmUsiClient::ready() {
+  if (searching_) {
+    return;
+  }
+  joinSearchThread();
   if (!initialized_) {
     CoreUtil::initialize();
     SearchUtil::initialize();
@@ -231,7 +251,11 @@ void WasmUsiClient::ready() {
 }
 
 void WasmUsiClient::setPosition(const Arguments& args) {
-  if (searching_ || resultPending_) {
+  if (searching_) {
+    stop(false);
+    return;
+  }
+  if (resultPending_ || searchThread_.joinable()) {
     stop(false);
   }
   Record record;
@@ -265,7 +289,7 @@ void WasmUsiClient::go(const Arguments& args) {
   }
 
   SearchConfig config = searcher_->getConfig();
-  config.numberOfThreads = 1;
+  config.numberOfThreads = numberOfThreads_;
   config.multiPV = multiPV_;
   config.maximumTimeMs = SearchConfig::InfinityTime;
   config.optimumTimeMs = SearchConfig::InfinityTime;
@@ -327,46 +351,61 @@ void WasmUsiClient::go(const Arguments& args) {
   }
 
   searcher_->setConfig(config);
+  joinSearchThread();
   infinite_ = infinite;
   resultPending_ = false;
-  searching_ = searcher_->startIDSearch(position,
-      depth * Searcher::Depth1Ply, &record_);
-  if (!searching_) {
-    if (infinite_) {
-      resultPending_ = true;
-    } else {
-      emitBestmove();
+  stopRequested_ = false;
+  suppressBestmove_ = false;
+  searching_ = true;
+  searchThread_ = std::thread([this, position, depth]() {
+    searcher_->idsearch(position, depth * Searcher::Depth1Ply, &record_);
+    if (terminated_ || suppressBestmove_) {
+      infinite_ = false;
+      resultPending_ = false;
+      searching_ = false;
+      return;
     }
-  }
-}
-
-void WasmUsiClient::poll() {
-  if (terminated_ || !searching_) {
-    return;
-  }
-  searching_ = searcher_->pollIDSearch(PollTimeSliceMs);
-  if (!searching_) {
-    if (infinite_) {
+    if (infinite_ && !stopRequested_) {
       resultPending_ = true;
-    } else {
-      emitBestmove();
+      searching_ = false;
+      return;
     }
-  }
+    emitBestmove();
+    infinite_ = false;
+    resultPending_ = false;
+    searching_ = false;
+  });
 }
 
 void WasmUsiClient::stop(bool emit) {
-  if (!searching_ && !resultPending_) {
+  if (!searching_ && !resultPending_ && !searchThread_.joinable()) {
     return;
   }
+  stopRequested_ = true;
+  suppressBestmove_ = !emit;
   if (searching_) {
-    searcher_->stopIDSearch();
+    searcher_->interrupt();
+#ifndef __EMSCRIPTEN__
+    // Native tests do not proxy stdout through the main Worker, so joining is
+    // safe and makes stop synchronous. In Emscripten, the search pthread may
+    // be synchronously proxying output to this thread and must finish itself.
+    joinSearchThread();
+#endif
+    return;
   }
+  joinSearchThread();
   searching_ = false;
-  if (emit) {
+  if (emit && resultPending_) {
     emitBestmove();
   }
   infinite_ = false;
   resultPending_ = false;
+}
+
+void WasmUsiClient::joinSearchThread() {
+  if (searchThread_.joinable()) {
+    searchThread_.join();
+  }
 }
 
 void WasmUsiClient::emitBestmove() {
@@ -379,6 +418,7 @@ void WasmUsiClient::emitBestmove() {
 }
 
 void WasmUsiClient::output(const std::string& line) {
+  std::lock_guard<std::mutex> lock(outputMutex_);
   if (!terminated_) {
     std::cout << line << std::endl;
   }
