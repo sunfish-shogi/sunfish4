@@ -132,7 +132,7 @@ WasmUsiClient::WasmUsiClient() :
   infinite_(false),
   resultPending_(false),
   stopRequested_(false),
-  suppressBestmove_(false),
+  bestmoveState_(BestmoveState::Idle),
   bookLoaded_(false),
   useBook_(true),
   hashMB_(32),
@@ -162,7 +162,11 @@ void WasmUsiClient::command(const std::string& line) {
   if (name == "quit") {
     terminated_ = true;
     stop(false);
-    joinSearchThread();
+#ifdef __EMSCRIPTEN__
+    // A search pthread can be waiting for the main Worker to proxy stdout.
+    // Detaching lets pthread cleanup happen without blocking that Worker.
+    releaseSearchThread();
+#endif
   } else if (name == "usi") {
     acceptUsi();
   } else if (name == "setoption") {
@@ -355,18 +359,23 @@ void WasmUsiClient::go(const Arguments& args) {
   infinite_ = infinite;
   resultPending_ = false;
   stopRequested_ = false;
-  suppressBestmove_ = false;
+  bestmoveState_ = BestmoveState::Ready;
   searching_ = true;
   searchThread_ = std::thread([this, position, depth]() {
     searcher_->idsearch(position, depth * Searcher::Depth1Ply, &record_);
-    if (terminated_ || suppressBestmove_) {
+    if (terminated_) {
+      suppressBestmove();
       infinite_ = false;
       resultPending_ = false;
       searching_ = false;
       return;
     }
     if (infinite_ && !stopRequested_) {
-      resultPending_ = true;
+      auto expected = BestmoveState::Ready;
+      if (bestmoveState_.compare_exchange_strong(
+              expected, BestmoveState::Pending)) {
+        resultPending_ = true;
+      }
       searching_ = false;
       return;
     }
@@ -382,15 +391,11 @@ void WasmUsiClient::stop(bool emit) {
     return;
   }
   stopRequested_ = true;
-  suppressBestmove_ = !emit;
+  if (!emit) {
+    suppressBestmove();
+  }
   if (searching_) {
     searcher_->interrupt();
-#ifndef __EMSCRIPTEN__
-    // Native tests do not proxy stdout through the main Worker, so joining is
-    // safe and makes stop synchronous. In Emscripten, the search pthread may
-    // be synchronously proxying output to this thread and must finish itself.
-    joinSearchThread();
-#endif
     return;
   }
   joinSearchThread();
@@ -408,14 +413,53 @@ void WasmUsiClient::joinSearchThread() {
   }
 }
 
-void WasmUsiClient::emitBestmove() {
-  const auto& result = searcher_->getResult();
-  if (result.move.isNone()) {
-    output("bestmove resign");
-  } else {
-    output(std::string("bestmove ") + result.move.toStringSFEN());
+void WasmUsiClient::releaseSearchThread() {
+  if (searchThread_.joinable()) {
+    searchThread_.detach();
   }
 }
+
+bool WasmUsiClient::suppressBestmove() {
+  auto state = bestmoveState_.load();
+  while (state == BestmoveState::Ready || state == BestmoveState::Pending) {
+    if (bestmoveState_.compare_exchange_weak(
+            state, BestmoveState::Suppressed)) {
+      return true;
+    }
+  }
+  return state == BestmoveState::Suppressed;
+}
+
+bool WasmUsiClient::emitBestmove() {
+#ifdef SUNFISH_WASM_TEST
+  if (beforeBestmoveHook_) {
+    beforeBestmoveHook_();
+  }
+#endif
+  auto state = bestmoveState_.load();
+  while (state == BestmoveState::Ready || state == BestmoveState::Pending) {
+    if (bestmoveState_.compare_exchange_weak(state, BestmoveState::Emitted)) {
+      const auto& result = searcher_->getResult();
+      if (result.move.isNone()) {
+        output("bestmove resign");
+      } else {
+        output(std::string("bestmove ") + result.move.toStringSFEN());
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+#ifdef SUNFISH_WASM_TEST
+void WasmUsiClient::setBeforeBestmoveHook(std::function<void()> hook) {
+  beforeBestmoveHook_ = std::move(hook);
+}
+
+void WasmUsiClient::waitForSearchForTest() {
+  joinSearchThread();
+}
+#endif
 
 void WasmUsiClient::output(const std::string& line) {
   std::lock_guard<std::mutex> lock(outputMutex_);

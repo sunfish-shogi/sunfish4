@@ -3,8 +3,10 @@
 #include "test/Test.hpp"
 #include "wasm/WasmUsiClient.hpp"
 #include <chrono>
+#include <condition_variable>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -47,6 +49,33 @@ unsigned countOccurrences(const std::string& text, const std::string& pattern) {
   return count;
 }
 
+class BestmoveGate {
+public:
+  void waitAtGate() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    entered_ = true;
+    condition_.notify_all();
+    condition_.wait(lock, [this]() { return released_; });
+  }
+
+  void waitUntilEntered() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    condition_.wait(lock, [this]() { return entered_; });
+  }
+
+  void release() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    released_ = true;
+    condition_.notify_all();
+  }
+
+private:
+  std::mutex mutex_;
+  std::condition_variable condition_;
+  bool entered_ = false;
+  bool released_ = false;
+};
+
 } // namespace
 
 TEST(WasmUsiClientTest, infiniteWaitsForStopAtMaximumDepth) {
@@ -57,7 +86,40 @@ TEST(WasmUsiClientTest, infiniteWaitsForStopAtMaximumDepth) {
   client->command("go infinite");
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   client->command("stop");
+  client->waitForSearchForTest();
   ASSERT_EQ(1u, countOccurrences(output.str(), "bestmove"));
+}
+
+TEST(WasmUsiClientTest, suppressesBestmoveCommittedAfterGameover) {
+  OutputCapture output;
+  auto client = createClient();
+  BestmoveGate gate;
+  client->setBeforeBestmoveHook([&gate]() { gate.waitAtGate(); });
+  client->command("position startpos");
+  client->command("go depth 1");
+  gate.waitUntilEntered();
+
+  client->command("gameover");
+  gate.release();
+  client->waitForSearchForTest();
+
+  ASSERT_EQ(0u, countOccurrences(output.str(), "bestmove"));
+}
+
+TEST(WasmUsiClientTest, quitDoesNotWaitForSearchThread) {
+  OutputCapture output;
+  auto client = createClient();
+  BestmoveGate gate;
+  client->setBeforeBestmoveHook([&gate]() { gate.waitAtGate(); });
+  client->command("position startpos");
+  client->command("go depth 1");
+  gate.waitUntilEntered();
+
+  client->command("quit");
+  gate.release();
+  client->waitForSearchForTest();
+
+  ASSERT_EQ(0u, countOccurrences(output.str(), "bestmove"));
 }
 
 TEST(WasmUsiClientTest, advertisesThreads) {
@@ -76,6 +138,7 @@ TEST(WasmUsiClientTest, depthSearchIsUntimed) {
   client->command("go depth 3");
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   client->command("stop");
+  client->waitForSearchForTest();
 
   ASSERT_TRUE(output.str().find("info time") != std::string::npos);
   ASSERT_TRUE(output.str().find(" depth 3 ") != std::string::npos);
@@ -94,6 +157,7 @@ TEST(WasmUsiClientTest, rejectsIllegalMoveHistory) {
   client->command("go depth 1");
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   client->command("stop");
+  client->waitForSearchForTest();
   ASSERT_TRUE(output.str().find("bestmove") != std::string::npos);
 }
 
@@ -129,6 +193,7 @@ TEST(WasmUsiClientTest, reportsMateScore) {
   client->command("go depth 1");
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
   client->command("stop");
+  client->waitForSearchForTest();
 
   ASSERT_TRUE(output.str().find(" score mate ") != std::string::npos);
 }

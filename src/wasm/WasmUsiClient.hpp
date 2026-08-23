@@ -13,6 +13,7 @@
 #include "search/Searcher.hpp"
 #include <cstdint>
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -28,8 +29,21 @@ public:
 
   void command(const std::string& line);
 
+#ifdef SUNFISH_WASM_TEST
+  void setBeforeBestmoveHook(std::function<void()> hook);
+  void waitForSearchForTest();
+#endif
+
 private:
   using Arguments = std::vector<std::string>;
+
+  enum class BestmoveState {
+    Idle,
+    Ready,
+    Pending,
+    Suppressed,
+    Emitted,
+  };
 
   void acceptUsi();
   void setOption(const Arguments& args);
@@ -38,7 +52,9 @@ private:
   void go(const Arguments& args);
   void stop(bool emitBestmove);
   void joinSearchThread();
-  void emitBestmove();
+  void releaseSearchThread();
+  bool suppressBestmove();
+  bool emitBestmove();
   void output(const std::string& line);
 
   void onStart(const Searcher&) override;
@@ -58,7 +74,7 @@ private:
   std::atomic_bool infinite_;
   std::atomic_bool resultPending_;
   std::atomic_bool stopRequested_;
-  std::atomic_bool suppressBestmove_;
+  std::atomic<BestmoveState> bestmoveState_;
   bool bookLoaded_;
   bool useBook_;
   unsigned hashMB_;
@@ -69,6 +85,9 @@ private:
   int numberOfThreads_;
   std::thread searchThread_;
   std::mutex outputMutex_;
+#ifdef SUNFISH_WASM_TEST
+  std::function<void()> beforeBestmoveHook_;
+#endif
 };
 
 } // namespace sunfish

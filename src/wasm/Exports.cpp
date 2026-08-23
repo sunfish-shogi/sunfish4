@@ -8,13 +8,15 @@
 #endif
 
 namespace {
-sunfish::WasmUsiClient client;
+// The enclosing Worker owns the module lifetime. Keeping the adapter alive
+// until Worker termination lets an interrupted, detached pthread finish safely.
+sunfish::WasmUsiClient* client = new sunfish::WasmUsiClient();
 }
 
 extern "C" {
 
 SUNFISH_KEEPALIVE void usi_command(const char* line) {
-  client.command(line == nullptr ? "" : line);
+  client->command(line == nullptr ? "" : line);
 }
 
 }

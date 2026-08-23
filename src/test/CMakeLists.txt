@@ -50,6 +50,8 @@ add_executable(sunfish_test
     Test.hpp
 )
 
+target_compile_definitions(sunfish_test PRIVATE SUNFISH_WASM_TEST=1)
+
 target_link_libraries(sunfish_test search)
 target_link_libraries(sunfish_test book)
 target_link_libraries(sunfish_test core)
