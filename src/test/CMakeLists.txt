@@ -45,6 +45,8 @@ add_executable(sunfish_test
     search/TimeManagerTest.cpp
     search/TreeTest.cpp
     search/TTTest.cpp
+    wasm/WasmUsiClientTest.cpp
+    ../wasm/WasmUsiClient.cpp
     Test.hpp
 )
 
