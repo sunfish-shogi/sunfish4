@@ -1,0 +1,27 @@
+{
+  "abi": "shogihome-wasm-engine/1",
+  "module": "sunfish4.js",
+  "moduleFormat": "esm",
+  "name": "Sunfish4",
+  "author": "Kubo, Ryosuke",
+  "requiresCrossOriginIsolation": true,
+  "dataFiles": [
+    { "url": "eval.bin", "path": "/eval.bin" },
+    { "url": "book.bin", "path": "/book.bin" }
+  ],
+  "options": [
+    { "name": "UseBook", "type": "check", "default": "true" },
+    { "name": "Snappy", "type": "check", "default": "true" },
+    { "name": "Threads", "type": "spin", "default": 1, "min": 1, "max": 4 },
+    { "name": "MarginMs", "type": "spin", "default": 500, "min": 0, "max": 2000 },
+    { "name": "MaxDepth", "type": "spin", "default": 64, "min": 1, "max": 64 },
+    { "name": "MultiPV", "type": "spin", "default": 1, "min": 1, "max": 10 }
+  ],
+  "presets": [
+    {
+      "id": "sunfish4-wasm-v1",
+      "displayName": "Sunfish4",
+      "values": {}
+    }
+  ]
+}

@@ -45,8 +45,12 @@ add_executable(sunfish_test
     search/TimeManagerTest.cpp
     search/TreeTest.cpp
     search/TTTest.cpp
+    wasm/WasmUsiClientTest.cpp
+    ../wasm/WasmUsiClient.cpp
     Test.hpp
 )
+
+target_compile_definitions(sunfish_test PRIVATE SUNFISH_WASM_TEST=1)
 
 target_link_libraries(sunfish_test search)
 target_link_libraries(sunfish_test book)
