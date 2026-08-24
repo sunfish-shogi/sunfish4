@@ -29,14 +29,15 @@ public:
     DepthType depth;
   };
 
-  PV() : num_(0) {
+  PV() : size_(0) {
   }
 
+  // NOTICE: this construcor should be used by only test code
   PV(SizeType size, const Move moves[]) {
-    num_ = size;
-    for (SizeType i = 0; i < num_; i++) {
+    size_ = size;
+    for (SizeType i = 0; i < size_; i++) {
       elements_[i].move = moves[i].serialize16();
-      elements_[i].depth = i;
+      elements_[i].depth = size_ - i + 1;
     }
   }
 
@@ -47,11 +48,11 @@ public:
   PV& operator=(PV&&) = default;
 
   void clear() {
-    num_ = 0;
+    size_ = 0;
   }
 
   SizeType size() const {
-    return num_;
+    return size_;
   }
 
   void set(const Move& move, int depth, const PV& pv) {
@@ -62,21 +63,21 @@ public:
 
     // static_cast is required on Clang.
     // See https://trello.com/c/iJqg1GqN
-    num_ = std::min(pv.num_ + 1, static_cast<SizeType>(MaxSize));
-    memcpy(&elements_[1], pv.elements_, sizeof(elements_[0]) * (num_ - 1));
+    size_ = std::min(pv.size_ + 1, static_cast<SizeType>(MaxSize));
+    memcpy(&elements_[1], pv.elements_, sizeof(elements_[0]) * (size_ - 1));
   }
 
-  Move getMove(SizeType depth) const {
-    return Move::deserialize(elements_[depth].move);
+  Move getMove(int ply) const {
+    return Move::deserialize(elements_[ply].move);
   }
 
-  int getDepth(SizeType depth) const {
-    return static_cast<int>(elements_[depth].depth);
+  int getDepth(int ply) const {
+    return static_cast<int>(elements_[ply].depth);
   }
 
   std::string toString() const {
     std::ostringstream oss;
-    for (SizeType i = 0; i < num_; i++) {
+    for (SizeType i = 0; i < size_; i++) {
       if (i != 0) {
         oss << ' ';
       }
@@ -88,7 +89,7 @@ public:
 
   std::string toStringSFEN() const {
     std::ostringstream oss;
-    for (SizeType i = 0; i < num_; i++) {
+    for (SizeType i = 0; i < size_; i++) {
       if (i != 0) {
         oss << ' ';
       }
@@ -105,7 +106,7 @@ public:
 
 private:
 
-  SizeType num_;
+  SizeType size_;
   Element elements_[MaxSize];
 
 };

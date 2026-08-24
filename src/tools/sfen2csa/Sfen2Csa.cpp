@@ -35,7 +35,9 @@ bool Sfen2Csa::run() {
       return false;
     }
 
-    CsaWriter::write(std::cout, record);
+    if (!CsaWriter::write(std::cout, record)) {
+      return false;
+    }
   }
 }
 

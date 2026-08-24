@@ -7,6 +7,7 @@
 #define SUNFISH_COMMON_THREAD_SCOPEDTHREAD_HPP__
 
 #include <thread>
+#include <functional>
 
 namespace sunfish {
 

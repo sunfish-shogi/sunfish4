@@ -40,6 +40,8 @@ private:
                            RecordInfo* info);
   static bool readPositionPieces(const char* line,
                                  MutablePosition& mp);
+  static bool readPositionI(const char* line,
+                            MutablePosition& mp);
   static bool readInfo(const char* line,
                        RecordInfo& info);
   static bool readHand(const char* line,

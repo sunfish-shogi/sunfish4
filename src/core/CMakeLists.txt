@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 add_library(core STATIC
     base/Piece.cpp
@@ -27,6 +27,8 @@ add_library(core STATIC
     record/CsaReader.hpp
     record/CsaWriter.cpp
     record/CsaWriter.hpp
+    record/KifuWriter.cpp
+    record/KifuWriter.hpp
     record/Record.cpp
     record/Record.hpp
     record/SfenParser.cpp

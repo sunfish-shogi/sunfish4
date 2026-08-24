@@ -5,6 +5,7 @@
 
 #include "test/Test.hpp"
 #include "common/math/Random.hpp"
+#include <array>
 
 using namespace sunfish;
 

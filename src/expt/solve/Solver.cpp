@@ -95,7 +95,9 @@ bool Solver::solveCsaFile(const char* path) {
   Position position = record.initialPosition;
 
   for (const auto& move : record.moveList) {
-    solve(position, move);
+    if (!solve(position, move)) {
+      return false;
+    }
 
     Piece captured;
     if (!position.doMove(move, captured)) {
@@ -110,6 +112,11 @@ bool Solver::solveCsaFile(const char* path) {
 }
 
 bool Solver::solve(const Position& position, Move correct) {
+  if (searcher_.getEvaluator()->dataSourceType() != Evaluator::DataSourceType::EvalBin) {
+    LOG(error) << "eval.bin is required";
+    return false;
+  }
+
   MSG(info) << StringUtil::chomp(position.toString());
 
   auto config = searcher_.getConfig();
@@ -151,9 +158,10 @@ bool Solver::solve(const Position& position, Move correct) {
   return true;
 }
 
-void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) {
-  LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score);
+void Solver::onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) {
+  LoggingSearchHandler::onUpdatePV(searcher, pv, elapsed, depth, score, multiPV);
   if (!config_.noInterrupt &&
+      multiPV == 1 &&
       depth >= 5 &&
       pv.size() >= 1 &&
       pv.getMove(0) == correct_) {
@@ -165,11 +173,10 @@ void Solver::onIterateEnd(const Searcher& searcher, float elapsed, int depth) {
   LoggingSearchHandler::onIterateEnd(searcher, elapsed, depth);
   auto& info = searcher.getInfo();
   auto realDepth = depth / Searcher::Depth1Ply;
-  for (int i = 0; i < MaxDepthOfNodeCount; i++) {
-    if (realDepth == i + 1) {
-      result_.nodesEachDepth[i].nodes += info.nodes + info.quiesNodes;
-      result_.nodesEachDepth[i].sample++;
-    }
+  if (realDepth >= 1 && realDepth <= MaxDepthOfNodeCount) {
+    auto i = realDepth - 1;
+    result_.nodesEachDepth[i].nodes += info.nodes + info.quiesNodes;
+    result_.nodesEachDepth[i].sample++;
   }
 }
 

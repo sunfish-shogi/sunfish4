@@ -294,7 +294,7 @@ void Searcher::idsearch(const Position& pos,
       result_.depth = tree.completedDepth;
       result_.elapsed = timer_.elapsed();
       if (ti != 0 && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, result_.pv, result_.elapsed, result_.depth, result_.score);
+        handler_->onUpdatePV(*this, result_.pv, result_.elapsed, result_.depth, result_.score, 1);
       }
     }
   }
@@ -411,49 +411,48 @@ void Searcher::aspsearch(Tree& tree,
 
     if (isInterrupted()) {
       if (score > alpha && isMainThread && handler_ != nullptr) {
-        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score);
+        handler_->onUpdatePV(*this, node.pv, timer_.elapsed(), depth, score, 1);
       }
       break;
     }
 
     Score minScore = score;
     if (!tree.rootPVs.empty()) {
-      minScore = tree.rootPVs.begin()->score;
+      minScore = (--tree.rootPVs.end())->score;
     }
 
     auto elapsed = timer_.elapsed();
     if (score <= alpha && alpha > -Score::infinity()) {
       // fail-low
-      alpha = score > -Score::infinity() + delta
-            ? score - delta
-            : -Score::infinity();
-      if (isMainThread && handler_ != nullptr) {
+      alpha = score > -Score::infinity() + delta ? score - delta : -Score::infinity();
+      if (isMainThread && handler_ != nullptr && config_.multiPV <= 1) {
         handler_->onFailLow(*this, node.pv, elapsed, depth, score);
       }
+
     } else if (score >= beta && beta < Score::infinity()) {
       // fail-high
-      beta = score < Score::infinity() - delta
-        ? score + delta
-        : Score::infinity();
-      if (isMainThread && handler_ != nullptr) {
+      beta = score < Score::infinity() - delta ? score + delta : Score::infinity();
+      if (isMainThread && handler_ != nullptr && config_.multiPV <= 1) {
         handler_->onFailHigh(*this, node.pv, elapsed, depth, score);
       }
+
     } else if (minScore <= alpha && alpha > -Score::infinity()) {
       // fail-low (multi-PV)
-      alpha = minScore > -Score::infinity() + delta
-            ? minScore - delta
-            : -Score::infinity();
+      alpha = minScore > -Score::infinity() + delta ? minScore - delta : -Score::infinity();
+
     } else {
       // completed
       if (isMainThread && handler_ != nullptr) {
-        if (config_.multiPV == 0) {
-          handler_->onUpdatePV(*this, node.pv, elapsed, depth, score);
+        if (config_.multiPV <= 1) {
+          handler_->onUpdatePV(*this, node.pv, elapsed, depth, score, 1);
         } else {
-          for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++) {
-            handler_->onUpdatePV(*this, ite->pv, elapsed, depth, ite->score);
+          int multiPVIdx = 1;
+          for (auto ite = tree.rootPVs.begin(); ite != tree.rootPVs.end(); ite++, multiPVIdx++) {
+            handler_->onUpdatePV(*this, ite->pv, elapsed, depth, ite->score, multiPVIdx);
           }
         }
       }
+
       if (score != -Score::infinity()) {
         storePV(tree.position,
                 node.pv,
@@ -820,6 +819,7 @@ Score Searcher::search(Tree& tree,
 
   bool isFirst = true;
   Score bestScore = lowerScore;
+  Score firstScore = Score::invalid();
   Move bestMove = Move::none();
 
   if (root) {
@@ -886,7 +886,7 @@ Score Searcher::search(Tree& tree,
       if (tree.rootPVs.size() < config_.multiPV) {
         newAlpha = alpha;
       } else if (!tree.rootPVs.empty()) {
-        newAlpha = std::max(alpha, tree.rootPVs.begin()->score);
+        newAlpha = std::max(alpha, (--tree.rootPVs.end())->score);
       }
     }
 
@@ -953,7 +953,14 @@ Score Searcher::search(Tree& tree,
     auto& childNode = tree.nodes[tree.ply+1];
 
     if (root) {
-      setScoreToMove(*(node.moveIterator-1), score); // ordering for iterative deepening
+      Score order = score;
+      if (score > newAlpha) {
+        firstScore = firstScore == Score::invalid() ? score : std::min(firstScore, score);
+      } else if (firstScore != Score::invalid() && score <= newAlpha) {
+        Score wind = beta - firstScore;
+        order = order >= wind - Score::infinity() ? order - wind : -Score::infinity();
+      }
+      setScoreToMove(*(node.moveIterator-1), order); // ordering for iterative deepening
       insertRootPV(tree.rootPVs, move, depth, childNode.pv, score, config_.multiPV); // multi-PV
     }
 
@@ -1395,14 +1402,13 @@ void Searcher::sortMoves(Tree& tree) {
       if (move.isDrop()) {
         auto pieceType = move.droppingPieceType();
         value = pieceToHistory_.get(turn, pieceType, move.to());
-        value *= 2;
       } else {
         auto pieceType = tree.position.getPieceOnBoard(move.from()).type();
         if (move.isPromotion()) {
           pieceType = pieceType.promote();
         }
-        value = fromToHistory_.get(turn, move.from(), move.to())
-              + pieceToHistory_.get(turn, pieceType, move.to());
+        value = std::max(fromToHistory_.get(turn, move.from(), move.to()),
+                         pieceToHistory_.get(turn, pieceType, move.to()));
       }
       move.setExtData(static_cast<Move::RawType16>(value));
     }
@@ -1416,7 +1422,9 @@ void Searcher::sortMoves(Tree& tree) {
 void Searcher::sortRootMoves(Tree& tree) {
   auto& node = tree.nodes[tree.ply];
 
+#ifndef NO_ROOT_MOVES_SHUFFLE
   random_.shuffle(node.moves.begin(), node.moves.end());
+#endif
 
   Move ttMove = Move::none();
   TTElement tte;

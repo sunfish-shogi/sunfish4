@@ -29,7 +29,7 @@ public:
     uint64_t sample;
   };
 
-  static CONSTEXPR_CONST int MaxDepthOfNodeCount = 10;
+  static CONSTEXPR_CONST int MaxDepthOfNodeCount = 20;
 
   struct Result {
     unsigned corrected;
@@ -56,9 +56,9 @@ public:
     config_ = config;
   }
 
-  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score) override;
 
   void onIterateEnd(const Searcher& searcher, float elapsed, int depth) override;
+  void onUpdatePV(const Searcher& searcher, const PV& pv, float elapsed, int depth, Score score, int multiPV) override;
 
 private:
 

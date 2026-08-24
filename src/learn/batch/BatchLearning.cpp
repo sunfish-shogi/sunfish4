@@ -30,7 +30,7 @@ CONSTEXPR_CONST int DefaultDepth = 2;
 CONSTEXPR_CONST float DefaultNorm = 1.0e-2f;
 
 CONSTEXPR_CONST int MaximumUpdateCount = 64;
-CONSTEXPR_CONST int MinimumUpdateCount = 8;
+CONSTEXPR_CONST int MinimumUpdateCount = 4;
 
 CONSTEXPR_CONST int16_t Int16Max = 32767;
 CONSTEXPR_CONST int16_t Int16Min = -32768;

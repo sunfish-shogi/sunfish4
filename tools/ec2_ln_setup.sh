@@ -11,7 +11,7 @@ echo TARGET_BRANCH=${TARGET_BRANCH}
 echo BUILD_TARGET=${BUILD_TARGET}
 echo WORK_DIR=${WORK_DIR}
 
-TRAINING_DATA_GZ_NAME=`basename ${TRAINING_DATA_GZ}`
+TRAINING_DATA_GZ_NAME=training.dat.gz
 
 YUM_PACKAGES="git gcc-c++ cmake"
 
@@ -41,7 +41,7 @@ mkdir -p ${LOCAL_BACKUP_DIR}
 cp ${CONF_FILE_PATH} ${LOCAL_BACKUP_DIR}/
 
 scp -i ${EC2_SSH_KEY} ${REMOTE_BACKUP_KEY} ec2-user@${EC2_HOST}:~/.ssh/id_rsa
-scp -i ${EC2_SSH_KEY} ${TRAINING_DATA_GZ} ec2-user@${EC2_HOST}:~/
+scp -i ${EC2_SSH_KEY} ${TRAINING_DATA_GZ} ec2-user@${EC2_HOST}:~/${TRAINING_DATA_GZ_NAME}
 scp -i ${EC2_SSH_KEY} ${CONF_FILE_PATH} ec2-user@${EC2_HOST}:~/
 if [ "x${SRC_EVAL_EX_BIN_GZ}" != "x" ]; then
 	scp -i ${EC2_SSH_KEY} ${SRC_EVAL_EX_BIN_GZ} ec2-user@${EC2_HOST}:~/${EVAL_EX_BIN_GZ}

@@ -40,9 +40,7 @@ int main(int, char**, char**) {
   }
 
   // USI client
-  UsiClient client;
+  UsiClient().start();
 
-  bool ok = client.start();
-
-  return ok ? 0 : 1;
+  return 0;
 }

@@ -13,6 +13,10 @@ bool CsaWriter::write(std::ostream& os,
                       const RecordInfo* info /*= nullptr*/) {
   if (info != nullptr) {
     os << "$EVENT:" << info->title << '\n';
+    os << "$SITE:" << info->site << '\n';
+    os << "$OPENING:" << info->opening << '\n';
+    os << "$START_TIME:" << info->startTime << '\n';
+    os << "$END_TIME:" << info->endTime << '\n';
     os << "N+" << info->blackName << '\n';
     os << "N-" << info->whiteName << '\n';
     if (info->timeLimitHours != RecordInfo::InvalidTimeValue &&

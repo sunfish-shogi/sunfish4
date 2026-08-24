@@ -3,7 +3,7 @@
 import sys
 import os
 import re
-import commands
+import subprocess
 from optparse import OptionParser
 
 FILE_MATCHER = re.compile('File \'(.*)\'')
@@ -55,14 +55,14 @@ def PrintResult(results):
   for result in results:
     maxSrcLength = max(maxSrcLength, len(result['file']))
 
-  print '    %    executable source'
-  print 'executed      lines file'
-  fmt = '  %6.2f      %5d %-' + str(maxSrcLength) + 's %s'
+  print ('    %    executable source')
+  print ('executed      lines file')
+  fmt = '  {0:6.2f}      {1:5d} {2:' + str(maxSrcLength) + '} {3}'
   for result in results:
     if result.get('executable', 0) != 0:
-      print fmt % (
+      print (fmt.format(
           result.get('executed', 0.0), result.get('executable', 0),
-          result.get('file', ''), result.get('gcov', ''))
+          result.get('file', ''), result.get('gcov', '')))
 
 def GetExecuted(item):
   return item.get('executed', 0.0)
@@ -77,7 +77,7 @@ def GenerateCovReport(buildDirectory, srcRoot, exceptDirectory, outPath):
     command = command + ' \'' + file + '\''
 
   # execute command
-  (status, output) = commands.getstatusoutput(command)
+  (status, output) = subprocess.getstatusoutput(command)
 
   if status != 0:
     raise IOError('gcov command failed.')

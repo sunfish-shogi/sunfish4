@@ -1,8 +1,8 @@
 /sunfish_*
 /out/test_result.xml
 /out/build
+/out/wasm/
 /out/date
-/vs/
 
 *.html
 *.csa
@@ -24,6 +24,11 @@
 
 # CMake
 !CMakeLists.txt
+
+# Visual Studio
+.vs
+/vs/
+/out/vs/
 
 # ec2
 /ec2_backup

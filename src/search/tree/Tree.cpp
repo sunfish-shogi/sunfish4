@@ -41,7 +41,7 @@ namespace sunfish {
 void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv, Score score, int capacity) {
   auto ite = rootPVs.begin();
   for (; ite != rootPVs.end(); ite++) {
-    if (score <= ite->score) {
+    if (ite->score < score) {
       break;
     }
   }
@@ -49,7 +49,7 @@ void insertRootPV(std::list<RootPV>& rootPVs, Move move, int depth, const PV& pv
   ite->pv.set(move, depth, pv);
   ite->score = score;
   if (rootPVs.size() > capacity) {
-    rootPVs.pop_front();
+    rootPVs.pop_back();
   }
 }
 
@@ -130,23 +130,23 @@ void addKiller(Tree& tree, Move move) {
 
   if (node.killerMove1.isNone()) {
     node.killerMove1 = move;
-    node.killerCount1 = 0;
+    node.killerCount1 = 4;
     node.killerCount2 -= 1;
   } else if (node.killerMove2.isNone()) {
     node.killerMove2 = move;
-    node.killerCount2 = 0;
+    node.killerCount2 = 4;
     node.killerCount1 -= 1;
     sortKiller(node);
   } else if (move == node.killerMove1) {
-    node.killerCount1 += 2;
+    node.killerCount1 += 1;
     node.killerCount2 -= 1;
   } else if (move == node.killerMove2) {
-    node.killerCount2 += 2;
+    node.killerCount2 += 1;
     node.killerCount1 -= 1;
     sortKiller(node);
   } else if (node.killerCount2 < 0) {
     node.killerMove2 = move;
-    node.killerCount2 = 0;
+    node.killerCount2 = 4;
     node.killerCount1 -= 1;
     sortKiller(node);
   }

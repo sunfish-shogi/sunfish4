@@ -12,13 +12,13 @@
 #include "logger/Logger.hpp"
 #include <cstdint>
 #include <cstring>
+#include <climits>
 
 namespace sunfish {
 
 using HistoryValue = int16_t;
-static CONSTEXPR_CONST int16_t HistoryLimit = 324;
+static CONSTEXPR_CONST int16_t HistoryMax = INT16_MAX / 3;
 static CONSTEXPR_CONST int16_t HistoryScale = 32;
-static CONSTEXPR_CONST int16_t HistoryMax = HistoryScale * HistoryLimit;
 
 template <int Size>
 class History {
@@ -41,7 +41,12 @@ public:
 protected:
 
   void updateByIndex(int index, HistoryValue value) {
-    hist_[index] -= hist_[index] * std::abs(int(value)) / HistoryLimit;
+    HistoryValue reduce = int32_t(hist_[index]) * (int32_t(value) + 1) / int32_t(HistoryMax / HistoryScale);
+    if (value >= 0) {
+      hist_[index] -= reduce;
+    } else {
+      hist_[index] += reduce;
+    }
     hist_[index] += HistoryScale * value;
   }
 

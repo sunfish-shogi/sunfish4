@@ -1,6 +1,0 @@
-test:
-  override:
-    - make all
-  post:
-    - mkdir -p $CIRCLE_TEST_REPORTS/sunfish_test/
-    - cp out/test_result.xml $CIRCLE_TEST_REPORTS/sunfish_test/
