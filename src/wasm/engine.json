@@ -2,7 +2,7 @@
   "abi": "shogihome-wasm-engine/1",
   "module": "sunfish4.js",
   "moduleFormat": "esm",
-  "name": "Sunfish4",
+  "name": "Sunfish4 Lite",
   "author": "Kubo, Ryosuke",
   "requiresCrossOriginIsolation": true,
   "dataFiles": [
@@ -19,8 +19,8 @@
   ],
   "presets": [
     {
-      "id": "sunfish4-wasm-v1",
-      "displayName": "Sunfish4",
+      "id": "sunfish4-lite-wasm-v1",
+      "displayName": "Sunfish4 Lite",
       "values": {}
     }
   ]

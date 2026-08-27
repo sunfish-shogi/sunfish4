@@ -2,7 +2,7 @@
 set -euo pipefail
 
 build_dir=out/build/wasm
-package_dir=out/wasm/sunfish4
+package_dir=out/wasm/sunfish4-lite
 
 rm -rf "$build_dir" "$package_dir"
 emcmake cmake -S src/wasm -B "$build_dir" -DCMAKE_BUILD_TYPE=Release
